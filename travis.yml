@@ -1,0 +1,16 @@
+sudo: false
+language: python
+python:
+- '3.4'
+- '3.5'
+- '3.6'
+install: pip install tox-travis coveralls
+script: tox
+after_success: coveralls
+deploy:
+  provider: pypi
+  user: christian.kuehnel
+  password:
+    secure: lpVC2QzACm5JicuhmxVeareZHLH4IPQsjpiMpUS6+OybZkGnIQyHI4qhcJ7TAgh4w5miwIXCNz1XFcPEZJKfpAC6WyuHiEeMZv4X2moCrFBTJZVmeBsO3UUIF+aixxeRYhR6ZX17VZczxfqF6K51L2twDmLbItzWS9mM998xOeHKqP48cSkiuU0ER8dXwZObLpLjitzxYvrtLRxpX6r5+A67rgwmsLHQyQAEMzlFURFaP7vMngEjGqIFUxXw4wEFsCXnfL4WWIo0awsJf2fYRZpYUUY4Hv2ZlspIZDojALKaRKjrEjyoxCXHG0rKmT7oPTJCPWJ+lIEMxJsZRGc7ZjDZt0GePvGDPNfaneqeQo1eBg5OqHrFe9IXlVDjNs/pV0dEJCv7fGsYHUXB5GHPLCioplT4HkDNTP9kpxAqBKMWVKCeAhB9+sLAmeuUkiH0vcZZhEJI370i5tFb3mzamdhZXIKUUHLaNgFN/XuohPPK9APYIjJl6AmtgysRgqWkpmETbTl3BrC4sMqdWPjLkUAepwGyuhL/kRKzxW0V0npwAWX9GnQdOi1dYuD50GlZOyjfxSTfFUs8ijIWEndwIeM3AiIP1OxKxTqsfY8zBwc58AMVArCGvsvjQb6PWt3JnDtcfex5GromiVzYguk04z2NGAPmqO9tDsEM8GnDM4g=
+  on:
+    tags: true
