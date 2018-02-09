@@ -5,6 +5,9 @@ See demo.py for usage.
 
 I wrote this as I want to include it in Home Assistant.
 
+[![Build Status](https://travis-ci.org/ChristianKuehnel/bimmer_connected.svg?branch=master)](https://travis-ci.org/ChristianKuehnel/bimmer_connected)
+[![Coverage Status](https://coveralls.io/repos/github/ChristianKuehnel/bimmer_connected/badge.svg?branch=master)](https://coveralls.io/github/ChristianKuehnel/bimmer_connected?branch=master)
+
 # Compatibility
 So far it is only tested with one vehicle with a "NBTEvo" navigation system. 
 If you have any trouble with other navigation systems, please create an issue.
