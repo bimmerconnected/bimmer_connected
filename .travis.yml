@@ -3,7 +3,7 @@ language: python
 install: pip install -U tox coveralls
 before_script:
   - echo 'Europe/Berlin' | sudo tee /etc/timezone
-  - sudo dpkg-reconfigure --frontend noninteractive tzdataafter_success: coveralls
+  - sudo dpkg-reconfigure --frontend noninteractive tzdata
 
 matrix:
   fast_finish: true
