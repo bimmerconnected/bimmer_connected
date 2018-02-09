@@ -1,0 +1,8 @@
+.idea
+*.pyc
+demo.sh
+.coverage
+.tox
+.pytest_cache
+bimmer_connected.egg-info
+__pycache__
