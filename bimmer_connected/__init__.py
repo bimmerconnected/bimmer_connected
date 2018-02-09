@@ -41,6 +41,7 @@ class BimmerConnected(object):
         """Get a new auth token from the server."""
         if self._token_expiration is not None and datetime.datetime.now() < self._token_expiration:
             _LOGGER.debug('Old token is still valid. Not getting a new one.')
+            return
 
         _LOGGER.debug('getting new oauth token')
         headers = {
