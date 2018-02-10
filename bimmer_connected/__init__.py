@@ -150,27 +150,27 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
 
     @property
     @backend_parameter
-    def mileage(self) -> (float, str):
+    def mileage(self) -> float:
         """Get the mileage of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self.attributes['mileage']), self.unit_of_length
+        return float(self.attributes['mileage'])
 
     @property
     @backend_parameter
-    def remaining_range_fuel(self) -> (float, str):
+    def remaining_range_fuel(self) -> float:
         """Get the remaining range of the vehicle on fuel.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self.attributes['beRemainingRangeFuel']), self.unit_of_length
+        return float(self.attributes['beRemainingRangeFuel'])
 
     @property
     @backend_parameter
-    def remaining_fuel(self) -> (float, str):
+    def remaining_fuel(self) -> float:
         """Get the remaining fuel of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self.attributes['remaining_fuel']), self.unit_of_volume
+        return float(self.attributes['remaining_fuel'])
