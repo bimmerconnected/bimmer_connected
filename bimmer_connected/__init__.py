@@ -8,8 +8,8 @@ import random
 import datetime
 import logging
 import urllib
-import requests
 from threading import Lock
+import requests
 
 AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
 VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
