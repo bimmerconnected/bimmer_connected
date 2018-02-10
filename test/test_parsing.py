@@ -77,19 +77,18 @@ class TestParsing(unittest.TestCase):
         bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
         bc.attributes = TEST_DATA['attributesMap']
 
-        self.assertEqual(1766, bc.mileage[0])
-        self.assertEqual('km', bc.mileage[1])
+        self.assertEqual(1766, bc.mileage)
+        self.assertEqual('km', bc.unit_of_length)
 
         self.assertEqual(datetime.datetime(2018, 2, 9, 20, 3, 22), bc.timestamp)
 
         self.assertAlmostEqual(38.416, bc.gps_position[0])
         self.assertAlmostEqual(23.99, bc.gps_position[1])
 
-        self.assertAlmostEqual(7, bc.remaining_fuel[0])
-        self.assertEqual('l', bc.remaining_fuel[1])
+        self.assertAlmostEqual(7, bc.remaining_fuel)
+        self.assertEqual('l', bc.unit_of_volume)
 
-        self.assertAlmostEqual(77, bc.remaining_range_fuel[0])
-        self.assertEqual('km', bc.remaining_range_fuel[1])
+        self.assertAlmostEqual(77, bc.remaining_range_fuel)
 
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
@@ -115,13 +114,13 @@ class TestParsing(unittest.TestCase):
         bc = bimmer_connected.BimmerConnected('', '', '', cache=True, cache_timeout=10)
 
         # no data -> read data
-        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual(1766, bc.mileage)
         self.assertEqual(1, mocked_update.call_count)
         # used cached data
-        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual(1766, bc.mileage)
         self.assertEqual(1, mocked_update.call_count)
 
         # cache expired -> read new data
         bc._cache_expiration = datetime.datetime.now() - datetime.timedelta(minutes=5)
-        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual(1766, bc.mileage)
         self.assertEqual(2, mocked_update.call_count)
