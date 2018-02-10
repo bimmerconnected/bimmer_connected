@@ -9,6 +9,7 @@ import datetime
 import logging
 import urllib
 import requests
+from threading import Lock
 
 AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
 VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
@@ -47,6 +48,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
         self._cache = cache
         self._cache_timeout = cache_timeout
         self._cache_expiration = datetime.datetime.now()
+        self._update_lock = Lock()
 
     def _get_oauth_token(self) -> None:
         """Get a new auth token from the server."""
@@ -112,8 +114,9 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     def _update_cache(self):
         """Update the cache if required."""
         if self.attributes is None or self._cache and datetime.datetime.now() > self._cache_expiration:
-            self.update_data()
-            self._cache_expiration = datetime.datetime.now() + datetime.timedelta(seconds=self._cache_timeout)
+            with self._update_lock:
+                self.update_data()
+                self._cache_expiration = datetime.datetime.now() + datetime.timedelta(seconds=self._cache_timeout)
 
     @staticmethod
     def _random_string(length):
