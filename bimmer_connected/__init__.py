@@ -16,26 +16,35 @@ VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
 _LOGGER = logging.getLogger(__name__)
 
 
-def none_on_keyerror(func):
-    """decorator to return None when catching a KeyError."""
-    def _func_wrapper(*args, **kwargs):
+def backend_parameter(func):
+    """Decorator for parameters reading data from the backend.
+
+    Errors are handled in a default way and updating the caching is done as required.
+    """
+    def _func_wrapper(self: 'BimmerConnected', *args, **kwargs):
+        self._update_cache()
+        if self.attributes is None:
+            raise ValueError('No data available!')
         try:
-            return func(*args, **kwargs)
+            return func(self, *args, **kwargs)
         except KeyError:
-            return None
+            raise ValueError('No data available!')
     return _func_wrapper
 
 
 class BimmerConnected(object):
     """Read data for a BMW from the Connected Driver portal."""
 
-    def __init__(self, vin: str, username: str, password: str) -> None:
+    def __init__(self, vin: str, username: str, password: str, cache=False, cache_timeout=600) -> None:
         self._vin = vin
         self._username = username
         self._password = password
         self._oauth_token = None
         self._token_expiration = None
         self.attributes = None
+        self._cache = cache
+        self._cache_timeout = cache_timeout
+        self._cache_expiration = datetime.datetime.now()
 
     def _get_oauth_token(self) -> None:
         """Get a new auth token from the server."""
@@ -98,51 +107,67 @@ class BimmerConnected(object):
         self.attributes = attributes
         _LOGGER.debug('received new data from connected drive')
 
+    def _update_cache(self):
+        """Update the cache if required."""
+        if self.attributes is None or self._cache and datetime.datetime.now() > self._cache_expiration:
+            self.update_data()
+            self._cache_expiration = datetime.datetime.now() + datetime.timedelta(seconds=self._cache_timeout)
+
     @staticmethod
     def _random_string(length):
         """Create a random string of a given length."""
         return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
     @property
-    @none_on_keyerror
+    @backend_parameter
     def timestamp(self) -> datetime.datetime:
         """Get the timestamp when the data was recorded."""
         return datetime.datetime.fromtimestamp(int(self.attributes['updateTime_converted_timestamp'])/1000)
 
     @property
-    @none_on_keyerror
-    def gps_latitude(self) -> float:
-        """Get the last known position of the vehicle."""
-        return float(self.attributes['gps_lat'])
+    @backend_parameter
+    def gps_position(self) -> (float, float):
+        """Get the last known position of the vehicle.
+
+        Returns a tuple of (latitue, longitude)"""
+        return float(self.attributes['gps_lat']), float(self.attributes['gps_lng'])
 
     @property
-    @none_on_keyerror
-    def gps_longitude(self) -> float:
-        """Get the last known position of the vehicle."""
-        return float(self.attributes['gps_lng'])
-
-    @property
-    @none_on_keyerror
+    @backend_parameter
     def unit_of_length(self) -> str:
         """Get the unit in which the length is measured."""
         return self.attributes['unitOfLength']
 
     @property
-    @none_on_keyerror
-    def mileage(self) -> float:
-        """Get the mileage of the vehicle."""
-        return float(self.attributes['mileage'])
+    @backend_parameter
+    def unit_of_volume(self) -> str:
+        """Get the unit in which the volume of fuel is measured."""
+        consumption = self.attributes['unitOfCombustionConsumption']
+        return consumption.split('/')[0]
 
     @property
-    @none_on_keyerror
-    def remaining_range_fuel(self) -> float:
-        """Get the remaining range of the vehicle on fuel."""
-        return float(self.attributes['beRemainingRangeFuel'])
+    @backend_parameter
+    def mileage(self) -> (float, str):
+        """Get the mileage of the vehicle.
+
+        Returns a tuple of (value, unit_of_measurement)
+        """
+        return float(self.attributes['mileage']), self.unit_of_length
 
     @property
-    @none_on_keyerror
-    def remaining_fuel(self) -> float:
+    @backend_parameter
+    def remaining_range_fuel(self) -> (float, str):
+        """Get the remaining range of the vehicle on fuel.
+
+        Returns a tuple of (value, unit_of_measurement)
+        """
+        return float(self.attributes['beRemainingRangeFuel']), self.unit_of_length
+
+    @property
+    @backend_parameter
+    def remaining_fuel(self) -> (float, str):
         """Get the remaining fuel of the vehicle.
 
-        Not sure if the unit is always in liters."""
-        return float(self.attributes['remaining_fuel'])
+        Returns a tuple of (value, unit_of_measurement)
+        """
+        return float(self.attributes['remaining_fuel']), self.unit_of_volume
