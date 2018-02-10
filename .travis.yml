@@ -1,19 +1,25 @@
 sudo: false
 language: python
-python:
-- '3.4'
-- '3.5'
-- '3.6'
 install: pip install -U tox coveralls
+
+matrix:
+  fast_finish: true
+  include:
+    - python: "2.7"
+      env: TOXENV=py27
+    - python: "3.4.2"
+      env: TOXENV=py34
+    - python: "3.5"
+      env: TOXENV=py35
+    - python: "3.6"
+      env: TOXENV=py36
+    - python: "3.6"
+      env: TOXENV=flake8
+    - python: "3.6"
+      env: TOXENV=pylint
+
 before_script:
 - echo 'Europe/Berlin' | sudo tee /etc/timezone
 - sudo dpkg-reconfigure --frontend noninteractive tzdata
 script: travis_wait tox
 after_success: coveralls
-deploy:
-  provider: pypi
-  user: christian.kuehnel
-  password:
-    secure: UgQu3h8rCMmV5eyNZ56Q1Q9Rzes7KjR5siO15CKePCiIpoWGyoPo4cQ5ikDmHnV5jhHtHeBL3wUCeHNfbwbGYsRuK6wkWU8mDgo7r3ViILr4AH453GGn89md8oPklLCc4MAf6gEVNvxISwkUU+grLdwCyABa7b5iVD/i3sBWVH7GzKpSZczgbIIENLtdJVdRtVfqOQHNs/+pc/ptKiF9zaL0ur0tAT398BnD8+9dLdMj9M3bonuC6Z/IgNl4ENQzUmCqUVBYV5rTQ67uk9Tg609laWav/beiLpnMRLsldFbPlWmVMrW0us+5XxWxMM/YVBZDIkfm7fe/pZZw3Lkr/vjnH4SFnIOPa84koowW3260ywWbRKqLnTeY3MMad9xe/o2lcR7GZUYcBqFae3tedPepDCAiaGxcpCcGz7O/Pnu3GEBAxi1obeo5weuB9ke8nycTGd1Mdq3CNdv8D2RIveXYU0/2ydXaEakePoSALMhoSUvWwViha5V34SORwDJJXCvDiyV0iDjs7dpQUr40jWJfGPukAj3GtEN1n1p94ZAg6/3xKNbqebjunUXTsPW/bhYDNsOqf+xET0uajuB6RLuIhqzDCGjXMPHCqYHBevWR5tfXMU/DjPyBNJNyUprRfuD7sVAuBj7W5IWj970PNveif4vr6W6PquJej+GJQ1Y=
-  on:
-    tags: true
