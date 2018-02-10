@@ -124,7 +124,8 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     @backend_parameter
     def timestamp(self) -> datetime.datetime:
         """Get the timestamp when the data was recorded."""
-        return datetime.datetime.fromtimestamp(int(self.attributes['updateTime_converted_timestamp'])/1000)
+        unix_time = int(self.attributes['updateTime_converted_timestamp'])
+        return datetime.datetime.fromtimestamp(unix_time/1000)
 
     @property
     @backend_parameter
