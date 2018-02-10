@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='bimmer_connected',
-    version='0.0.3',
+    version='0.0.4',
     description='Library to read data from the BMW Connected Drive portal',
     url='https://github.com/ChristianKuehnel/bimmer_connected',
     author='Christian Kühnel',

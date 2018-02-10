@@ -1,4 +1,5 @@
 import unittest
+from unittest import mock
 import datetime
 import bimmer_connected
 
@@ -71,16 +72,57 @@ TEST_DATA = {'attributesMap': {
 
 class TestParsing(unittest.TestCase):
 
-    def test_parse(self):
+    def test_parse_cache(self):
         """Test if the parsing of the attributes is working."""
-        bc = bimmer_connected.BimmerConnected('', '', '')
+        bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
         bc.attributes = TEST_DATA['attributesMap']
 
-        self.assertEqual(1766, bc.mileage)
+        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual('km', bc.mileage[1])
+
         self.assertEqual(datetime.datetime(2018, 2, 9, 20, 3, 22), bc.timestamp)
-        self.assertAlmostEqual(23.99, bc.gps_longitude)
+
+        self.assertAlmostEqual(38.416, bc.gps_position[0])
+        self.assertAlmostEqual(23.99, bc.gps_position[1])
+
+        self.assertAlmostEqual(7, bc.remaining_fuel[0])
+        self.assertEqual('l', bc.remaining_fuel[1])
+
+        self.assertAlmostEqual(77, bc.remaining_range_fuel[0])
+        self.assertEqual('km', bc.remaining_range_fuel[1])
 
     def test_missing_attribute(self):
-        bc = bimmer_connected.BimmerConnected('', '', '')
+        """Test if error handling is working correctly."""
+        bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
         bc.attributes = dict()
-        self.assertIsNone(bc.mileage)
+        with self.assertRaises(ValueError):
+            bc.mileage
+
+    @mock.patch('bimmer_connected.BimmerConnected.update_data')
+    def test_no_attributes(self, _):
+        """Test if error handling is working correctly."""
+        bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
+        with self.assertRaises(ValueError):
+            bc.mileage
+
+    @mock.patch('bimmer_connected.BimmerConnected.update_data', autospec=True)
+    def test_caching(self, mocked_update):
+        """Test that data is only updated, when cache is old"""
+
+        def _mock_update_data(obj):
+            obj.attributes = TEST_DATA['attributesMap']
+        mocked_update.side_effect = _mock_update_data
+        bc = bimmer_connected.BimmerConnected('', '', '', cache=True, cache_timeout=10)
+
+        # no data -> read data
+        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual(1, mocked_update.call_count)
+        # used cached data
+        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual(1, mocked_update.call_count)
+
+        # cache expired -> read new data
+        bc._cache_expiration = datetime.datetime.now() - datetime.timedelta(minutes=5)
+        self.assertEqual(1766, bc.mileage[0])
+        self.assertEqual(2, mocked_update.call_count)
+
