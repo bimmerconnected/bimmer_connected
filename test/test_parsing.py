@@ -125,4 +125,3 @@ class TestParsing(unittest.TestCase):
         bc._cache_expiration = datetime.datetime.now() - datetime.timedelta(minutes=5)
         self.assertEqual(1766, bc.mileage[0])
         self.assertEqual(2, mocked_update.call_count)
-

@@ -22,7 +22,7 @@ def backend_parameter(func):
     Errors are handled in a default way and updating the caching is done as required.
     """
     def _func_wrapper(self: 'BimmerConnected', *args, **kwargs):
-        self._update_cache()
+        self._update_cache()  # pylint: disable=protected-access
         if self.attributes is None:
             raise ValueError('No data available!')
         try:
@@ -32,10 +32,12 @@ def backend_parameter(func):
     return _func_wrapper
 
 
-class BimmerConnected(object):
+class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     """Read data for a BMW from the Connected Driver portal."""
 
+    # pylint: disable=too-many-arguments
     def __init__(self, vin: str, username: str, password: str, cache=False, cache_timeout=600) -> None:
+        """Constructor."""
         self._vin = vin
         self._username = username
         self._password = password
