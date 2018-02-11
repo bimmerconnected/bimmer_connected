@@ -1,7 +1,7 @@
 import unittest
 from unittest import mock
 import datetime
-import bimmer_connected
+from bimmer_connected.state import VehicleState
 
 TEST_DATA = {'attributesMap': {
                   'door_passenger_front': 'CLOSED',
@@ -70,12 +70,20 @@ TEST_DATA = {'attributesMap': {
                  ]}}
 
 
+class MockAccount(object):
+
+    def __init__(self):
+        self.cache = False
+        self.cache_timeout = 600
+
+
 class TestParsing(unittest.TestCase):
 
     def test_parse_cache(self):
         """Test if the parsing of the attributes is working."""
-        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=False)
-        bc.attributes = TEST_DATA['attributesMap']
+        account = MockAccount()
+        bc = VehicleState(account, None)
+        bc._attributes = TEST_DATA['attributesMap']
 
         self.assertEqual(1766, bc.mileage)
         self.assertEqual('km', bc.unit_of_length)
@@ -92,26 +100,31 @@ class TestParsing(unittest.TestCase):
 
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
-        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=False)
-        bc.attributes = dict()
+        account = MockAccount()
+        bc = VehicleState(account, None)
+        bc._attributes = dict()
         with self.assertRaises(ValueError):
             bc.mileage
 
-    @mock.patch('bimmer_connected.BimmerConnected.update_data')
+    @mock.patch('bimmer_connected.vehicle.VehicleState.update_data')
     def test_no_attributes(self, _):
         """Test if error handling is working correctly."""
-        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=False)
+        account = MockAccount()
+        bc = VehicleState(account, None)
         with self.assertRaises(ValueError):
             bc.mileage
 
-    @mock.patch('bimmer_connected.BimmerConnected.update_data', autospec=True)
+    @mock.patch('bimmer_connected.vehicle.VehicleState.update_data', autospec=True)
     def test_caching(self, mocked_update):
         """Test that data is only updated, when cache is old"""
+        account = MockAccount()
+        account.cache = True
+        account.cache_timeout = 10
 
         def _mock_update_data(obj):
-            obj.attributes = TEST_DATA['attributesMap']
+            obj._attributes = TEST_DATA['attributesMap']
         mocked_update.side_effect = _mock_update_data
-        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=True, cache_timeout=10)
+        bc = VehicleState(account, None)
 
         # no data -> read data
         self.assertEqual(1766, bc.mileage)

@@ -4,7 +4,7 @@
 import argparse
 import logging
 import json
-from bimmer_connected import BimmerConnected
+from bimmer_connected import ConnectedDriveAccount
 
 
 def main():
@@ -14,15 +14,19 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('username')
     parser.add_argument('password')
-    parser.add_argument('vin')
     parser.add_argument('country')
     args = parser.parse_args()
 
-    bimmer = BimmerConnected(args.vin, args.username, args.password, args.country)
-    bimmer.update_data()
+    account = ConnectedDriveAccount(args.username, args.password, args.country)
 
-    print('Response from the server:')
-    print(json.dumps(bimmer.attributes, indent=4))
+    print('Found {} vehicles: {}'.format(
+        len(account.vehicles),
+        ','.join([v.modelName for v in account.vehicles])))
+
+    for vehicle in account.vehicles:
+        print('VIN: {}'.format(vehicle.vin))
+        print('Response from the server:')
+        print(json.dumps(vehicle.state.attributes, indent=4))
 
 
 if __name__ == '__main__':
