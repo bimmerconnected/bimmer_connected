@@ -1,9 +1,9 @@
 # bimmer_connected
-This is a simple library to query the status of your BMW from the connected drive portal.
+This is a simple library to query and control the status of your BMW from the connected drive portal.
 
-See demo.py for usage.
+See status.py and remote_light_flash.py for usage instruction.
 
-I wrote this as I want to include it in Home Assistant.
+I wrote this library as I want to include it in Home Assistant.
 
 [![Build Status](https://travis-ci.org/ChristianKuehnel/bimmer_connected.svg?branch=master)](https://travis-ci.org/ChristianKuehnel/bimmer_connected)
 [![Coverage Status](https://coveralls.io/repos/github/ChristianKuehnel/bimmer_connected/badge.svg?branch=master)](https://coveralls.io/github/ChristianKuehnel/bimmer_connected?branch=master)
@@ -12,7 +12,7 @@ I wrote this as I want to include it in Home Assistant.
 So far it is only tested with one vehicle with a "NBTEvo" navigation system. 
 If you have any trouble with other navigation systems, please create an issue.
 
-Also: If you need additional attributes parsed from the anser from the server, 
+Also: If you need additional attributes parsed from the answer from the server,
 please create and issue.
 
 
