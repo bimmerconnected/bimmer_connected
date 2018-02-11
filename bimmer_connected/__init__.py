@@ -10,17 +10,12 @@ import logging
 import urllib
 from threading import Lock
 import requests
+from bimmer_connected.RemoteServices import RemoteServices
 
 AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
 VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
-REMOTE_SERVICE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/v1/{vin}/{service}'
-
-REMOTE_LIGHT_FLASH_SERVICE = 'RLF'
 
 _LOGGER = logging.getLogger(__name__)
-
-
-
 
 
 def backend_parameter(func):
@@ -45,7 +40,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     # pylint: disable=too-many-arguments
     def __init__(self, vin: str, username: str, password: str, cache=False, cache_timeout=600) -> None:
         """Constructor."""
-        self._vin = vin
+        self.vin = vin
         self._username = username
         self._password = password
         self._oauth_token = None
@@ -55,6 +50,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
         self._cache_timeout = cache_timeout
         self._cache_expiration = datetime.datetime.now()
         self._update_lock = Lock()
+        self.remote_services = RemoteServices(self)
 
     def _get_oauth_token(self) -> None:
         """Get a new auth token from the server."""
@@ -94,9 +90,9 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     def update_data(self) -> None:
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
-        headers = self._request_header
+        headers = self.request_header
 
-        response = requests.get(VEHICLE_URL+'/dynamic/v1/{}'.format(self._vin),
+        response = requests.get(VEHICLE_URL +'/dynamic/v1/{}'.format(self.vin),
                                 headers=headers, allow_redirects=True)
 
         if response.status_code != 200:
@@ -114,31 +110,16 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
         _LOGGER.debug('received new data from connected drive')
 
     @property
-    def _request_header(self):
+    def request_header(self):
         self._get_oauth_token()
         headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer {}".format(self._oauth_token)
+            "accept": "application/json",
+            # "Content-Type": "application/json, text/plain, */*",
+            # "accept-encoding": "gzip",
+            "Authorization": "Bearer {}".format(self._oauth_token),
+            "referer": "https://www.bmw-connecteddrive.de/app/index.html",
         }
         return headers
-
-    def trigger_remote_light_flash(self):
-        self._trigger_remote_service(REMOTE_LIGHT_FLASH_SERVICE)
-
-    def _trigger_remote_service(self, service_id: str):
-        headers = self._request_header
-
-        url = REMOTE_SERVICE_URL.format({
-            'vin': self._vin,
-            'service': service_id,
-        })
-        response = requests.get(url, headers=headers)
-        if response.status_code != 200:
-            raise IOError('Unknown status code {}'.format(response.status_code))
-
-
-
-
 
     def _update_cache(self):
         """Update the cache if required."""
