@@ -4,7 +4,7 @@
 import argparse
 import logging
 import time
-from bimmer_connected import BimmerConnected
+from bimmer_connected import ConnectedDriveAccount
 from bimmer_connected.remote_services import ExecutionState
 
 
@@ -19,10 +19,12 @@ def main():
     parser.add_argument('country')
     args = parser.parse_args()
 
-    bimmer = BimmerConnected(args.vin, args.username, args.password, args.country)
-    status = bimmer.remote_services.trigger_remote_light_flash()
+    account = ConnectedDriveAccount(args.username, args.password, args.country)
+    vehicle = account.get_vehicle(args.vin)
+
+    status = vehicle.remote_services.trigger_remote_light_flash()
     while status.state != ExecutionState.EXECUTED:
-        status = bimmer.remote_services.get_remote_service_status()
+        status = vehicle.remote_services.get_remote_service_status()
         print(status.state)
         time.sleep(1)
 

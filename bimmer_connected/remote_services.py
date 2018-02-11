@@ -54,9 +54,10 @@ class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
 class RemoteServices(object):
     """Trigger remote services on a vehicle."""
 
-    def __init__(self, bimmer):
+    def __init__(self, account, vehicle):
         """Constructor."""
-        self._bimmer = bimmer
+        self._account = account
+        self._vehicle = vehicle
 
     def trigger_remote_light_flash(self):
         """Trigger the vehicle to flash its headlights."""
@@ -84,9 +85,10 @@ class RemoteServices(object):
 
         You can choose if you want a POST or a GET operation.
         """
-        headers = self._bimmer.request_header
+        headers = self._account.request_header
 
-        url = REMOTE_SERVICE_URL.format(vin=self._bimmer.vin, service=service_id.value, server=self._bimmer.server_url)
+        url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service=service_id.value,
+                                        server=self._account.server_url)
         if post:
             response = requests.post(url, headers=headers)
         else:
