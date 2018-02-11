@@ -13,8 +13,14 @@ import requests
 
 AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
 VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
+REMOTE_SERVICE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/v1/{vin}/{service}'
+
+REMOTE_LIGHT_FLASH_SERVICE = 'RLF'
 
 _LOGGER = logging.getLogger(__name__)
+
+
+
 
 
 def backend_parameter(func):
@@ -88,11 +94,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     def update_data(self) -> None:
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
-        self._get_oauth_token()
-        headers = {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer {}".format(self._oauth_token)
-            }
+        headers = self._request_header
 
         response = requests.get(VEHICLE_URL+'/dynamic/v1/{}'.format(self._vin),
                                 headers=headers, allow_redirects=True)
@@ -110,6 +112,33 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
             _LOGGER.warning(attributes)
         self.attributes = attributes
         _LOGGER.debug('received new data from connected drive')
+
+    @property
+    def _request_header(self):
+        self._get_oauth_token()
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer {}".format(self._oauth_token)
+        }
+        return headers
+
+    def trigger_remote_light_flash(self):
+        self._trigger_remote_service(REMOTE_LIGHT_FLASH_SERVICE)
+
+    def _trigger_remote_service(self, service_id: str):
+        headers = self._request_header
+
+        url = REMOTE_SERVICE_URL.format({
+            'vin': self._vin,
+            'service': service_id,
+        })
+        response = requests.get(url, headers=headers)
+        if response.status_code != 200:
+            raise IOError('Unknown status code {}'.format(response.status_code))
+
+
+
+
 
     def _update_cache(self):
         """Update the cache if required."""
