@@ -10,7 +10,7 @@ import logging
 import urllib
 from threading import Lock
 import requests
-from bimmer_connected.RemoteServices import RemoteServices
+from bimmer_connected.remote_services import RemoteServices
 
 AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
 VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
@@ -92,7 +92,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
         _LOGGER.debug('requesting new data from connected drive')
         headers = self.request_header
 
-        response = requests.get(VEHICLE_URL +'/dynamic/v1/{}'.format(self.vin),
+        response = requests.get(VEHICLE_URL + '/dynamic/v1/{}'.format(self.vin),
                                 headers=headers, allow_redirects=True)
 
         if response.status_code != 200:
@@ -111,6 +111,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
 
     @property
     def request_header(self):
+        """Generate a header for HTTP requests to the server."""
         self._get_oauth_token()
         headers = {
             "accept": "application/json",

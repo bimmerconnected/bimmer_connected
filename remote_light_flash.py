@@ -5,7 +5,7 @@ import argparse
 import logging
 import time
 from bimmer_connected import BimmerConnected
-from bimmer_connected.RemoteServices import ExecutionState
+from bimmer_connected.remote_services import ExecutionState
 
 
 def main():
