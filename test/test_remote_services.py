@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from bimmer_connected.RemoteServices import RemoteServiceStatus, ExecutionState
+from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState
 
 EXECUTION_PENDING = {
     "remoteServiceType": "RLF",

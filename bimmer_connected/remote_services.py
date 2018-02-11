@@ -3,7 +3,6 @@
 from enum import Enum
 import datetime
 import logging
-from json import JSONDecodeError
 import requests
 
 
@@ -30,7 +29,7 @@ class Services(Enum):
     REMOTE_SERVICE_STATUS = 'state/execution'
 
 
-class RemoteServiceStatus(object):
+class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
     """Wraps the status of the execution of a remote service."""
 
     def __init__(self, response: dict):
@@ -43,9 +42,9 @@ class RemoteServiceStatus(object):
     def _parse_timestamp(timestamp: str) -> datetime.datetime:
         """Parse the timestamp format from the response."""
         offset = int(timestamp[-3:])
-        tz = datetime.timezone(datetime.timedelta(hours=offset))
+        time_zone = datetime.timezone(datetime.timedelta(hours=offset))
         result = datetime.datetime.strptime(timestamp[:-3], TIME_FORMAT)
-        result.replace(tzinfo=tz)
+        result.replace(tzinfo=time_zone)
         return result
 
 
@@ -108,9 +107,8 @@ class RemoteServices(object):
         try:
             json_result = response.json()
             return RemoteServiceStatus(json_result)
-        except JSONDecodeError:
+        except ValueError:
             _LOGGER.error('Error decoding json response from the server.')
             _LOGGER.debug(response.headers)
             _LOGGER.debug(response.text)
             raise
-
