@@ -1,6 +1,6 @@
 import unittest
 import datetime
-from bimmer_connected import RemoteServices
+from bimmer_connected.RemoteServices import RemoteServiceStatus, ExecutionState
 
 EXECUTION_PENDING = {
     "remoteServiceType": "RLF",
@@ -30,6 +30,16 @@ EXECUTION_EXECUTED = {
 class TestRemoteServices(unittest.TestCase):
 
     def test_parse_timestamp(self):
-        dt = RemoteServices.RemoteServiceStatus._parse_timestamp("2018-02-11T15:10:39.465+01")
+        dt = RemoteServiceStatus._parse_timestamp("2018-02-11T15:10:39.465+01")
         expected = datetime.datetime(year=2018, month=2, day=11, hour=15, minute=10, second=39, microsecond=465000)
         self.assertEqual(expected, dt)
+
+    def test_states(self):
+        rss = RemoteServiceStatus(EXECUTION_PENDING)
+        self.assertEqual(ExecutionState.PENDING, rss.state)
+
+        rss = RemoteServiceStatus(EXECUTION_DELIVERED)
+        self.assertEqual(ExecutionState.DELIVERED, rss.state)
+
+        rss = RemoteServiceStatus(EXECUTION_EXECUTED)
+        self.assertEqual(ExecutionState.EXECUTED, rss.state)

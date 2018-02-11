@@ -14,8 +14,8 @@ class RemoteServiceStatus(object):
 
     def __init__(self, response: dict):
         self._response = response
-        self.state = response['remoteServiceStatus']
-        self.timestamp = self._parse_timestamp(response)
+        self.state = ExecutionState(response['remoteServiceStatus'])
+        self.timestamp = self._parse_timestamp(response['lastUpdate'])
 
     @staticmethod
     def _parse_timestamp(timestamp: str) -> datetime.datetime:
