@@ -11,9 +11,10 @@ import urllib
 from threading import Lock
 import requests
 from bimmer_connected.remote_services import RemoteServices
+from bimmer_connected.country_selector import CountrySelector
 
 AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
-VEHICLE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle'
+VEHICLE_URL = '{server}/api/vehicle/dynamic/v1/{vin}'
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,9 +39,11 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     """Read data for a BMW from the Connected Driver portal."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, vin: str, username: str, password: str, cache=False, cache_timeout=600) -> None:
+    def __init__(self, vin: str, username: str, password: str, country: str, cache=False, cache_timeout=600) -> None:
         """Constructor."""
         self.vin = vin
+        self._country = country
+        self._server_url = None
         self._username = username
         self._password = password
         self._oauth_token = None
@@ -92,7 +95,7 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
         _LOGGER.debug('requesting new data from connected drive')
         headers = self.request_header
 
-        response = requests.get(VEHICLE_URL + '/dynamic/v1/{}'.format(self.vin),
+        response = requests.get(VEHICLE_URL.format(server=self.server_url, vin=self.vin),
                                 headers=headers, allow_redirects=True)
 
         if response.status_code != 200:
@@ -133,6 +136,14 @@ class BimmerConnected(object):  # pylint: disable=too-many-instance-attributes
     def _random_string(length):
         """Create a random string of a given length."""
         return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
+    @property
+    def server_url(self) -> str:
+        """Get the url of the server for this country."""
+        if self._server_url is None:
+            country_sel = CountrySelector()
+            self._server_url = country_sel.get_url(self._country)
+        return self._server_url
 
     @property
     @backend_parameter

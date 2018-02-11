@@ -16,15 +16,14 @@ def main():
     parser.add_argument('username')
     parser.add_argument('password')
     parser.add_argument('vin')
+    parser.add_argument('country')
     args = parser.parse_args()
 
-    bimmer = BimmerConnected(args.vin, args.username, args.password)
-    bimmer.remote_services.trigger_remote_light_flash()
-    completed = False
-    while not completed:
+    bimmer = BimmerConnected(args.vin, args.username, args.password, args.country)
+    status = bimmer.remote_services.trigger_remote_light_flash()
+    while status.state != ExecutionState.EXECUTED:
         status = bimmer.remote_services.get_remote_service_status()
         print(status.state)
-        completed = status.state == ExecutionState.EXECUTED
         time.sleep(1)
 
 

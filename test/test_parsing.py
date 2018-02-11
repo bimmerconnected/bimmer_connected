@@ -74,7 +74,7 @@ class TestParsing(unittest.TestCase):
 
     def test_parse_cache(self):
         """Test if the parsing of the attributes is working."""
-        bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
+        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=False)
         bc.attributes = TEST_DATA['attributesMap']
 
         self.assertEqual(1766, bc.mileage)
@@ -92,7 +92,7 @@ class TestParsing(unittest.TestCase):
 
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
-        bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
+        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=False)
         bc.attributes = dict()
         with self.assertRaises(ValueError):
             bc.mileage
@@ -100,7 +100,7 @@ class TestParsing(unittest.TestCase):
     @mock.patch('bimmer_connected.BimmerConnected.update_data')
     def test_no_attributes(self, _):
         """Test if error handling is working correctly."""
-        bc = bimmer_connected.BimmerConnected('', '', '', cache=False)
+        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=False)
         with self.assertRaises(ValueError):
             bc.mileage
 
@@ -111,7 +111,7 @@ class TestParsing(unittest.TestCase):
         def _mock_update_data(obj):
             obj.attributes = TEST_DATA['attributesMap']
         mocked_update.side_effect = _mock_update_data
-        bc = bimmer_connected.BimmerConnected('', '', '', cache=True, cache_timeout=10)
+        bc = bimmer_connected.BimmerConnected('', '', '', '', cache=True, cache_timeout=10)
 
         # no data -> read data
         self.assertEqual(1766, bc.mileage)

@@ -6,8 +6,7 @@ import logging
 import requests
 
 
-REMOTE_SERVICE_URL = 'https://www.bmw-connecteddrive.de/api/vehicle/remoteservices/v1/{vin}/{service}'
-
+REMOTE_SERVICE_URL = '{server}/api/vehicle/remoteservices/v1/{vin}/{service}'
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -35,6 +34,10 @@ class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
         self._response = response
+        # the result from the service call is different from the status request
+        # we need to go one level down in the response if possible
+        if 'remoteServiceEvent' in response:
+            response = response['remoteServiceEvent']
         self.state = ExecutionState(response['remoteServiceStatus'])
         self.timestamp = self._parse_timestamp(response['lastUpdate'])
 
@@ -59,21 +62,21 @@ class RemoteServices(object):
         """Trigger the vehicle to flash its headlights."""
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(Services.REMOTE_DOOR_LOCK, post=True)
+        response = self._trigger_remote_service(Services.REMOTE_LIGHT_FLASH, post=True)
         return RemoteServiceStatus(response.json())
 
     def trigger_remote_door_lock(self):
         """Trigger the vehicle to lock its doors."""
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(Services.REMOTE_DOOR_UNLOCK, post=True)
+        response = self._trigger_remote_service(Services.REMOTE_DOOR_LOCK, post=True)
         return RemoteServiceStatus(response.json())
 
     def trigger_remote_door_unlock(self):
         """Trigger the vehicle to unlock its doors."""
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(Services.REMOTE_LIGHT_FLASH, post=True)
+        response = self._trigger_remote_service(Services.REMOTE_DOOR_UNLOCK, post=True)
         return RemoteServiceStatus(response.json())
 
     def _trigger_remote_service(self, service_id: Services, post=False) -> requests.Response:
@@ -83,7 +86,7 @@ class RemoteServices(object):
         """
         headers = self._bimmer.request_header
 
-        url = REMOTE_SERVICE_URL.format(vin=self._bimmer.vin, service=service_id)
+        url = REMOTE_SERVICE_URL.format(vin=self._bimmer.vin, service=service_id.value, server=self._bimmer.server_url)
         if post:
             response = requests.post(url, headers=headers)
         else:

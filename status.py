@@ -15,9 +15,10 @@ def main():
     parser.add_argument('username')
     parser.add_argument('password')
     parser.add_argument('vin')
+    parser.add_argument('country')
     args = parser.parse_args()
 
-    bimmer = BimmerConnected(args.vin, args.username, args.password)
+    bimmer = BimmerConnected(args.vin, args.username, args.password, args.country)
     bimmer.update_data()
 
     print('Response from the server:')
