@@ -50,7 +50,8 @@ class VehicleState(object):
             raise IOError('Unknown status code {}'.format(response.status_code))
 
         attributes = response.json()['attributesMap']
-        if attributes['head_unit'] != 'NBTEvo':
+        if attributes['head_unit'] not in ('NBTEvo', 'EntryEvo', 'NBT', 'EntryNav'):
+            # NBTEvo = M2, EntryEvo = X1, NBT = i3, EntryNav = 225xe hybrid
             _LOGGER.warning('This library is not yet tested with this type of head unit: %s. If you experience any'
                             'problems open an issue at: '
                             'https://github.com/ChristianKuehnel/bimmer_connected/issues '
@@ -89,8 +90,11 @@ class VehicleState(object):
     def gps_position(self) -> (float, float):
         """Get the last known position of the vehicle.
 
-        Returns a tuple of (latitue, longitude)"""
-        return float(self._attributes['gps_lat']), float(self._attributes['gps_lng'])
+        Returns a tuple of (latitue, longitude)
+        """
+        if self._attributes['vehicle_tracking'] == '1':
+            return float(self._attributes['gps_lat']), float(self._attributes['gps_lng'])
+        return
 
     @property
     @backend_parameter
