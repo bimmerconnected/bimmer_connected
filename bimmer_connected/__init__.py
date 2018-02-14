@@ -37,6 +37,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self.cache_timeout = cache_timeout
 
         self._get_vehicles()
+        self.update_vehicle_states()
 
     def _get_oauth_token(self) -> None:
         """Get a new auth token from the server."""
