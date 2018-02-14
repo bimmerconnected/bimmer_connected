@@ -17,7 +17,7 @@ def backend_parameter(func):
     """
     def _func_wrapper(self: 'VehicleState', *args, **kwargs):
         # pylint: disable=protected-access
-        self._update_cache()
+        self.update_cache()
         if self._attributes is None:
             raise ValueError('No data available!')
         try:
@@ -38,7 +38,7 @@ class VehicleState(object):
         self._cache_expiration = datetime.datetime.now()
         self._update_lock = Lock()
 
-    def update_data(self) -> None:
+    def _update_data(self) -> None:
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
         headers = self._account.request_header
@@ -61,11 +61,11 @@ class VehicleState(object):
         self._attributes = attributes
         _LOGGER.debug('received new data from connected drive')
 
-    def _update_cache(self):
+    def update_cache(self):
         """Update the cache if required."""
         if self._attributes is None or self._account.cache and datetime.datetime.now() > self._cache_expiration:
             with self._update_lock:
-                self.update_data()
+                self._update_data()
                 self._cache_expiration = datetime.datetime.now() + \
                     datetime.timedelta(seconds=self._account.cache_timeout)
 

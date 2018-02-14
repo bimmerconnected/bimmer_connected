@@ -106,7 +106,7 @@ class TestParsing(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc.mileage
 
-    @mock.patch('bimmer_connected.vehicle.VehicleState.update_data')
+    @mock.patch('bimmer_connected.vehicle.VehicleState._update_data')
     def test_no_attributes(self, _):
         """Test if error handling is working correctly."""
         account = MockAccount()
@@ -114,7 +114,7 @@ class TestParsing(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc.mileage
 
-    @mock.patch('bimmer_connected.vehicle.VehicleState.update_data', autospec=True)
+    @mock.patch('bimmer_connected.vehicle.VehicleState._update_data', autospec=True)
     def test_caching(self, mocked_update):
         """Test that data is only updated, when cache is old"""
         account = MockAccount()
