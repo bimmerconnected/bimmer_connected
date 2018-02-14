@@ -73,13 +73,12 @@ TEST_DATA = {'attributesMap': {
 class MockAccount(object):
 
     def __init__(self):
-        self.cache = False
-        self.cache_timeout = 600
+        pass
 
 
 class TestParsing(unittest.TestCase):
 
-    def test_parse_cache(self):
+    def test_parse(self):
         """Test if the parsing of the attributes is working."""
         account = MockAccount()
         bc = VehicleState(account, None)
@@ -106,7 +105,7 @@ class TestParsing(unittest.TestCase):
         with self.assertRaises(ValueError):
             bc.mileage
 
-    @mock.patch('bimmer_connected.vehicle.VehicleState._update_data')
+    @mock.patch('bimmer_connected.vehicle.VehicleState.update_data')
     def test_no_attributes(self, _):
         """Test if error handling is working correctly."""
         account = MockAccount()

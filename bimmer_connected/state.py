@@ -33,9 +33,8 @@ class VehicleState(object):
         self._account = account
         self._vehicle = vehicle
         self._attributes = None
-        self._cache_expiration = datetime.datetime.now()
 
-    def _update_data(self) -> None:
+    def update_data(self) -> None:
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
         headers = self._account.request_header
@@ -57,13 +56,6 @@ class VehicleState(object):
             _LOGGER.warning(attributes)
         self._attributes = attributes
         _LOGGER.debug('received new data from connected drive')
-
-    def update_cache(self):
-        """Update the cache if required."""
-        if self._attributes is None or self._account.cache and datetime.datetime.now() > self._cache_expiration:
-            self._update_data()
-            self._cache_expiration = datetime.datetime.now() + \
-                datetime.timedelta(seconds=self._account.cache_timeout)
 
     @property
     @backend_parameter
