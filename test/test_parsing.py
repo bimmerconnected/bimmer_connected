@@ -113,27 +113,3 @@ class TestParsing(unittest.TestCase):
         bc = VehicleState(account, None)
         with self.assertRaises(ValueError):
             bc.mileage
-
-    @mock.patch('bimmer_connected.vehicle.VehicleState._update_data', autospec=True)
-    def test_caching(self, mocked_update):
-        """Test that data is only updated, when cache is old"""
-        account = MockAccount()
-        account.cache = True
-        account.cache_timeout = 10
-
-        def _mock_update_data(obj):
-            obj._attributes = TEST_DATA['attributesMap']
-        mocked_update.side_effect = _mock_update_data
-        bc = VehicleState(account, None)
-
-        # no data -> read data
-        self.assertEqual(1766, bc.mileage)
-        self.assertEqual(1, mocked_update.call_count)
-        # used cached data
-        self.assertEqual(1766, bc.mileage)
-        self.assertEqual(1, mocked_update.call_count)
-
-        # cache expired -> read new data
-        bc._cache_expiration = datetime.datetime.now() - datetime.timedelta(minutes=5)
-        self.assertEqual(1766, bc.mileage)
-        self.assertEqual(2, mocked_update.call_count)

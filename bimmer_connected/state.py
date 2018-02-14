@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-from threading import Lock
 import requests
 
 _LOGGER = logging.getLogger(__name__)
@@ -13,11 +12,10 @@ VEHICLE_STATE_URL = '{server}/api/vehicle/dynamic/v1/{vin}'
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
-    Errors are handled in a default way and updating the caching is done as required.
+    Errors are handled in a default way.
     """
     def _func_wrapper(self: 'VehicleState', *args, **kwargs):
         # pylint: disable=protected-access
-        self.update_cache()
         if self._attributes is None:
             raise ValueError('No data available!')
         try:
@@ -36,7 +34,6 @@ class VehicleState(object):
         self._vehicle = vehicle
         self._attributes = None
         self._cache_expiration = datetime.datetime.now()
-        self._update_lock = Lock()
 
     def _update_data(self) -> None:
         """Read new status data from the server."""
@@ -64,10 +61,9 @@ class VehicleState(object):
     def update_cache(self):
         """Update the cache if required."""
         if self._attributes is None or self._account.cache and datetime.datetime.now() > self._cache_expiration:
-            with self._update_lock:
-                self._update_data()
-                self._cache_expiration = datetime.datetime.now() + \
-                    datetime.timedelta(seconds=self._account.cache_timeout)
+            self._update_data()
+            self._cache_expiration = datetime.datetime.now() + \
+                datetime.timedelta(seconds=self._account.cache_timeout)
 
     @property
     @backend_parameter
