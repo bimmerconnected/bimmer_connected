@@ -10,7 +10,6 @@ import logging
 import urllib
 from threading import Lock
 import requests
-from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.country_selector import CountrySelector
 from bimmer_connected.vehicle import ConnectedDriveVehicle
 
@@ -35,7 +34,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self.vehicles = []
         self._lock = Lock()
         self.cache = cache
-        self.cache_timeout = 600
+        self.cache_timeout = cache_timeout
 
         self._get_vehicles()
 
@@ -117,7 +116,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
 
         Returns None if no such vehicle is found.
         """
-        for v in self.vehicles:
-            if v.vin == vin:
-                return v
+        for car in self.vehicles:
+            if car.vin == vin:
+                return car
         return None

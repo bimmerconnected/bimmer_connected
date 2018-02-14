@@ -66,7 +66,7 @@ class VehicleState(object):
             with self._update_lock:
                 self.update_data()
                 self._cache_expiration = datetime.datetime.now() + \
-                                         datetime.timedelta(seconds=self._account.cache_timeout)
+                    datetime.timedelta(seconds=self._account.cache_timeout)
 
     @property
     @backend_parameter
