@@ -12,11 +12,15 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
     """Models state and remote services of one vehicle."""
 
     def __init__(self, account, attributes: dict) -> None:
-        """Constructur."""
+        """Constructor."""
         self._account = account
         self.attributes = attributes
         self.state = VehicleState(account, self)
         self.remote_services = RemoteServices(account, self)
+
+    def update_state(self):
+        """Update the state of a vehicle."""
+        self.state.update_cache()
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
@@ -24,3 +28,4 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         In a later version we might parse the attributes to provide a more advanced API.
         """
         return self.attributes[item]
+

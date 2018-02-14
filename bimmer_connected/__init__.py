@@ -120,3 +120,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             if car.vin == vin:
                 return car
         return None
+
+    def update_vehicle_states(self) -> None:
+        """Update the state of all vehicles."""
+        for car in self.vehicles:
+            car.update_state()
