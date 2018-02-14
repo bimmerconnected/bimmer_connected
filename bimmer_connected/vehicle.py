@@ -28,4 +28,3 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         In a later version we might parse the attributes to provide a more advanced API.
         """
         return self.attributes[item]
-
