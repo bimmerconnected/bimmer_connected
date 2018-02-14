@@ -94,7 +94,7 @@ class VehicleState(object):
         """
         if self._attributes['vehicle_tracking'] == '1':
             return float(self._attributes['gps_lat']), float(self._attributes['gps_lng'])
-        return
+        return None
 
     @property
     @backend_parameter
