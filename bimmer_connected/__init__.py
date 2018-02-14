@@ -23,7 +23,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     """Read data for a BMW from the Connected Driver portal."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, country: str, cache=False, cache_timeout=600) -> None:
+    def __init__(self, username: str, password: str, country: str) -> None:
         """Constructor."""
         self._country = country
         self._server_url = None
@@ -33,8 +33,6 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self._token_expiration = None
         self.vehicles = []
         self._lock = Lock()
-        self.cache = cache
-        self.cache_timeout = cache_timeout
 
         self._get_vehicles()
 

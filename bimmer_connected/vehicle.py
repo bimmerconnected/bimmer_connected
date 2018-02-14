@@ -20,7 +20,7 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
 
     def update_state(self):
         """Update the state of a vehicle."""
-        self.state.update_cache()
+        self.state.update_data()
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
