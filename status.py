@@ -18,6 +18,7 @@ def main():
     args = parser.parse_args()
 
     account = ConnectedDriveAccount(args.username, args.password, args.country)
+    account.update_vehicle_states()
 
     print('Found {} vehicles: {}'.format(
         len(account.vehicles),
@@ -25,6 +26,7 @@ def main():
 
     for vehicle in account.vehicles:
         print('VIN: {}'.format(vehicle.vin))
+        print('mileage: {}'.format(vehicle.state.mileage))
         print('Response from the server:')
         print(json.dumps(vehicle.state.attributes, indent=4))
 
