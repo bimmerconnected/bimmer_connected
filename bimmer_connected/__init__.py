@@ -102,6 +102,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
 
     def _get_vehicles(self):
         """Retrieve list of vehicle for the account."""
+        _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
         response = requests.get(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
 
