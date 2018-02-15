@@ -4,9 +4,11 @@ from enum import Enum
 import datetime
 import logging
 import requests
-
+import json
 
 REMOTE_SERVICE_URL = '{server}/api/vehicle/remoteservices/v1/{vin}/{service}'
+MYINFO_URL = '{server}/api/vehicle/myinfo/v1'
+
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -105,3 +107,13 @@ class RemoteServices(object):
             _LOGGER.debug(response.headers)
             _LOGGER.debug(response.text)
             raise
+
+    def send_notification(self, subject: str, message: str) -> None:
+        """Send a text notification to the vehicle."""
+        payload = {
+            'vins': [self._vehicle.vin],
+            'message': message,
+            'subject': subject}
+        data = json.dumps(payload)
+        _LOGGER.debug('Sending message: "%s"', data)
+        self._account.send_request(MYINFO_URL.format(server=self._account.server_url), data=data, post=True)

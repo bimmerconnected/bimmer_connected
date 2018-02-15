@@ -70,17 +70,19 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             self._token_expiration = datetime.datetime.now() + datetime.timedelta(seconds=expiration_time)
             _LOGGER.debug('got new token %s with expiration date %s', self._oauth_token, self._token_expiration)
 
-    @property
-    def request_header(self):
+    def request_header(self, data=None):
         """Generate a header for HTTP requests to the server."""
         self._get_oauth_token()
         headers = {
             "accept": "application/json",
-            # "Content-Type": "application/json, text/plain, */*",
-            # "accept-encoding": "gzip",
+            "accept-encoding": "gzip",
             "Authorization": "Bearer {}".format(self._oauth_token),
             "referer": "https://www.bmw-connecteddrive.de/app/index.html",
         }
+        if data is not None:
+            headers['accept'] = 'application/json, text/plain, */*'
+            headers['content-type'] = 'content-type:application/json;charset=UTF-8'
+            headers['content-length'] = str(len(data))
         return headers
 
     def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True):
@@ -90,7 +92,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         You can choose if you want a GET or POST request.
         """
         if headers is None:
-            headers = self.request_header
+            headers = self.request_header(data)
 
         if post:
             response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects)
@@ -100,7 +102,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         if response.status_code != expected_response:
             msg = 'Unknown status code {}, expected {}'.format(response.status_code, expected_response)
             _LOGGER.error(msg)
-            _LOGGER.error(response.text)
+            _LOGGER.error('response headers: %s', response.headers)
+            _LOGGER.error('text: %s', response.text)
             raise IOError(msg)
         return response
 
@@ -121,7 +124,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        response = requests.get(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
+        response = requests.get(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header())
 
         if response.status_code != 200:
             raise IOError('Unknown status code {}'.format(response.status_code))
