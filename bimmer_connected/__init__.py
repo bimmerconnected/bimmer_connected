@@ -61,13 +61,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             }
 
             data = urllib.parse.urlencode(values)
-            response = requests.post(AUTH_URL, data=data, headers=headers, allow_redirects=False)
-
-            if response.status_code != 302:
-                msg = 'Unknown status code {}'.format(response.status_code)
-                _LOGGER.error(msg)
-                _LOGGER.error(response.txt)
-                raise IOError(msg)
+            response = self.send_request(AUTH_URL, data=data, headers=headers, allow_redirects=False,
+                                         expected_response=302, post=True)
 
             url_with_token = urllib.parse.parse_qs(response.headers['Location'])
             self._oauth_token = url_with_token['access_token'][0]
@@ -87,6 +82,27 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             "referer": "https://www.bmw-connecteddrive.de/app/index.html",
         }
         return headers
+
+    def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True):
+        """Send an http request to the server.
+
+        If the http headers are not set, default headers are generated.
+        You can choose if you want a GET or POST request.
+        """
+        if headers is None:
+            headers = self.request_header
+
+        if post:
+            response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects)
+        else:
+            response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects)
+
+        if response.status_code != expected_response:
+            msg = 'Unknown status code {}, expected {}'.format(response.status_code, expected_response)
+            _LOGGER.error(msg)
+            _LOGGER.error(response.text)
+            raise IOError(msg)
+        return response
 
     @staticmethod
     def _random_string(length):

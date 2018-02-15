@@ -85,22 +85,10 @@ class RemoteServices(object):
 
         You can choose if you want a POST or a GET operation.
         """
-        headers = self._account.request_header
-
         url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service=service_id.value,
                                         server=self._account.server_url)
-        if post:
-            response = requests.post(url, headers=headers)
-        else:
-            response = requests.get(url, headers=headers)
 
-        if response.status_code != 200:
-            msg = 'Invalid status code {}'.format(response.status_code)
-            _LOGGER.error(msg)
-            _LOGGER.debug(response.headers)
-            _LOGGER.debug(response.text)
-            raise IOError(msg)
-        return response
+        return self._account.send_request(url, post=post)
 
     def get_remote_service_status(self):
         """The the execution status of the last remote service that was triggered.

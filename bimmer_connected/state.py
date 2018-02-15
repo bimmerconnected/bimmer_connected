@@ -37,16 +37,9 @@ class VehicleState(object):
     def update_data(self) -> None:
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
-        headers = self._account.request_header
 
-        response = requests.get(VEHICLE_STATE_URL.format(server=self._account.server_url, vin=self._vehicle.vin),
-                                headers=headers, allow_redirects=True)
-
-        if response.status_code != 200:
-            msg = 'Unknown status code {}'.format(response.status_code)
-            _LOGGER.error(msg)
-            _LOGGER.error(response.text)
-            raise IOError()
+        response = self._account.send_request(
+            VEHICLE_STATE_URL.format(server=self._account.server_url, vin=self._vehicle.vin))
 
         attributes = response.json()['attributesMap']
         if attributes['head_unit'] not in ('NBTEvo', 'EntryEvo', 'NBT', 'EntryNav'):
