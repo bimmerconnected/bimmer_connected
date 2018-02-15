@@ -43,7 +43,10 @@ class VehicleState(object):
                                 headers=headers, allow_redirects=True)
 
         if response.status_code != 200:
-            raise IOError('Unknown status code {}'.format(response.status_code))
+            msg = 'Unknown status code {}'.format(response.status_code)
+            _LOGGER.error(msg)
+            _LOGGER.error(response.text)
+            raise IOError()
 
         attributes = response.json()['attributesMap']
         if attributes['head_unit'] not in ('NBTEvo', 'EntryEvo', 'NBT', 'EntryNav'):

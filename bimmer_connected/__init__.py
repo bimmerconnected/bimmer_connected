@@ -64,7 +64,10 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             response = requests.post(AUTH_URL, data=data, headers=headers, allow_redirects=False)
 
             if response.status_code != 302:
-                raise IOError('Unknown status code {}'.format(response.status_code))
+                msg = 'Unknown status code {}'.format(response.status_code)
+                _LOGGER.error(msg)
+                _LOGGER.error(response.txt)
+                raise IOError(msg)
 
             url_with_token = urllib.parse.parse_qs(response.headers['Location'])
             self._oauth_token = url_with_token['access_token'][0]
