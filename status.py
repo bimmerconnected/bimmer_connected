@@ -30,6 +30,8 @@ def main():
         print('mileage: {}'.format(vehicle.state.mileage))
         print('Response from the server:')
         print(json.dumps(vehicle.state.attributes, indent=4))
+        print('vehicle specs:')
+        print(json.dumps(vehicle.specs.attributes, indent=4))
 
 
 if __name__ == '__main__':
