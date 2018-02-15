@@ -23,10 +23,10 @@ def main():
     vehicle = account.get_vehicle(args.vin)
 
     status = vehicle.remote_services.trigger_remote_light_flash()
-    while status.state != ExecutionState.EXECUTED:
-        status = vehicle.remote_services.get_remote_service_status()
-        print(status.state)
-        time.sleep(1)
+    #while status.state != ExecutionState.EXECUTED:
+    status = vehicle.remote_services.send_notification('betreff2','nachricht2')
+        #print(status.state)
+        #time.sleep(1)
 
 
 if __name__ == '__main__':
