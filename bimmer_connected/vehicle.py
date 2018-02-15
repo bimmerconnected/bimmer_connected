@@ -46,22 +46,25 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         return self.attributes[item]
 
 
-class VehicleSpecs(object):
+class VehicleSpecs(object):  # pylint: disable=too-few-public-methods
+    """Get the specifications of the vehicle"""
 
     def __init__(self, account, vehicle):
+        """Constructor."""
         self._account = account
         self._vehicle = vehicle
         self.attributes = None
 
     def update_data(self):
+        """Fetch the specification from the server."""
         url = VEHICLE_SPECS_URL.format(server=self._account.server_url, vin=self._vehicle.vin)
 
         response = self._account.send_request(url)
 
         self.attributes = dict()
         for attribute in json.loads(response.text):
-            self.attributes[attribute['key']]=attribute['value']
-    
+            self.attributes[attribute['key']] = attribute['value']
+
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
 
