@@ -127,9 +127,6 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self._get_oauth_token()
         response = self.send_request(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
 
-        if response.status_code != 200:
-            raise IOError('Unknown status code {}'.format(response.status_code))
-
         for vehicle_dict in response.json():
             self.vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
 
