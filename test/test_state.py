@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 import datetime
-from test import load_response_json
+from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
 from bimmer_connected import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState
 
@@ -49,3 +49,17 @@ class TestState(unittest.TestCase):
         state = VehicleState(account, None)
         with self.assertRaises(ValueError):
             state.mileage  # pylint: disable = pointless-statement
+
+    def test_update_data(self):
+        """Test update_data method."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+            vehicle = account.get_vehicle(G31_VIN)
+            with self.assertRaises(IOError):
+                vehicle.state.update_data()
+
+            backend_mock.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=G31_VIN),
+                                      data_file='G31_NBTevo/dynamic.json')
+            vehicle.state.update_data()
+            self.assertEqual(2201, vehicle.state.mileage)
