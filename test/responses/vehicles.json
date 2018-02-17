@@ -1,0 +1,15 @@
+[ {
+  "series" : "5",
+  "basicType" : "530I XDRIVE",
+  "bodyType" : "Touring",
+  "brand" : "BMW",
+  "modelName" : "530i xDrive",
+  "vin" : "G31_NBTEvo_VIN",
+  "dcOnly" : false,
+  "hasNavi" : true,
+  "hasSunRoof" : false,
+  "doorCount" : 5,
+  "hasRex" : false,
+  "steering" : "LEFT",
+  "driveTrain" : "CONV"
+} ]
