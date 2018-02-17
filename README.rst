@@ -2,9 +2,11 @@
 This is a simple library to query and control the status of your BMW from
 the connected drive portal.
 
-See status.py and remote_light_flash.py for usage instruction.
+See status.py and remote_light_flash.py for usage instruction or the
+`API Documentation <http://bimmer-connected.readthedocs.io/en/latest/>`_.
 
 I wrote this library as I want to include it in Home Assistant.
+
 
 # Compatibility
 So far it is only tested with one vehicle with a "NBTEvo" navigation system. 
