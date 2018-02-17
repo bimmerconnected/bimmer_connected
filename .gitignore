@@ -6,3 +6,4 @@ demo.sh
 .pytest_cache
 bimmer_connected.egg-info
 __pycache__
+.vscode
