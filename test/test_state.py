@@ -1,3 +1,5 @@
+"""Test for VehicleState."""
+
 import unittest
 from unittest import mock
 import datetime
@@ -76,7 +78,8 @@ class MockAccount(object):
         pass
 
 
-class TestParsing(unittest.TestCase):
+class TestState(unittest.TestCase):
+    """Test for VehicleState."""
 
     def test_parse(self):
         """Test if the parsing of the attributes is working."""
