@@ -70,4 +70,6 @@ class VehicleSpecs(object):  # pylint: disable=too-few-public-methods
 
         In a later version we might parse the attributes to provide a more advanced API.
         """
+        if self.attributes is None:
+            self.update_data()
         return self.attributes[item]

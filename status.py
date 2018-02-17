@@ -12,7 +12,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', action='store_true', description='log the responses from the server')
+    parser.add_argument('-l', action='store_true')
     parser.add_argument('username')
     parser.add_argument('password')
     parser.add_argument('country')
