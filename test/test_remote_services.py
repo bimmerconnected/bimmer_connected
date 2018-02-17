@@ -1,3 +1,4 @@
+"""Test for remote_services."""
 import unittest
 import datetime
 from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState
@@ -28,13 +29,18 @@ EXECUTION_EXECUTED = {
 
 
 class TestRemoteServices(unittest.TestCase):
+    """Test for remote_services."""
+
+    # pylint: disable=protected-access
 
     def test_parse_timestamp(self):
-        dt = RemoteServiceStatus._parse_timestamp("2018-02-11T15:10:39.465+01")
+        """Test parsing the timestamp format."""
+        timestamp = RemoteServiceStatus._parse_timestamp("2018-02-11T15:10:39.465+01")
         expected = datetime.datetime(year=2018, month=2, day=11, hour=15, minute=10, second=39, microsecond=465000)
-        self.assertEqual(expected, dt)
+        self.assertEqual(expected, timestamp)
 
     def test_states(self):
+        """Test parsing the different response types."""
         rss = RemoteServiceStatus(EXECUTION_PENDING)
         self.assertEqual(ExecutionState.PENDING, rss.state)
 

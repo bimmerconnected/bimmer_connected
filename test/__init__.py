@@ -6,6 +6,7 @@ import json
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'responses')
 
+
 AUTH_RESPONSE_HEADERS = {
     'X-c2b-request-id': 'SOME_ID',
     'Location': 'https://www.bmw-connecteddrive.com/app/default/static/external-dispatch.html#'
@@ -30,8 +31,16 @@ AUTH_RESPONSE_HEADERS = {
     'Content-Encoding': 'gzip', 'Connection': 'Keep-Alive'}
 
 
+def load_response_json(filename: str) -> dict:
+    """load a stored response from a file"""
+    with open(os.path.join(RESPONSE_DIR, filename)) as json_file:
+        return json.load(json_file)
+
+
 class BackendMock(object):
     """Mock for Connected Drive Backend."""
+
+    # pylint: disable=too-many-arguments
 
     def __init__(self) -> None:
         """Constructor."""
@@ -44,17 +53,18 @@ class BackendMock(object):
                          data_file='vehicles.json'),
         ]
 
-    def get(self, url: str, headers: dict=None, data: str=None, allow_redirects=None) -> 'MockResponse':
+    def get(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
         """Mock for requests.get function."""
-        self.last_request = MockRequest(url, headers, data, type='GET')
+        self.last_request = MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects)
         return self._find_response(url)
 
-    def post(self, url: str, headers: dict=None, data: str=None, allow_redirects=None) -> 'MockResponse':
+    def post(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
         """Mock for requests.post function."""
-        self.last_request = MockRequest(url, headers, data, type='GET')
+        self.last_request = MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects)
         return self._find_response(url)
 
-    def add_response(self, regex: str, data: str=None, data_file: str=None, headers=None, status_code=200) -> None:
+    def add_response(self, regex: str, data: str = None, data_file: str = None, headers: dict = None, status_code=200) \
+            -> None:
         """Add a response to the backend."""
         self.responses.append(MockResponse(regex, data, data_file, headers, status_code))
 
@@ -66,19 +76,26 @@ class BackendMock(object):
         return MockResponse(regex='', data='unknown url: {}'.format(url), status_code=404)
 
 
-class MockRequest(object):
+class MockRequest(object):  # pylint: disable=too-few-public-methods
     """Stores the attributes of a request."""
 
-    def __init__(self, url, headers, data, type=None) -> None:
+    # pylint: disable=too-many-arguments
+
+    def __init__(self, url, headers, data, request_type=None, allow_redirects=None) -> None:
         self.url = url
         self.headers = headers
         self.data = data
+        self.request_type = request_type
+        self.allow_redirects = allow_redirects
 
 
 class MockResponse(object):
     """Mocks requests.response."""
 
-    def __init__(self, regex: str, data: str=None, data_file: str=None, headers=None, status_code=200) -> None:
+    # pylint: disable=too-many-arguments
+
+    def __init__(self, regex: str, data: str = None, data_file: str = None, headers: dict = None,
+                 status_code: int = 200) -> None:
         """Constructor."""
         self.regex = re.compile(regex)
         self.status_code = status_code
@@ -87,7 +104,7 @@ class MockResponse(object):
             self.headers = dict()
 
         if data_file is not None:
-            with open(os.path.join(RESPONSE_DIR,data_file)) as response:
+            with open(os.path.join(RESPONSE_DIR, data_file)) as response:
                 self._data = response.read()
         else:
             self._data = data
