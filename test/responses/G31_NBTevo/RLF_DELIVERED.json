@@ -1,0 +1,7 @@
+{
+  "remoteServiceType" : "RLF",
+  "remoteServiceStatus" : "DELIVERED_TO_VEHICLE",
+  "eventId" : "SOME_EVENT_ID@bmw.de",
+  "created" : "2018-02-17T15:53:44.475+01",
+  "lastUpdate" : "2018-02-17T15:53:51.893+01"
+}

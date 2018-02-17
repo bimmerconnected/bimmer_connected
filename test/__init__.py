@@ -6,8 +6,12 @@ import json
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'responses')
 
+TEST_USERNAME = 'some_user'
+TEST_PASSWORD = 'my_secret'
+TEST_COUNTRY = 'Germany'
+G31_VIN = 'G31_NBTEvo_VIN'
 
-AUTH_RESPONSE_HEADERS = {
+_AUTH_RESPONSE_HEADERS = {
     'X-c2b-request-id': 'SOME_ID',
     'Location': 'https://www.bmw-connecteddrive.com/app/default/static/external-dispatch.html#'
                 'state=SOME_STATE_STRING&access_token=SOME_TOKEN_STRING&token_type=Bearer&'
@@ -47,7 +51,7 @@ class BackendMock(object):
         self.last_request = None
         self.responses = [
             MockResponse('https://customer.bmwgroup.com/gcdm/oauth/authenticate',
-                         headers=AUTH_RESPONSE_HEADERS,
+                         headers=_AUTH_RESPONSE_HEADERS,
                          status_code=302),
             MockResponse('.*/api/me/vehicles/v2',
                          data_file='vehicles.json'),
