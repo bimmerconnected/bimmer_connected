@@ -9,5 +9,5 @@ class TestCountrySelector(unittest.TestCase):
 
     def test_germany(self):
         """Try getting the url for Germany"""
-        cs = CountrySelector()
-        self.assertEqual('https://www.bmw-connecteddrive.de', cs.get_url('Germany'))
+        selector = CountrySelector()
+        self.assertEqual('https://www.bmw-connecteddrive.de', selector.get_url('Germany'))

@@ -23,7 +23,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     """Read data for a BMW from the Connected Driver portal."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, country: str) -> None:
+    def __init__(self, username: str, password: str, country: str, log_responses=False) -> None:
         """Constructor."""
         self._country = country
         self._server_url = None
@@ -31,6 +31,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self._password = password
         self._oauth_token = None
         self._token_expiration = None
+        self._log_responses = log_responses
         self.vehicles = []
         self._lock = Lock()
 
@@ -102,6 +103,9 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             _LOGGER.error(msg)
             _LOGGER.error(response.text)
             raise IOError(msg)
+        if self._log_responses:
+            _LOGGER.debug('headers: %s', response.headers)
+            _LOGGER.debug('text: %s', response.text)
         return response
 
     @staticmethod
@@ -121,10 +125,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        response = requests.get(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
-
-        if response.status_code != 200:
-            raise IOError('Unknown status code {}'.format(response.status_code))
+        response = self.send_request(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
 
         for vehicle_dict in response.json():
             self.vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
