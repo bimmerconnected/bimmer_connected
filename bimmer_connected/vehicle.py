@@ -1,6 +1,5 @@
 """Models state and remote services of one vehicle."""
 
-import json
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
 
@@ -62,7 +61,7 @@ class VehicleSpecs(object):  # pylint: disable=too-few-public-methods
         response = self._account.send_request(url)
 
         self.attributes = dict()
-        for attribute in json.loads(response.text):
+        for attribute in response.json():
             self.attributes[attribute['key']] = attribute['value']
 
     def __getattr__(self, item):
