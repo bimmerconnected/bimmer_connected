@@ -56,3 +56,18 @@ class TestRemoteServices(unittest.TestCase):
             response = vehicle.remote_services.trigger_remote_door_unlock()
             self.assertEqual(ExecutionState.PENDING, response.state)
             self.assertIn('/RDU', backend_mock.last_request.url)
+
+    def test_get_remote_service_status(self):
+        """Test get_remove_service_status method."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+            vehicle = account.get_vehicle(G31_VIN)
+            with self.assertRaises(IOError):
+                vehicle.remote_services.get_remote_service_status()
+
+            backend_mock.add_response(
+                '-*/api/vehicle/remoteservices/v1/{vin}/state/execution'.format(vin=G31_VIN),
+                data_file='G31_NBTevo/RLF_EXECUTED.json')
+            status = vehicle.remote_services.get_remote_service_status()
+            self.assertEqual(ExecutionState.EXECUTED, status.state)
