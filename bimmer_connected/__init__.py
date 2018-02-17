@@ -104,8 +104,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             _LOGGER.error(response.text)
             raise IOError(msg)
         if self._log_responses:
-            _LOGGER.debug('headers: {}'.format(response.headers))
-            _LOGGER.debug('text: {}'.format(response.text))
+            _LOGGER.debug('headers: %s', response.headers)
+            _LOGGER.debug('text: %s', response.text)
         return response
 
     @staticmethod
