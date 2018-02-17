@@ -33,13 +33,26 @@ class TestRemoteServices(unittest.TestCase):
         rss = RemoteServiceStatus(load_response_json('G31_NBTevo/RLF_EXECUTED.json'))
         self.assertEqual(ExecutionState.EXECUTED, rss.state)
 
-    def test_remove_light_flash(self):
+    def test_trigger_remote_services(self):
         """Test executing a remote light flash."""
         backend_mock = BackendMock()
-        backend_mock.add_response(r'.*/api/vehicle/remoteservices/v1/{vin}/RLF'.format(vin=G31_VIN),
-                                  data_file='G31_NBTevo/RLF_INITIAL_RESPONSE.json')
+        for service in ['RLF', 'RDU', 'RDL']:
+            backend_mock.add_response(r'.*/api/vehicle/remoteservices/v1/{vin}/{service}'.format(
+                vin=G31_VIN, service=service),
+                                      data_file='G31_NBTevo/RLF_INITIAL_RESPONSE.json')
 
         with mock.patch('bimmer_connected.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
             vehicle = account.get_vehicle(G31_VIN)
-            vehicle.remote_services.trigger_remote_light_flash()
+
+            response = vehicle.remote_services.trigger_remote_light_flash()
+            self.assertEqual(ExecutionState.PENDING, response.state)
+            self.assertIn('/RLF', backend_mock.last_request.url)
+
+            response = vehicle.remote_services.trigger_remote_door_lock()
+            self.assertEqual(ExecutionState.PENDING, response.state)
+            self.assertIn('/RDL', backend_mock.last_request.url)
+
+            response = vehicle.remote_services.trigger_remote_door_unlock()
+            self.assertEqual(ExecutionState.PENDING, response.state)
+            self.assertIn('/RDU', backend_mock.last_request.url)
