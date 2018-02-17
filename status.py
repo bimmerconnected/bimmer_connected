@@ -12,7 +12,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', action='store_true', description='log the responses from the server')
+    parser.add_argument('-l', action='store_true')
     parser.add_argument('username')
     parser.add_argument('password')
     parser.add_argument('country')
@@ -30,6 +30,8 @@ def main():
         print('mileage: {}'.format(vehicle.state.mileage))
         print('Response from the server:')
         print(json.dumps(vehicle.state.attributes, indent=4))
+        print('vehicle specs:')
+        print(json.dumps(vehicle.specs.attributes, indent=4))
 
 
 if __name__ == '__main__':
