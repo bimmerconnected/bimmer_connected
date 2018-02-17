@@ -1,0 +1,10 @@
+{
+  "remoteServiceEvent" : {
+    "remoteServiceType" : "RLF",
+    "remoteServiceStatus" : "PENDING",
+    "eventId" : "SOME_EVENT_ID@bmw.de",
+    "created" : "2018-02-17T15:56:34.846+01",
+    "lastUpdate" : "2018-02-17T15:56:34.846+01"
+  },
+  "nextRequestInSec" : 10
+}
