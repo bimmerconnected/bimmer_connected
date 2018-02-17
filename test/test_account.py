@@ -20,9 +20,10 @@ class TestAccount(unittest.TestCase):
         with mock.patch('bimmer_connected.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
             self.assertIsNotNone(account._oauth_token)
-            vehicles = account.vehicles
-            self.assertEqual(1, len(vehicles))
-            self.assertEqual(vehicles[0].vin, 'G31_NBTEvo_VIN')
+            self.assertEqual(1, len(account.vehicles))
+            vin = 'G31_NBTEvo_VIN'
+            vehicle = account.get_vehicle(vin)
+            self.assertEqual(vehicle.vin, vin)
 
     def test_invalid_send_response(self):
         """Test parsing the results of an invalid request"""
