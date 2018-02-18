@@ -34,8 +34,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
                 check https://www.bmw-connecteddrive.com .
                 Use the name of the countries exactly as on the website.
     :param log_responses: If log_responses is set, all responses from the server will
-                be loged into this directory. This can be used for later analysis of the different responses for different vehicles.
-
+                be loged into this directory. This can be used for later analysis of the different
+                responses for different vehicles.
     """
 
     # pylint: disable=too-many-arguments

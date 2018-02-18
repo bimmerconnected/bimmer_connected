@@ -13,14 +13,13 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', action='store_true')
     parser.add_argument('username')
     parser.add_argument('password')
     parser.add_argument('vin')
     parser.add_argument('country')
     args = parser.parse_args()
 
-    account = ConnectedDriveAccount(args.username, args.password, args.country, args.l)
+    account = ConnectedDriveAccount(args.username, args.password, args.country)
     vehicle = account.get_vehicle(args.vin)
 
     status = vehicle.remote_services.trigger_remote_light_flash()
