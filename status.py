@@ -4,7 +4,7 @@
 import argparse
 import logging
 import json
-from bimmer_connected import ConnectedDriveAccount
+from bimmer_connected.account import ConnectedDriveAccount
 
 
 def main():
