@@ -18,7 +18,7 @@ setup(
         'Programming Language :: Python :: 3.5'
     ],
     packages=find_packages(),
-    install_requires=['requests'],
+    install_requires=['requests', 'typing>=3,<4'],
     keywords='BMW Connected Drive home automation',
     zip_safe=False,
     extras_require={'testing': ['pytest']}
