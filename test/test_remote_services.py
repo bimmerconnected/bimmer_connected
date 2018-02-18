@@ -4,7 +4,7 @@ from unittest import mock
 import datetime
 from test import BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY, G31_VIN, load_response_json
 
-from bimmer_connected import ConnectedDriveAccount
+from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState
 
 
@@ -41,7 +41,7 @@ class TestRemoteServices(unittest.TestCase):
                 vin=G31_VIN, service=service),
                                       data_file='G31_NBTevo/RLF_INITIAL_RESPONSE.json')
 
-        with mock.patch('bimmer_connected.requests', new=backend_mock):
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
             vehicle = account.get_vehicle(G31_VIN)
 
@@ -60,7 +60,7 @@ class TestRemoteServices(unittest.TestCase):
     def test_get_remote_service_status(self):
         """Test get_remove_service_status method."""
         backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.requests', new=backend_mock):
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
             vehicle = account.get_vehicle(G31_VIN)
             with self.assertRaises(IOError):

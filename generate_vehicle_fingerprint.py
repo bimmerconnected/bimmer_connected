@@ -6,7 +6,7 @@ import logging
 import os
 import shutil
 
-from bimmer_connected import ConnectedDriveAccount
+from bimmer_connected.account import ConnectedDriveAccount
 
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')

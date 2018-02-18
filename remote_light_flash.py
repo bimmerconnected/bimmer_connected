@@ -4,7 +4,7 @@
 import argparse
 import logging
 import time
-from bimmer_connected import ConnectedDriveAccount
+from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.remote_services import ExecutionState
 
 
