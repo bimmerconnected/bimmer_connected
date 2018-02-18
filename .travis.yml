@@ -14,6 +14,8 @@ matrix:
     env: TOXENV=flake8
   - python: '3.6'
     env: TOXENV=pylint
+  - python: '3.6'
+    env: TOXENV=docs
 before_script:
 - echo 'Europe/Berlin' | sudo tee /etc/timezone
 - sudo dpkg-reconfigure --frontend noninteractive tzdata

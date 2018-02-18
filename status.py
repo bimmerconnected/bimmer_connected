@@ -12,13 +12,12 @@ def main():
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-l', action='store_true')
     parser.add_argument('username')
     parser.add_argument('password')
     parser.add_argument('country')
     args = parser.parse_args()
 
-    account = ConnectedDriveAccount(args.username, args.password, args.country, log_responses=args.l)
+    account = ConnectedDriveAccount(args.username, args.password, args.country)
     account.update_vehicle_states()
 
     print('Found {} vehicles: {}'.format(

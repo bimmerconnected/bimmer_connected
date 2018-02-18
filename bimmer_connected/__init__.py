@@ -1,5 +1,9 @@
 """Library to read data from the BMW Connected Drive portal.
 
+The library bimmer_connected provides a Python interface to interact
+with the BMW Connected Drive web service. It allows you to read
+the current state of the vehicle and also trigger remote services.
+
 Disclaimer:
 This library is not affiliated with or endorsed by BMW Group.
 """
@@ -22,15 +26,20 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attributes
-    """Read data for a BMW from the Connected Driver portal."""
+    """Create a new connection to the BMW Connected Drive web service.
+
+    :param username: Connected drive user name
+    :param password: Connected drive password
+    :param country: Country for which the account was created. For a list of valid countries,
+                check https://www.bmw-connecteddrive.com .
+                Use the name of the countries exactly as on the website.
+    :param log_responses: If log_responses is set, all responses from the server will
+                be loged into this directory. This can be used for later analysis of the different
+                responses for different vehicles.
+    """
 
     # pylint: disable=too-many-arguments
     def __init__(self, username: str, password: str, country: str, log_responses: str = None) -> None:
-        """Constructor.
-
-        If log_responses is set, all responses from the server will be loged into
-        this directory. This can be used for later analysis of the different responses for different vehicles.
-        """
         self._country = country
         self._server_url = None
         self._username = username
@@ -38,6 +47,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self._oauth_token = None
         self._token_expiration = None
         self._log_responses = log_responses
+        #: list of vehicles associated with this account.
         self.vehicles = []
         self._lock = Lock()
 
@@ -156,7 +166,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
         """Get vehicle with given VIN.
 
-        Returns None if no such vehicle is found.
+        :param vin: VIN of the vehicle you want to get.
+        :return: Returns None if no such vehicle is found.
         """
         for car in self.vehicles:
             if car.vin == vin:
