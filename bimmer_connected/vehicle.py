@@ -1,4 +1,5 @@
 """Models state and remote services of one vehicle."""
+from enum import Enum
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
@@ -6,11 +7,10 @@ from bimmer_connected.remote_services import RemoteServices
 # List of known attributes of a vehicle
 VEHICLE_ATTRIBUTES = [
     'series', 'vin', 'basicType', 'brand', 'hasRex', 'doorCount', 'steering', 'hasSunRoof',
-    'bodyType',
-    'dcOnly', 'driveTrain', 'hasNavi', 'modelName']
+    'bodyType', 'dcOnly', 'driveTrain', 'hasNavi', 'modelName']
 
 # List of known attributes of a vehicle spec
-VEHICLE_SPEC_ATTRIBUES = [
+VEHICLE_SPEC_ATTRIBUTES = [
     "TANK_CAPACITY", "PERFORMANCE_TOP_SPEED", "PERFORMANCE_ACCELERATION", "WEIGHT_UNLADEN",
     "WEIGHT_MAX", "WEIGHT_PERMITTED_LOAD", "WEIGHT_PERMITTED_LOAD_FRONT", "WEIGHT_PERMITTED_LOAD_REAR",
     "ENGINE_CYLINDERS", "ENGINE_VALVES", "ENGINE_STROKE", "ENGINE_BORE", "ENGINE_OUTPUT_MAX_KW",
@@ -19,6 +19,11 @@ VEHICLE_SPEC_ATTRIBUES = [
 ]
 
 VEHICLE_SPECS_URL = '{server}/api/vehicle/specs/v1/{vin}'
+
+
+class DriveTrainType(Enum):
+    """Different types of drive trains."""
+    CONVENTIONAL = 'CONV'
 
 
 class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
@@ -36,6 +41,16 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         """Update the state of a vehicle."""
         self.state.update_data()
         self.specs.update_data()
+
+    @property
+    def has_rex(self) -> bool:
+        """Check if the vehicle has a range extender."""
+        return self.attributes['hasRex'] == '1'
+
+    @property
+    def drive_train(self) -> DriveTrainType:
+        """Get the type of drive train of the vehicle."""
+        return DriveTrainType(self.attributes['driveTrain'])
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
