@@ -18,9 +18,7 @@ import requests
 
 from bimmer_connected.country_selector import CountrySelector
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-
-AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
-LIST_VEHICLES_URL = '{server}/api/me/vehicles/v2'
+from bimmer_connected.const import AUTH_URL, LIST_VEHICLES_URL
 
 _LOGGER = logging.getLogger(__name__)
 

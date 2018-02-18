@@ -1,10 +1,9 @@
 """Get the right url for the different countries."""
 import logging
 import requests
+from bimmer_connected.const import COUNTRY_SELECTION_URL
 
 _LOGGER = logging.getLogger(__name__)
-
-COUNTRY_SELECTION_URL = 'https://www.bmw-connecteddrive.com/cms/default/default/country-selection.json'
 
 
 class CountrySelector(object):  # pylint: disable=too-few-public-methods

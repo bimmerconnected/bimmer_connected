@@ -3,6 +3,7 @@ from enum import Enum
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
+from bimmer_connected.const import VEHICLE_SPECS_URL
 
 #: List of known attributes of a vehicle
 VEHICLE_ATTRIBUTES = [
@@ -17,8 +18,6 @@ VEHICLE_SPEC_ATTRIBUTES = [
     "ENGINE_OUTPUT_MAX_HP", "ENGINE_SPEED_OUTPUT_MAX", "ENGINE_TORQUE_MAX",
     "ENGINE_SPEED_TORQUE_MAX", "ENGINE_COMPRESSION",
 ]
-
-VEHICLE_SPECS_URL = '{server}/api/vehicle/specs/v1/{vin}'
 
 
 class DriveTrainType(Enum):

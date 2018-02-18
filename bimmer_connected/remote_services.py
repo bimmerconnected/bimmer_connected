@@ -4,9 +4,8 @@ from enum import Enum
 import datetime
 import logging
 import requests
+from bimmer_connected.const import REMOTE_SERVICE_URL
 
-
-REMOTE_SERVICE_URL = '{server}/api/vehicle/remoteservices/v1/{vin}/{service}'
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
