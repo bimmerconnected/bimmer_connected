@@ -20,7 +20,7 @@ class ExecutionState(Enum):
     EXECUTED = 'EXECUTED'
 
 
-class Services(Enum):
+class _Services(Enum):
     """Enumeration of possible services to be executed."""
     REMOTE_LIGHT_FLASH = 'RLF'
     REMOTE_DOOR_LOCK = 'RDL'
@@ -63,24 +63,24 @@ class RemoteServices(object):
         """Trigger the vehicle to flash its headlights."""
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(Services.REMOTE_LIGHT_FLASH, post=True)
+        response = self._trigger_remote_service(_Services.REMOTE_LIGHT_FLASH, post=True)
         return RemoteServiceStatus(response.json())
 
     def trigger_remote_door_lock(self):
         """Trigger the vehicle to lock its doors."""
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(Services.REMOTE_DOOR_LOCK, post=True)
+        response = self._trigger_remote_service(_Services.REMOTE_DOOR_LOCK, post=True)
         return RemoteServiceStatus(response.json())
 
     def trigger_remote_door_unlock(self):
         """Trigger the vehicle to unlock its doors."""
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(Services.REMOTE_DOOR_UNLOCK, post=True)
+        response = self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
         return RemoteServiceStatus(response.json())
 
-    def _trigger_remote_service(self, service_id: Services, post=False) -> requests.Response:
+    def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
         """Trigger a generic remote service.
 
         You can choose if you want a POST or a GET operation.
@@ -96,7 +96,7 @@ class RemoteServices(object):
         As the status changes over time, you probably need to poll this.
         Recommended polling time is AT LEAST one second as the reaction is sometimes quite slow.
         """
-        response = self._trigger_remote_service(Services.REMOTE_SERVICE_STATUS)
+        response = self._trigger_remote_service(_Services.REMOTE_SERVICE_STATUS)
         try:
             json_result = response.json()
             return RemoteServiceStatus(json_result)
