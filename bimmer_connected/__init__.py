@@ -8,8 +8,10 @@ import random
 import datetime
 import logging
 import urllib
+import os
 from threading import Lock
 import requests
+
 from bimmer_connected.country_selector import CountrySelector
 from bimmer_connected.vehicle import ConnectedDriveVehicle
 
@@ -23,8 +25,12 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     """Read data for a BMW from the Connected Driver portal."""
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, country: str, log_responses=False) -> None:
-        """Constructor."""
+    def __init__(self, username: str, password: str, country: str, log_responses: str = None) -> None:
+        """Constructor.
+
+        If log_responses is set, all responses from the server will be loged into
+        this directory. This can be used for later analysis of the different responses for different vehicles.
+        """
         self._country = country
         self._server_url = None
         self._username = username
@@ -77,8 +83,6 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self._get_oauth_token()
         headers = {
             "accept": "application/json",
-            # "Content-Type": "application/json, text/plain, */*",
-            # "accept-encoding": "gzip",
             "Authorization": "Bearer {}".format(self._oauth_token),
             "referer": "https://www.bmw-connecteddrive.de/app/index.html",
         }
@@ -103,10 +107,29 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             _LOGGER.error(msg)
             _LOGGER.error(response.text)
             raise IOError(msg)
-        if self._log_responses:
-            _LOGGER.debug('headers: %s', response.headers)
-            _LOGGER.debug('text: %s', response.text)
+        self._log_response_to_file(response, url)
         return response
+
+    def _log_response_to_file(self, response: requests.Response, url: str) -> None:
+        """If a log path is set, log all resonses to a file"""
+        if self._log_responses is None:
+            return
+
+        replacements = [
+            ('http://', ''),
+            ('https://', ''),
+            ('/', '_'),
+        ]
+
+        base_name = url.lower()
+        for replacement in replacements:
+            base_name = base_name.replace(replacement[0], replacement[1])
+
+        with open(os.path.join(self._log_responses, '{}_headers.json'.format(base_name)), 'w') as logfile:
+            logfile.write(repr(response.headers))
+
+        with open(os.path.join(self._log_responses, '{}_data.json'.format(base_name)), 'w') as logfile:
+            logfile.write(response.text)
 
     @staticmethod
     def _random_string(length):

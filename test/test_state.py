@@ -5,7 +5,7 @@ from unittest import mock
 import datetime
 from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
 from bimmer_connected import ConnectedDriveAccount
-from bimmer_connected.state import VehicleState
+from bimmer_connected.state import VehicleState, LidState, LockState
 
 TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
 
@@ -63,3 +63,41 @@ class TestState(unittest.TestCase):
                                       data_file='G31_NBTevo/dynamic.json')
             vehicle.state.update_data()
             self.assertEqual(2201, vehicle.state.mileage)
+
+    def test_lids(self):
+        """Test features around lids."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = TEST_DATA['attributesMap']
+
+        for lid in state.lids:
+            self.assertEqual(LidState.CLOSED, lid.state)
+
+        self.assertEqual(0, len(list(state.open_lids)))
+        self.assertTrue(state.all_lids_closed)
+
+        state._attributes['door_driver_front'] = LidState.OPEN
+        self.assertFalse(state.all_lids_closed)
+
+    def test_windows(self):
+        """Test features around lids."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = TEST_DATA['attributesMap']
+
+        for window in state.windows:
+            self.assertEqual(LidState.CLOSED, window.state)
+
+        self.assertEqual(0, len(list(state.open_windows)))
+        self.assertTrue(state.all_windows_closed)
+
+        state._attributes['window_driver_front'] = LidState.INTERMEDIATE
+        self.assertFalse(state.all_windows_closed)
+
+    def test_door_locks(self):
+        """Test the door locks."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = TEST_DATA['attributesMap']
+
+        self.assertEqual(LockState.SECURED, state.door_lock_state)

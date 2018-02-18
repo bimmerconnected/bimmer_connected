@@ -2,10 +2,33 @@
 
 import datetime
 import logging
+from enum import Enum
+from typing import List
+
 
 _LOGGER = logging.getLogger(__name__)
 
 VEHICLE_STATE_URL = '{server}/api/vehicle/dynamic/v1/{vin}'
+
+LIDS = ['door_driver_front', 'door_passenger_front', 'door_driver_rear', 'door_passenger_rear',
+        'hood_state', 'trunk_state']
+WINDOWS = ['window_driver_front', 'window_passenger_front', 'window_driver_rear', 'window_passenger_rear',
+           'sunroof_state']
+
+
+class LidState(Enum):
+    """Possible states of the hatch, trunk, doors, windows, sun roof."""
+    CLOSED = 'CLOSED'
+    OPEN = 'OPEN'
+    INTERMEDIATE = 'INTERMEDIATE'
+
+
+class LockState(Enum):
+    """Possible states of the door locks."""
+    LOCKED = 'LOCKED'
+    SECURED = 'SECURED'
+    SELECTIVELOCKED = 'SELECTIVELOCKED'
+    UNLOCKED = 'UNLOCKED'
 
 
 def backend_parameter(func):
@@ -73,11 +96,18 @@ class VehicleState(object):
     def gps_position(self) -> (float, float):
         """Get the last known position of the vehicle.
 
-        Returns a tuple of (latitue, longitude)
+        Returns a tuple of (latitue, longitude).
+        This only provides data, if the vehicle tracking is enabled!
         """
-        if self._attributes['vehicle_tracking'] == '1':
+        if self.is_vehicle_tracking_enabled:
             return float(self._attributes['gps_lat']), float(self._attributes['gps_lng'])
         return None
+
+    @property
+    @backend_parameter
+    def is_vehicle_tracking_enabled(self) -> bool:
+        """Check if the position tracking of the vehicle is enabled"""
+        return self._attributes['vehicle_tracking'] == '1'
 
     @property
     @backend_parameter
@@ -118,3 +148,75 @@ class VehicleState(object):
         Returns a tuple of (value, unit_of_measurement)
         """
         return float(self._attributes['remaining_fuel'])
+
+    @property
+    @backend_parameter
+    def lids(self) -> List['Lid']:
+        """Get all lids (doors+hatch+trunk) of the car."""
+        result = []
+        for lid in LIDS:
+            if lid in self._attributes:
+                result.append(Lid(lid, self._attributes[lid]))
+        return result
+
+    @property
+    def open_lids(self) -> List['Lid']:
+        """Get all open lids of the car."""
+        return [lid for lid in self.lids if not lid.is_closed]
+
+    @property
+    def all_lids_closed(self) -> bool:
+        """Check if all lids are closed."""
+        return len(list(self.open_lids)) == 0
+
+    @property
+    @backend_parameter
+    def windows(self) -> List['Window']:
+        """Get all windows (doors+sun roof) of the car."""
+        result = []
+        for lid in WINDOWS:
+            if lid in self._attributes:
+                result.append(Window(lid, self._attributes[lid]))
+        return result
+
+    @property
+    def open_windows(self) -> List['Window']:
+        """Get all open windows of the car."""
+        return [lid for lid in self.windows if not lid.is_closed]
+
+    @property
+    def all_windows_closed(self) -> bool:
+        """Check if all windows are closed."""
+        return len(list(self.open_windows)) == 0
+
+    @property
+    def door_lock_state(self) -> LockState:
+        """Get state of the door locks."""
+        return LockState(self._attributes['door_lock_state'])
+
+
+class Lid(object):  # pylint: disable=too-few-public-methods
+    """A lid of the vehicle.
+
+    Lids are: Doors + Trunk + Hatch
+    """
+
+    def __init__(self, name: str, state: str):
+        self.name = name
+        self.state = LidState(state)
+
+    @property
+    def is_closed(self) -> bool:
+        """Check if the lid is closed."""
+        return self.state == LidState.CLOSED
+
+    def __str__(self) -> str:
+        return '{}: {}'.format(self.name, self.state.value)
+
+
+class Window(Lid):  # pylint: disable=too-few-public-methods
+    """A window of the vehicle.
+
+    A windows can be a normal window of the car or the sun roof.
+    """
+    pass

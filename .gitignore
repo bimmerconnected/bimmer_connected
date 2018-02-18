@@ -7,3 +7,4 @@ demo.sh
 bimmer_connected.egg-info
 __pycache__
 .vscode
+vehicle_fingerprint
