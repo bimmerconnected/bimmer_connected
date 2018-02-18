@@ -16,6 +16,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+from bimmer_connected import const
 
 # -- Project information -----------------------------------------------------
 
@@ -24,10 +25,9 @@ copyright = '2018, Christian Kuehnel'
 author = 'Christian Kuehnel'
 
 # The short X.Y version
-version = ''
+version = const.__short_version__
 # The full version, including alpha/beta/rc tags
-release = ''
-
+release = const.__version__
 
 # -- General configuration ---------------------------------------------------
 

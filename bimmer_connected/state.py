@@ -5,10 +5,10 @@ import logging
 from enum import Enum
 from typing import List
 
+from bimmer_connected.const import VEHICLE_STATE_URL
 
 _LOGGER = logging.getLogger(__name__)
 
-VEHICLE_STATE_URL = '{server}/api/vehicle/dynamic/v1/{vin}'
 
 LIDS = ['door_driver_front', 'door_passenger_front', 'door_driver_rear', 'door_passenger_rear',
         'hood_state', 'trunk_state']

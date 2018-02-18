@@ -1,9 +1,11 @@
 """Python package description."""
 from setuptools import setup, find_packages
 
+from bimmer_connected.const import __version__ as version
+
 setup(
     name='bimmer_connected',
-    version='0.2.1',
+    version=version,
     description='Library to read data from the BMW Connected Drive portal',
     url='https://github.com/ChristianKuehnel/bimmer_connected',
     author='Christian Kühnel',
