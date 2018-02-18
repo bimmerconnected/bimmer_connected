@@ -13,8 +13,13 @@ class CountrySelector(object):  # pylint: disable=too-few-public-methods
     # cache the reply from the server
     _countries = None
 
-    def get_url(self, country: str):
-        """Get the url for a country."""
+    def get_url(self, country: str) -> str:
+        """Get the web service url for a country.
+
+        :param country: country to get the list for. For a list of valid
+                        countries, check https://www.bmw-connecteddrive.com
+                        Use the name of the countries exactly as on the website.
+        """
         if self._countries is None:
             response = self._get_json_list()
             self._countries = self._parse_response(response)

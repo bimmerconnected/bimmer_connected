@@ -8,3 +8,5 @@ bimmer_connected.egg-info
 __pycache__
 .vscode
 vehicle_fingerprint
+docs/build/html
+docs/build/doctrees
