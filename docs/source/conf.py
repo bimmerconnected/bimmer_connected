@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'bimmer_connected'
-copyright = '2018, Christian Kühnel'
-author = 'Christian Kühnel'
+copyright = '2018, Christian Kuehnel'
+author = 'Christian Kuehnel'
 
 # The short X.Y version
 version = ''
@@ -134,7 +134,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'bimmer_connected.tex', 'bimmer\\_connected Documentation',
-     'Christian Kühnel', 'manual'),
+     'Christian Kuehnel', 'manual'),
 ]
 
 
