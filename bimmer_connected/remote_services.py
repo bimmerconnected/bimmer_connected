@@ -122,7 +122,9 @@ class RemoteServices(object):
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_AIR_CONDITIONING, post=True)
-        return self._block_until_done()
+        result = self._block_until_done()
+        self._trigger_state_update()
+        return result
 
     def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
         """Trigger a generic remote service.

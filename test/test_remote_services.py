@@ -40,14 +40,14 @@ class TestRemoteServices(unittest.TestCase):
         remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
 
         services = [
-            ('RLF', 'trigger_remote_light_flash'),
-            ('RDL', 'trigger_remote_door_lock'),
-            ('RDU', 'trigger_remote_door_unlock'),
-            ('RCN', 'trigger_remote_air_conditioning'),
-            ('RHB', 'trigger_remote_horn')
+            ('RLF', 'trigger_remote_light_flash', False),
+            ('RDL', 'trigger_remote_door_lock', True),
+            ('RDU', 'trigger_remote_door_unlock', True),
+            ('RCN', 'trigger_remote_air_conditioning', True),
+            ('RHB', 'trigger_remote_horn', False)
         ]
 
-        for service, call in services:
+        for service, call, triggers_update in services:
             backend_mock = BackendMock()
 
             with mock.patch('bimmer_connected.account.requests', new=backend_mock):
@@ -68,10 +68,17 @@ class TestRemoteServices(unittest.TestCase):
                                           data_files=['G31_NBTevo/specs.json'])
 
                 account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+                mock_listener = mock.Mock(return_value=None)
+                account.add_update_listener(mock_listener)
                 vehicle = account.get_vehicle(G31_VIN)
 
                 response = getattr(vehicle.remote_services, call)()
                 self.assertEqual(ExecutionState.EXECUTED, response.state)
+
+                if triggers_update:
+                    mock_listener.assert_called_once_with()
+                else:
+                    mock_listener.assert_not_called()
 
     def test_get_remote_service_status(self):
         """Test get_remove_service_status method."""
