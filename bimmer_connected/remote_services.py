@@ -3,8 +3,8 @@
 from enum import Enum
 import datetime
 import logging
-import requests
 import time
+import requests
 from bimmer_connected.const import REMOTE_SERVICE_URL
 
 
@@ -128,4 +128,3 @@ class RemoteServices(object):
             _LOGGER.debug(response.headers)
             _LOGGER.debug(response.text)
             raise
-
