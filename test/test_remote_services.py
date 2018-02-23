@@ -43,6 +43,8 @@ class TestRemoteServices(unittest.TestCase):
             ('RLF', 'trigger_remote_light_flash'),
             ('RDL', 'trigger_remote_door_lock'),
             ('RDU', 'trigger_remote_door_unlock'),
+            ('RCN', 'trigger_remote_air_conditioning'),
+            ('RHB', 'trigger_remote_horn')
         ]
 
         for service, call in services:

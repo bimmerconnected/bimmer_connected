@@ -35,6 +35,8 @@ class _Services(Enum):
     REMOTE_DOOR_LOCK = 'RDL'
     REMOTE_DOOR_UNLOCK = 'RDU'
     REMOTE_SERVICE_STATUS = 'state/execution'
+    REMOTE_HORN = 'RHB'
+    REMOTE_AIR_CONDITIONING = 'RCN'
 
 
 class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
@@ -68,7 +70,7 @@ class RemoteServices(object):
         self._account = account
         self._vehicle = vehicle
 
-    def trigger_remote_light_flash(self):
+    def trigger_remote_light_flash(self) -> RemoteServiceStatus:
         """Trigger the vehicle to flash its headlights.
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
@@ -78,7 +80,7 @@ class RemoteServices(object):
         self._trigger_remote_service(_Services.REMOTE_LIGHT_FLASH, post=True)
         return self._block_until_done()
 
-    def trigger_remote_door_lock(self):
+    def trigger_remote_door_lock(self) -> RemoteServiceStatus:
         """Trigger the vehicle to lock its doors.
 
         A state update is triggered after this, as the lock state of the vehicle changes.
@@ -90,7 +92,7 @@ class RemoteServices(object):
         self._trigger_state_update()
         return result
 
-    def trigger_remote_door_unlock(self):
+    def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
         """Trigger the vehicle to unlock its doors.
 
         A state update is triggered after this, as the lock state of the vehicle changes.
@@ -101,6 +103,26 @@ class RemoteServices(object):
         result = self._block_until_done()
         self._trigger_state_update()
         return result
+
+    def trigger_remote_horn(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to sound its horn.
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
+        _LOGGER.debug('Triggering remote light flash')
+        # needs to be called via POST, GET is not working
+        self._trigger_remote_service(_Services.REMOTE_HORN, post=True)
+        return self._block_until_done()
+
+    def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to sound its horn.
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
+        _LOGGER.debug('Triggering remote light flash')
+        # needs to be called via POST, GET is not working
+        self._trigger_remote_service(_Services.REMOTE_AIR_CONDITIONING, post=True)
+        return self._block_until_done()
 
     def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
         """Trigger a generic remote service.
@@ -128,7 +150,7 @@ class RemoteServices(object):
             _LOGGER.debug('current state if remote service is: %s', status.state.value)
             time.sleep(_POLLING_CYCLE)
 
-    def _get_remote_service_status(self):
+    def _get_remote_service_status(self) -> RemoteServiceStatus:
         """The the execution status of the last remote service that was triggered.
 
         As the status changes over time, you probably need to poll this.
