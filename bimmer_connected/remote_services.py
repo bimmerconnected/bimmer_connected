@@ -95,6 +95,7 @@ class RemoteServices(object):
         As the status changes over time, you probably need to poll this.
         Recommended polling time is AT LEAST one second as the reaction is sometimes quite slow.
         """
+        _LOGGER.debug('getting remote service status')
         response = self._trigger_remote_service(_Services.REMOTE_SERVICE_STATUS)
         try:
             json_result = response.json()
