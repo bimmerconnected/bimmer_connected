@@ -3,6 +3,7 @@
 import re
 import os
 import json
+from typing import List
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'responses')
 
@@ -54,7 +55,7 @@ class BackendMock(object):
                          headers=_AUTH_RESPONSE_HEADERS,
                          status_code=302),
             MockResponse('.*/api/me/vehicles/v2',
-                         data_file='vehicles.json'),
+                         data_files=['vehicles.json']),
         ]
 
     def get(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
@@ -67,10 +68,10 @@ class BackendMock(object):
         self.last_request = MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects)
         return self._find_response(url)
 
-    def add_response(self, regex: str, data: str = None, data_file: str = None, headers: dict = None, status_code=200) \
-            -> None:
+    def add_response(self, regex: str, data: str = None, data_files: List[str] = None,
+                     headers: dict = None, status_code=200) -> None:
         """Add a response to the backend."""
-        self.responses.append(MockResponse(regex, data, data_file, headers, status_code))
+        self.responses.append(MockResponse(regex, data, data_files, headers, status_code))
 
     def _find_response(self, url) -> 'MockResponse':
         """Find a proper response for a requested url."""
@@ -98,7 +99,7 @@ class MockResponse(object):
 
     # pylint: disable=too-many-arguments
 
-    def __init__(self, regex: str, data: str = None, data_file: str = None, headers: dict = None,
+    def __init__(self, regex: str, data: str = None, data_files: List[str] = None, headers: dict = None,
                  status_code: int = 200) -> None:
         """Constructor."""
         self.regex = re.compile(regex)
@@ -107,17 +108,19 @@ class MockResponse(object):
         if self.headers is None:
             self.headers = dict()
 
-        if data_file is not None:
-            with open(os.path.join(RESPONSE_DIR, data_file)) as response:
-                self._data = response.read()
+        if data_files is not None:
+            self._data = []
+            for data_file in data_files:
+                with open(os.path.join(RESPONSE_DIR, data_file)) as response:
+                    self._data.append(response.read())
         else:
-            self._data = data
+            self._data = [data]
 
     def json(self) -> dict:
         """Parse the text of the response as a jsons string."""
-        return json.loads(self._data)
+        return json.loads(self.text)
 
     @property
     def text(self) -> str:
         """Get the raw data from the response."""
-        return self._data
+        return self._data.pop(0)

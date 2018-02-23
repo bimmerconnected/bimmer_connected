@@ -4,12 +4,19 @@ from enum import Enum
 import datetime
 import logging
 import requests
+import time
 from bimmer_connected.const import REMOTE_SERVICE_URL
 
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
 _LOGGER = logging.getLogger(__name__)
+
+#: time in seconds between polling updates on the status of a remote service
+_POLLING_CYCLE = 1
+
+#: maximum number of seconds to wait for the server to return a positive answer
+_POLLING_TIMEOUT = 60
 
 
 class ExecutionState(Enum):
@@ -62,22 +69,22 @@ class RemoteServices(object):
         """Trigger the vehicle to flash its headlights."""
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(_Services.REMOTE_LIGHT_FLASH, post=True)
-        return RemoteServiceStatus(response.json())
+        self._trigger_remote_service(_Services.REMOTE_LIGHT_FLASH, post=True)
+        return self._block_until_done()
 
     def trigger_remote_door_lock(self):
         """Trigger the vehicle to lock its doors."""
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(_Services.REMOTE_DOOR_LOCK, post=True)
-        return RemoteServiceStatus(response.json())
+        self._trigger_remote_service(_Services.REMOTE_DOOR_LOCK, post=True)
+        return self._block_until_done()
 
     def trigger_remote_door_unlock(self):
         """Trigger the vehicle to unlock its doors."""
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        response = self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
-        return RemoteServiceStatus(response.json())
+        self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
+        return self._block_until_done()
 
     def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
         """Trigger a generic remote service.
@@ -89,7 +96,22 @@ class RemoteServices(object):
 
         return self._account.send_request(url, post=post)
 
-    def get_remote_service_status(self):
+    def _block_until_done(self) -> RemoteServiceStatus:
+        """Keep polling the server until we get a final answer.
+
+        :raises IOError: if there is no final answer before _POLLING_TIMEOUT
+        """
+        fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
+        while True:
+            status = self._get_remote_service_status()
+            if status.state not in [ExecutionState.PENDING, ExecutionState.DELIVERED]:
+                return status
+            if datetime.datetime.now() > fail_after:
+                raise IOError(
+                    'Timeout on getting final answer from server. Current state: {}'.format(status.state.value))
+            time.sleep(_POLLING_CYCLE)
+
+    def _get_remote_service_status(self):
         """The the execution status of the last remote service that was triggered.
 
         As the status changes over time, you probably need to poll this.
@@ -105,3 +127,4 @@ class RemoteServices(object):
             _LOGGER.debug(response.headers)
             _LOGGER.debug(response.text)
             raise
+

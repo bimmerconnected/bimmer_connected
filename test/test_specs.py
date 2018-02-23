@@ -22,7 +22,7 @@ class TestVehicleSpecs(unittest.TestCase):
         """Test with proper data."""
         backend_mock = BackendMock()
         backend_mock.add_response('.*/api/vehicle/specs/v1/{vin}'.format(vin=G31_VIN),
-                                  data_file='G31_NBTevo/specs.json')
+                                  data_files=['G31_NBTevo/specs.json'])
 
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
