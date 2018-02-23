@@ -56,8 +56,7 @@ class TestRemoteServices(unittest.TestCase):
                     data_files=[
                         'G31_NBTevo/RLF_PENDING.json',
                         'G31_NBTevo/RLF_DELIVERED.json',
-                        'G31_NBTevo/RLF_EXECUTED.json',
-                     ])
+                        'G31_NBTevo/RLF_EXECUTED.json'])
 
                 account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
                 vehicle = account.get_vehicle(G31_VIN)
