@@ -18,6 +18,9 @@ _POLLING_CYCLE = 1
 #: maximum number of seconds to wait for the server to return a positive answer
 _POLLING_TIMEOUT = 60
 
+#: time in seconds to wait before updating the vehicle state from the server
+_UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
+
 
 class ExecutionState(Enum):
     """Enumeration of possible states of the execution of a remote service."""
@@ -66,25 +69,38 @@ class RemoteServices(object):
         self._vehicle = vehicle
 
     def trigger_remote_light_flash(self):
-        """Trigger the vehicle to flash its headlights."""
+        """Trigger the vehicle to flash its headlights.
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_LIGHT_FLASH, post=True)
         return self._block_until_done()
 
     def trigger_remote_door_lock(self):
-        """Trigger the vehicle to lock its doors."""
+        """Trigger the vehicle to lock its doors.
+
+        A state update is triggered after this, as the lock state of the vehicle changes.
+        """
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_DOOR_LOCK, post=True)
-        return self._block_until_done()
+        result = self._block_until_done()
+        self._trigger_state_update()
+        return result
 
     def trigger_remote_door_unlock(self):
-        """Trigger the vehicle to unlock its doors."""
+        """Trigger the vehicle to unlock its doors.
+
+        A state update is triggered after this, as the lock state of the vehicle changes.
+        """
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
-        return self._block_until_done()
+        result = self._block_until_done()
+        self._trigger_state_update()
+        return result
 
     def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
         """Trigger a generic remote service.
@@ -128,3 +144,7 @@ class RemoteServices(object):
             _LOGGER.debug(response.headers)
             _LOGGER.debug(response.text)
             raise
+
+    def _trigger_state_update(self) -> None:
+        time.sleep(_UPDATE_AFTER_REMOTE_SERVICE_DELAY)
+        self._account.update_vehicle_states()

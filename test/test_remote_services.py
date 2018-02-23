@@ -37,6 +37,7 @@ class TestRemoteServices(unittest.TestCase):
     def test_trigger_remote_services(self):
         """Test executing a remote light flash."""
         remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
 
         services = [
             ('RLF', 'trigger_remote_light_flash'),
@@ -57,6 +58,12 @@ class TestRemoteServices(unittest.TestCase):
                         'G31_NBTevo/RLF_PENDING.json',
                         'G31_NBTevo/RLF_DELIVERED.json',
                         'G31_NBTevo/RLF_EXECUTED.json'])
+
+                backend_mock.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=G31_VIN),
+                                          data_files=['G31_NBTevo/dynamic.json'])
+
+                backend_mock.add_response('.*/api/vehicle/specs/v1/{vin}'.format(vin=G31_VIN),
+                                          data_files=['G31_NBTevo/specs.json'])
 
                 account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
                 vehicle = account.get_vehicle(G31_VIN)
