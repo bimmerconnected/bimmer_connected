@@ -14,6 +14,7 @@ import logging
 import urllib
 import os
 from threading import Lock
+from typing import Callable
 import requests
 
 from bimmer_connected.country_selector import CountrySelector
@@ -48,6 +49,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         #: list of vehicles associated with this account.
         self.vehicles = []
         self._lock = Lock()
+        self._update_listeners = []
 
         self._get_vehicles()
 
@@ -173,6 +175,15 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         return None
 
     def update_vehicle_states(self) -> None:
-        """Update the state of all vehicles."""
+        """Update the state of all vehicles.
+
+        Notify all listeners of the vehicle state update.
+        """
         for car in self.vehicles:
             car.update_state()
+        for listener in self._update_listeners:
+            listener()
+
+    def add_update_listener(self, listener: Callable) -> None:
+        """Add a listener for state updates."""
+        self._update_listeners.append(listener)

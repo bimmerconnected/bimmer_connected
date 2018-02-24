@@ -60,7 +60,7 @@ class TestState(unittest.TestCase):
                 vehicle.state.update_data()
 
             backend_mock.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=G31_VIN),
-                                      data_file='G31_NBTevo/dynamic.json')
+                                      data_files=['G31_NBTevo/dynamic.json'])
             vehicle.state.update_data()
             self.assertEqual(2201, vehicle.state.mileage)
 

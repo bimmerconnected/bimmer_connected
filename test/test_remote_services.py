@@ -6,6 +6,7 @@ from test import BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY, G31_VI
 
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState
+from bimmer_connected import remote_services
 
 
 class TestRemoteServices(unittest.TestCase):
@@ -35,39 +36,62 @@ class TestRemoteServices(unittest.TestCase):
 
     def test_trigger_remote_services(self):
         """Test executing a remote light flash."""
-        backend_mock = BackendMock()
-        for service in ['RLF', 'RDU', 'RDL']:
-            backend_mock.add_response(r'.*/api/vehicle/remoteservices/v1/{vin}/{service}'.format(
-                vin=G31_VIN, service=service),
-                                      data_file='G31_NBTevo/RLF_INITIAL_RESPONSE.json')
+        remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
 
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
-            vehicle = account.get_vehicle(G31_VIN)
+        services = [
+            ('RLF', 'trigger_remote_light_flash', False),
+            ('RDL', 'trigger_remote_door_lock', True),
+            ('RDU', 'trigger_remote_door_unlock', True),
+            ('RCN', 'trigger_remote_air_conditioning', True),
+            ('RHB', 'trigger_remote_horn', False)
+        ]
 
-            response = vehicle.remote_services.trigger_remote_light_flash()
-            self.assertEqual(ExecutionState.PENDING, response.state)
-            self.assertIn('/RLF', backend_mock.last_request.url)
+        for service, call, triggers_update in services:
+            backend_mock = BackendMock()
 
-            response = vehicle.remote_services.trigger_remote_door_lock()
-            self.assertEqual(ExecutionState.PENDING, response.state)
-            self.assertIn('/RDL', backend_mock.last_request.url)
+            with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+                backend_mock.add_response(r'.*/api/vehicle/remoteservices/v1/{vin}/{service}'.format(
+                    vin=G31_VIN, service=service), data_files=['G31_NBTevo/RLF_INITIAL_RESPONSE.json'])
 
-            response = vehicle.remote_services.trigger_remote_door_unlock()
-            self.assertEqual(ExecutionState.PENDING, response.state)
-            self.assertIn('/RDU', backend_mock.last_request.url)
+                backend_mock.add_response(
+                    '.*/api/vehicle/remoteservices/v1/{vin}/state/execution'.format(vin=G31_VIN),
+                    data_files=[
+                        'G31_NBTevo/RLF_PENDING.json',
+                        'G31_NBTevo/RLF_DELIVERED.json',
+                        'G31_NBTevo/RLF_EXECUTED.json'])
+
+                backend_mock.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=G31_VIN),
+                                          data_files=['G31_NBTevo/dynamic.json'])
+
+                backend_mock.add_response('.*/api/vehicle/specs/v1/{vin}'.format(vin=G31_VIN),
+                                          data_files=['G31_NBTevo/specs.json'])
+
+                account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+                mock_listener = mock.Mock(return_value=None)
+                account.add_update_listener(mock_listener)
+                vehicle = account.get_vehicle(G31_VIN)
+
+                response = getattr(vehicle.remote_services, call)()
+                self.assertEqual(ExecutionState.EXECUTED, response.state)
+
+                if triggers_update:
+                    mock_listener.assert_called_once_with()
+                else:
+                    mock_listener.assert_not_called()
 
     def test_get_remote_service_status(self):
         """Test get_remove_service_status method."""
         backend_mock = BackendMock()
+
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
             vehicle = account.get_vehicle(G31_VIN)
             with self.assertRaises(IOError):
-                vehicle.remote_services.get_remote_service_status()
+                vehicle.remote_services._get_remote_service_status()
 
             backend_mock.add_response(
-                '-*/api/vehicle/remoteservices/v1/{vin}/state/execution'.format(vin=G31_VIN),
-                data_file='G31_NBTevo/RLF_EXECUTED.json')
-            status = vehicle.remote_services.get_remote_service_status()
+                '.*/api/vehicle/remoteservices/v1/{vin}/state/execution'.format(vin=G31_VIN),
+                data_files=['G31_NBTevo/RLF_EXECUTED.json'])
+            status = vehicle.remote_services._get_remote_service_status()
             self.assertEqual(ExecutionState.EXECUTED, status.state)
