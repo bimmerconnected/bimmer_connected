@@ -54,6 +54,11 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         """Get the type of drive train of the vehicle."""
         return DriveTrainType(self.attributes['driveTrain'])
 
+    @property
+    def name(self):
+        """Get the name of the vehicle."""
+        return self.attributes['modelName']
+
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
 
@@ -85,11 +90,6 @@ class VehicleSpecs(object):  # pylint: disable=too-few-public-methods
             self.attributes = dict()
             for attribute in response.json():
                 self.attributes[attribute['key']] = attribute['value']
-
-    @property
-    def name(self):
-        """Get the name of the vehicle."""
-        return self.attributes['modelName']
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
