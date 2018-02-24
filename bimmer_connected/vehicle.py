@@ -86,8 +86,9 @@ class VehicleSpecs(object):  # pylint: disable=too-few-public-methods
             for attribute in response.json():
                 self.attributes[attribute['key']] = attribute['value']
 
-    @@property
+    @property
     def name(self):
+        """Get the name of the vehicle."""
         return self.attributes['modelName']
 
     def __getattr__(self, item):
