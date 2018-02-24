@@ -144,12 +144,12 @@ class RemoteServices(object):
         fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
         while True:
             status = self._get_remote_service_status()
+            _LOGGER.debug('current state if remote service is: %s', status.state.value)
             if status.state not in [ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
             if datetime.datetime.now() > fail_after:
                 raise IOError(
                     'Timeout on getting final answer from server. Current state: {}'.format(status.state.value))
-            _LOGGER.debug('current state if remote service is: %s', status.state.value)
             time.sleep(_POLLING_CYCLE)
 
     def _get_remote_service_status(self) -> RemoteServiceStatus:
