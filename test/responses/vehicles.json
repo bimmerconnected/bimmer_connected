@@ -12,4 +12,23 @@
   "hasRex" : false,
   "steering" : "LEFT",
   "driveTrain" : "CONV"
-} ]
+},
+{
+  "series" : "2",
+  "basicType" : "225XE IPERFORMANCE",
+  "bodyType" : "Gran Turismo",
+  "brand" : "BMW",
+  "modelName" : "225xe iPerformance",
+  "vin" : "F48_EntryNav_VIN",
+  "licensePlate" : "225xe",
+  "modelYearNA" : "2017",
+  "dcOnly" : false,
+  "hasNavi" : true,
+  "hasSunRoof" : false,
+  "doorCount" : 4,
+  "hasRex" : false,
+  "steering" : "LEFT",
+  "driveTrain" : "PHEV",
+  "supportedChargingModes" : [ "AC_LOW" ]
+}
+]
