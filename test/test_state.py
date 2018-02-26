@@ -7,7 +7,8 @@ from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME,
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState
 
-TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
+G31_TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
+NBT_TEST_DATA = load_response_json('unknown_NBT/dynamic.json')
 
 
 class TestState(unittest.TestCase):
@@ -15,11 +16,11 @@ class TestState(unittest.TestCase):
 
     # pylint: disable=protected-access
 
-    def test_parse(self):
+    def test_parse_g31(self):
         """Test if the parsing of the attributes is working."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
-        state._attributes = TEST_DATA['attributesMap']
+        state._attributes = G31_TEST_DATA['attributesMap']
 
         self.assertEqual(2201, state.mileage)
         self.assertEqual('km', state.unit_of_length)
@@ -34,13 +35,31 @@ class TestState(unittest.TestCase):
 
         self.assertAlmostEqual(202, state.remaining_range_fuel)
 
+    def test_parse_nbt(self):
+        """Test if the parsing of the attributes is working."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = NBT_TEST_DATA['attributesMap']
+
+        self.assertEqual(1234, state.mileage)
+        self.assertEqual('km', state.unit_of_length)
+
+        self.assertIsNone(state.timestamp)
+
+        self.assertAlmostEqual(11.111, state.gps_position[0])
+        self.assertAlmostEqual(22.222, state.gps_position[1])
+
+        self.assertAlmostEqual(66, state.remaining_fuel)
+        self.assertEqual('l', state.unit_of_volume)
+
+        self.assertIsNone(state.remaining_range_fuel)
+
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         state._attributes = dict()
-        with self.assertRaises(ValueError):
-            state.mileage  # pylint: disable = pointless-statement
+        self.assertIsNone(state.mileage)
 
     @mock.patch('bimmer_connected.vehicle.VehicleState.update_data')
     def test_no_attributes(self, _):
@@ -68,7 +87,7 @@ class TestState(unittest.TestCase):
         """Test features around lids."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
-        state._attributes = TEST_DATA['attributesMap']
+        state._attributes = G31_TEST_DATA['attributesMap']
 
         for lid in state.lids:
             self.assertEqual(LidState.CLOSED, lid.state)
@@ -83,7 +102,7 @@ class TestState(unittest.TestCase):
         """Test features around lids."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
-        state._attributes = TEST_DATA['attributesMap']
+        state._attributes = G31_TEST_DATA['attributesMap']
 
         for window in state.windows:
             self.assertEqual(LidState.CLOSED, window.state)
@@ -98,6 +117,6 @@ class TestState(unittest.TestCase):
         """Test the door locks."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
-        state._attributes = TEST_DATA['attributesMap']
+        state._attributes = G31_TEST_DATA['attributesMap']
 
         self.assertEqual(LockState.SECURED, state.door_lock_state)
