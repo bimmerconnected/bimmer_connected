@@ -1,0 +1,55 @@
+[ {
+  "key" : "TANK_CAPACITY",
+  "value" : "36.0"
+}, {
+  "key" : "PERFORMANCE_TOP_SPEED",
+  "value" : "202"
+}, {
+  "key" : "PERFORMANCE_ACCELERATION",
+  "value" : "6.7"
+}, {
+  "key" : "WEIGHT_UNLADEN",
+  "value" : "1735"
+}, {
+  "key" : "WEIGHT_MAX",
+  "value" : "2180"
+}, {
+  "key" : "WEIGHT_PERMITTED_LOAD",
+  "value" : "515"
+}, {
+  "key" : "WEIGHT_PERMITTED_LOAD_FRONT",
+  "value" : "1080"
+}, {
+  "key" : "WEIGHT_PERMITTED_LOAD_REAR",
+  "value" : "1160"
+}, {
+  "key" : "ENGINE_CYLINDERS",
+  "value" : "3"
+}, {
+  "key" : "ENGINE_VALVES",
+  "value" : "4"
+}, {
+  "key" : "ENGINE_STROKE",
+  "value" : "94.6"
+}, {
+  "key" : "ENGINE_BORE",
+  "value" : "82.0"
+}, {
+  "key" : "ENGINE_OUTPUT_MAX_KW",
+  "value" : "100"
+}, {
+  "key" : "ENGINE_OUTPUT_MAX_HP",
+  "value" : "136"
+}, {
+  "key" : "ENGINE_SPEED_OUTPUT_MAX",
+  "value" : "4400"
+}, {
+  "key" : "ENGINE_TORQUE_MAX",
+  "value" : "220"
+}, {
+  "key" : "ENGINE_SPEED_TORQUE_MAX",
+  "value" : "1250-4300"
+}, {
+  "key" : "ENGINE_COMPRESSION",
+  "value" : "11.0"
+} ]

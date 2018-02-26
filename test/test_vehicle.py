@@ -5,6 +5,7 @@ from test import load_response_json
 from bimmer_connected.vehicle import ConnectedDriveVehicle, DriveTrainType
 
 G31_VEHICLE = load_response_json('vehicles.json')[0]
+F48_VEHICLE = load_response_json('vehicles.json')[1]
 
 
 class TestVehicle(unittest.TestCase):
@@ -21,3 +22,6 @@ class TestVehicle(unittest.TestCase):
         """Tests around drive_train attribute."""
         vehicle = ConnectedDriveVehicle(None, G31_VEHICLE)
         self.assertEqual(DriveTrainType.CONVENTIONAL, vehicle.drive_train)
+
+        vehicle = ConnectedDriveVehicle(None, F48_VEHICLE)
+        self.assertEqual(DriveTrainType.PHEV, vehicle.drive_train)

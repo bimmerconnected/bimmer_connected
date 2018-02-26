@@ -49,24 +49,19 @@ class TestRemoteServices(unittest.TestCase):
 
         for service, call, triggers_update in services:
             backend_mock = BackendMock()
+            backend_mock.setup_default_vehicles()
+
+            backend_mock.add_response(r'.*/api/vehicle/remoteservices/v1/{vin}/{service}'.format(
+                vin=G31_VIN, service=service), data_files=['G31_NBTevo/RLF_INITIAL_RESPONSE.json'])
+
+            backend_mock.add_response(
+                '.*/api/vehicle/remoteservices/v1/{vin}/state/execution'.format(vin=G31_VIN),
+                data_files=[
+                    'G31_NBTevo/RLF_PENDING.json',
+                    'G31_NBTevo/RLF_DELIVERED.json',
+                    'G31_NBTevo/RLF_EXECUTED.json'])
 
             with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-                backend_mock.add_response(r'.*/api/vehicle/remoteservices/v1/{vin}/{service}'.format(
-                    vin=G31_VIN, service=service), data_files=['G31_NBTevo/RLF_INITIAL_RESPONSE.json'])
-
-                backend_mock.add_response(
-                    '.*/api/vehicle/remoteservices/v1/{vin}/state/execution'.format(vin=G31_VIN),
-                    data_files=[
-                        'G31_NBTevo/RLF_PENDING.json',
-                        'G31_NBTevo/RLF_DELIVERED.json',
-                        'G31_NBTevo/RLF_EXECUTED.json'])
-
-                backend_mock.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=G31_VIN),
-                                          data_files=['G31_NBTevo/dynamic.json'])
-
-                backend_mock.add_response('.*/api/vehicle/specs/v1/{vin}'.format(vin=G31_VIN),
-                                          data_files=['G31_NBTevo/specs.json'])
-
                 account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
                 mock_listener = mock.Mock(return_value=None)
                 account.add_update_listener(mock_listener)

@@ -11,6 +11,13 @@ TEST_USERNAME = 'some_user'
 TEST_PASSWORD = 'my_secret'
 TEST_COUNTRY = 'Germany'
 G31_VIN = 'G31_NBTEvo_VIN'
+F48_VIN = 'F48_EntryNav_VIN'
+
+#: Mapping of VINs to test data directories
+TEST_VEHICLE_DATA = {
+    G31_VIN: 'G31_NBTevo',
+    F48_VIN: 'F48_EntryNav',
+}
 
 _AUTH_RESPONSE_HEADERS = {
     'X-c2b-request-id': 'SOME_ID',
@@ -79,6 +86,15 @@ class BackendMock(object):
             if response.regex.search(url):
                 return response
         return MockResponse(regex='', data='unknown url: {}'.format(url), status_code=404)
+
+    def setup_default_vehicles(self) -> None:
+        """Setup the vehicle configuration in a mock backend."""
+        for vin, path in TEST_VEHICLE_DATA.items():
+            self.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=vin),
+                              data_files=['{}/dynamic.json'.format(path)])
+
+            self.add_response('.*/api/vehicle/specs/v1/{vin}'.format(vin=vin),
+                              data_files=['{}/specs.json'.format(path)])
 
 
 class MockRequest(object):  # pylint: disable=too-few-public-methods
