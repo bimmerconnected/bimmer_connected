@@ -1,0 +1,71 @@
+{
+  "attributesMap" : {
+    "DCS_CCH_Ongoing " : null,
+    "unitOfElectricConsumption" : "kWh/100km",
+    "mileage" : "1234",
+    "head_unit_pu_software" : "07/14",
+    "gps_lat" : "11.111",
+    "head_unit" : "NBT",
+    "DCS_CCH_Activation" : null,
+    "condition_based_services" : "00001,OVERDUE,12.2018,-500,453,19,24;00100,OVERDUE,12.2018,-500,453,38,48;00002,PENDING,,140,,36,;00003,OK,4.2019,,573,,24;00032,OK,4.2019,,573,,;00033,OK,4.2019,,573,,",
+    "vehicle_tracking" : "1",
+    "remaining_fuel" : "66",
+    "lastUpdateReason" : "Error",
+    "gps_lng" : "22.222",
+    "unitOfCombustionConsumption" : "l/100km",
+    "unitOfEnergy" : "kWh",
+    "unitOfLength" : "km"
+  },
+  "vehicleMessages" : {
+    "ccmMessages" : [ ],
+    "cbsMessages" : [ {
+      "description" : "Minął termin przeglądu! Proszę jak najszybciej ustalić termin ze swoim serwisem.",
+      "text" : "Olej silnikowy",
+      "id" : 1,
+      "status" : "OVERDUE",
+      "messageType" : "CBS",
+      "date" : "12.2018",
+      "unitOfLengthRemaining" : "-500"
+    }, {
+      "description" : "Minął termin kontroli wzrokowej! Proszę ustalić termin ze swoim serwisem.",
+      "text" : "Kontrola pojazdu",
+      "id" : 100,
+      "status" : "OVERDUE",
+      "messageType" : "CBS",
+      "date" : "12.2018",
+      "unitOfLengthRemaining" : "-500"
+    }, {
+      "description" : "Zbliża się termin wymiany. Proszę ustalić termin ze swoim serwisem.",
+      "text" : "Okładz. hamulc. przód",
+      "id" : 2,
+      "status" : "PENDING",
+      "messageType" : "CBS",
+      "date" : "",
+      "unitOfLengthRemaining" : "140"
+    }, {
+      "description" : "Następna wymiana najpóźniej w podanym terminie.",
+      "text" : "Płyn hamulcowy",
+      "id" : 3,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "4.2019",
+      "unitOfLengthRemaining" : ""
+    }, {
+      "description" : "Następne obowiązkowe badanie techniczne pojazdu w podanym terminie.",
+      "text" : "§ Badan. techn. pojazdu",
+      "id" : 32,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "4.2019",
+      "unitOfLengthRemaining" : ""
+    }, {
+      "description" : "Następne obowiązkowe badanie emisji spalin najpóźniej w podanym terminie.",
+      "text" : "§ Badanie emisji spalin",
+      "id" : 33,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "4.2019",
+      "unitOfLengthRemaining" : ""
+    } ]
+  }
+}

@@ -43,7 +43,8 @@ def backend_parameter(func):
         try:
             return func(self, *args, **kwargs)
         except KeyError:
-            raise ValueError('No data available!')
+            _LOGGER.error('No data available!')
+            return None
     return _func_wrapper
 
 
