@@ -76,7 +76,7 @@ def backend_parameter(func):
     return _func_wrapper
 
 
-class VehicleState(object):
+class VehicleState(object):  # pylint: disable=too-many-public-methods
     """Models the state of a vehicle."""
 
     def __init__(self, account, vehicle):
@@ -250,6 +250,20 @@ class VehicleState(object):
                 return False
         return True
 
+    @property
+    @backend_parameter
+    def parking_lights(self) -> bool:
+        """Get status of parking lights.
+
+        :returns None if status is unknown.
+        """
+        lights = self.attributes.get('lights_parking')
+        if lights == 'ON':
+            return True
+        elif lights == 'OFF':
+            return False
+        return None
+
 
 class Lid(object):  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.
@@ -280,7 +294,7 @@ class Window(Lid):  # pylint: disable=too-few-public-methods
     pass
 
 
-class ConditionBasedServiceReport(object):
+class ConditionBasedServiceReport(object):  # pylint: disable=too-few-public-methods
     """Entry in the list of condition based services."""
 
     def __init__(self, data: str):
