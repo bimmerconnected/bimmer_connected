@@ -31,6 +31,16 @@ class LockState(Enum):
     UNLOCKED = 'UNLOCKED'
 
 
+class UpdateReason(Enum):
+    """Possible reasons for an update from the vehicle to the server."""
+    VEHICLE_SECURED = 'VEHICLE_SECURED'
+    DOORSTATECHANGED = 'DOORSTATECHANGED'
+    VEHCSHUTDOWN = 'VEHCSHUTDOWN'
+    VEHCSHUTDOWN_SECURED = 'VEHCSHUTDOWN_SECURED'
+    CHARGINGSTARTED = 'CHARGINGSTARTED'
+    ERROR = 'Error'
+
+
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -194,6 +204,12 @@ class VehicleState(object):
     def door_lock_state(self) -> LockState:
         """Get state of the door locks."""
         return LockState(self._attributes['door_lock_state'])
+
+    @property
+    @backend_parameter
+    def last_update_reason(self) -> UpdateReason:
+        """The the reason for the last state update"""
+        return UpdateReason(self._attributes['lastUpdateReason'])
 
 
 class Lid(object):  # pylint: disable=too-few-public-methods

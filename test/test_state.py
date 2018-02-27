@@ -5,7 +5,7 @@ from unittest import mock
 import datetime
 from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.state import VehicleState, LidState, LockState
+from bimmer_connected.state import VehicleState, LidState, LockState, UpdateReason
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
 NBT_TEST_DATA = load_response_json('unknown_NBT/dynamic.json')
@@ -35,6 +35,8 @@ class TestState(unittest.TestCase):
 
         self.assertAlmostEqual(202, state.remaining_range_fuel)
 
+        self.assertEqual(UpdateReason.DOORSTATECHANGED, state.last_update_reason)
+
     def test_parse_nbt(self):
         """Test if the parsing of the attributes is working."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
@@ -53,6 +55,8 @@ class TestState(unittest.TestCase):
         self.assertEqual('l', state.unit_of_volume)
 
         self.assertIsNone(state.remaining_range_fuel)
+
+        self.assertEqual(UpdateReason.ERROR, state.last_update_reason)
 
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
