@@ -99,4 +99,4 @@ class VehicleSpecs(object):  # pylint: disable=too-few-public-methods
         """
         if self.attributes is None:
             self.update_data()
-        return self.attributes[item]
+        return self.attributes.get(item, None)

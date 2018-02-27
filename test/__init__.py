@@ -12,11 +12,13 @@ TEST_PASSWORD = 'my_secret'
 TEST_COUNTRY = 'Germany'
 G31_VIN = 'G31_NBTEvo_VIN'
 F48_VIN = 'F48_EntryNav_VIN'
+F32_VIN = 'F32_NBTevo_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
     G31_VIN: 'G31_NBTevo',
     F48_VIN: 'F48_EntryNav',
+    F32_VIN: 'F32_NBTevo',
 }
 
 _AUTH_RESPONSE_HEADERS = {

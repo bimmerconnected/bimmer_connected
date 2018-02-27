@@ -1,0 +1,20 @@
+{
+  "attributesMap" : {
+    "gps_lng" : "lng",
+    "DCS_CCH_Ongoing " : null,
+    "unitOfElectricConsumption" : "kWh/100km",
+    "unitOfCombustionConsumption" : "l/100km",
+    "head_unit_pu_software" : "11/15",
+    "DCS_CCH_Activation" : null,
+    "head_unit" : "NBTEvo",
+    "gps_lat" : "lat",
+    "vehicle_tracking" : "1",
+    "unitOfEnergy" : "kWh",
+    "unitOfLength" : "km",
+    "lastUpdateReason" : "Error"
+  },
+  "vehicleMessages" : {
+    "ccmMessages" : [ ],
+    "cbsMessages" : [ ]
+  }
+}
