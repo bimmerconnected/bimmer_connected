@@ -30,5 +30,22 @@
   "steering" : "LEFT",
   "driveTrain" : "PHEV",
   "supportedChargingModes" : [ "AC_LOW" ]
+},
+{
+  "series" : "4",
+  "basicType" : "435I",
+  "bodyType" : "Convertible",
+  "brand" : "BMW",
+  "modelName" : "435i",
+  "vin" : "F32_NBTevo_VIN",
+  "licensePlate" : "BMW435",
+  "modelYearNA" : "2016",
+  "dcOnly" : false,
+  "hasNavi" : true,
+  "hasSunRoof" : false,
+  "doorCount" : 2,
+  "hasRex" : false,
+  "steering" : "LEFT",
+  "driveTrain" : "CONV"
 }
 ]

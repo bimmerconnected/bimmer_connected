@@ -2,7 +2,7 @@
 
 import unittest
 from unittest import mock
-from test import TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, F48_VIN, G31_VIN
+from test import TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, F48_VIN, G31_VIN, F32_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 
 
@@ -30,3 +30,6 @@ class TestVehicleSpecs(unittest.TestCase):
 
             vehicle = account.get_vehicle(F48_VIN)
             self.assertAlmostEqual(36.0, float(vehicle.specs.TANK_CAPACITY))
+
+            vehicle = account.get_vehicle(F32_VIN)
+            self.assertIsNone(vehicle.specs.TANK_CAPACITY)
