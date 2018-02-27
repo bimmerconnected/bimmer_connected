@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import re
 from enum import Enum
 from typing import List
 
@@ -39,6 +40,23 @@ class UpdateReason(Enum):
     VEHCSHUTDOWN_SECURED = 'VEHCSHUTDOWN_SECURED'
     CHARGINGSTARTED = 'CHARGINGSTARTED'
     ERROR = 'Error'
+
+
+#: mapping of service IDs to strings
+CONDITION_BASED_SERVICE_CODES = {
+    '00001': 'motor_oil',
+    '00003': 'brake_fluid',
+    '00017': 'vehicle_inspection',  # from BMW i3
+    '00032': 'vehicle_inspection',   # from BMW X1
+    '00100': 'car_check',
+}
+
+
+class ConditionBasedServiceStatus(Enum):
+    """Status of the condition based services."""
+    OK = 'OK'
+    OVERDUE = 'OVERDUE'
+    PENDING = 'PENDING'
 
 
 def backend_parameter(func):
@@ -211,6 +229,27 @@ class VehicleState(object):
         """The the reason for the last state update"""
         return UpdateReason(self._attributes['lastUpdateReason'])
 
+    @property
+    @backend_parameter
+    def condition_based_services(self) -> List['ConditionBasedServiceReport']:
+        """Get staus of the condition based services."""
+        if 'condition_based_services' in self.attributes:
+            cbs_str = self.attributes['condition_based_services']
+        elif 'check_control_messages' in self.attributes:
+            cbs_str = self.attributes['check_control_messages']
+            cbs_str = re.search('condition_based_services: (.*)', cbs_str).group(1)
+        else:
+            return []
+        return [ConditionBasedServiceReport(s) for s in cbs_str.split(';')]
+
+    @property
+    def are_all_cbs_ok(self) -> bool:
+        """Check if the status of all condition based services is "OK"."""
+        for cbs in self.condition_based_services:
+            if cbs.status != ConditionBasedServiceStatus.OK:
+                return False
+        return True
+
 
 class Lid(object):  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.
@@ -219,7 +258,9 @@ class Lid(object):  # pylint: disable=too-few-public-methods
     """
 
     def __init__(self, name: str, state: str):
+        #: name of the lid
         self.name = name
+        #: state of the lid
         self.state = LidState(state)
 
     @property
@@ -237,3 +278,49 @@ class Window(Lid):  # pylint: disable=too-few-public-methods
     A windows can be a normal window of the car or the sun roof.
     """
     pass
+
+
+class ConditionBasedServiceReport(object):
+    """Entry in the list of condition based services."""
+
+    def __init__(self, data: str):
+        attributes = data.split(',')
+
+        #: service code
+        self.code = attributes[0]
+
+        #: status of the service
+        self.status = ConditionBasedServiceStatus(attributes[1])
+
+        #: date when the service is due
+        self.due_date = None
+        if attributes[2] != '':
+            self.due_date = self._parse_date(attributes[2])
+
+        #: distance when the service is due
+        self.due_distance = None
+        if attributes[3] != '':
+            self.due_distance = int(attributes[3])
+
+    @property
+    def service_type(self) -> str:
+        """Translate the service code to a string."""
+        if self.code in CONDITION_BASED_SERVICE_CODES:
+            return ConditionBasedServiceStatus[self.code]
+        _LOGGER.warning('Unknown service code %s', self.code)
+        return 'unknown service code'
+
+    @staticmethod
+    def _parse_date(datestr: str) -> datetime.datetime:
+        formats = [
+            '%Y-%m',
+            '%m.%Y',
+        ]
+        for date_format in formats:
+            try:
+                date = datetime.datetime.strptime(datestr, date_format)
+                return date.replace(day=1)
+            except ValueError:
+                pass
+        _LOGGER.error('Unknown time format for CBS: %s', datestr)
+        return None
