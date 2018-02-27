@@ -9,6 +9,7 @@ from bimmer_connected.state import VehicleState, LidState, LockState, UpdateReas
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
 NBT_TEST_DATA = load_response_json('unknown_NBT/dynamic.json')
+F48_TEST_DATA = load_response_json('F48_EntryNav/dynamic.json')
 
 
 class TestState(unittest.TestCase):
@@ -49,6 +50,8 @@ class TestState(unittest.TestCase):
         self.assertEqual(datetime.datetime(year=2022, month=1, day=1), cbs[1].due_date)
         self.assertEqual(60000, cbs[1].due_distance)
 
+        self.assertFalse(state.parking_lights)
+
     def test_parse_nbt(self):
         """Test if the parsing of the attributes is working."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
@@ -80,6 +83,16 @@ class TestState(unittest.TestCase):
         self.assertEqual('00002', cbs[2].code)
         self.assertEqual(ConditionBasedServiceStatus.PENDING, cbs[2].status)
         self.assertEqual(140, cbs[2].due_distance)
+
+        self.assertIsNone(state.parking_lights)
+
+    def test_parse_f48(self):
+        """Test if the parsing of the attributes is working."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = F48_TEST_DATA['attributesMap']
+
+        self.assertTrue(state.parking_lights)
 
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
