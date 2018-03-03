@@ -5,7 +5,7 @@ from unittest import mock
 import datetime
 from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, F32_VIN
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.state import VehicleState, LidState, LockState, UpdateReason, ConditionBasedServiceStatus, \
+from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
@@ -38,7 +38,7 @@ class TestState(unittest.TestCase):
 
         self.assertAlmostEqual(202, state.remaining_range_fuel)
 
-        self.assertEqual(UpdateReason.DOORSTATECHANGED, state.last_update_reason)
+        self.assertEqual('DOORSTATECHANGED', state.last_update_reason)
 
         cbs = state.condition_based_services
         self.assertEqual(3, len(cbs))
@@ -74,7 +74,7 @@ class TestState(unittest.TestCase):
 
         self.assertIsNone(state.remaining_range_fuel)
 
-        self.assertEqual(UpdateReason.ERROR, state.last_update_reason)
+        self.assertEqual('Error', state.last_update_reason)
 
         cbs = state.condition_based_services
         self.assertEqual(6, len(cbs))
@@ -195,6 +195,7 @@ class TestState(unittest.TestCase):
                 self.assertIsNotNone(state.lids)
                 self.assertIsNotNone(state.is_vehicle_tracking_enabled)
                 self.assertIsNotNone(state.windows)
+                self.assertIsNotNone(state.condition_based_services)
 
                 if vehicle.vin != F32_VIN:
                     # these values are not available in the F32
