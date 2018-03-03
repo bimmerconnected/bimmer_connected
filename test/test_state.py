@@ -120,3 +120,14 @@ class TestState(unittest.TestCase):
         state._attributes = G31_TEST_DATA['attributesMap']
 
         self.assertEqual(LockState.SECURED, state.door_lock_state)
+
+    def test_parsing_attributes(self):
+        """Test parsing different attributes of the vehicle."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+
+        for vehicle in account.vehicles:
+            self.assertIsNotNone(vehicle.drive_train)
+            self.assertIsNotNone(vehicle.name)
+            self.assertIsNotNone(vehicle.has_rex)
