@@ -5,10 +5,12 @@ from unittest import mock
 import datetime
 from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, F32_VIN
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.state import VehicleState, LidState, LockState
+from bimmer_connected.state import VehicleState, LidState, LockState, UpdateReason, ConditionBasedServiceStatus, \
+    ParkingLightState
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
 NBT_TEST_DATA = load_response_json('unknown_NBT/dynamic.json')
+F48_TEST_DATA = load_response_json('F48_EntryNav/dynamic.json')
 
 
 class TestState(unittest.TestCase):
@@ -35,6 +37,23 @@ class TestState(unittest.TestCase):
 
         self.assertAlmostEqual(202, state.remaining_range_fuel)
 
+        self.assertEqual(UpdateReason.DOORSTATECHANGED, state.last_update_reason)
+
+        cbs = state.condition_based_services
+        self.assertEqual(3, len(cbs))
+        self.assertEqual('00001', cbs[0].code)
+        self.assertEqual(ConditionBasedServiceStatus.OK, cbs[0].status)
+        self.assertEqual(datetime.datetime(year=2020, month=1, day=1), cbs[0].due_date)
+        self.assertEqual(28000, cbs[0].due_distance)
+
+        self.assertEqual('00100', cbs[1].code)
+        self.assertEqual(ConditionBasedServiceStatus.OK, cbs[1].status)
+        self.assertEqual(datetime.datetime(year=2022, month=1, day=1), cbs[1].due_date)
+        self.assertEqual(60000, cbs[1].due_distance)
+
+        self.assertFalse(state.are_parking_lights_on)
+        self.assertEqual(ParkingLightState.OFF, state.parking_lights)
+
     def test_parse_nbt(self):
         """Test if the parsing of the attributes is working."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
@@ -53,6 +72,31 @@ class TestState(unittest.TestCase):
         self.assertEqual('l', state.unit_of_volume)
 
         self.assertIsNone(state.remaining_range_fuel)
+
+        self.assertEqual(UpdateReason.ERROR, state.last_update_reason)
+
+        cbs = state.condition_based_services
+        self.assertEqual(6, len(cbs))
+        self.assertEqual('00001', cbs[0].code)
+        self.assertEqual(ConditionBasedServiceStatus.OVERDUE, cbs[0].status)
+        self.assertEqual(datetime.datetime(year=2018, month=12, day=1), cbs[0].due_date)
+        self.assertEqual(-500, cbs[0].due_distance)
+
+        self.assertEqual('00002', cbs[2].code)
+        self.assertEqual(ConditionBasedServiceStatus.PENDING, cbs[2].status)
+        self.assertEqual(140, cbs[2].due_distance)
+
+        self.assertIsNone(state.are_parking_lights_on)
+        self.assertIsNone(state.parking_lights)
+
+    def test_parse_f48(self):
+        """Test if the parsing of the attributes is working."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = F48_TEST_DATA['attributesMap']
+
+        self.assertTrue(state.are_parking_lights_on)
+        self.assertEqual(ParkingLightState.LEFT, state.parking_lights)
 
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
