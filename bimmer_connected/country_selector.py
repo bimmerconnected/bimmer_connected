@@ -22,6 +22,9 @@ class CountrySelector(object):  # pylint: disable=too-few-public-methods
         if self._countries is None:
             response = self._get_json_list()
             self._countries = self._parse_response(response)
+        if country not in self._countries:
+            raise ValueError('Unknown country "{}". The list of valid countries can be seen on '
+                             'https://www.bmw-connecteddrive.com'.format(country))
         result = self._countries[country]
         _LOGGER.debug('the url for country %s is %s', country, result)
         return result
