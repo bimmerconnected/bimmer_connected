@@ -1,0 +1,77 @@
+{
+  "attributesMap" : {
+    "updateTime_converted" : "02.03.2018 17:27",
+    "DCS_CCH_Ongoing " : null,
+    "updateTime_converted_timestamp" : "1520011665000",
+    "window_driver_rear" : "CLOSED",
+    "gps_lat" : "40.0000",
+    "door_lock_state" : "SECURED",
+    "condition_based_services" : "00001,OK,2019-10,24000;00100,OK,2021-10,60000;00003,OK,2020-10,;00032,OK,2020-12,",
+    "trunk_state" : "CLOSED",
+    "vehicle_tracking" : "1",
+    "hood_state" : "CLOSED",
+    "door_passenger_front" : "CLOSED",
+    "lastUpdateReason" : "DOORSTATECHANGED",
+    "check_control_messages" : "",
+    "beRemainingRangeFuel" : "296.0",
+    "lights_parking" : "OFF",
+    "lsc_trigger" : "DOORSTATECHANGED",
+    "unitOfEnergy" : "kWh",
+    "beRemainingRangeFuelKm" : "296.0",
+    "kombi_current_remaining_range_fuel" : "296",
+    "window_passenger_front" : "INTERMEDIATE",
+    "unitOfElectricConsumption" : "kWh/100km",
+    "door_driver_front" : "CLOSED",
+    "mileage" : "3462",
+    "updateTime" : "02.03.2018 17:27:45 UTC",
+    "head_unit_pu_software" : "03/17",
+    "DCS_CCH_Activation" : null,
+    "head_unit" : "NBTEvo",
+    "window_passenger_rear" : "CLOSED",
+    "door_driver_rear" : "CLOSED",
+    "remaining_fuel" : "35",
+    "updateTime_converted_time" : "17:27",
+    "beRemainingRangeFuelMile" : "183.0",
+    "window_driver_front" : "INTERMEDIATE",
+    "gps_lng" : "10.000",
+    "unitOfCombustionConsumption" : "l/100km",
+    "door_passenger_rear" : "CLOSED",
+    "updateTime_converted_date" : "02.03.2018",
+    "unitOfLength" : "km",
+    "heading" : "114"
+  },
+  "vehicleMessages" : {
+    "ccmMessages" : [ ],
+    "cbsMessages" : [ {
+      "description" : "Nächster Service nach der angegebenen Fahrstrecke oder zum angegebenen Termin.",
+      "text" : "Motoröl",
+      "id" : 1,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "2019-10",
+      "unitOfLengthRemaining" : "24000"
+    }, {
+      "description" : "Nächste Sichtprüfung nach der angegebenen Fahrstrecke oder zum angegebenen Termin.",
+      "text" : "Fahrzeug-Check",
+      "id" : 100,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "2021-10",
+      "unitOfLengthRemaining" : "60000"
+    }, {
+      "description" : "Nächster Wechsel spätestens zum angegebenen Termin.",
+      "text" : "Bremsflüssigkeit",
+      "id" : 3,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "2020-10"
+    }, {
+      "description" : "Nächste gesetzliche Fahrzeuguntersuchung zum angegebenen Termin.",
+      "text" : "§ Fahrzeuguntersuchung",
+      "id" : 32,
+      "status" : "OK",
+      "messageType" : "CBS",
+      "date" : "2020-12"
+    } ]
+  }
+}

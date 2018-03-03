@@ -11,6 +11,7 @@ from bimmer_connected.state import VehicleState, LidState, LockState, UpdateReas
 G31_TEST_DATA = load_response_json('G31_NBTevo/dynamic.json')
 NBT_TEST_DATA = load_response_json('unknown_NBT/dynamic.json')
 F48_TEST_DATA = load_response_json('F48_EntryNav/dynamic.json')
+F16_TEST_DATA = load_response_json('F16_NBTevo/dynamic.json')
 
 
 class TestState(unittest.TestCase):
@@ -98,6 +99,17 @@ class TestState(unittest.TestCase):
         self.assertTrue(state.are_parking_lights_on)
         self.assertEqual(ParkingLightState.LEFT, state.parking_lights)
 
+    def test_parse_f16(self):
+        """Test if the parsing of the attributes is working."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = F16_TEST_DATA['attributesMap']
+
+        pos = state.gps_position
+        self.assertTrue(state.is_vehicle_tracking_enabled)
+        self.assertAlmostEqual(40, pos[0])
+        self.assertAlmostEqual(10, pos[1])
+
     def test_missing_attribute(self):
         """Test if error handling is working correctly."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
@@ -182,6 +194,7 @@ class TestState(unittest.TestCase):
 
                 self.assertIsNotNone(state.lids)
                 self.assertIsNotNone(state.is_vehicle_tracking_enabled)
+                self.assertIsNotNone(state.windows)
 
                 if vehicle.vin != F32_VIN:
                     # these values are not available in the F32

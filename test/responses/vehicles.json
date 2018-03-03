@@ -65,5 +65,20 @@
   "steering" : "LEFT",
   "driveTrain" : "BEV",
   "supportedChargingModes" : [ "AC_LOW", "DC" ]
+},
+{
+  "series" : "X",
+  "basicType" : "X6 XDRIVE35I",
+  "bodyType" : "Sports Activity Coupe",
+  "brand" : "BMW",
+  "modelName" : "X6 xDrive35i",
+  "vin" : "F16_NBTevo_VIN",
+  "dcOnly" : false,
+  "hasNavi" : true,
+  "hasSunRoof" : false,
+  "doorCount" : 5,
+  "hasRex" : false,
+  "steering" : "LEFT",
+  "driveTrain" : "CONV"
 }
 ]
