@@ -47,5 +47,23 @@
   "hasRex" : false,
   "steering" : "LEFT",
   "driveTrain" : "CONV"
+},
+{
+  "series" : "I",
+  "basicType" : "I3 94",
+  "bodyType" : "Hatchback",
+  "brand" : "BMWi",
+  "modelName" : "i3 94",
+  "vin" : "I01_NBT_VIN",
+  "licensePlate" : "my_customcarname",
+  "modelYearNA" : "2017",
+  "dcOnly" : true,
+  "hasNavi" : true,
+  "hasSunRoof" : true,
+  "doorCount" : 4,
+  "hasRex" : true,
+  "steering" : "LEFT",
+  "driveTrain" : "BEV",
+  "supportedChargingModes" : [ "AC_LOW", "DC" ]
 }
 ]

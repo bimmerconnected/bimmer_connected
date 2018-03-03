@@ -24,6 +24,8 @@ class DriveTrainType(Enum):
     """Different types of drive trains."""
     CONVENTIONAL = 'CONV'
     PHEV = 'PHEV'
+    BEV = 'BEV'
+    BEV_REX = 'BEV_REX'
 
 
 class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
