@@ -14,7 +14,7 @@ import logging
 import urllib
 import os
 from threading import Lock
-from typing import Callable
+from typing import Callable, List
 import requests
 
 from bimmer_connected.country_selector import CountrySelector
@@ -47,7 +47,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         self._token_expiration = None
         self._log_responses = log_responses
         #: list of vehicles associated with this account.
-        self.vehicles = []
+        self._vehicles = []
         self._lock = Lock()
         self._update_listeners = []
 
@@ -161,7 +161,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         response = self.send_request(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
 
         for vehicle_dict in response.json():
-            self.vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+            self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
 
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
         """Get vehicle with given VIN.
@@ -187,3 +187,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def add_update_listener(self, listener: Callable) -> None:
         """Add a listener for state updates."""
         self._update_listeners.append(listener)
+
+    @property
+    def vehicles(self) -> List[ConnectedDriveVehicle]:
+        """Get list of vehicle of this account"""
+        return self._vehicles
