@@ -42,6 +42,13 @@ class UpdateReason(Enum):
     ERROR = 'Error'
 
 
+class ParkingLightState(Enum):
+    """Possible states of the parking lights"""
+    LEFT = 'LEFT'
+    RIGHT = 'RIGHT'
+    OFF = 'OFF'
+
+
 #: mapping of service IDs to strings
 CONDITION_BASED_SERVICE_CODES = {
     '00001': 'motor_oil',
@@ -226,7 +233,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def last_update_reason(self) -> UpdateReason:
-        """The the reason for the last state update"""
+        """The reason for the last state update"""
         return UpdateReason(self._attributes['lastUpdateReason'])
 
     @property
@@ -252,17 +259,23 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def parking_lights(self) -> bool:
+    def parking_lights(self) -> ParkingLightState:
         """Get status of parking lights.
 
         :returns None if status is unknown.
         """
-        lights = self.attributes.get('lights_parking')
-        if lights == 'ON':
-            return True
-        elif lights == 'OFF':
-            return False
-        return None
+        return ParkingLightState(self.attributes['lights_parking'])
+
+    @property
+    def are_parking_lights_on(self) -> bool:
+        """Get status of parking lights.
+
+        :returns None if status is unknown.
+        """
+        lights = self.parking_lights
+        if lights is None:
+            return None
+        return lights != ParkingLightState.OFF
 
 
 class Lid(object):  # pylint: disable=too-few-public-methods
@@ -289,7 +302,7 @@ class Lid(object):  # pylint: disable=too-few-public-methods
 class Window(Lid):  # pylint: disable=too-few-public-methods
     """A window of the vehicle.
 
-    A windows can be a normal window of the car or the sun roof.
+    A window can be a normal window of the car or the sun roof.
     """
     pass
 

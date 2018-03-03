@@ -10,7 +10,7 @@
     "check_control_messages" : "",
     "chargingHVStatus" : "CHARGING",
     "beMaxRangeElectricMile" : "20.0",
-    "lights_parking" : "ON",
+    "lights_parking" : "LEFT",
     "beRemainingRangeFuelKm" : "77.0",
     "connectorStatus" : "CONNECTED",
     "kombi_current_remaining_range_fuel" : "78.0",
