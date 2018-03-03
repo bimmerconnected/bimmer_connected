@@ -1,7 +1,7 @@
 """Get the right url for the different countries."""
 import logging
 import requests
-from bimmer_connected.const import COUNTRY_SELECTION_URL
+from bimmer_connected.const import COUNTRY_SELECTION_URL, AUTH_URL_DICT, AUTH_URL_REST_OF_WORLD
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -28,6 +28,13 @@ class CountrySelector(object):  # pylint: disable=too-few-public-methods
         result = self._countries[country]
         _LOGGER.debug('the url for country %s is %s', country, result)
         return result
+
+    @staticmethod
+    def get_authentication_url(country: str) -> str:
+        """Get the authentication url for the country."""
+        if country in AUTH_URL_DICT:
+            return AUTH_URL_DICT[country]
+        return AUTH_URL_REST_OF_WORLD
 
     @staticmethod
     def _get_json_list() -> dict:

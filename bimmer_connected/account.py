@@ -19,7 +19,7 @@ import requests
 
 from bimmer_connected.country_selector import CountrySelector
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-from bimmer_connected.const import AUTH_URL, LIST_VEHICLES_URL
+from bimmer_connected.const import LIST_VEHICLES_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,7 +78,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             }
 
             data = urllib.parse.urlencode(values)
-            response = self.send_request(AUTH_URL, data=data, headers=headers, allow_redirects=False,
+            authentication_url = CountrySelector.get_authentication_url(self._country)
+            response = self.send_request(authentication_url, data=data, headers=headers, allow_redirects=False,
                                          expected_response=302, post=True)
 
             url_with_token = urllib.parse.parse_qs(response.headers['Location'])

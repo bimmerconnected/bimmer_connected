@@ -10,7 +10,12 @@ __version__ = '{}.{}'.format(__short_version__, PATCH_VERSION)
 """urls for different services."""
 
 COUNTRY_SELECTION_URL = 'https://www.bmw-connecteddrive.com/cms/default/default/country-selection.json'
-AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
+AUTH_URL_REST_OF_WORLD = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
+
+#: so far only Canada seems to have a separate url for user authentication
+AUTH_URL_DICT = {
+    'Canada': 'https://crm.bmw.ca/en-CA/ConnectedDrive/Account',
+}
 
 REMOTE_SERVICE_URL = '{server}/api/vehicle/remoteservices/v1/{vin}/{service}'
 VEHICLE_STATE_URL = '{server}/api/vehicle/dynamic/v1/{vin}'
