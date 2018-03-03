@@ -12,7 +12,7 @@ I wrote this library as I want to include it in Home Assistant.
 
 Compatibility
 -------------
-So far it is only tested with one vehicle with a "NBTEvo" navigation system. 
+So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav' navigation system. 
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
 
