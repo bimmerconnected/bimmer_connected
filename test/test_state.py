@@ -3,7 +3,7 @@
 import unittest
 from unittest import mock
 import datetime
-from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
+from test import load_response_json, TEST_COUNTRY, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, F32_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState
 
@@ -122,12 +122,28 @@ class TestState(unittest.TestCase):
         self.assertEqual(LockState.SECURED, state.door_lock_state)
 
     def test_parsing_attributes(self):
-        """Test parsing different attributes of the vehicle."""
+        """Test parsing different attributes of the vehicle.
+
+        Just make sure parsing that no exception is raised.
+        """
         backend_mock = BackendMock()
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            backend_mock.setup_default_vehicles()
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+            account.update_vehicle_states()
 
-        for vehicle in account.vehicles:
-            self.assertIsNotNone(vehicle.drive_train)
-            self.assertIsNotNone(vehicle.name)
-            self.assertIsNotNone(vehicle.has_rex)
+            for vehicle in account.vehicles:
+                print('testing vehicle {}'.format(vehicle.name))
+                state = vehicle.state
+
+                self.assertIsNotNone(state.lids)
+                self.assertIsNotNone(state.is_vehicle_tracking_enabled)
+
+                if vehicle.vin != F32_VIN:
+                    # these values are not available in the F32
+                    self.assertIsNotNone(state.door_lock_state)
+                    self.assertIsNotNone(state.timestamp)
+                    self.assertIsNotNone(state.mileage)
+                    self.assertIsNotNone(state.remaining_fuel)
+                    self.assertIsNotNone(state.all_windows_closed)
+

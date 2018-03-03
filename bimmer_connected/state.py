@@ -191,6 +191,7 @@ class VehicleState(object):
         return len(list(self.open_windows)) == 0
 
     @property
+    @backend_parameter
     def door_lock_state(self) -> LockState:
         """Get state of the door locks."""
         return LockState(self._attributes['door_lock_state'])
