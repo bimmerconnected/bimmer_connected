@@ -190,4 +190,3 @@ class TestState(unittest.TestCase):
                     self.assertIsNotNone(state.mileage)
                     self.assertIsNotNone(state.remaining_fuel)
                     self.assertIsNotNone(state.all_windows_closed)
-
