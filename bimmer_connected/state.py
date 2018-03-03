@@ -32,16 +32,6 @@ class LockState(Enum):
     UNLOCKED = 'UNLOCKED'
 
 
-class UpdateReason(Enum):
-    """Possible reasons for an update from the vehicle to the server."""
-    VEHICLE_SECURED = 'VEHICLE_SECURED'
-    DOORSTATECHANGED = 'DOORSTATECHANGED'
-    VEHCSHUTDOWN = 'VEHCSHUTDOWN'
-    VEHCSHUTDOWN_SECURED = 'VEHCSHUTDOWN_SECURED'
-    CHARGINGSTARTED = 'CHARGINGSTARTED'
-    ERROR = 'Error'
-
-
 class ParkingLightState(Enum):
     """Possible states of the parking lights"""
     LEFT = 'LEFT'
@@ -233,9 +223,9 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def last_update_reason(self) -> UpdateReason:
+    def last_update_reason(self) -> str:
         """The reason for the last state update"""
-        return UpdateReason(self._attributes['lastUpdateReason'])
+        return self._attributes['lastUpdateReason']
 
     @property
     @backend_parameter
