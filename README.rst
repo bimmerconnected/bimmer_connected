@@ -16,6 +16,9 @@ So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
 
+The library does currently *not* work for vehicles in Canada and the USA. It seems a different API
+is being used there. This is currently work in progress.
+
 
 Data Contributions
 ------------------
