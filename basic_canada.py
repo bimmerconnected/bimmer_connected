@@ -5,12 +5,19 @@ import urllib
 import argparse
 
 AUTHENTICATION_URL = 'https://b2vapi.bmwgroup.us/webapi/oauth/token'
-VEHICLES_URL = 'https://www.bmw-connecteddrive.de/api/me/vehicles/v2'
+VEHICLES_URL = 'https://b2vapi.bmwgroup.us/webapi/v1/user/vehicles'
 
 
 def get_token(username, password):
     headers = {
         "Content-Type": "application/x-www-form-urlencoded",
+        "Content-Length": "124",
+        "Connection": "Keep-Alive",
+        "Host": "b2vapi.bmwgroup.us",
+        "Accept-Encoding": "gzip",
+        "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
+        "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
+        "User-Agent": "okhttp/2.60",
     }
 
     # we really need all of these parameters
@@ -23,7 +30,7 @@ def get_token(username, password):
 
     data = urllib.parse.urlencode(values)
     response = requests.post(AUTHENTICATION_URL, data=data, headers=headers, allow_redirects=False)
-    if response.status_code != 302:
+    if response.status_code != 200:
         raise IOError('Unexpected status code: {}'.format(response.status_code))
     print('Response header:')
     print(response.headers)
