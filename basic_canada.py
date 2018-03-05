@@ -13,16 +13,10 @@ def get_token(username, password):
 
     # we really need all of these parameters
     values = {
+        'grant_type': 'password',
+        'scope': 'authenticate_user vehicle_data remote_services',
         'username': username,
         'password': password,
-        # not sure what this id really means, random numbers do no work here.
-        'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
-        # you might have to change this for the Canadian site
-        'redirect_uri': 'https://www.bmw-connecteddrive.com/app/default/static/external-dispatch.html',
-        'response_type': 'token',
-        'scope': 'authenticate_user fupo',
-        # random 79 characters
-        'state': 'ez8nx9wn8a48s058hp9vj8mhs9sg9ltbp6yqg84pk7s3miev3omvi7bg6epp3gpuphxyvd6wiaz3zoq'
     }
 
     data = urllib.parse.urlencode(values)
@@ -33,8 +27,8 @@ def get_token(username, password):
     print(response.headers)
     print('Response text:')
     print(response.text)
-    url_with_token = urllib.parse.parse_qs(response.headers['Location'])
-    token = url_with_token['access_token'][0]
+    response_json = response.json()
+    token = response_json['access_token']
     return token
 
 
