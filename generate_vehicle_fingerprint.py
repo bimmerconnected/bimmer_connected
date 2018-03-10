@@ -7,6 +7,7 @@ import os
 import shutil
 
 from bimmer_connected.account import ConnectedDriveAccount
+from bimmer_connected.country_selector import valid_regions, get_region_from_name
 
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
@@ -20,7 +21,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('username')
     parser.add_argument('password')
-    parser.add_argument('country')
+    parser.add_argument('region', choices=valid_regions())
     args = parser.parse_args()
 
     if os.path.exists(FINGERPRINT_DIR):
@@ -28,7 +29,8 @@ def main():
 
     os.mkdir(FINGERPRINT_DIR)
 
-    account = ConnectedDriveAccount(args.username, args.password, args.country, log_responses=FINGERPRINT_DIR)
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region),
+                                    log_responses=FINGERPRINT_DIR)
     account.update_vehicle_states()
 
     print('fingerprint of the vehicles written to {}'.format(FINGERPRINT_DIR))

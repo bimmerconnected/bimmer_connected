@@ -17,7 +17,7 @@ from threading import Lock
 from typing import Callable, List
 import requests
 
-from bimmer_connected.country_selector import CountrySelector
+from bimmer_connected.country_selector import Regions, get_server_url
 from bimmer_connected.vehicle import ConnectedDriveVehicle
 from bimmer_connected.const import AUTH_URL, VEHICLES_URL
 
@@ -38,7 +38,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, region: str, log_responses: str = None) -> None:
+    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None) -> None:
         self._region = region
         self._server_url = None
         self._username = username
@@ -106,7 +106,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         }
         return headers
 
-    def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True):
+    def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True,
+                     logfilename: str = None):
         """Send an http request to the server.
 
         If the http headers are not set, default headers are generated.
@@ -126,28 +127,15 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             _LOGGER.error(msg)
             _LOGGER.error(response.text)
             raise IOError(msg)
-        self._log_response_to_file(response, url)
+        self._log_response_to_file(response, url, logfilename)
         return response
 
-    def _log_response_to_file(self, response: requests.Response, url: str) -> None:
+    def _log_response_to_file(self, response: requests.Response, url: str, logfilename: str = None) -> None:
         """If a log path is set, log all resonses to a file"""
-        if self._log_responses is None:
+        if self._log_responses is None or logfilename is None:
             return
 
-        replacements = [
-            ('http://', ''),
-            ('https://', ''),
-            ('/', '_'),
-        ]
-
-        base_name = url.lower()
-        for replacement in replacements:
-            base_name = base_name.replace(replacement[0], replacement[1])
-
-        with open(os.path.join(self._log_responses, '{}_headers.json'.format(base_name)), 'w') as logfile:
-            logfile.write(repr(response.headers))
-
-        with open(os.path.join(self._log_responses, '{}_data.json'.format(base_name)), 'w') as logfile:
+        with open(os.path.join(self._log_responses, '{}.json'.format(logfilename)), 'w') as logfile:
             logfile.write(response.text)
 
     @staticmethod
@@ -159,15 +147,15 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def server_url(self) -> str:
         """Get the url of the server for this country."""
         if self._server_url is None:
-            country_sel = CountrySelector()
-            self._server_url = country_sel.get_server_url(self._region)
+            self._server_url = get_server_url(self._region)
         return self._server_url
 
     def _get_vehicles(self):
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        response = self.send_request(VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
+        response = self.send_request(VEHICLES_URL.format(server=self.server_url), headers=self.request_header,
+                                     logfilename='vehicles')
 
         for vehicle_dict in response.json()['vehicles']:
             self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))

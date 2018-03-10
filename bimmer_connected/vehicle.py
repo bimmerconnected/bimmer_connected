@@ -4,7 +4,6 @@ import logging
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_VIN_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -13,6 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 VEHICLE_ATTRIBUTES = [
     'series', 'vin', 'basicType', 'brand', 'hasRex', 'doorCount', 'steering', 'hasSunRoof',
     'bodyType', 'dcOnly', 'driveTrain', 'hasNavi', 'modelName']
+
 
 class DriveTrainType(Enum):
     """Different types of drive trains."""
@@ -34,17 +34,10 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         self.attributes = attributes
         self.state = VehicleState(account, self)
         self.remote_services = RemoteServices(account, self)
-        self._update_data()
 
     def update_state(self) -> None:
         """Update the state of a vehicle."""
         self.state.update_data()
-
-    def _update_data(self):
-        url = VEHICLE_VIN_URL.format(server=self._account.server_url, vin=self.vin)
-
-        response = self._account.send_request(url)
-        self.attributes.update(response.json()['vehicle'])
 
     @property
     def has_rex(self) -> bool:
@@ -59,7 +52,7 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
     @property
     def name(self):
         """Get the name of the vehicle."""
-        return self.attributes['modelName']
+        return self.attributes['model']
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
@@ -68,4 +61,3 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         :param item: item to get, as defined in VEHICLE_ATTRIBUTES
         """
         return self.attributes[item]
-

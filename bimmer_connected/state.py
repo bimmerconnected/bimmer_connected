@@ -87,7 +87,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         _LOGGER.debug('requesting new data from connected drive')
 
         response = self._account.send_request(
-            VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin))
+            VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin), logfilename='status')
         attributes = response.json()['vehicleStatus']
         self._attributes = attributes
         _LOGGER.debug('received new data from connected drive')
