@@ -68,7 +68,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
                 "Connection": "Keep-Alive",
                 "Host": "b2vapi.bmwgroup.com",
                 "Accept-Encoding": "gzip",
-                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
+                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
+                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
                 "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
                 "User-Agent": "okhttp/2.60",
             }
@@ -127,10 +128,10 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             _LOGGER.error(msg)
             _LOGGER.error(response.text)
             raise IOError(msg)
-        self._log_response_to_file(response, url, logfilename)
+        self._log_response_to_file(response, logfilename)
         return response
 
-    def _log_response_to_file(self, response: requests.Response, url: str, logfilename: str = None) -> None:
+    def _log_response_to_file(self, response: requests.Response, logfilename: str = None) -> None:
         """If a log path is set, log all resonses to a file"""
         if self._log_responses is None or logfilename is None:
             return

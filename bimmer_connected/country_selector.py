@@ -8,9 +8,9 @@ _LOGGER = logging.getLogger(__name__)
 
 class Regions(Enum):
     """Regions of the world with separate servers."""
-    NORTH_AMERICA = 0,
-    CHINA = 1,
-    REST_OF_WORLD = 2,
+    NORTH_AMERICA = 0
+    CHINA = 1
+    REST_OF_WORLD = 2
 
 
 #: Mapping from regions to servers

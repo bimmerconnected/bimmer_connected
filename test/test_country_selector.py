@@ -1,7 +1,7 @@
 """Test the country selection class."""
 import unittest
 
-from bimmer_connected.country_selector import *
+from bimmer_connected.country_selector import valid_regions, Regions, get_region_from_name
 
 
 class TestCountrySelector(unittest.TestCase):

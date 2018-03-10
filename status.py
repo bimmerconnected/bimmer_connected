@@ -32,8 +32,6 @@ def main():
         print(json.dumps(vehicle.attributes, indent=4))
         print('vehicle status:')
         print(json.dumps(vehicle.state.attributes, indent=4))
-        #print('vehicle specs:')
-        #print(json.dumps(vehicle.specs.attributes, indent=4))
 
 
 if __name__ == '__main__':
