@@ -6,7 +6,7 @@ import re
 from enum import Enum
 from typing import List
 
-from bimmer_connected.const import VEHICLE_STATE_URL
+from bimmer_connected.const import VEHICLE_STATUS_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -87,17 +87,8 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         _LOGGER.debug('requesting new data from connected drive')
 
         response = self._account.send_request(
-            VEHICLE_STATE_URL.format(server=self._account.server_url, vin=self._vehicle.vin))
-
-        attributes = response.json()['attributesMap']
-        if attributes['head_unit'] not in ('NBTEvo', 'EntryEvo', 'NBT', 'EntryNav'):
-            # NBTEvo = M2, EntryEvo = X1, NBT = i3, EntryNav = 225xe hybrid
-            _LOGGER.warning('This library is not yet tested with this type of head unit: %s. If you experience any'
-                            'problems open an issue at: '
-                            'https://github.com/ChristianKuehnel/bimmer_connected/issues '
-                            'And provide the logged attributes below.',
-                            attributes['head_unit'])
-            _LOGGER.warning(attributes)
+            VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin))
+        attributes = response.json()['vehicleStatus']
         self._attributes = attributes
         _LOGGER.debug('received new data from connected drive')
 
