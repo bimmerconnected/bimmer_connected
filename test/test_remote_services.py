@@ -20,6 +20,7 @@ class TestRemoteServices(unittest.TestCase):
         expected = datetime.datetime(year=2018, month=2, day=11, hour=15, minute=10, second=39, microsecond=465000)
         self.assertEqual(expected, timestamp)
 
+    @unittest.skip
     def test_states(self):
         """Test parsing the different response types."""
         rss = RemoteServiceStatus(load_response_json('G31_NBTevo/RLF_INITIAL_RESPONSE.json'))
@@ -34,6 +35,7 @@ class TestRemoteServices(unittest.TestCase):
         rss = RemoteServiceStatus(load_response_json('G31_NBTevo/RLF_EXECUTED.json'))
         self.assertEqual(ExecutionState.EXECUTED, rss.state)
 
+    @unittest.skip
     def test_trigger_remote_services(self):
         """Test executing a remote light flash."""
         remote_services._POLLING_CYCLE = 0
@@ -75,6 +77,7 @@ class TestRemoteServices(unittest.TestCase):
                 else:
                     mock_listener.assert_not_called()
 
+    @unittest.skip
     def test_get_remote_service_status(self):
         """Test get_remove_service_status method."""
         backend_mock = BackendMock()
