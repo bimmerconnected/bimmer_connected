@@ -16,9 +16,6 @@ So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
 
-The library does currently *not* work for vehicles in Canada and the USA. It seems a different API
-is being used there. This is currently work in progress.
-
 
 Data Contributions
 ------------------
@@ -40,8 +37,7 @@ This will create a set of log files in the "vehicle_fingerprint" folder.
 Before sending the data to anyone please **remove any personal data** from it:
 
 * Replace your vehicle identification number (VIN) with something else like "my_vin"
-* Replace the location of your vehicle (gps_lat, gps_lng) with some generig numbers e.g. 11.111
-* Remove the SMSESSION and token attributes from \*_header.json
+* Replace the location of your vehicle (gps_lat, gps_lng) with some generic numbers e.g. 11.111
 
 We will then use this data as additional test cases. So we will publish
 (parts of) it (after checking for personal information again) and use
@@ -61,9 +57,11 @@ And please add tests where it makes sense. The more the better.
 Thank you
 ---------
 
+Thank you @gerard33 and @m1n3rva for your research and contributions!
+
 This library is basically a best-of of other similar solutions I found,
 yet none of them provided a ready to use library with a matching interface
-for Home Assistant interface and released it on pypi...
+to be used in Home Assistant and is available on pypi...
 
 * https://github.com/edent/BMW-i-Remote/blob/master/python/bmw.py
 * https://github.com/jupe76/bmwcdapi/blob/master/bmwcdapi.py
