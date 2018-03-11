@@ -9,6 +9,7 @@ from bimmer_connected.state import VehicleState, LidState, LockState, ConditionB
     ParkingLightState
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
+F48_TEST_DATA = load_response_json('F48/status.json')
 
 
 class TestState(unittest.TestCase):
@@ -46,6 +47,42 @@ class TestState(unittest.TestCase):
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[1].state)
         self.assertEqual(datetime.datetime(year=2022, month=1, day=1), cbs[1].due_date)
         self.assertEqual(60000, cbs[1].due_distance)
+
+        self.assertTrue(state.are_all_cbs_ok)
+
+        self.assertFalse(state.are_parking_lights_on)
+        self.assertEqual(ParkingLightState.OFF, state.parking_lights)
+
+    def test_parse_f48(self):
+        """Test if the parsing of the attributes is working."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = F48_TEST_DATA['vehicleStatus']
+
+        self.assertEqual(21529, state.mileage)
+
+        zone = datetime.timezone(datetime.timedelta(0, 3600))
+        self.assertEqual(datetime.datetime(year=2018, month=3, day=10, hour=19, minute=35, second=30, tzinfo=zone),
+                         state.timestamp)
+
+        self.assertAlmostEqual(50.505050, state.gps_position[0])
+        self.assertAlmostEqual(10.1010101, state.gps_position[1])
+
+        self.assertAlmostEqual(39, state.remaining_fuel)
+
+        self.assertAlmostEqual(590, state.remaining_range_fuel)
+
+        self.assertEqual('DOOR_STATE_CHANGED', state.last_update_reason)
+
+        cbs = state.condition_based_services
+        self.assertEqual(3, len(cbs))
+        self.assertEqual(ConditionBasedServiceStatus.OK, cbs[0].state)
+        self.assertEqual(datetime.datetime(year=2019, month=7, day=1), cbs[0].due_date)
+        self.assertEqual(9000, cbs[0].due_distance)
+
+        self.assertEqual(ConditionBasedServiceStatus.OK, cbs[1].state)
+        self.assertEqual(datetime.datetime(year=2021, month=7, day=1), cbs[1].due_date)
+        self.assertEqual(39000, cbs[1].due_distance)
 
         self.assertTrue(state.are_all_cbs_ok)
 
@@ -97,13 +134,14 @@ class TestState(unittest.TestCase):
         for lid in state.lids:
             self.assertEqual(LidState.CLOSED, lid.state)
 
+        self.assertEqual(6, len(list(state.lids)))
         self.assertEqual(0, len(list(state.open_lids)))
         self.assertTrue(state.all_lids_closed)
 
         state._attributes['doorDriverFront'] = LidState.OPEN
         self.assertFalse(state.all_lids_closed)
 
-    def test_windows(self):
+    def test_windows_G31(self):
         """Test features around lids."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
@@ -112,11 +150,23 @@ class TestState(unittest.TestCase):
         for window in state.windows:
             self.assertEqual(LidState.CLOSED, window.state)
 
+        self.assertEqual(5, len(list(state.windows)))
         self.assertEqual(0, len(list(state.open_windows)))
         self.assertTrue(state.all_windows_closed)
 
         state._attributes['windowDriverFront'] = LidState.INTERMEDIATE
         self.assertFalse(state.all_windows_closed)
+
+    def test_windows_F48(self):
+        """Test features around lids."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = F48_TEST_DATA['vehicleStatus']
+
+        for window in state.windows:
+            self.assertEqual(LidState.CLOSED, window.state)
+
+        self.assertEqual(4, len(list(state.windows)))
 
     def test_door_locks(self):
         """Test the door locks."""

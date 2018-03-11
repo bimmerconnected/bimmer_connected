@@ -14,7 +14,7 @@ LIDS = ['doorDriverFront', 'doorPassengerFront', 'doorDriverRear', 'doorPassenge
         'hood', 'trunk']
 
 # figure out what the sunroof is called in this api
-WINDOWS = ['windowDriverFront', 'windowPassengerFront', 'windowDriverRear', 'windowPassengerRear']
+WINDOWS = ['windowDriverFront', 'windowPassengerFront', 'windowDriverRear', 'windowPassengerRear', 'rearWindow']
 
 
 class LidState(Enum):
@@ -22,6 +22,7 @@ class LidState(Enum):
     CLOSED = 'CLOSED'
     OPEN = 'OPEN'
     INTERMEDIATE = 'INTERMEDIATE'
+    INVALID = 'INVALID'
 
 
 class LockState(Enum):
@@ -151,8 +152,8 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         """Get all lids (doors+hatch+trunk) of the car."""
         result = []
         for lid in LIDS:
-            if lid in self._attributes:
-                result.append(Lid(lid, self._attributes[lid]))
+            if lid in self._attributes and self._attributes[lid] != LidState.INVALID.value:
+                result.append(Lid(self, lid))
         return result
 
     @property
@@ -170,9 +171,9 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     def windows(self) -> List['Window']:
         """Get all windows (doors+sun roof) of the car."""
         result = []
-        for lid in WINDOWS:
-            if lid in self._attributes:
-                result.append(Window(lid, self._attributes[lid]))
+        for window in WINDOWS:
+            if window in self._attributes and self._attributes[window] != LidState.INVALID.value:
+                result.append(Window(self, window))
         return result
 
     @property
@@ -237,6 +238,10 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         date_format = "%Y-%m-%dT%H:%M:%S%z"
         return datetime.datetime.strptime(date_str, date_format)
 
+    def __getattr__(self, item):
+        """Generic get function for all backend attributes."""
+        return self._attributes.get(item)
+
 
 class Lid(object):  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.
@@ -244,11 +249,15 @@ class Lid(object):  # pylint: disable=too-few-public-methods
     Lids are: Doors + Trunk + Hatch
     """
 
-    def __init__(self, name: str, state: str):
+    def __init__(self, vehicle_state: VehicleState, name: str):
         #: name of the lid
         self.name = name
-        #: state of the lid
-        self.state = LidState(state)
+        self._vehicle_state = vehicle_state
+
+    @property
+    def state(self):
+        """Get the current state of the lid."""
+        return LidState(getattr(self._vehicle_state, self.name))
 
     @property
     def is_closed(self) -> bool:

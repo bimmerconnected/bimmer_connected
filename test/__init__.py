@@ -12,10 +12,12 @@ TEST_USERNAME = 'some_user'
 TEST_PASSWORD = 'my_secret'
 TEST_REGION = Regions.REST_OF_WORLD
 G31_VIN = 'G31_NBTevo_VIN'
+F48_VIN = 'F48_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
     G31_VIN: 'G31_NBTevo',
+    F48_VIN: 'F48',
 }
 
 _AUTH_RESPONSE_HEADERS = {

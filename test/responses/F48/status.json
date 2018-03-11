@@ -27,7 +27,7 @@
     "DCS_CCH_Activation" : "NA",
     "singleImmediateCharging" : false,
     "positionLight" : "OFF",
-    "vin" : "my_vin",
+    "vin" : "F48_VIN",
     "doorDriverFront" : "CLOSED",
     "mileage" : 21529,
     "checkControlMessages" : [ ],
