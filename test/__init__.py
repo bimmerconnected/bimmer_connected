@@ -4,49 +4,30 @@ import re
 import os
 import json
 from typing import List
+from bimmer_connected.country_selector import Regions
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'responses')
 
 TEST_USERNAME = 'some_user'
 TEST_PASSWORD = 'my_secret'
-TEST_COUNTRY = 'Germany'
-G31_VIN = 'G31_NBTEvo_VIN'
-F48_VIN = 'F48_EntryNav_VIN'
-F32_VIN = 'F32_NBTevo_VIN'
-I03_VIN = 'I01_NBT_VIN'
-F16_VIN = 'F16_NBTevo_VIN'
+TEST_REGION = Regions.REST_OF_WORLD
+G31_VIN = 'G31_NBTevo_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
     G31_VIN: 'G31_NBTevo',
-    F48_VIN: 'F48_EntryNav',
-    F32_VIN: 'F32_NBTevo',
-    I03_VIN: 'I01_NBT',
-    F16_VIN: 'F16_NBTevo',
 }
 
 _AUTH_RESPONSE_HEADERS = {
-    'X-c2b-request-id': 'SOME_ID',
-    'Location': 'https://www.bmw-connecteddrive.com/app/default/static/external-dispatch.html#'
-                'state=SOME_STATE_STRING&access_token=SOME_TOKEN_STRING&token_type=Bearer&'
-                'expires_in=7199',
     'X-Powered-By': 'JOY',
-    'X-c2b-timestamp': '1518874356235',
+    'Content-Type': 'application/json',
+    'X-CorrelationID': 'Id-cde5a45a0802dd010000000031546948 0',
+    'Via': '1.0 lpb2vcn02 (BMW Group API Gateway)',
     'Transfer-Encoding': 'chunked',
-    'Keep-Alive': 'timeout=5, max=100',
-    'Access-Control-Allow-Headers': 'Authorization, Origin, X-c2b-Authorization, X-c2b-mTAN, '
-                                    'X-Requested-With, X-c2b-Sender-Id, Content-Type, Accept, '
-                                    'Cache-Control, KeyId',
-    'X-NodeID': '01',
-    'Content-Type': 'text/html; charset="utf-8"', 'Max-Forwards': '20',
-    'Date': 'Sat, 17 Feb 2018 13:32:35 GMT',
-    'Access-Control-Allow-Methods': 'POST, GET, OPTIONS, PUT, DELETE, HEAD',
-    'Server': 'Apache',
-    'Via': '1.0 lpb2vcn01 (BMW Group API Gateway)',
-    'Access-Control-Allow-Credentials': 'true',
-    'X-CorrelationID': 'Id-ANOTHER_ID 0',
-    'Set-Cookie': 'SMSESSION=SOME_SESSION_KEY;Domain=customer.bmwgroup.com;Path=/;secure',
-    'Content-Encoding': 'gzip', 'Connection': 'Keep-Alive'}
+    'X-NodeID': '02',
+    'Max-Forwards': '20',
+    'Date': 'Sun, 11 Mar 2018 08:16:13 GMT',
+    'Content-Encoding': 'gzip'}
 
 
 def load_response_json(filename: str) -> dict:
@@ -64,10 +45,11 @@ class BackendMock(object):
         """Constructor."""
         self.last_request = None
         self.responses = [
-            MockResponse('https://customer.bmwgroup.com/gcdm/oauth/authenticate',
+            MockResponse('https://.+/webapi/oauth/token',
                          headers=_AUTH_RESPONSE_HEADERS,
-                         status_code=302),
-            MockResponse('.*/api/me/vehicles/v2',
+                         data_files=['G31_NBTevo/auth_response.json'],
+                         status_code=200),
+            MockResponse('https://.+/webapi/v1/user/vehicles$',
                          data_files=['vehicles.json']),
         ]
 
@@ -90,17 +72,15 @@ class BackendMock(object):
         """Find a proper response for a requested url."""
         for response in self.responses:
             if response.regex.search(url):
+                response.step_responses()
                 return response
         return MockResponse(regex='', data='unknown url: {}'.format(url), status_code=404)
 
     def setup_default_vehicles(self) -> None:
         """Setup the vehicle configuration in a mock backend."""
         for vin, path in TEST_VEHICLE_DATA.items():
-            self.add_response('.*/api/vehicle/dynamic/v1/{vin}'.format(vin=vin),
-                              data_files=['{}/dynamic.json'.format(path)])
-
-            self.add_response('.*/api/vehicle/specs/v1/{vin}'.format(vin=vin),
-                              data_files=['{}/specs.json'.format(path)])
+            self.add_response('https://.+/webapi/v1/user/vehicles/{vin}/status$'.format(vin=vin),
+                              data_files=['{path}/status.json'.format(path=path)])
 
 
 class MockRequest(object):  # pylint: disable=too-few-public-methods
@@ -127,6 +107,7 @@ class MockResponse(object):
         self.regex = re.compile(regex)
         self.status_code = status_code
         self.headers = headers
+        self._usage_count = 0
         if self.headers is None:
             self.headers = dict()
 
@@ -145,4 +126,11 @@ class MockResponse(object):
     @property
     def text(self) -> str:
         """Get the raw data from the response."""
-        return self._data.pop(0)
+        return self._data[self._usage_count-1]
+
+    def step_responses(self):
+        """Step through the list of responses.
+
+        The last response will be repeated forever.
+        """
+        self._usage_count = min(len(self._data), self._usage_count+1)

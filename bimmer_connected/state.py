@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-import re
 from enum import Enum
 from typing import List
 
@@ -11,10 +10,11 @@ from bimmer_connected.const import VEHICLE_STATUS_URL
 _LOGGER = logging.getLogger(__name__)
 
 
-LIDS = ['door_driver_front', 'door_passenger_front', 'door_driver_rear', 'door_passenger_rear',
-        'hood_state', 'trunk_state']
-WINDOWS = ['window_driver_front', 'window_passenger_front', 'window_driver_rear', 'window_passenger_rear',
-           'sunroof_state']
+LIDS = ['doorDriverFront', 'doorPassengerFront', 'doorDriverRear', 'doorPassengerRear',
+        'hood', 'trunk']
+
+# figure out what the sunroof is called in this api
+WINDOWS = ['windowDriverFront', 'windowPassengerFront', 'windowDriverRear', 'windowPassengerRear']
 
 
 class LidState(Enum):
@@ -37,16 +37,6 @@ class ParkingLightState(Enum):
     LEFT = 'LEFT'
     RIGHT = 'RIGHT'
     OFF = 'OFF'
-
-
-#: mapping of service IDs to strings
-CONDITION_BASED_SERVICE_CODES = {
-    '00001': 'motor_oil',
-    '00003': 'brake_fluid',
-    '00017': 'vehicle_inspection',  # from BMW i3
-    '00032': 'vehicle_inspection',   # from BMW X1
-    '00100': 'car_check',
-}
 
 
 class ConditionBasedServiceStatus(Enum):
@@ -105,8 +95,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @backend_parameter
     def timestamp(self) -> datetime.datetime:
         """Get the timestamp when the data was recorded."""
-        unix_time = int(self._attributes['updateTime_converted_timestamp'])
-        return datetime.datetime.fromtimestamp(unix_time/1000)
+        return self._parse_datetime(self._attributes['updateTime'])
 
     @property
     @backend_parameter
@@ -116,28 +105,18 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         Returns a tuple of (latitue, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
+        pos = self._attributes['position']
         if self.is_vehicle_tracking_enabled:
-            return float(self._attributes['gps_lat']), float(self._attributes['gps_lng'])
+            return float(pos['lat']), float(pos['lon'])
+        else:
+            _LOGGER.warning('Positioning status of %s is %s', self._vehicle.vin, pos['status'])
         return None
 
     @property
     @backend_parameter
     def is_vehicle_tracking_enabled(self) -> bool:
         """Check if the position tracking of the vehicle is enabled"""
-        return self._attributes['vehicle_tracking'] == '1'
-
-    @property
-    @backend_parameter
-    def unit_of_length(self) -> str:
-        """Get the unit in which the length is measured."""
-        return self._attributes['unitOfLength']
-
-    @property
-    @backend_parameter
-    def unit_of_volume(self) -> str:
-        """Get the unit in which the volume of fuel is measured."""
-        consumption = self._attributes['unitOfCombustionConsumption']
-        return consumption.split('/')[0]
+        return self._attributes['position']['status'] == 'OK'
 
     @property
     @backend_parameter
@@ -155,7 +134,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['beRemainingRangeFuel'])
+        return float(self._attributes['remainingRangeFuel'])
 
     @property
     @backend_parameter
@@ -164,7 +143,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['remaining_fuel'])
+        return float(self._attributes['remainingFuel'])
 
     @property
     @backend_parameter
@@ -210,26 +189,19 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @backend_parameter
     def door_lock_state(self) -> LockState:
         """Get state of the door locks."""
-        return LockState(self._attributes['door_lock_state'])
+        return LockState(self._attributes['doorLockState'])
 
     @property
     @backend_parameter
     def last_update_reason(self) -> str:
         """The reason for the last state update"""
-        return self._attributes['lastUpdateReason']
+        return self._attributes['updateReason']
 
     @property
     @backend_parameter
     def condition_based_services(self) -> List['ConditionBasedServiceReport']:
         """Get staus of the condition based services."""
-        if 'condition_based_services' in self.attributes:
-            cbs_str = self.attributes['condition_based_services']
-        elif 'check_control_messages' in self.attributes:
-            cbs_str = self.attributes['check_control_messages']
-            cbs_str = re.search('condition_based_services: (.*)', cbs_str).group(1)
-        else:
-            return []
-        return [ConditionBasedServiceReport(s) for s in cbs_str.split(';')]
+        return [ConditionBasedServiceReport(s) for s in self._attributes['cbsData']]
 
     @property
     def are_all_cbs_ok(self) -> bool:
@@ -246,7 +218,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
         :returns None if status is unknown.
         """
-        return ParkingLightState(self.attributes['lights_parking'])
+        return ParkingLightState(self.attributes['parkingLight'])
 
     @property
     def are_parking_lights_on(self) -> bool:
@@ -258,6 +230,12 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         if lights is None:
             return None
         return lights != ParkingLightState.OFF
+
+    @staticmethod
+    def _parse_datetime(date_str: str) -> datetime.datetime:
+        """Convert a time string into datetime."""
+        date_format = "%Y-%m-%dT%H:%M:%S%z"
+        return datetime.datetime.strptime(date_str, date_format)
 
 
 class Lid(object):  # pylint: disable=too-few-public-methods
@@ -292,32 +270,24 @@ class Window(Lid):  # pylint: disable=too-few-public-methods
 class ConditionBasedServiceReport(object):  # pylint: disable=too-few-public-methods
     """Entry in the list of condition based services."""
 
-    def __init__(self, data: str):
-        attributes = data.split(',')
-
-        #: service code
-        self.code = attributes[0]
-
-        #: status of the service
-        self.status = ConditionBasedServiceStatus(attributes[1])
+    def __init__(self, data: dict):
 
         #: date when the service is due
-        self.due_date = None
-        if attributes[2] != '':
-            self.due_date = self._parse_date(attributes[2])
+        self.due_date = self._parse_date(data['cbsDueDate'])
+
+        #: status of the service
+        self.state = ConditionBasedServiceStatus(data['cbsState'])
+
+        #: service type
+        self.service_type = data['cbsType']
 
         #: distance when the service is due
         self.due_distance = None
-        if attributes[3] != '':
-            self.due_distance = int(attributes[3])
+        if 'cbsRemainingMileage' in data:
+            self.due_distance = int(data['cbsRemainingMileage'])
 
-    @property
-    def service_type(self) -> str:
-        """Translate the service code to a string."""
-        if self.code in CONDITION_BASED_SERVICE_CODES:
-            return ConditionBasedServiceStatus[self.code]
-        _LOGGER.warning('Unknown service code %s', self.code)
-        return 'unknown service code'
+        #: description of the required service
+        self.description = data['cbsDescription']
 
     @staticmethod
     def _parse_date(datestr: str) -> datetime.datetime:

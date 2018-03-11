@@ -88,7 +88,6 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
                                          expected_response=200, post=True)
 
             response_json = response.json()
-            print(response_json)
             self._oauth_token = response_json['access_token']
             # not sure how to use the refresh_token, but might be useful in the future...
             self._refresh_token = response_json['refresh_token']
@@ -121,7 +120,6 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects)
         else:
             response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects)
-        print(response.text)
 
         if response.status_code != expected_response:
             msg = 'Unknown status code {}, expected {}'.format(response.status_code, expected_response)
