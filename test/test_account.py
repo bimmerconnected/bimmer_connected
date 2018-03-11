@@ -1,8 +1,9 @@
 """Tests for ConnectedDriveAccount."""
 import unittest
 from unittest import mock
-from test import BackendMock
+from test import BackendMock, G31_VIN
 from bimmer_connected.account import ConnectedDriveAccount
+from bimmer_connected.country_selector import Regions
 
 TEST_USERNAME = 'some_user'
 TEST_PASSWORD = 'my_secret'
@@ -14,23 +15,20 @@ class TestAccount(unittest.TestCase):
 
     # pylint: disable=protected-access
 
-    @unittest.skip
     def test_token_vehicles(self):
         """Test getting backend token and vehicle list."""
         backend_mock = BackendMock()
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
             self.assertIsNotNone(account._oauth_token)
-            self.assertEqual(5, len(account.vehicles))
-            vin = 'G31_NBTEvo_VIN'
-            vehicle = account.get_vehicle(vin)
-            self.assertEqual(vehicle.vin, vin)
+            self.assertEqual(1, len(account.vehicles))
+            vehicle = account.get_vehicle(G31_VIN)
+            self.assertEqual(G31_VIN, vehicle.vin)
 
-    @unittest.skip
     def test_invalid_send_response(self):
         """Test parsing the results of an invalid request"""
         backend_mock = BackendMock()
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_COUNTRY)
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
             with self.assertRaises(IOError):
                 account.send_request('invalid_url')

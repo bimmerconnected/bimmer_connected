@@ -44,13 +44,10 @@ class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
 
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
-        self._response = response
-        # the result from the service call is different from the status request
-        # we need to go one level down in the response if possible
-        if 'executionStatus' in response:
-            response = response['executionStatus']
-        self.state = ExecutionState(response['status'])
-        self.event_id = response['eventId']
+        print(response)
+        status = response['executionStatus']
+        self.state = ExecutionState(status['status'])
+        self.event_id = status['eventId']
 
     @staticmethod
     def _parse_timestamp(timestamp: str) -> datetime.datetime:

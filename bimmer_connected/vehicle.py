@@ -40,11 +40,6 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         self.state.update_data()
 
     @property
-    def has_rex(self) -> bool:
-        """Check if the vehicle has a range extender."""
-        return self.attributes['hasRex'] == '1'
-
-    @property
     def drive_train(self) -> DriveTrainType:
         """Get the type of drive train of the vehicle."""
         return DriveTrainType(self.attributes['driveTrain'])
