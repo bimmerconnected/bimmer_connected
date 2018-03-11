@@ -7,8 +7,7 @@ the current state of the vehicle and also trigger remote services.
 Disclaimer:
 This library is not affiliated with or endorsed by BMW Group.
 """
-import string
-import random
+
 import datetime
 import logging
 import urllib
@@ -136,11 +135,6 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
 
         with open(os.path.join(self._log_responses, '{}.json'.format(logfilename)), 'w') as logfile:
             logfile.write(response.text)
-
-    @staticmethod
-    def _random_string(length):
-        """Create a random string of a given length."""
-        return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
     @property
     def server_url(self) -> str:

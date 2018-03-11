@@ -25,6 +25,8 @@ class TestAccount(unittest.TestCase):
             vehicle = account.get_vehicle(G31_VIN)
             self.assertEqual(G31_VIN, vehicle.vin)
 
+            self.assertIsNone(account.get_vehicle('invalid_vin'))
+
     def test_invalid_send_response(self):
         """Test parsing the results of an invalid request"""
         backend_mock = BackendMock()

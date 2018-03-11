@@ -207,7 +207,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     def are_all_cbs_ok(self) -> bool:
         """Check if the status of all condition based services is "OK"."""
         for cbs in self.condition_based_services:
-            if cbs.status != ConditionBasedServiceStatus.OK:
+            if cbs.state != ConditionBasedServiceStatus.OK:
                 return False
         return True
 
