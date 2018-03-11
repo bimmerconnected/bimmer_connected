@@ -47,6 +47,8 @@ class TestState(unittest.TestCase):
         self.assertEqual(datetime.datetime(year=2022, month=1, day=1), cbs[1].due_date)
         self.assertEqual(60000, cbs[1].due_distance)
 
+        self.assertTrue(state.are_all_cbs_ok)
+
         self.assertFalse(state.are_parking_lights_on)
         self.assertEqual(ParkingLightState.OFF, state.parking_lights)
 
