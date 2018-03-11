@@ -9,6 +9,7 @@ from bimmer_connected.account import ConnectedDriveAccount
 class TestVehicleSpecs(unittest.TestCase):
     """Tests for VehicleSpecs."""
 
+    @unittest.skip
     def test_update_data_error(self):
         """Test with server returning an error."""
         backend_mock = BackendMock()
@@ -18,6 +19,7 @@ class TestVehicleSpecs(unittest.TestCase):
             with self.assertRaises(IOError):
                 vehicle.update_state()
 
+    @unittest.skip
     def test_update_data(self):
         """Test with proper data."""
         backend_mock = BackendMock()

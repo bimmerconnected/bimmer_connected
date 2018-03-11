@@ -5,7 +5,7 @@ import datetime
 import logging
 import time
 import requests
-from bimmer_connected.const import REMOTE_SERVICE_URL
+from bimmer_connected.const import REMOTE_SERVICE_URL, REMOTE_SERVICE_STATUS_URL
 
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
@@ -24,19 +24,19 @@ _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
 
 class ExecutionState(Enum):
     """Enumeration of possible states of the execution of a remote service."""
+    INITIATED = 'INITIATED'
     PENDING = 'PENDING'
-    DELIVERED = 'DELIVERED_TO_VEHICLE'
+    DELIVERED = 'DELIVERED'
     EXECUTED = 'EXECUTED'
 
 
 class _Services(Enum):
     """Enumeration of possible services to be executed."""
-    REMOTE_LIGHT_FLASH = 'RLF'
-    REMOTE_DOOR_LOCK = 'RDL'
-    REMOTE_DOOR_UNLOCK = 'RDU'
-    REMOTE_SERVICE_STATUS = 'state/execution'
-    REMOTE_HORN = 'RHB'
-    REMOTE_AIR_CONDITIONING = 'RCN'
+    REMOTE_LIGHT_FLASH = 'LIGHT_FLASH'
+    REMOTE_DOOR_LOCK = 'DOOR_LOCK'
+    REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
+    REMOTE_HORN = 'HORN_BLOW'
+    REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
 
 
 class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
@@ -47,10 +47,10 @@ class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
         self._response = response
         # the result from the service call is different from the status request
         # we need to go one level down in the response if possible
-        if 'remoteServiceEvent' in response:
-            response = response['remoteServiceEvent']
-        self.state = ExecutionState(response['remoteServiceStatus'])
-        self.timestamp = self._parse_timestamp(response['lastUpdate'])
+        if 'executionStatus' in response:
+            response = response['executionStatus']
+        self.state = ExecutionState(response['status'])
+        self.event_id = response['eventId']
 
     @staticmethod
     def _parse_timestamp(timestamp: str) -> datetime.datetime:
@@ -78,7 +78,7 @@ class RemoteServices(object):
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_LIGHT_FLASH, post=True)
-        return self._block_until_done()
+        return self._block_until_done(_Services.REMOTE_LIGHT_FLASH)
 
     def trigger_remote_door_lock(self) -> RemoteServiceStatus:
         """Trigger the vehicle to lock its doors.
@@ -88,7 +88,7 @@ class RemoteServices(object):
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_DOOR_LOCK, post=True)
-        result = self._block_until_done()
+        result = self._block_until_done(_Services.REMOTE_DOOR_LOCK)
         self._trigger_state_update()
         return result
 
@@ -100,7 +100,7 @@ class RemoteServices(object):
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
-        result = self._block_until_done()
+        result = self._block_until_done(_Services.REMOTE_DOOR_UNLOCK)
         self._trigger_state_update()
         return result
 
@@ -112,7 +112,7 @@ class RemoteServices(object):
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_HORN, post=True)
-        return self._block_until_done()
+        return self._block_until_done(_Services.REMOTE_HORN)
 
     def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
         """Trigger the vehicle to sound its horn.
@@ -122,7 +122,7 @@ class RemoteServices(object):
         _LOGGER.debug('Triggering remote light flash')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_AIR_CONDITIONING, post=True)
-        result = self._block_until_done()
+        result = self._block_until_done(_Services.REMOTE_AIR_CONDITIONING)
         self._trigger_state_update()
         return result
 
@@ -131,19 +131,19 @@ class RemoteServices(object):
 
         You can choose if you want a POST or a GET operation.
         """
-        url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service=service_id.value,
-                                        server=self._account.server_url)
+        data = {'serviceType': service_id.value}
+        url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, server=self._account.server_url)
 
-        return self._account.send_request(url, post=post)
+        return self._account.send_request(url, post=post, data=data)
 
-    def _block_until_done(self) -> RemoteServiceStatus:
+    def _block_until_done(self, service: _Services) -> RemoteServiceStatus:
         """Keep polling the server until we get a final answer.
 
         :raises IOError: if there is no final answer before _POLLING_TIMEOUT
         """
         fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
         while True:
-            status = self._get_remote_service_status()
+            status = self._get_remote_service_status(service)
             _LOGGER.debug('current state if remote service is: %s', status.state.value)
             if status.state not in [ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
@@ -152,14 +152,18 @@ class RemoteServices(object):
                     'Timeout on getting final answer from server. Current state: {}'.format(status.state.value))
             time.sleep(_POLLING_CYCLE)
 
-    def _get_remote_service_status(self) -> RemoteServiceStatus:
+    def _get_remote_service_status(self, service: _Services) -> RemoteServiceStatus:
         """The the execution status of the last remote service that was triggered.
 
         As the status changes over time, you probably need to poll this.
         Recommended polling time is AT LEAST one second as the reaction is sometimes quite slow.
         """
         _LOGGER.debug('getting remote service status')
-        response = self._trigger_remote_service(_Services.REMOTE_SERVICE_STATUS)
+        url = REMOTE_SERVICE_STATUS_URL.format(
+            server=self._account.server_url,
+            vin=self._vehicle.vin,
+            service_type=service.value)
+        response = self._account.send_request(url)
         try:
             json_result = response.json()
             return RemoteServiceStatus(json_result)

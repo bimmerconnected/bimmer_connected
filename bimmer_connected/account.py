@@ -17,9 +17,9 @@ from threading import Lock
 from typing import Callable, List
 import requests
 
-from bimmer_connected.country_selector import CountrySelector
+from bimmer_connected.country_selector import Regions, get_server_url
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-from bimmer_connected.const import AUTH_URL, LIST_VEHICLES_URL
+from bimmer_connected.const import AUTH_URL, VEHICLES_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,12 +38,13 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, country: str, log_responses: str = None) -> None:
-        self._country = country
+    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None) -> None:
+        self._region = region
         self._server_url = None
         self._username = username
         self._password = password
         self._oauth_token = None
+        self._refresh_token = None
         self._token_expiration = None
         self._log_responses = log_responses
         #: list of vehicles associated with this account.
@@ -63,27 +64,35 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             _LOGGER.debug('getting new oauth token')
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
+                "Content-Length": "124",
+                "Connection": "Keep-Alive",
+                "Host": "b2vapi.bmwgroup.com",
+                "Accept-Encoding": "gzip",
+                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
+                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
+                "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
+                "User-Agent": "okhttp/2.60",
             }
 
             # we really need all of these parameters
             values = {
+                'grant_type': 'password',
+                'scope': 'authenticate_user vehicle_data remote_services',
                 'username': self._username,
                 'password': self._password,
-                # not sure what this id really means, random numbers do no work here.
-                'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
-                'redirect_uri': 'https://www.bmw-connecteddrive.com/app/default/static/external-dispatch.html',
-                'response_type': 'token',
-                'scope': 'authenticate_user fupo',
-                'state': self._random_string(79)
             }
 
             data = urllib.parse.urlencode(values)
-            response = self.send_request(AUTH_URL, data=data, headers=headers, allow_redirects=False,
-                                         expected_response=302, post=True)
+            url = AUTH_URL.format(server=self.server_url)
+            response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
+                                         expected_response=200, post=True)
 
-            url_with_token = urllib.parse.parse_qs(response.headers['Location'])
-            self._oauth_token = url_with_token['access_token'][0]
-            expiration_time = int(url_with_token['expires_in'][0])
+            response_json = response.json()
+            print(response_json)
+            self._oauth_token = response_json['access_token']
+            # not sure how to use the refresh_token, but might be useful in the future...
+            self._refresh_token = response_json['refresh_token']
+            expiration_time = response_json['expires_in']
             self._token_expiration = datetime.datetime.now() + datetime.timedelta(seconds=expiration_time)
             _LOGGER.debug('got new token %s with expiration date %s', self._oauth_token, self._token_expiration)
 
@@ -98,7 +107,8 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         }
         return headers
 
-    def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True):
+    def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True,
+                     logfilename: str = None):
         """Send an http request to the server.
 
         If the http headers are not set, default headers are generated.
@@ -111,34 +121,22 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects)
         else:
             response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects)
+        print(response.text)
 
         if response.status_code != expected_response:
             msg = 'Unknown status code {}, expected {}'.format(response.status_code, expected_response)
             _LOGGER.error(msg)
             _LOGGER.error(response.text)
             raise IOError(msg)
-        self._log_response_to_file(response, url)
+        self._log_response_to_file(response, logfilename)
         return response
 
-    def _log_response_to_file(self, response: requests.Response, url: str) -> None:
+    def _log_response_to_file(self, response: requests.Response, logfilename: str = None) -> None:
         """If a log path is set, log all resonses to a file"""
-        if self._log_responses is None:
+        if self._log_responses is None or logfilename is None:
             return
 
-        replacements = [
-            ('http://', ''),
-            ('https://', ''),
-            ('/', '_'),
-        ]
-
-        base_name = url.lower()
-        for replacement in replacements:
-            base_name = base_name.replace(replacement[0], replacement[1])
-
-        with open(os.path.join(self._log_responses, '{}_headers.json'.format(base_name)), 'w') as logfile:
-            logfile.write(repr(response.headers))
-
-        with open(os.path.join(self._log_responses, '{}_data.json'.format(base_name)), 'w') as logfile:
+        with open(os.path.join(self._log_responses, '{}.json'.format(logfilename)), 'w') as logfile:
             logfile.write(response.text)
 
     @staticmethod
@@ -150,17 +148,17 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def server_url(self) -> str:
         """Get the url of the server for this country."""
         if self._server_url is None:
-            country_sel = CountrySelector()
-            self._server_url = country_sel.get_url(self._country)
+            self._server_url = get_server_url(self._region)
         return self._server_url
 
     def _get_vehicles(self):
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        response = self.send_request(LIST_VEHICLES_URL.format(server=self.server_url), headers=self.request_header)
+        response = self.send_request(VEHICLES_URL.format(server=self.server_url), headers=self.request_header,
+                                     logfilename='vehicles')
 
-        for vehicle_dict in response.json():
+        for vehicle_dict in response.json()['vehicles']:
             self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
 
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:

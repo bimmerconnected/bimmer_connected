@@ -9,10 +9,11 @@ __version__ = '{}.{}'.format(__short_version__, PATCH_VERSION)
 
 """urls for different services."""
 
-COUNTRY_SELECTION_URL = 'https://www.bmw-connecteddrive.com/cms/default/default/country-selection.json'
-AUTH_URL = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate'
+AUTH_URL = 'https://{server}/webapi/oauth/token'
+BASE_URL = 'https://{server}/webapi/v1'
 
-REMOTE_SERVICE_URL = '{server}/api/vehicle/remoteservices/v1/{vin}/{service}'
-VEHICLE_STATE_URL = '{server}/api/vehicle/dynamic/v1/{vin}'
-VEHICLE_SPECS_URL = '{server}/api/vehicle/specs/v1/{vin}'
-LIST_VEHICLES_URL = '{server}/api/me/vehicles/v2'
+VEHICLES_URL = BASE_URL + '/user/vehicles'
+VEHICLE_VIN_URL = VEHICLES_URL + '/{vin}'
+VEHICLE_STATUS_URL = VEHICLE_VIN_URL + '/status'
+REMOTE_SERVICE_STATUS_URL = VEHICLE_VIN_URL + '/serviceExecutionStatus?serviceType={service_type}'
+REMOTE_SERVICE_URL = VEHICLE_VIN_URL + "/executeService"
