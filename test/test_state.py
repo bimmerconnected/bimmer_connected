@@ -141,7 +141,7 @@ class TestState(unittest.TestCase):
         state._attributes['doorDriverFront'] = LidState.OPEN
         self.assertFalse(state.all_lids_closed)
 
-    def test_windows_G31(self):
+    def test_windows_g31(self):
         """Test features around lids."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
@@ -157,7 +157,7 @@ class TestState(unittest.TestCase):
         state._attributes['windowDriverFront'] = LidState.INTERMEDIATE
         self.assertFalse(state.all_windows_closed)
 
-    def test_windows_F48(self):
+    def test_windows_g48(self):
         """Test features around lids."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
