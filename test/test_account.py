@@ -34,3 +34,11 @@ class TestAccount(unittest.TestCase):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
             with self.assertRaises(IOError):
                 account.send_request('invalid_url')
+
+    def test_us_header(self):
+        """Test if the host is set correctly in the request."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA)
+            request = [r for r in backend_mock.last_request if 'oauth' in r.url][0]
+            self.assertEqual('b2vapi.bmwgroup.us', request.headers['Host'])
