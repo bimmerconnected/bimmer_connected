@@ -65,7 +65,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Content-Length": "124",
                 "Connection": "Keep-Alive",
-                "Host": "b2vapi.bmwgroup.com",
+                "Host": "b2vapi.bmwgroup.us",
                 "Accept-Encoding": "gzip",
                 "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
                                  "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
