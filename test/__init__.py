@@ -13,11 +13,13 @@ TEST_PASSWORD = 'my_secret'
 TEST_REGION = Regions.REST_OF_WORLD
 G31_VIN = 'G31_NBTevo_VIN'
 F48_VIN = 'F48_VIN'
+I01_VIN = 'I01_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
     G31_VIN: 'G31_NBTevo',
     F48_VIN: 'F48',
+    I01_VIN: 'I01',
 }
 
 _AUTH_RESPONSE_HEADERS = {
@@ -45,7 +47,7 @@ class BackendMock(object):
 
     def __init__(self) -> None:
         """Constructor."""
-        self.last_request = None
+        self.last_request = []
         self.responses = [
             MockResponse('https://.+/webapi/oauth/token',
                          headers=_AUTH_RESPONSE_HEADERS,
@@ -57,12 +59,12 @@ class BackendMock(object):
 
     def get(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
         """Mock for requests.get function."""
-        self.last_request = MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects)
+        self.last_request.append(MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects))
         return self._find_response(url)
 
     def post(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
         """Mock for requests.post function."""
-        self.last_request = MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects)
+        self.last_request.append(MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects))
         return self._find_response(url)
 
     def add_response(self, regex: str, data: str = None, data_files: List[str] = None,
