@@ -47,6 +47,17 @@ class ConditionBasedServiceStatus(Enum):
     PENDING = 'PENDING'
 
 
+class ChargingState(Enum):
+    """Charging state of electric vehicle."""
+    CHARGING = 'CHARGING'
+    ERROR = 'ERROR'
+    FINISHED_FULLY_CHARGED = 'FINISHED_FULLY_CHARGED'
+    FINISHED_NOT_FULL = 'FINISHED_NOT_FULL'
+    INVALID = 'INVALID'
+    NOT_CHARGING = 'NOT_CHARGING'
+    WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
+
+
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -116,7 +127,10 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def is_vehicle_tracking_enabled(self) -> bool:
-        """Check if the position tracking of the vehicle is enabled"""
+        """Check if the position tracking of the vehicle is enabled.
+
+        The server return "OK" if tracking is enabled and "DRIVER_DISABLED" if it is disabled in the vehicle.
+        """
         return self._attributes['position']['status'] == 'OK'
 
     @property
@@ -241,6 +255,56 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
         return self._attributes.get(item)
+
+    @property
+    @backend_parameter
+    def remaining_range_electric(self) -> int:
+        """Remaining range on battery, in kilometers."""
+        return self._attributes.get('remainingRangeElectric')
+
+    @property
+    @backend_parameter
+    def remaining_range_total(self) -> int:
+        """Get the total remaining range of the vehicle in kilometers.
+
+        That is electrical range + fuel range.
+        """
+        result = 0
+        if self.remaining_range_electric is not None:
+            result += self.remaining_range_electric
+        if self.remaining_range_fuel is not None:
+            result += self.remaining_range_fuel
+        return result
+
+    @property
+    @backend_parameter
+    def max_range_electric(self) -> int:
+        """ This can change with driving style and temperature in kilometers."""
+        return self._attributes.get('maxRangeElectric')
+
+    @property
+    @backend_parameter
+    def charging_status(self) -> ChargingState:
+        """Charging state of the vehicle."""
+        state = self._attributes.get('chargingStatus')
+        if state is None:
+            return None
+        return ChargingState(state)
+
+    @property
+    @backend_parameter
+    def charging_time_remaining(self) -> datetime.timedelta:
+        """Get the remaining charging time."""
+        minutes = self._attributes.get('chargingTimeRemaining')
+        if minutes is None:
+            return None
+        return datetime.timedelta(minutes=minutes)
+
+    @property
+    @backend_parameter
+    def charging_level_hv(self) -> int:
+        """State of charge of the high voltage battery in percent."""
+        return self._attributes.get('chargingLevelHv')
 
 
 class Lid(object):  # pylint: disable=too-few-public-methods

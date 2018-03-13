@@ -44,7 +44,6 @@ class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
 
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
-        print(response)
         status = response['executionStatus']
         self.state = ExecutionState(status['status'])
         self.event_id = status['eventId']

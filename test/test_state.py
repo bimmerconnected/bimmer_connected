@@ -3,13 +3,15 @@
 import unittest
 from unittest import mock
 import datetime
-from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
+from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, I01_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
-    ParkingLightState
+    ParkingLightState, ChargingState
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
+G31_NO_POSITION_TEST_DATA = load_response_json('G31_NBTevo/status_position_disabled.json')
 F48_TEST_DATA = load_response_json('F48/status.json')
+I01_TEST_DATA = load_response_json('I01/status.json')
 
 
 class TestState(unittest.TestCase):
@@ -29,12 +31,14 @@ class TestState(unittest.TestCase):
         self.assertEqual(datetime.datetime(year=2018, month=3, day=10, hour=11, minute=39, second=41, tzinfo=zone),
                          state.timestamp)
 
+        self.assertTrue(state.is_vehicle_tracking_enabled)
         self.assertAlmostEqual(50.5050, state.gps_position[0])
         self.assertAlmostEqual(10.1010, state.gps_position[1])
 
         self.assertAlmostEqual(33, state.remaining_fuel)
 
         self.assertAlmostEqual(321, state.remaining_range_fuel)
+        self.assertAlmostEqual(state.remaining_range_fuel, state.remaining_range_total)
 
         self.assertEqual('VEHICLE_SHUTDOWN', state.last_update_reason)
 
@@ -53,6 +57,15 @@ class TestState(unittest.TestCase):
         self.assertFalse(state.are_parking_lights_on)
         self.assertEqual(ParkingLightState.OFF, state.parking_lights)
 
+    def test_parse_g31_no_psoition(self):
+        """Test parsing of G31 data with position tracking disabled in the vehicle."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = G31_NO_POSITION_TEST_DATA['vehicleStatus']
+
+        self.assertFalse(state.is_vehicle_tracking_enabled)
+        self.assertIsNone(state.gps_position)
+
     def test_parse_f48(self):
         """Test if the parsing of the attributes is working."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
@@ -65,6 +78,7 @@ class TestState(unittest.TestCase):
         self.assertEqual(datetime.datetime(year=2018, month=3, day=10, hour=19, minute=35, second=30, tzinfo=zone),
                          state.timestamp)
 
+        self.assertTrue(state.is_vehicle_tracking_enabled)
         self.assertAlmostEqual(50.505050, state.gps_position[0])
         self.assertAlmostEqual(10.1010101, state.gps_position[1])
 
@@ -88,6 +102,19 @@ class TestState(unittest.TestCase):
 
         self.assertFalse(state.are_parking_lights_on)
         self.assertEqual(ParkingLightState.OFF, state.parking_lights)
+
+    def test_parse_i01(self):
+        """Test if the parsing of the attributes is working."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = I01_TEST_DATA['vehicleStatus']
+
+        self.assertEqual(48, state.remaining_range_electric)
+        self.assertEqual(154, state.remaining_range_total)
+        self.assertEqual(94, state.max_range_electric)
+        self.assertEqual(ChargingState.CHARGING, state.charging_status)
+        self.assertEqual(datetime.timedelta(minutes=332), state.charging_time_remaining)
+        self.assertEqual(54, state.charging_level_hv)
 
     def test_parse_timeformat(self):
         """Test parsing of the time string."""
@@ -198,6 +225,16 @@ class TestState(unittest.TestCase):
 
                 self.assertIsNotNone(state.door_lock_state)
                 self.assertIsNotNone(state.timestamp)
-                self.assertIsNotNone(state.mileage)
+                self.assertGreater(state.mileage, 0)
+                self.assertGreater(state.remaining_range_total, 0)
                 self.assertIsNotNone(state.remaining_fuel)
                 self.assertIsNotNone(state.all_windows_closed)
+
+                electric_attributes = [state.charging_status, state.charging_level_hv, state.charging_status,
+                                       state.charging_time_remaining, state.charging_level_hv]
+                if vehicle.vin == I01_VIN:
+                    for attrib in electric_attributes:
+                        self.assertIsNotNone(attrib)
+                else:
+                    for attrib in electric_attributes:
+                        self.assertIsNone(attrib)
