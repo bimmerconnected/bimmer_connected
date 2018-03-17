@@ -4,7 +4,7 @@ bimmer_connected
 This is a simple library to query and control the status of your BMW from
 the connected drive portal.
 
-See status.py and remote_light_flash.py for usage instruction or the
+See :code:`bimmerconnected` for usage instruction or the
 `API Documentation <http://bimmer-connected.readthedocs.io/en/latest/>`_.
 
 I wrote this library as I want to include it in Home Assistant.
@@ -27,19 +27,27 @@ the server.
 
 If you want to contribute your data, perform the following steps:
 
-::
+:code:
+    # get the latest version of the library
+    pip3 install --upgrade https://github.com/ChristianKuehnel/bimmer_connected/archive/b2vapi.zip
 
-    git clone https://github.com/ChristianKuehnel/bimmer_connected.git
-    cd bimmer_connected
-    ./generate_vehicle_fingerprint.py <username> <password> <country>
+    # run the fingerprint function
+    bimmerconnected fingerprint <username> <password> <region> <vin>
 
 This will create a set of log files in the "vehicle_fingerprint" folder.
-Before sending the data to anyone please **remove any personal data** from it:
+Before sending the data to anyone please **check for any personal data**.
+The following attributes should be replaced with default values:
+* vin (=Vehicle Identification Number)
+* lat and lon (=GPS position)
+* licensePlate
 
-* Replace your vehicle identification number (VIN) with something else like "my_vin"
-* Replace the location of your vehicle (gps_lat, gps_lng) with some generic numbers e.g. 11.111
+Create a new
+`issue in bimmer_connected <https://github.com/ChristianKuehnel/bimmer_connected/issues>`_
+and
+`add the files as attachment <https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/>`_
+to the issue.
 
-We will then use this data as additional test cases. So we will publish
+**Note:** We will then use this data as additional test cases. So we will publish
 (parts of) it (after checking for personal information again) and use
 this as test cases for our library. If you do not want this, please
 let us know in advance.

@@ -31,5 +31,6 @@ setup(
     install_requires=['requests', 'typing>=3,<4'],
     keywords='BMW Connected Drive home automation',
     zip_safe=False,
-    extras_require={'testing': ['pytest']}
+    extras_require={'testing': ['pytest']},
+    scripts=['bimmerconnected'],
 )

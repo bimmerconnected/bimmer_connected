@@ -1,4 +1,5 @@
 """Tests for ConnectedDriveAccount."""
+import json
 import unittest
 from unittest import mock
 from test import BackendMock, G31_VIN
@@ -42,3 +43,28 @@ class TestAccount(unittest.TestCase):
             ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA)
             request = [r for r in backend_mock.last_request if 'oauth' in r.url][0]
             self.assertEqual('b2vapi.bmwgroup.us', request.headers['Host'])
+
+    def test_anonymize_data(self):
+        """Test anonymization function."""
+        test_dict = {
+            'vin': 'secret',
+            'a sub-dict': {
+                'lat': 666,
+                'lon': 666,
+                'heading': 666,
+            },
+            'licensePlate': 'secret',
+            'public': 'public_data',
+            'a_list': [
+                {'vin': 'secret'},
+                {
+                    'lon': 666,
+                    'public': 'more_public_data',
+                },
+            ]
+        }
+        anon_text = json.dumps(ConnectedDriveAccount._anonymize_data(test_dict))
+        self.assertNotIn('secret', anon_text)
+        self.assertNotIn('666', anon_text)
+        self.assertIn('public_data', anon_text)
+        self.assertIn('more_public_data', anon_text)
