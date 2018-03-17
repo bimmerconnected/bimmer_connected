@@ -3,7 +3,8 @@
 import unittest
 from unittest import mock
 import datetime
-from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, I01_VIN
+from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, I01_VIN, \
+    I01_NOREX_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState, ChargingState
@@ -11,7 +12,7 @@ from bimmer_connected.state import VehicleState, LidState, LockState, ConditionB
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
 G31_NO_POSITION_TEST_DATA = load_response_json('G31_NBTevo/status_position_disabled.json')
 F48_TEST_DATA = load_response_json('F48/status.json')
-I01_TEST_DATA = load_response_json('I01/status.json')
+I01_TEST_DATA = load_response_json('I01_REX/status.json')
 
 
 class TestState(unittest.TestCase):
@@ -230,11 +231,17 @@ class TestState(unittest.TestCase):
                 self.assertIsNotNone(state.remaining_fuel)
                 self.assertIsNotNone(state.all_windows_closed)
 
-                electric_attributes = [state.charging_status, state.charging_level_hv, state.charging_status,
-                                       state.charging_time_remaining, state.charging_level_hv]
-                if vehicle.vin == I01_VIN:
-                    for attrib in electric_attributes:
-                        self.assertIsNotNone(attrib)
-                else:
-                    for attrib in electric_attributes:
-                        self.assertIsNone(attrib)
+                electric_attributes = ['charging_status', 'charging_level_hv', 'charging_status', 'charging_level_hv']
+                self.check_attributes(electric_attributes, [I01_VIN, I01_NOREX_VIN], state, vehicle)
+
+                optional_electric_attriutes = ['charging_time_remaining']
+                self.check_attributes(optional_electric_attriutes, [I01_VIN], state, vehicle)
+
+    def check_attributes(self, attributes, vins, state, vehicle):
+        """Check if the state attributes are not None for all vehicles with a vin in vins."""
+        if vehicle.vin in vins:
+            for attrib in attributes:
+                self.assertIsNotNone(getattr(state, attrib), attrib)
+        else:
+            for attrib in attributes:
+                self.assertIsNone(getattr(state, attrib), attrib)
