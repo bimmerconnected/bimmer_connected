@@ -22,7 +22,7 @@ TEST_VEHICLE_DATA = {
     G31_VIN: 'G31_NBTevo',
     F48_VIN: 'F48',
     I01_VIN: 'I01_REX',
-    I01_NOREX_VIN : 'I01_NOREX',
+    I01_NOREX_VIN: 'I01_NOREX',
     F15_VIN: 'F15'
 }
 
