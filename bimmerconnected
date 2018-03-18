@@ -17,8 +17,9 @@ def main() -> None:
     """Main function."""
     logging.basicConfig(level=logging.DEBUG)
 
-    parser = argparse.ArgumentParser()
-    subparsers = parser.add_subparsers()
+    parser = argparse.ArgumentParser(description='demo script to show usage of the bimmer_connected library')
+    subparsers = parser.add_subparsers(dest='cmd')
+    subparsers.required = True
 
     status_parser = subparsers.add_parser('status', description='get current status of the vehicle')
     _add_default_arguments(status_parser)
@@ -30,7 +31,7 @@ def main() -> None:
 
     flash_parser = subparsers.add_parser('lightflash', description='flash the vehicle lights')
     _add_default_arguments(flash_parser)
-    flash_parser.add_argument('vin')
+    flash_parser.add_argument('vin', help='vehicle identification number')
     flash_parser.set_defaults(func=light_flash)
 
     args = parser.parse_args()
@@ -80,9 +81,9 @@ def light_flash(args) -> None:
 
 def _add_default_arguments(status_parser: argparse.ArgumentParser):
     """Add the default arguments username, password, region to the parser."""
-    status_parser.add_argument('username')
-    status_parser.add_argument('password')
-    status_parser.add_argument('region', choices=valid_regions())
+    status_parser.add_argument('username', help='Connected Drive user name')
+    status_parser.add_argument('password', help='Connected Drive password')
+    status_parser.add_argument('region', choices=valid_regions(), help='Region of the Connected Drive account')
 
 
 if __name__ == '__main__':
