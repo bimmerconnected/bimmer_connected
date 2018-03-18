@@ -31,7 +31,7 @@ If you want to contribute your data, perform the following steps:
 ::
 
     # get the latest version of the library
-    pip3 install --upgrade https://github.com/ChristianKuehnel/bimmer_connected/archive/b2vapi.zip
+    pip3 install --upgrade bimmer_connected
 
     # run the fingerprint function
     bimmerconnected fingerprint <username> <password> <region> <vin>
