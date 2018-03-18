@@ -28,7 +28,7 @@ the server.
 
 If you want to contribute your data, perform the following steps:
 
-:code:
+::
 
     # get the latest version of the library
     pip3 install --upgrade https://github.com/ChristianKuehnel/bimmer_connected/archive/b2vapi.zip
