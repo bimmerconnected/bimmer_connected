@@ -8,12 +8,6 @@ from bimmer_connected.remote_services import RemoteServices
 _LOGGER = logging.getLogger(__name__)
 
 
-#: List of known attributes of a vehicle
-VEHICLE_ATTRIBUTES = [
-    'series', 'vin', 'basicType', 'brand', 'hasRex', 'doorCount', 'steering', 'hasSunRoof',
-    'bodyType', 'dcOnly', 'driveTrain', 'hasNavi', 'modelName']
-
-
 class DriveTrainType(Enum):
     """Different types of drive trains."""
     CONVENTIONAL = 'CONV'
@@ -22,7 +16,7 @@ class DriveTrainType(Enum):
     BEV_REX = 'BEV_REX'
 
 
-class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
+class ConnectedDriveVehicle(object):
     """Models state and remote services of one vehicle.
 
     :param account: ConnectedDrive account this vehicle belongs to
@@ -55,7 +49,7 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         In a later version we might parse the attributes to provide a more advanced API.
         :param item: item to get, as defined in VEHICLE_ATTRIBUTES
         """
-        return self.attributes[item]
+        return self.attributes.get(item)
 
     def __str__(self):
         """Use the name as identifier for the vehicle."""
