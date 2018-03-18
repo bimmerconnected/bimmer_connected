@@ -346,7 +346,7 @@ class ConditionBasedServiceReport(object):  # pylint: disable=too-few-public-met
     def __init__(self, data: dict):
 
         #: date when the service is due
-        self.due_date = self._parse_date(data['cbsDueDate'])
+        self.due_date = self._parse_date(data.get('cbsDueDate'))
 
         #: status of the service
         self.state = ConditionBasedServiceStatus(data['cbsState'])
@@ -364,6 +364,8 @@ class ConditionBasedServiceReport(object):  # pylint: disable=too-few-public-met
 
     @staticmethod
     def _parse_date(datestr: str) -> datetime.datetime:
+        if datestr is None:
+            return None
         formats = [
             '%Y-%m',
             '%m.%Y',
