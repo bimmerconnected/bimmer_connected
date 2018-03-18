@@ -29,7 +29,7 @@ class LockState(Enum):
     """Possible states of the door locks."""
     LOCKED = 'LOCKED'
     SECURED = 'SECURED'
-    SELECTIVELOCKED = 'SELECTIVELOCKED'
+    SELECTIVELOCKED = 'SELECTIVE_LOCKED'
     UNLOCKED = 'UNLOCKED'
 
 
