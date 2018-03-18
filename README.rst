@@ -12,7 +12,8 @@ I wrote this library as I want to include it in Home Assistant.
 
 Compatibility
 -------------
-So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav' navigation system. 
+This works with BMW vehicles with a Connected Driver account.
+So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav' navigation system.
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
 
@@ -27,7 +28,7 @@ the server.
 
 If you want to contribute your data, perform the following steps:
 
-:code:
+::
     # get the latest version of the library
     pip3 install --upgrade https://github.com/ChristianKuehnel/bimmer_connected/archive/b2vapi.zip
 
@@ -65,7 +66,7 @@ And please add tests where it makes sense. The more the better.
 Thank you
 ---------
 
-Thank you @gerard33 and @m1n3rva for your research and contributions!
+Thank you @gerard33, @m1n3rva, @kernelkraut, @robbz23, @lawtancool for your research and contributions!
 
 This library is basically a best-of of other similar solutions I found,
 yet none of them provided a ready to use library with a matching interface
@@ -76,6 +77,10 @@ to be used in Home Assistant and is available on pypi...
 * https://github.com/frankjoke/iobroker.bmw
 
 Thank you for your great software!
+
+License
+-------
+The bimmer_connected library is licensed under the Apache License 2.0.
 
 Disclaimer
 ----------
