@@ -12,7 +12,7 @@ I wrote this library as I want to include it in Home Assistant.
 
 Compatibility
 -------------
-This works with BMW vehicles with a Connected Driver account.
+This works with BMW vehicles with a ConnectedDrive account.
 So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav' navigation system.
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
@@ -48,6 +48,8 @@ Create a new
 and
 `add the files as attachment <https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/>`_
 to the issue.
+Please add your model and year to the title of the issue, to make it easier to organize. If you know the "chassis code" of your car, you can include that too. (For example, Googling "2017 BMW X5" will show a Wikipedia article entitled "BMW X5 (F15)". F15 is therefore the chassis code of the car.)
+
 
 **Note:** We will then use this data as additional test cases. So we will publish
 (parts of) it (after checking for personal information again) and use
@@ -71,7 +73,7 @@ Thank you @gerard33, @m1n3rva, @kernelkraut, @robbz23, @lawtancool for your rese
 
 This library is basically a best-of of other similar solutions I found,
 yet none of them provided a ready to use library with a matching interface
-to be used in Home Assistant and is available on pypi...
+to be used in Home Assistant and is available on pypi.
 
 * https://github.com/edent/BMW-i-Remote/blob/master/python/bmw.py
 * https://github.com/jupe76/bmwcdapi/blob/master/bmwcdapi.py
