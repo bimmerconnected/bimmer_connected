@@ -14,12 +14,16 @@ TEST_REGION = Regions.REST_OF_WORLD
 G31_VIN = 'G31_NBTevo_VIN'
 F48_VIN = 'F48_VIN'
 I01_VIN = 'I01_VIN'
+F15_VIN = 'F15_VIN'
+I01_NOREX_VIN = 'I01_NOREX_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
     G31_VIN: 'G31_NBTevo',
     F48_VIN: 'F48',
-    I01_VIN: 'I01',
+    I01_VIN: 'I01_REX',
+    I01_NOREX_VIN: 'I01_NOREX',
+    F15_VIN: 'F15'
 }
 
 _AUTH_RESPONSE_HEADERS = {

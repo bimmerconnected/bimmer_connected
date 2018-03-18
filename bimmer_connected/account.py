@@ -182,3 +182,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def vehicles(self) -> List[ConnectedDriveVehicle]:
         """Get list of vehicle of this account"""
         return self._vehicles
+
+    def __str__(self):
+        """Use the user name as id for the account class."""
+        return '{}: {}'.format(self.__class__, self._username)

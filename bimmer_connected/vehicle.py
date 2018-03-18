@@ -56,3 +56,7 @@ class ConnectedDriveVehicle(object):  # pylint: disable=too-few-public-methods
         :param item: item to get, as defined in VEHICLE_ATTRIBUTES
         """
         return self.attributes[item]
+
+    def __str__(self):
+        """Use the name as identifier for the vehicle."""
+        return '{}: {}'.format(self.__class__, self.name)
