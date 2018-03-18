@@ -48,6 +48,7 @@ Create a new
 and
 `add the files as attachment <https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/>`_
 to the issue.
+
 Please add your model and year to the title of the issue, to make it easier to organize. If you know the "chassis code" of your car, you can include that too. (For example, Googling "2017 BMW X5" will show a Wikipedia article entitled "BMW X5 (F15)". F15 is therefore the chassis code of the car.)
 
 
