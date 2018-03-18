@@ -1,0 +1,90 @@
+#!/usr/bin/python3
+"""Simple executable to demonstrate and test the usage of the library."""
+
+import argparse
+import logging
+import json
+import os
+import shutil
+from bimmer_connected.account import ConnectedDriveAccount
+from bimmer_connected.country_selector import get_region_from_name, valid_regions
+
+FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                               'vehicle_fingerprint')
+
+
+def main() -> None:
+    """Main function."""
+    logging.basicConfig(level=logging.DEBUG)
+
+    parser = argparse.ArgumentParser(description='demo script to show usage of the bimmer_connected library')
+    subparsers = parser.add_subparsers(dest='cmd')
+    subparsers.required = True
+
+    status_parser = subparsers.add_parser('status', description='get current status of the vehicle')
+    _add_default_arguments(status_parser)
+    status_parser.set_defaults(func=get_status)
+
+    fingerprint_parser = subparsers.add_parser('fingerprint', description='save a vehicle fingerprint')
+    _add_default_arguments(fingerprint_parser)
+    fingerprint_parser.set_defaults(func=fingerprint)
+
+    flash_parser = subparsers.add_parser('lightflash', description='flash the vehicle lights')
+    _add_default_arguments(flash_parser)
+    flash_parser.add_argument('vin', help='vehicle identification number')
+    flash_parser.set_defaults(func=light_flash)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+def get_status(args) -> None:
+    """Get the vehicle status."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account.update_vehicle_states()
+
+    print('Found {} vehicles: {}'.format(
+        len(account.vehicles),
+        ','.join([v.name for v in account.vehicles])))
+
+    for vehicle in account.vehicles:
+        print('VIN: {}'.format(vehicle.vin))
+        print('mileage: {}'.format(vehicle.state.mileage))
+        print('vehicle properties:')
+        print(json.dumps(vehicle.attributes, indent=4))
+        print('vehicle status:')
+        print(json.dumps(vehicle.state.attributes, indent=4))
+
+
+def fingerprint(args) -> None:
+    """Save the vehicle fingerprint."""
+    if os.path.exists(FINGERPRINT_DIR):
+        shutil.rmtree(FINGERPRINT_DIR)
+
+    os.mkdir(FINGERPRINT_DIR)
+
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region),
+                                    log_responses=FINGERPRINT_DIR)
+    account.update_vehicle_states()
+
+    print('fingerprint of the vehicles written to {}'.format(FINGERPRINT_DIR))
+
+
+def light_flash(args) -> None:
+    """Trigger the vehicle to flash its lights."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+
+    status = vehicle.remote_services.trigger_remote_light_flash()
+    print(status.state)
+
+
+def _add_default_arguments(status_parser: argparse.ArgumentParser):
+    """Add the default arguments username, password, region to the parser."""
+    status_parser.add_argument('username', help='Connected Drive user name')
+    status_parser.add_argument('password', help='Connected Drive password')
+    status_parser.add_argument('region', choices=valid_regions(), help='Region of the Connected Drive account')
+
+
+if __name__ == '__main__':
+    main()

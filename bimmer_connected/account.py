@@ -12,6 +12,7 @@ import datetime
 import logging
 import urllib
 import os
+import json
 from threading import Lock
 from typing import Callable, List
 import requests
@@ -129,12 +130,43 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         return response
 
     def _log_response_to_file(self, response: requests.Response, logfilename: str = None) -> None:
-        """If a log path is set, log all resonses to a file"""
+        """If a log path is set, log all resonses to a file."""
         if self._log_responses is None or logfilename is None:
             return
 
-        with open(os.path.join(self._log_responses, '{}.json'.format(logfilename)), 'w') as logfile:
-            logfile.write(response.text)
+        anonymized_data = json.dumps(self._anonymize_data(response.json()), indent=2, sort_keys=True)
+
+        output_path = None
+        count = 0
+
+        while output_path is None or os.path.exists(output_path):
+            output_path = os.path.join(self._log_responses, '{}_{}.txt'.format(logfilename, count))
+            count += 1
+
+        with open(output_path, 'w') as logfile:
+            logfile.write(anonymized_data)
+
+    @staticmethod
+    def _anonymize_data(json_data: dict) -> dict:
+        """Replace parts of the logfiles containing personal information."""
+
+        replacements = {
+            'lat': 12.3456,
+            'lon': 34.5678,
+            'heading': 123,
+            'vin': 'some_vin',
+            'licensePlate': 'some_license_plate',
+        }
+
+        for key, value in json_data.items():
+            if key in replacements:
+                json_data[key] = replacements[key]
+            if isinstance(value, dict):
+                json_data[key] = ConnectedDriveAccount._anonymize_data(value)
+            if isinstance(value, list):
+                json_data[key] = [ConnectedDriveAccount._anonymize_data(v) for v in value]
+
+        return json_data
 
     @property
     def server_url(self) -> str:
