@@ -5,7 +5,7 @@ import argparse
 import logging
 import json
 import os
-import shutil
+import time
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
 
@@ -58,16 +58,15 @@ def get_status(args) -> None:
 
 def fingerprint(args) -> None:
     """Save the vehicle fingerprint."""
-    if os.path.exists(FINGERPRINT_DIR):
-        shutil.rmtree(FINGERPRINT_DIR)
-
-    os.mkdir(FINGERPRINT_DIR)
+    time_str = time.strftime("%Y-%m-%d_%H-%M-%S")
+    time_dir = os.path.join(FINGERPRINT_DIR, time_str)
+    os.makedirs(time_dir)
 
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region),
-                                    log_responses=FINGERPRINT_DIR)
+                                    log_responses=time_dir)
     account.update_vehicle_states()
 
-    print('fingerprint of the vehicles written to {}'.format(FINGERPRINT_DIR))
+    print('fingerprint of the vehicles written to {}'.format(time_dir))
 
 
 def light_flash(args) -> None:
