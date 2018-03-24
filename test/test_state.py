@@ -231,6 +231,7 @@ class TestState(unittest.TestCase):
                 self.assertIsNotNone(state.remaining_fuel)
                 self.assertIsNotNone(state.all_windows_closed)
                 self.assertEquals(0, len(state.check_control_messages))
+                self.assertFalse(state.has_check_control_messages)
 
                 electric_attributes = ['charging_status', 'charging_level_hv', 'charging_status', 'charging_level_hv']
                 self.check_attributes(electric_attributes, [I01_VIN, I01_NOREX_VIN], state, vehicle)

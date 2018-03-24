@@ -316,6 +316,12 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         """
         return self._attributes.get('checkControlMessages')
 
+    @property
+    @backend_parameter
+    def has_check_control_messages(self) -> bool:
+        """Return true if any check control message is present."""
+        return len(self.check_control_messages) > 0
+
 
 class Lid(object):  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.
