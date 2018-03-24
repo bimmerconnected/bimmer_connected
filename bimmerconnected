@@ -8,6 +8,7 @@ import os
 import time
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
+from bimmer_connected.vehicle import VehicleViewDirection
 
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
@@ -33,6 +34,11 @@ def main() -> None:
     _add_default_arguments(flash_parser)
     flash_parser.add_argument('vin', help='vehicle identification number')
     flash_parser.set_defaults(func=light_flash)
+
+    image_parser = subparsers.add_parser('image', description='flash the vehicle lights')
+    _add_default_arguments(image_parser)
+    image_parser.add_argument('vin', help='vehicle identification number')
+    image_parser.set_defaults(func=image)
 
     args = parser.parse_args()
     args.func(args)
@@ -76,6 +82,17 @@ def light_flash(args) -> None:
 
     status = vehicle.remote_services.trigger_remote_light_flash()
     print(status.state)
+
+
+def image(args) -> None:
+    """Trigger the vehicle to flash its lights."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+
+    with open('image.png', 'wb') as output_file:
+        image_data = vehicle.get_vehicle_image(400, 400, VehicleViewDirection.FRONT)
+        output_file.write(image_data)
+    print('vehicle image saved to image.png')
 
 
 def _add_default_arguments(status_parser: argparse.ArgumentParser):

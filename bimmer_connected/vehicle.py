@@ -5,6 +5,7 @@ from typing import List
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
+from bimmer_connected.const import VEHICLE_IMAGE_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -22,6 +23,21 @@ COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.CONVENTIONAL, DriveTrainType.PH
 
 #: set of drive trains that have a high voltage battery
 HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PHEV, DriveTrainType.BEV, DriveTrainType.BEV_REX}
+
+
+class VehicleViewDirection(Enum):
+    """Viewing angles for the vehicle.
+
+    This is used to get a rendered image of the vehicle.
+    """
+    FRONTSIDE = 'FRONTSIDE'
+    FRONT = 'FRONT'
+    REARSIDE = 'REARSIDE'
+    REAR = 'REAR'
+    SIDE = 'SIDE'
+    DASHBOARD = 'DASHBOARD'
+    DRIVERDOOR = 'DRIVERDOOR'
+    REARBIRDSEYE = 'REARBIRDSEYE'
 
 
 class ConnectedDriveVehicle(object):
@@ -83,6 +99,24 @@ class ConnectedDriveVehicle(object):
         if self.has_hv_battery and self.has_internal_combustion_engine:
             result += ['remaining_range_electric', 'remaining_range_fuel']
         return result
+
+    def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:
+        """Get a rendered image of the vehicle.
+
+        :returns bytes containing the image in PNG format.
+        """
+        url = VEHICLE_IMAGE_URL.format(
+            vin=self.vin,
+            server=self._account.server_url,
+            width=width,
+            height=height,
+            view=direction.value,
+        )
+        header = self._account.request_header
+        # the accept field of the header needs to be updated as we want a png not the usual JSON
+        header['accept'] = 'image/png'
+        response = self._account.send_request(url, headers=header)
+        return response.content
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
