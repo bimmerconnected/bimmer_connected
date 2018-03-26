@@ -35,7 +35,7 @@ def main() -> None:
     flash_parser.add_argument('vin', help='vehicle identification number')
     flash_parser.set_defaults(func=light_flash)
 
-    image_parser = subparsers.add_parser('image', description='flash the vehicle lights')
+    image_parser = subparsers.add_parser('image', description='download a vehicle image')
     _add_default_arguments(image_parser)
     image_parser.add_argument('vin', help='vehicle identification number')
     image_parser.set_defaults(func=image)
@@ -85,7 +85,7 @@ def light_flash(args) -> None:
 
 
 def image(args) -> None:
-    """Trigger the vehicle to flash its lights."""
+    """Download a rendered image of the vehicle."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
 
