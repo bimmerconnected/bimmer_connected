@@ -1,6 +1,7 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
 import logging
+from typing import List
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
@@ -14,6 +15,13 @@ class DriveTrainType(Enum):
     PHEV = 'PHEV'
     BEV = 'BEV'
     BEV_REX = 'BEV_REX'
+
+
+#: Set of drive trains that have a combustion engine
+COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.CONVENTIONAL, DriveTrainType.PHEV, DriveTrainType.BEV_REX}
+
+#: set of drive trains that have a high voltage battery
+HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PHEV, DriveTrainType.BEV, DriveTrainType.BEV_REX}
 
 
 class ConnectedDriveVehicle(object):
@@ -39,9 +47,42 @@ class ConnectedDriveVehicle(object):
         return DriveTrainType(self.attributes['driveTrain'])
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Get the name of the vehicle."""
         return self.attributes['model']
+
+    @property
+    def has_hv_battery(self) -> bool:
+        """Return True if vehicle is equipped with a high voltage battery.
+
+        In this case we can get the state of the battery in the state attributes.
+        """
+        return self.drive_train in HV_BATTERY_DRIVE_TRAINS
+
+    @property
+    def has_internal_combustion_engine(self) -> bool:
+        """Return True if vehicle is equipped with an internal combustion engine.
+
+        In this case we can get the state of the gas tank."""
+        return self.drive_train in COMBUSTION_ENGINE_DRIVE_TRAINS
+
+    @property
+    def drive_train_attributes(self) -> List[str]:
+        """Get list of attributes available for the drive train of the vehicle.
+
+        The list of available attributes depends if on the type of drive train.
+        Some attributes only exist for electric/hybrid vehicles, others only if you
+        have a combustion engine. Depending on the state of the vehicle, some of
+        the attributes might still be None.
+        """
+        result = ['remaining_range_total']
+        if self.has_hv_battery:
+            result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv']
+        if self.has_internal_combustion_engine:
+            result += ['remaining_fuel']
+        if self.has_hv_battery and self.has_internal_combustion_engine:
+            result += ['remaining_range_electric', 'remaining_range_fuel']
+        return result
 
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
@@ -51,6 +92,6 @@ class ConnectedDriveVehicle(object):
         """
         return self.attributes.get(item)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Use the name as identifier for the vehicle."""
         return '{}: {}'.format(self.__class__, self.name)

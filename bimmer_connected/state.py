@@ -306,6 +306,22 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         """State of charge of the high voltage battery in percent."""
         return self._attributes.get('chargingLevelHv')
 
+    @property
+    @backend_parameter
+    def check_control_messages(self) -> List:
+        """List of check control messages.
+
+        Right now they are not parsed, as we do not have sample data with CC messages.
+        See issue https://github.com/ChristianKuehnel/bimmer_connected/issues/55
+        """
+        return self._attributes.get('checkControlMessages')
+
+    @property
+    @backend_parameter
+    def has_check_control_messages(self) -> bool:
+        """Return true if any check control message is present."""
+        return len(self.check_control_messages) > 0
+
 
 class Lid(object):  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.

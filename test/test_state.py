@@ -3,8 +3,7 @@
 import unittest
 from unittest import mock
 import datetime
-from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, I01_VIN, \
-    I01_NOREX_VIN
+from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState, ChargingState
@@ -230,18 +229,11 @@ class TestState(unittest.TestCase):
                 self.assertGreater(state.remaining_range_total, 0)
                 self.assertIsNotNone(state.remaining_fuel)
                 self.assertIsNotNone(state.all_windows_closed)
+                self.assertEqual(0, len(state.check_control_messages))
+                self.assertFalse(state.has_check_control_messages)
 
-                electric_attributes = ['charging_status', 'charging_level_hv', 'charging_status', 'charging_level_hv']
-                self.check_attributes(electric_attributes, [I01_VIN, I01_NOREX_VIN], state, vehicle)
-
-                optional_electric_attriutes = ['charging_time_remaining']
-                self.check_attributes(optional_electric_attriutes, [I01_VIN], state, vehicle)
-
-    def check_attributes(self, attributes, vins, state, vehicle):
-        """Check if the state attributes are not None for all vehicles with a vin in vins."""
-        if vehicle.vin in vins:
-            for attrib in attributes:
-                self.assertIsNotNone(getattr(state, attrib), attrib)
-        else:
-            for attrib in attributes:
-                self.assertIsNone(getattr(state, attrib), attrib)
+                for attrib in vehicle.drive_train_attributes:
+                    print(attrib, getattr(state, attrib))
+                    # charging_time is only set when charging
+                    if attrib != 'charging_time_remaining':
+                        self.assertIsNotNone(getattr(state, attrib), attrib)
