@@ -11,3 +11,4 @@ vehicle_fingerprint
 docs/build/
 .cache/
 image.png
+venv/
