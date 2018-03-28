@@ -20,7 +20,7 @@ setup(
     author_email='m1n3rva@gmx.net',
     license='Apache 2.0',
     classifiers=[
-        'Development Status :: 2 - Beta',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
