@@ -1,0 +1,14 @@
+.idea
+*.pyc
+demo.sh
+.coverage
+.tox
+.pytest_cache
+bimmer_connected.egg-info
+__pycache__
+.vscode
+vehicle_fingerprint
+docs/build/
+.cache/
+image.png
+venv/

@@ -1,0 +1,7 @@
+pytest
+pytest-cov
+pytest-timeout
+pylint
+flake8
+sphinx
+sphinx-autobuild

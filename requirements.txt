@@ -1,0 +1,2 @@
+requests
+typing>=3,<4
