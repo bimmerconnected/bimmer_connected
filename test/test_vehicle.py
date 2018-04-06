@@ -2,7 +2,7 @@
 import unittest
 from unittest import mock
 from test import load_response_json, BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_REGION, \
-    G31_VIN, F48_VIN, I01_VIN, I01_NOREX_VIN, F15_VIN
+    G31_VIN, F48_VIN, I01_VIN, I01_NOREX_VIN, F15_VIN, F45_VIN
 
 from bimmer_connected.vehicle import ConnectedDriveVehicle, DriveTrainType
 from bimmer_connected.account import ConnectedDriveAccount
@@ -42,7 +42,16 @@ class TestVehicle(unittest.TestCase):
 
         for vehicle in account.vehicles:
             print(vehicle.name)
-            self.assertEqual(vehicle.vin in [G31_VIN, F48_VIN, F15_VIN, I01_VIN],
+            self.assertEqual(vehicle.vin in [G31_VIN, F48_VIN, F15_VIN, I01_VIN, F45_VIN],
                              vehicle.has_internal_combustion_engine)
             self.assertEqual(vehicle.vin in [I01_VIN, I01_NOREX_VIN],
                              vehicle.has_hv_battery)
+
+    def test_parsing_of_lsc_type(self):
+        """Test parsing the lsc type field."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        for vehicle in account.vehicles:
+            self.assertIsNotNone(vehicle.lsc_type)

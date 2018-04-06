@@ -7,6 +7,7 @@ from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, 
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState, ChargingState
+from bimmer_connected.vehicle import LscType
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
 G31_NO_POSITION_TEST_DATA = load_response_json('G31_NBTevo/status_position_disabled.json')
@@ -214,7 +215,7 @@ class TestState(unittest.TestCase):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             account.update_vehicle_states()
 
-            for vehicle in account.vehicles:
+            for vehicle in [v for v in account.vehicles if v.lsc_type != LscType.NOT_SUPPORTED]:
                 print('testing vehicle {}'.format(vehicle.name))
                 state = vehicle.state
 
