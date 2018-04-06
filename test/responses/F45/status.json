@@ -1,0 +1,9 @@
+{
+  "vehicleStatus": {
+    "position": {
+      "status": "UNKNOWN"
+    },
+    "steering": "LH",
+    "vin": "F45_VIN"
+  }
+}
