@@ -60,8 +60,10 @@ class TestAccount(unittest.TestCase):
                 {
                     'lon': 666,
                     'public': 'more_public_data',
-                },
-            ]
+                }
+            ],
+            'b_list': ['a', 'b'],
+            'empty_list': [],
         }
         anon_text = json.dumps(ConnectedDriveAccount._anonymize_data(test_dict))
         self.assertNotIn('secret', anon_text)

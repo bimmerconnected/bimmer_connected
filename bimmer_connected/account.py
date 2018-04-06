@@ -158,13 +158,14 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             'licensePlate': 'some_license_plate',
         }
 
-        for key, value in json_data.items():
-            if key in replacements:
-                json_data[key] = replacements[key]
-            if isinstance(value, dict):
-                json_data[key] = ConnectedDriveAccount._anonymize_data(value)
-            if isinstance(value, list):
-                json_data[key] = [ConnectedDriveAccount._anonymize_data(v) for v in value]
+        if isinstance(json_data, list):
+            json_data = [ConnectedDriveAccount._anonymize_data(v) for v in json_data]
+        elif isinstance(json_data, dict):
+            for key, value in json_data.items():
+                if key in replacements:
+                    json_data[key] = replacements[key]
+                else:
+                    json_data[key] = ConnectedDriveAccount._anonymize_data(value)
 
         return json_data
 
