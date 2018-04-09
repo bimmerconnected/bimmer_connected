@@ -3,6 +3,7 @@ from enum import Enum
 import logging
 from typing import List
 
+from bimmer_connected.last_trip import LastTrip
 from bimmer_connected.state import VehicleState
 from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import VEHICLE_IMAGE_URL
@@ -52,10 +53,12 @@ class ConnectedDriveVehicle(object):
         self.attributes = attributes
         self.state = VehicleState(account, self)
         self.remote_services = RemoteServices(account, self)
+        self.last_trip = LastTrip(account, self)
 
     def update_state(self) -> None:
         """Update the state of a vehicle."""
         self.state.update_data()
+        self.last_trip.update_data()
 
     @property
     def drive_train(self) -> DriveTrainType:

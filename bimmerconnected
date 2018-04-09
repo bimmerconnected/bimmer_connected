@@ -60,6 +60,8 @@ def get_status(args) -> None:
         print(json.dumps(vehicle.attributes, indent=4))
         print('vehicle status:')
         print(json.dumps(vehicle.state.attributes, indent=4))
+        print('vehicle last trip:')
+        print(json.dumps(vehicle.last_trip.attributes, indent=4))
 
 
 def fingerprint(args) -> None:

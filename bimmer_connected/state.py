@@ -96,7 +96,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def attributes(self) -> datetime.datetime:
+    def attributes(self) -> dict:
         """Retrieve all attributes from the sever.
 
         This does not parse the results in any way.
