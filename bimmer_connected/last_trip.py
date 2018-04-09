@@ -1,3 +1,4 @@
+"""Models the last trip of a vehicle."""
 from bimmer_connected.const import LAST_TRIP_URL
 
 
