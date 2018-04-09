@@ -121,6 +121,14 @@ class ConnectedDriveVehicle(object):
         response = self._account.send_request(url, headers=header)
         return response.content
 
+    @property
+    def statistics_available(self) -> bool:
+        """Check if the vehicle supports reading statistics.
+
+        Only if this returns True, then the last state will contain useful data.
+        """
+        return self.attributes['statisticsAvailable']
+
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
 

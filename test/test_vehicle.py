@@ -33,6 +33,7 @@ class TestVehicle(unittest.TestCase):
             self.assertIsNotNone(vehicle.has_internal_combustion_engine)
             self.assertIsNotNone(vehicle.has_hv_battery)
             self.assertIsNotNone(vehicle.drive_train_attributes)
+            self.assertIsNotNone(vehicle.statistics_available)
 
     def test_drive_train_attributes(self):
         """Test parsing different attributes of the vehicle."""
@@ -46,3 +47,14 @@ class TestVehicle(unittest.TestCase):
                              vehicle.has_internal_combustion_engine)
             self.assertEqual(vehicle.vin in [I01_VIN, I01_NOREX_VIN, F45_VIN],
                              vehicle.has_hv_battery)
+
+    def test_statistics_available(self):
+        """Test parsing the statistics_available field."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+        g31 = account.get_vehicle(G31_VIN)
+        f45 = account.get_vehicle(F45_VIN)
+
+        self.assertFalse(g31.statistics_available)
+        self.assertTrue(f45.statistics_available)
