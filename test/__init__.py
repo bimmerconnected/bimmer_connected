@@ -89,6 +89,8 @@ class BackendMock(object):
         for vin, path in TEST_VEHICLE_DATA.items():
             self.add_response('https://.+/webapi/v1/user/vehicles/{vin}/status$'.format(vin=vin),
                               data_files=['{path}/status.json'.format(path=path)])
+            self.add_response('https://.+/webapi/v1/user/vehicles/{vin}/statistics/lastTrip$'.format(vin=vin),
+                              data_files=['{path}/last_trip.json'.format(path=path)])
 
 
 class MockRequest(object):  # pylint: disable=too-few-public-methods
