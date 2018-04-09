@@ -189,11 +189,12 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
         """Get vehicle with given VIN.
 
+        The search is NOT case sensitive.
         :param vin: VIN of the vehicle you want to get.
         :return: Returns None if no such vehicle is found.
         """
         for car in self.vehicles:
-            if car.vin == vin:
+            if car.vin.upper() == vin.upper():
                 return car
         return None
 

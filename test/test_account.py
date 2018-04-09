@@ -2,13 +2,9 @@
 import json
 import unittest
 from unittest import mock
-from test import BackendMock, G31_VIN
+from test import BackendMock, G31_VIN, TEST_USERNAME, TEST_PASSWORD, TEST_REGION
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import Regions
-
-TEST_USERNAME = 'some_user'
-TEST_PASSWORD = 'my_secret'
-TEST_COUNTRY = 'Germany'
 
 
 class TestAccount(unittest.TestCase):
@@ -70,3 +66,14 @@ class TestAccount(unittest.TestCase):
         self.assertNotIn('666', anon_text)
         self.assertIn('public_data', anon_text)
         self.assertIn('more_public_data', anon_text)
+
+    def test_vehicle_search_case(self):
+        """Check if the search for the vehicle by VIN is NOT case sensitive."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        vin = account.vehicles[1].vin
+        self.assertEqual(vin, account.get_vehicle(vin).vin)
+        self.assertEqual(vin, account.get_vehicle(vin.lower()).vin)
+        self.assertEqual(vin, account.get_vehicle(vin.upper()).vin)

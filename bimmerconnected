@@ -79,7 +79,10 @@ def light_flash(args) -> None:
     """Trigger the vehicle to flash its lights."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
-
+    if not vehicle:
+        valid_vins = ", ".join(v.vin for v in account.vehicles)
+        print('Error: Could not find vehicle for VIN "{}". Valid VINs are: {}'.format(args.vin, valid_vins))
+        return
     status = vehicle.remote_services.trigger_remote_light_flash()
     print(status.state)
 
