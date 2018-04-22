@@ -84,8 +84,14 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
 
             data = urllib.parse.urlencode(values)
             url = AUTH_URL.format(server=self.server_url)
-            response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
-                                         expected_response=200, post=True)
+            try:
+                response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
+                                             expected_response=200, post=True)
+            except OSError as exception:
+                msg = 'Authentication failed. Maybe your password is invalid?'
+                _LOGGER.error(msg)
+                _LOGGER.exception(exception)
+                raise OSError(msg) from exception
 
             response_json = response.json()
             self._oauth_token = response_json['access_token']
