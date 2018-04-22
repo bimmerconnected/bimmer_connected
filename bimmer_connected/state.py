@@ -135,30 +135,30 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def mileage(self) -> float:
+    def mileage(self) -> int:
         """Get the mileage of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['mileage'])
+        return int(self._attributes['mileage'])
 
     @property
     @backend_parameter
-    def remaining_range_fuel(self) -> float:
+    def remaining_range_fuel(self) -> int:
         """Get the remaining range of the vehicle on fuel.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['remainingRangeFuel'])
+        return int(self._attributes['remainingRangeFuel'])
 
     @property
     @backend_parameter
-    def remaining_fuel(self) -> float:
+    def remaining_fuel(self) -> int:
         """Get the remaining fuel of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['remainingFuel'])
+        return int(self._attributes['remainingFuel'])
 
     @property
     @backend_parameter
@@ -280,7 +280,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @backend_parameter
     def max_range_electric(self) -> int:
         """ This can change with driving style and temperature in kilometers."""
-        return self._attributes.get('maxRangeElectric')
+        return int(self._attributes.get('maxRangeElectric'))
 
     @property
     @backend_parameter
@@ -304,7 +304,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @backend_parameter
     def charging_level_hv(self) -> int:
         """State of charge of the high voltage battery in percent."""
-        return self._attributes.get('chargingLevelHv')
+        return int(self._attributes.get('chargingLevelHv'))
 
     @property
     @backend_parameter
