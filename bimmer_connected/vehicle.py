@@ -52,6 +52,8 @@ class ConnectedDriveVehicle(object):
         self.attributes = attributes
         self.state = VehicleState(account, self)
         self.remote_services = RemoteServices(account, self)
+        self.observer_latitude = 0.0  # type: float
+        self.observer_longitude = 0.0  # type: float
 
     def update_state(self) -> None:
         """Update the state of a vehicle."""
@@ -129,3 +131,14 @@ class ConnectedDriveVehicle(object):
     def __str__(self) -> str:
         """Use the name as identifier for the vehicle."""
         return '{}: {}'.format(self.__class__, self.name)
+
+    def set_observer_position(self, latitude: float, longitude: float) -> None:
+        """Set the position of the observer, who requests the vehicle state.
+
+        Some vehicle require you to send your position to the server before you get the vehicle state.
+        Your position must be within some range (2km?) of the vehicle to get you a proper answer.
+        """
+        if (latitude == 0.0 or longitude == 0.0) and latitude != longitude:
+            raise ValueError('Either latitude AND longitude are set or none of them. You cannot set only one of them!')
+        self.observer_latitude = latitude
+        self.observer_longitude = longitude

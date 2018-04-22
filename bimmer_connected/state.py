@@ -1,6 +1,7 @@
 """Models the state of a vehicle."""
 
 import datetime
+import json
 import logging
 from enum import Enum
 from typing import List
@@ -88,8 +89,13 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
 
+        data = {
+            'dlat': self._vehicle.observer_latitude,
+            'dlon': self._vehicle.observer_longitude,
+        }
         response = self._account.send_request(
-            VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin), logfilename='status')
+            VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin), logfilename='status',
+            data=json.dumps(data))
         attributes = response.json()['vehicleStatus']
         self._attributes = attributes
         _LOGGER.debug('received new data from connected drive')
