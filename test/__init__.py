@@ -16,6 +16,7 @@ F48_VIN = 'F48_VIN'
 I01_VIN = 'I01_VIN'
 F15_VIN = 'F15_VIN'
 I01_NOREX_VIN = 'I01_NOREX_VIN'
+F45_VIN = 'F45_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
@@ -23,7 +24,8 @@ TEST_VEHICLE_DATA = {
     F48_VIN: 'F48',
     I01_VIN: 'I01_REX',
     I01_NOREX_VIN: 'I01_NOREX',
-    F15_VIN: 'F15'
+    F15_VIN: 'F15',
+    F45_VIN: 'F45',
 }
 
 _AUTH_RESPONSE_HEADERS = {

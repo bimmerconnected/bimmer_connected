@@ -40,6 +40,18 @@ class VehicleViewDirection(Enum):
     REARBIRDSEYE = 'REARBIRDSEYE'
 
 
+class LscType(Enum):
+    """Known Values for lsc_type field.
+
+    Not really sure, what this value really contains.
+    """
+    NOT_SUPPORTED = 'NOT_SUPPORTED'
+    LSC_BASIS = 'LSC_BASIS'
+    I_LSC_IMM = 'I_LSC_IMM'
+    UNKNOWN = 'UNKNOWN'
+    LSC_PHEV = 'LSC_PHEV'
+
+
 class ConnectedDriveVehicle(object):
     """Models state and remote services of one vehicle.
 
@@ -99,6 +111,15 @@ class ConnectedDriveVehicle(object):
         if self.has_hv_battery and self.has_internal_combustion_engine:
             result += ['remaining_range_electric', 'remaining_range_fuel']
         return result
+
+    @property
+    def lsc_type(self) -> LscType:
+        """Get the lscType of the vehicle.
+
+        Not really sure what that value really means. If it is NOT_SUPPORTED, that probably means that the
+        vehicle state will not contain much data.
+        """
+        return LscType(self.attributes.get('lscType'))
 
     def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.
