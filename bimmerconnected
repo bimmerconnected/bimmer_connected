@@ -24,6 +24,10 @@ def main() -> None:
 
     status_parser = subparsers.add_parser('status', description='get current status of the vehicle')
     _add_default_arguments(status_parser)
+    status_parser.add_argument('lat', type=float, nargs='?', const=0.0,
+                               help='optional: your gps latitide (as float)')
+    status_parser.add_argument('lng', type=float, nargs='?', const=0.0,
+                               help='optional: your gps longitude (as float)')
     status_parser.set_defaults(func=get_status)
 
     fingerprint_parser = subparsers.add_parser('fingerprint', description='save a vehicle fingerprint')
@@ -47,6 +51,9 @@ def main() -> None:
 def get_status(args) -> None:
     """Get the vehicle status."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    if args.lat and args.lng:
+        for vehicle in account.vehicles:
+            vehicle.set_observer_position(args.lat, args.lng)
     account.update_vehicle_states()
 
     print('Found {} vehicles: {}'.format(
