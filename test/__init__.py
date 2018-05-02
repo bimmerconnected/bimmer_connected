@@ -61,14 +61,18 @@ class BackendMock(object):
                          data_files=['vehicles.json']),
         ]
 
-    def get(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
+    def get(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None, params=None) \
+            -> 'MockResponse':
         """Mock for requests.get function."""
-        self.last_request.append(MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects))
+        self.last_request.append(MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects,
+                                             params=params))
         return self._find_response(url)
 
-    def post(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None) -> 'MockResponse':
+    def post(self, url: str, headers: dict = None, data: str = None, allow_redirects: bool = None, params=None) \
+            -> 'MockResponse':
         """Mock for requests.post function."""
-        self.last_request.append(MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects))
+        self.last_request.append(MockRequest(url, headers, data, request_type='GET', allow_redirects=allow_redirects,
+                                             params=params))
         return self._find_response(url)
 
     def add_response(self, regex: str, data: str = None, data_files: List[str] = None,
@@ -96,12 +100,13 @@ class MockRequest(object):  # pylint: disable=too-few-public-methods
 
     # pylint: disable=too-many-arguments
 
-    def __init__(self, url, headers, data, request_type=None, allow_redirects=None) -> None:
+    def __init__(self, url, headers, data, request_type=None, allow_redirects=None, params=None) -> None:
         self.url = url
         self.headers = headers
         self.data = data
         self.request_type = request_type
         self.allow_redirects = allow_redirects
+        self.params = params
 
 
 class MockResponse(object):

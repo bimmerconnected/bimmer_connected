@@ -1,7 +1,6 @@
 """Models the state of a vehicle."""
 
 import datetime
-import json
 import logging
 from enum import Enum
 from typing import List
@@ -88,8 +87,8 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     def update_data(self) -> None:
         """Read new status data from the server."""
         _LOGGER.debug('requesting new data from connected drive')
-        format = '%Y-%m-%dT%H:%M:%S'
-        timestamp = datetime.datetime.now().strftime(format)
+        format_string = '%Y-%m-%dT%H:%M:%S'
+        timestamp = datetime.datetime.now().strftime(format_string)
         params = {
             'deviceTime': timestamp,
             'dlat': self._vehicle.observer_latitude,
