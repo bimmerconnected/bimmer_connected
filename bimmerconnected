@@ -51,8 +51,9 @@ def main() -> None:
 def get_status(args) -> None:
     """Get the vehicle status."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
-    for vehicle in account.vehicles:
-        vehicle.set_observer_position(args.lat, args.lng)
+    if args.lat and args.lng:
+        for vehicle in account.vehicles:
+            vehicle.set_observer_position(args.lat, args.lng)
     account.update_vehicle_states()
 
     print('Found {} vehicles: {}'.format(
