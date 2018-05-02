@@ -113,7 +113,7 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
         return headers
 
     def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True,
-                     logfilename: str = None):
+                     logfilename: str = None, params: dict = None):
         """Send an http request to the server.
 
         If the http headers are not set, default headers are generated.
@@ -123,9 +123,9 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
             headers = self.request_header
 
         if post:
-            response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects)
+            response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects, params=params)
         else:
-            response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects)
+            response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects, params=params)
 
         if response.status_code != expected_response:
             msg = 'Unknown status code {}, expected {}'.format(response.status_code, expected_response)
