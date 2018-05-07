@@ -77,3 +77,42 @@ class TestAccount(unittest.TestCase):
         self.assertEqual(vin, account.get_vehicle(vin).vin)
         self.assertEqual(vin, account.get_vehicle(vin.lower()).vin)
         self.assertEqual(vin, account.get_vehicle(vin.upper()).vin)
+
+    def test_set_observer_value(self):
+        """Test set_observer_position with valid arguments."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+
+            account.set_observer_position(1.0, 2.0)
+            for vehicle in account.vehicles:
+                self.assertEqual(vehicle.observer_latitude, 1.0)
+                self.assertEqual(vehicle.observer_longitude, 2.0)
+
+    def test_set_observer_not_set(self):
+        """Test set_observer_position with no arguments."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+
+            for vehicle in account.vehicles:
+                self.assertEqual(vehicle.observer_latitude, 0.0)
+                self.assertEqual(vehicle.observer_longitude, 0.0)
+
+            account.set_observer_position(None, None)
+
+            for vehicle in account.vehicles:
+                self.assertEqual(vehicle.observer_latitude, 0.0)
+                self.assertEqual(vehicle.observer_longitude, 0.0)
+
+    def test_set_observer_some_none(self):
+        """Test set_observer_position with invalid arguments."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+
+            with self.assertRaises(ValueError):
+                account.set_observer_position(None, 2.0)
+
+            with self.assertRaises(ValueError):
+                account.set_observer_position(1.0, None)
