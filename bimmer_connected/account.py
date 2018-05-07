@@ -226,3 +226,14 @@ class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attrib
     def __str__(self):
         """Use the user name as id for the account class."""
         return '{}: {}'.format(self.__class__, self._username)
+
+    def set_observer_position(self, latitude: float, longitude: float) -> None:
+        """Set the position of the observer for all vehicles.
+
+        see VehicleViewDirection.set_observer_position() for more details.
+        """
+        if bool(latitude) != bool(longitude):
+            raise ValueError('Either latitude and longitude are both not None or both are None.')
+        if latitude and longitude:
+            for vehicle in self._vehicles:
+                vehicle.set_observer_position(latitude, longitude)
