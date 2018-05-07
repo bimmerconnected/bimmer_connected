@@ -39,6 +39,41 @@ _AUTH_RESPONSE_HEADERS = {
     'Date': 'Sun, 11 Mar 2018 08:16:13 GMT',
     'Content-Encoding': 'gzip'}
 
+# VehicleState has different names than the json file. So we need to map some of the
+# parameters.
+ATTRIBUTE_MAPPING = {
+    'remainingFuel': 'remaining_fuel',
+    'position': 'gps_position',
+    'cbsData': 'condition_based_services',
+    'checkControlMessages': 'check_control_messages',
+    'doorLockState': 'door_lock_state',
+    'updateReason': 'last_update_reason',
+    'chargingLevelHv': 'charging_level_hv',
+    'chargingStatus': 'charging_status',
+    'maxRangeElectric': 'max_range_electric',
+    'remainingRangeElectric': 'remaining_range_electric',
+    'parkingLight': 'parking_lights',
+    'remainingRangeFuel': 'remaining_range_fuel',
+    'updateTime': 'timestamp',
+    'chargingTimeRemaining': 'charging_time_remaining',
+}
+
+# these are additional attributes in the API, not available in the status.json
+ADDITIONAL_ATTRIBUTES = [
+    'remaining_range_total',    # added by bimmer_connected
+    'charging_time_remaining',  # only present while charging
+    'sunroof',                  # not available in all vehicles
+]
+
+# there attributes are not (yet) implemented
+MISSING_ATTRIBUTES = [
+    'remainingRangeFuelMls',      # we're not using miles
+    'remainingRangeElectricMls',  # we're not using miles
+    'maxRangeElectricMls',        # we're not using miles
+    'chargingTimeRemaining',      # only present while charging
+    'sunroof',                    # not available in all vehicles
+]
+
 
 def load_response_json(filename: str) -> dict:
     """load a stored response from a file"""

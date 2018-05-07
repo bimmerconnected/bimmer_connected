@@ -3,7 +3,7 @@ from enum import Enum
 import logging
 from typing import List
 
-from bimmer_connected.state import VehicleState
+from bimmer_connected.state import VehicleState, WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import VEHICLE_IMAGE_URL
 
@@ -105,13 +105,15 @@ class ConnectedDriveVehicle(object):
         have a combustion engine. Depending on the state of the vehicle, some of
         the attributes might still be None.
         """
-        result = ['remaining_range_total']
+        result = ['remaining_range_total', 'remaining_fuel']
         if self.has_hv_battery:
-            result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv']
+            result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv',
+                       'chargingConnectionType', 'chargingInductivePositioning', 'connectionStatus',
+                       'lastChargingEndReason', 'remaining_range_electric', 'lastChargingEndResult']
         if self.has_internal_combustion_engine:
-            result += ['remaining_fuel']
+            result += ['remaining_range_fuel']
         if self.has_hv_battery and self.has_internal_combustion_engine:
-            result += ['remaining_range_electric', 'remaining_range_fuel']
+            result += ['maxFuel']
         return result
 
     @property
@@ -122,6 +124,22 @@ class ConnectedDriveVehicle(object):
         vehicle state will not contain much data.
         """
         return LscType(self.attributes.get('lscType'))
+
+    @property
+    def available_attributes(self) -> List[str]:
+        """Get the list of non-drivetrain attributes available for this vehicle."""
+        # attributes available in all vehicles
+        result = ['gps_position', 'steering', 'timestamp', 'vin']
+        if self.lsc_type in [LscType.LSC_BASIS, LscType.I_LSC_IMM, LscType.LSC_PHEV]:
+            # generic attributes if lsc_type =! NOT_SUPPORTED
+            result += LIDS
+            result += WINDOWS
+            result += self.drive_train_attributes
+            result += ['DCS_CCH_Activation', 'DCS_CCH_Ongoing', 'condition_based_services', 'check_control_messages',
+                       'door_lock_state', 'internalDataTimeUTC', 'mileage', 'parking_lights',
+                       'positionLight', 'last_update_reason', 'singleImmediateCharging']
+
+        return result
 
     def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.

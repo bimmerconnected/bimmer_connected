@@ -2,7 +2,8 @@
 import unittest
 from unittest import mock
 from test import load_response_json, BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_REGION, \
-    G31_VIN, F48_VIN, I01_VIN, I01_NOREX_VIN, F15_VIN, F45_VIN
+    G31_VIN, F48_VIN, I01_VIN, I01_NOREX_VIN, F15_VIN, F45_VIN, TEST_VEHICLE_DATA, \
+    ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES, ADDITIONAL_ATTRIBUTES
 
 from bimmer_connected.vehicle import ConnectedDriveVehicle, DriveTrainType
 from bimmer_connected.account import ConnectedDriveAccount
@@ -55,3 +56,19 @@ class TestVehicle(unittest.TestCase):
 
         for vehicle in account.vehicles:
             self.assertIsNotNone(vehicle.lsc_type)
+
+    def test_available_attributes(self):
+        """Check that available_attributes returns exactly the arguments we have in our test data."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        for vin, dirname in TEST_VEHICLE_DATA.items():
+            vehicle = account.get_vehicle(vin)
+            print(vehicle.name)
+            status_data = load_response_json('{}/status.json'.format(dirname))
+            existing_attributes = status_data['vehicleStatus'].keys()
+            existing_attributes = sorted([ATTRIBUTE_MAPPING.get(a, a) for a in existing_attributes
+                                          if a not in MISSING_ATTRIBUTES])
+            expected_attributes = sorted([a for a in vehicle.available_attributes if a not in ADDITIONAL_ATTRIBUTES])
+            self.assertListEqual(existing_attributes, expected_attributes)
