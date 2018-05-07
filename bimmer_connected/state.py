@@ -66,11 +66,11 @@ def backend_parameter(func):
     def _func_wrapper(self: 'VehicleState', *args, **kwargs):
         # pylint: disable=protected-access
         if self._attributes is None:
-            raise ValueError('No data available!')
+            raise ValueError('No data available for vehicle status!')
         try:
             return func(self, *args, **kwargs)
         except KeyError:
-            _LOGGER.error('No data available!')
+            _LOGGER.error('No data available for attribute %s!', str(func))
             return None
     return _func_wrapper
 
@@ -103,7 +103,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def attributes(self) -> datetime.datetime:
+    def attributes(self) -> dict:
         """Retrieve all attributes from the sever.
 
         This does not parse the results in any way.
@@ -125,11 +125,11 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         This only provides data, if the vehicle tracking is enabled!
         """
         pos = self._attributes['position']
-        if self.is_vehicle_tracking_enabled:
-            return float(pos['lat']), float(pos['lon'])
-        else:
-            _LOGGER.warning('Positioning status of %s is %s', self._vehicle.vin, pos['status'])
-        return None
+        if not self.is_vehicle_tracking_enabled:
+            _LOGGER.warning('Positioning status is %s', pos['status'])
+            return None
+        pos = self._attributes['position']
+        return float(pos['lat']), float(pos['lon'])
 
     @property
     @backend_parameter
@@ -142,30 +142,30 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def mileage(self) -> float:
+    def mileage(self) -> int:
         """Get the mileage of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['mileage'])
+        return int(self._attributes['mileage'])
 
     @property
     @backend_parameter
-    def remaining_range_fuel(self) -> float:
+    def remaining_range_fuel(self) -> int:
         """Get the remaining range of the vehicle on fuel.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['remainingRangeFuel'])
+        return int(self._attributes['remainingRangeFuel'])
 
     @property
     @backend_parameter
-    def remaining_fuel(self) -> float:
+    def remaining_fuel(self) -> int:
         """Get the remaining fuel of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return float(self._attributes['remainingFuel'])
+        return int(self._attributes['remainingFuel'])
 
     @property
     @backend_parameter
@@ -261,13 +261,13 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
 
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
-        return self._attributes.get(item)
+        return self._attributes[item]
 
     @property
     @backend_parameter
     def remaining_range_electric(self) -> int:
         """Remaining range on battery, in kilometers."""
-        return self._attributes.get('remainingRangeElectric')
+        return int(self._attributes['remainingRangeElectric'])
 
     @property
     @backend_parameter
@@ -287,31 +287,27 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
     @backend_parameter
     def max_range_electric(self) -> int:
         """ This can change with driving style and temperature in kilometers."""
-        return self._attributes.get('maxRangeElectric')
+        return int(self._attributes['maxRangeElectric'])
 
     @property
     @backend_parameter
     def charging_status(self) -> ChargingState:
         """Charging state of the vehicle."""
-        state = self._attributes.get('chargingStatus')
-        if state is None:
-            return None
+        state = self._attributes['chargingStatus']
         return ChargingState(state)
 
     @property
     @backend_parameter
     def charging_time_remaining(self) -> datetime.timedelta:
         """Get the remaining charging time."""
-        minutes = self._attributes.get('chargingTimeRemaining')
-        if minutes is None:
-            return None
+        minutes = self._attributes['chargingTimeRemaining']
         return datetime.timedelta(minutes=minutes)
 
     @property
     @backend_parameter
     def charging_level_hv(self) -> int:
         """State of charge of the high voltage battery in percent."""
-        return self._attributes.get('chargingLevelHv')
+        return int(self._attributes['chargingLevelHv'])
 
     @property
     @backend_parameter
@@ -321,7 +317,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         Right now they are not parsed, as we do not have sample data with CC messages.
         See issue https://github.com/m1n3rva/bimmer_connected/issues/55
         """
-        return self._attributes.get('checkControlMessages')
+        return self._attributes['checkControlMessages']
 
     @property
     @backend_parameter
