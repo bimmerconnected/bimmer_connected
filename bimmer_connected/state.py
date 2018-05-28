@@ -13,8 +13,8 @@ _LOGGER = logging.getLogger(__name__)
 LIDS = ['doorDriverFront', 'doorPassengerFront', 'doorDriverRear', 'doorPassengerRear',
         'hood', 'trunk']
 
-# figure out what the sunroof is called in this api
-WINDOWS = ['windowDriverFront', 'windowPassengerFront', 'windowDriverRear', 'windowPassengerRear', 'rearWindow']
+WINDOWS = ['windowDriverFront', 'windowPassengerFront', 'windowDriverRear', 'windowPassengerRear', 'rearWindow',
+           'sunroof']
 
 
 class LidState(Enum):

@@ -3,11 +3,11 @@
 import unittest
 from unittest import mock
 import datetime
-from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN
+from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, \
+    ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState, ChargingState
-from bimmer_connected.vehicle import LscType
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
 G31_NO_POSITION_TEST_DATA = load_response_json('G31_NBTevo/status_position_disabled.json')
@@ -207,34 +207,17 @@ class TestState(unittest.TestCase):
     def test_parsing_attributes(self):
         """Test parsing different attributes of the vehicle.
 
-        Just make sure parsing that no exception is raised.
+        Just make sure parsing that no exception is raised and we get not-None values.
         """
         backend_mock = BackendMock()
+        # list of attributes that are ignored at the moment
+        ignored_attributes = [ATTRIBUTE_MAPPING.get(a, a) for a in MISSING_ATTRIBUTES]
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             backend_mock.setup_default_vehicles()
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             account.update_vehicle_states()
 
-            for vehicle in [v for v in account.vehicles if v.lsc_type != LscType.NOT_SUPPORTED]:
-                print('testing vehicle {}'.format(vehicle.name))
-                state = vehicle.state
-
-                self.assertIsNotNone(state.lids)
-                self.assertIsNotNone(state.is_vehicle_tracking_enabled)
-                self.assertIsNotNone(state.windows)
-                self.assertIsNotNone(state.condition_based_services)
-
-                self.assertIsNotNone(state.door_lock_state)
-                self.assertIsNotNone(state.timestamp)
-                self.assertGreater(state.mileage, 0)
-                self.assertGreater(state.remaining_range_total, 0)
-                self.assertIsNotNone(state.remaining_fuel)
-                self.assertIsNotNone(state.all_windows_closed)
-                self.assertEqual(0, len(state.check_control_messages))
-                self.assertFalse(state.has_check_control_messages)
-
-                for attrib in vehicle.drive_train_attributes:
-                    print(attrib, getattr(state, attrib))
-                    # charging_time is only set when charging
-                    if attrib != 'charging_time_remaining':
-                        self.assertIsNotNone(getattr(state, attrib), attrib)
+            for vehicle in account.vehicles:
+                print(vehicle.name)
+                for attribute in (a for a in vehicle.available_attributes if a not in ignored_attributes):
+                    self.assertIsNotNone(getattr(vehicle.state, attribute), attribute)
