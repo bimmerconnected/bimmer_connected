@@ -17,6 +17,9 @@ So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
 
+To use this library, your BMW must have the remote services enabled for your vehicle. You might need to book this in the Connected Drive portal and this might cost some money. In addition to that you need to enable the Remote Services in your infotainment system in the vehicle.
+
+Different models of vehicles and infotainment systems result in different types of attributes provided by the server. So the experience with the library will certaily vary across the different vehicle models.
 
 Data Contributions
 ------------------
@@ -76,8 +79,8 @@ This library is basically a best-of of other similar solutions I found,
 yet none of them provided a ready to use library with a matching interface
 to be used in Home Assistant and is available on pypi.
 
-* https://github.com/edent/BMW-i-Remote/blob/master/python/bmw.py
-* https://github.com/jupe76/bmwcdapi/blob/master/bmwcdapi.py
+* https://github.com/edent/BMW-i-Remote
+* https://github.com/jupe76/bmwcdapi
 * https://github.com/frankjoke/iobroker.bmw
 
 Thank you for your great software!
