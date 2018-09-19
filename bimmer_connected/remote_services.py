@@ -39,7 +39,7 @@ class _Services(Enum):
     REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
 
 
-class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
+class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
     """Wraps the status of the execution of a remote service."""
 
     def __init__(self, response: dict):
@@ -58,7 +58,7 @@ class RemoteServiceStatus(object):  # pylint: disable=too-few-public-methods
         return result
 
 
-class RemoteServices(object):
+class RemoteServices:
     """Trigger remote services on a vehicle."""
 
     def __init__(self, account, vehicle):

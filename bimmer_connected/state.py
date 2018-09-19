@@ -75,7 +75,7 @@ def backend_parameter(func):
     return _func_wrapper
 
 
-class VehicleState(object):  # pylint: disable=too-many-public-methods
+class VehicleState:  # pylint: disable=too-many-public-methods
     """Models the state of a vehicle."""
 
     def __init__(self, account, vehicle):
@@ -326,7 +326,7 @@ class VehicleState(object):  # pylint: disable=too-many-public-methods
         return len(self.check_control_messages) > 0
 
 
-class Lid(object):  # pylint: disable=too-few-public-methods
+class Lid:  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.
 
     Lids are: Doors + Trunk + Hatch
@@ -359,7 +359,7 @@ class Window(Lid):  # pylint: disable=too-few-public-methods
     pass
 
 
-class ConditionBasedServiceReport(object):  # pylint: disable=too-few-public-methods
+class ConditionBasedServiceReport:  # pylint: disable=too-few-public-methods
     """Entry in the list of condition based services."""
 
     def __init__(self, data: dict):

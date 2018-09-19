@@ -24,7 +24,7 @@ from bimmer_connected.const import AUTH_URL, VEHICLES_URL
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConnectedDriveAccount(object):  # pylint: disable=too-many-instance-attributes
+class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     """Create a new connection to the BMW Connected Drive web service.
 
     :param username: Connected drive user name

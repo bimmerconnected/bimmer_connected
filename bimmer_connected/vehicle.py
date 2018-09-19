@@ -52,7 +52,7 @@ class LscType(Enum):
     LSC_PHEV = 'LSC_PHEV'
 
 
-class ConnectedDriveVehicle(object):
+class ConnectedDriveVehicle:
     """Models state and remote services of one vehicle.
 
     :param account: ConnectedDrive account this vehicle belongs to
