@@ -9,7 +9,7 @@ __version__ = '{}.{}'.format(__short_version__, PATCH_VERSION)
 
 """urls for different services."""
 
-AUTH_URL = 'https://{server}/webapi/oauth/token'
+AUTH_URL = 'https://{server}/gcdm/oauth/token'
 BASE_URL = 'https://{server}/webapi/v1'
 
 VEHICLES_URL = BASE_URL + '/user/vehicles'
