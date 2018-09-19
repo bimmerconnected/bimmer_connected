@@ -90,7 +90,7 @@ class BackendMock(object):
         """Constructor."""
         self.last_request = []
         self.responses = [
-            MockResponse('https://.+/webapi/oauth/token',
+            MockResponse('https://.+/gcdm/oauth/token',
                          headers=_AUTH_RESPONSE_HEADERS,
                          data_files=['G31_NBTevo/auth_response.json'],
                          status_code=200),
