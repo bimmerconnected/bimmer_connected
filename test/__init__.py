@@ -81,7 +81,7 @@ def load_response_json(filename: str) -> dict:
         return json.load(json_file)
 
 
-class BackendMock(object):
+class BackendMock:
     """Mock for Connected Drive Backend."""
 
     # pylint: disable=too-many-arguments
@@ -132,7 +132,7 @@ class BackendMock(object):
                               data_files=['{path}/status.json'.format(path=path)])
 
 
-class MockRequest(object):  # pylint: disable=too-few-public-methods
+class MockRequest:  # pylint: disable=too-few-public-methods
     """Stores the attributes of a request."""
 
     # pylint: disable=too-many-arguments
@@ -146,7 +146,7 @@ class MockRequest(object):  # pylint: disable=too-few-public-methods
         self.params = params
 
 
-class MockResponse(object):
+class MockResponse:
     """Mocks requests.response."""
 
     # pylint: disable=too-many-arguments
