@@ -37,7 +37,7 @@ If you want to contribute your data, perform the following steps:
     pip3 install --upgrade bimmer_connected
 
     # run the fingerprint function
-    bimmerconnected fingerprint <username> <password> <region> <vin>
+    bimmerconnected fingerprint <username> <password> <region>
 
 This will create a set of log files in the "vehicle_fingerprint" folder.
 Before sending the data to anyone please **check for any personal data**.
