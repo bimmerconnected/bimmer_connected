@@ -12,5 +12,4 @@ docs/build/
 .cache/
 image.png
 venv/
-release.sh
 dist/
