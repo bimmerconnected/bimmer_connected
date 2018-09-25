@@ -70,7 +70,7 @@ def backend_parameter(func):
         try:
             return func(self, *args, **kwargs)
         except KeyError:
-            _LOGGER.error('No data available for attribute %s!', str(func))
+            _LOGGER.debug('No data available for attribute %s!', str(func))
             return None
     return _func_wrapper
 
