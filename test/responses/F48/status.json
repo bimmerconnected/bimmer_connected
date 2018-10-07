@@ -30,7 +30,14 @@
     "vin" : "F48_VIN",
     "doorDriverFront" : "CLOSED",
     "mileage" : 21529,
-    "checkControlMessages" : [ ],
+    "checkControlMessages": [
+      {
+        "ccmDescriptionLong": "You can continue driving. Check tyre pressure when tyres are cold and adjust if necessary. Perform reset after adjustment. See Owner's Handbook for further information.",
+        "ccmDescriptionShort": "Tyre pressure notification",
+        "ccmId": 955,
+        "ccmMileage": 41544
+      }
+    ],
     "parkingLight" : "OFF",
     "windowDriverRear" : "CLOSED",
     "steering" : "LH",
