@@ -8,7 +8,7 @@ import os
 import time
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
-from bimmer_connected.vehicle import VehicleViewDirection
+from bimmer_connected.vehicle import VehicleViewDirection, PointOfInterest
 
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
@@ -40,6 +40,14 @@ def main() -> None:
     _add_default_arguments(image_parser)
     image_parser.add_argument('vin', help='vehicle identification number')
     image_parser.set_defaults(func=image)
+
+    sendpoi_parser = subparsers.add_parser('sendpoi', description='send a point of interest to the vehicle')
+    _add_default_arguments(sendpoi_parser )
+    sendpoi_parser.add_argument('vin', help='vehicle identification number')
+    sendpoi_parser.add_argument('latitude', help='latitude of the POI', type=float)
+    sendpoi_parser.add_argument('longitude', help='longitude of the POI', type=float)
+    sendpoi_parser.add_argument('name', help='(optional) name of the POI', nargs='?', default=None)
+    sendpoi_parser.set_defaults(func=send_poi)
 
     args = parser.parse_args()
     args.func(args)
@@ -104,6 +112,13 @@ def image(args) -> None:
         image_data = vehicle.get_vehicle_image(400, 400, VehicleViewDirection.FRONT)
         output_file.write(image_data)
     print('vehicle image saved to image.png')
+
+
+def send_poi(args) -> None:
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    poi = PointOfInterest(args.latitude, args.longitude, name=args.name)
+    vehicle.send_poi(poi)
 
 
 def _add_default_arguments(parser: argparse.ArgumentParser):
