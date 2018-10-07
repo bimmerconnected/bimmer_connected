@@ -5,3 +5,4 @@ pylint
 flake8
 sphinx
 sphinx-autobuild
+pbr

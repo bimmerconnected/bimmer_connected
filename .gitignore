@@ -13,3 +13,6 @@ docs/build/
 image.png
 venv/
 dist/
+AUTHORS
+ChangeLog
+/.eggs
