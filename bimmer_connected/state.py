@@ -317,7 +317,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         Right now they are not parsed, as we do not have sample data with CC messages.
         See issue https://github.com/m1n3rva/bimmer_connected/issues/55
         """
-        return self._attributes['checkControlMessages']
+        return self._attributes.get('checkControlMessages', [])
 
     @property
     @backend_parameter

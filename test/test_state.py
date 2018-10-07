@@ -4,7 +4,7 @@ import unittest
 from unittest import mock
 import datetime
 from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, \
-    ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES
+    ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES, F48_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState, ChargingState
@@ -221,3 +221,21 @@ class TestState(unittest.TestCase):
                 print(vehicle.name)
                 for attribute in (a for a in vehicle.available_attributes if a not in ignored_attributes):
                     self.assertIsNotNone(getattr(vehicle.state, attribute), attribute)
+
+    def test_check_control_messages(self):
+        """Test handling of check control messages.
+
+        F48 is the only vehicle with active Check Control Messages, so we only expect to get something there.
+        """
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            backend_mock.setup_default_vehicles()
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+            account.update_vehicle_states()
+
+            for vehicle in account.vehicles:
+                print(vehicle.name, vehicle.vin)
+                if vehicle.vin == F48_VIN:
+                    self.assertTrue(vehicle.state.has_check_control_messages)
+                else:
+                    self.assertFalse(vehicle.state.has_check_control_messages)
