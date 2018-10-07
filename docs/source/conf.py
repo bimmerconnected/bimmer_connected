@@ -25,9 +25,9 @@ copyright = '2018, m1n3rva'
 author = 'm1n3rva'
 
 # The short X.Y version
-version = const.__short_version__
+# version = const.__short_version__
 # The full version, including alpha/beta/rc tags
-release = const.__version__
+# release = const.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -39,6 +39,7 @@ release = const.__version__
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'pbr.sphinxext',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
