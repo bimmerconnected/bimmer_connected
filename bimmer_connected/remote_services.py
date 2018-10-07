@@ -111,11 +111,11 @@ class RemoteServices:
         return self._block_until_done(_Services.REMOTE_HORN)
 
     def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to sound its horn.
+        """Trigger the air conditioning to start.
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-        _LOGGER.debug('Triggering remote light flash')
+        _LOGGER.debug('Triggering remote air conditioning')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_AIR_CONDITIONING, post=True)
         result = self._block_until_done(_Services.REMOTE_AIR_CONDITIONING)
