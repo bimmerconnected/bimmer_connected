@@ -93,7 +93,7 @@ class RemoteServices:
 
         A state update is triggered after this, as the lock state of the vehicle changes.
 
-        :arg unlock_secret: in some countries you can/must configure a BMW account security question to be able to
+        :arg unlock_secret: in some countries you can/must configure a BMW account security question to be able to \
         remotely unlock you vehicle. Use this parameter if you need to give such a unlock secret.
         """
         _LOGGER.debug('Triggering remote door lock')
@@ -130,7 +130,8 @@ class RemoteServices:
         """Trigger a generic remote service.
 
         :arg post: You can choose if you want a POST or a GET operation.
-        :arg unlock_secret: in some countries you can/must configure a BMW account security question to be able to
+
+        :arg unlock_secret: in some countries you can/must configure a BMW account security question to be able to \
         remotely unlock you vehicle. Use this parameter if you need to give such a unlock secret.
         """
 
