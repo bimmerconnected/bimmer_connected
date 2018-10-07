@@ -88,14 +88,17 @@ class RemoteServices:
         self._trigger_state_update()
         return result
 
-    def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
+    def trigger_remote_door_unlock(self, unlock_secret: str = None) -> RemoteServiceStatus:
         """Trigger the vehicle to unlock its doors.
 
         A state update is triggered after this, as the lock state of the vehicle changes.
+
+        :arg unlock_secret: in some countries you can/must configure a BMW account security question to be able to
+        remotely unlock you vehicle. Use this parameter if you need to give such a unlock secret.
         """
         _LOGGER.debug('Triggering remote door lock')
         # needs to be called via POST, GET is not working
-        self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
+        self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, unlock_secret=unlock_secret, post=True)
         result = self._block_until_done(_Services.REMOTE_DOOR_UNLOCK)
         self._trigger_state_update()
         return result
@@ -122,12 +125,18 @@ class RemoteServices:
         self._trigger_state_update()
         return result
 
-    def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
+    def _trigger_remote_service(self, service_id: _Services, *, unlock_secret: str = None, post=False) \
+            -> requests.Response:
         """Trigger a generic remote service.
 
-        You can choose if you want a POST or a GET operation.
+        :arg post: You can choose if you want a POST or a GET operation.
+        :arg unlock_secret: in some countries you can/must configure a BMW account security question to be able to
+        remotely unlock you vehicle. Use this parameter if you need to give such a unlock secret.
         """
+
         data = {'serviceType': service_id.value}
+        if unlock_secret is not None:
+            data['bmwSkAnswer'] = unlock_secret
         url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, server=self._account.server_url)
 
         return self._account.send_request(url, post=post, data=data)

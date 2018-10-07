@@ -41,6 +41,17 @@ def main() -> None:
     image_parser.add_argument('vin', help='vehicle identification number')
     image_parser.set_defaults(func=image)
 
+    unlock_parser = subparsers.add_parser('unlock', description='unlock the vehicle')
+    _add_default_arguments(unlock_parser)
+    unlock_parser.add_argument('vin', help='vehicle identification number')
+    unlock_parser.add_argument('secret', help='(optional) secret for unlocking the vehicle', nargs='?', default=None)
+    unlock_parser.set_defaults(func=unlock)
+
+    lock_parser = subparsers.add_parser('lock', description='lock the vehicle')
+    _add_default_arguments(lock_parser)
+    lock_parser.add_argument('vin', help='vehicle identification number')
+    lock_parser.set_defaults(func=lock)
+
     args = parser.parse_args()
     args.func(args)
 
@@ -104,6 +115,30 @@ def image(args) -> None:
         image_data = vehicle.get_vehicle_image(400, 400, VehicleViewDirection.FRONT)
         output_file.write(image_data)
     print('vehicle image saved to image.png')
+
+
+def lock(args) -> None:
+    """Trigger to lock the vehicle."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    if not vehicle:
+        valid_vins = ", ".join(v.vin for v in account.vehicles)
+        print('Error: Could not find vehicle for VIN "{}". Valid VINs are: {}'.format(args.vin, valid_vins))
+        return
+    status = vehicle.remote_services.trigger_remote_door_lock()
+    print(status.state)
+
+
+def unlock(args) -> None:
+    """Trigger to lock the vehicle."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    if not vehicle:
+        valid_vins = ", ".join(v.vin for v in account.vehicles)
+        print('Error: Could not find vehicle for VIN "{}". Valid VINs are: {}'.format(args.vin, valid_vins))
+        return
+    status = vehicle.remote_services.trigger_remote_door_unlock(args.secret)
+    print(status.state)
 
 
 def _add_default_arguments(parser: argparse.ArgumentParser):
