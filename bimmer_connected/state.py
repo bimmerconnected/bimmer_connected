@@ -342,11 +342,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
-        """List of check control messages.
-
-        Right now they are not parsed, as we do not have sample data with CC messages.
-        See issue https://github.com/m1n3rva/bimmer_connected/issues/55
-        """
+        """List of check control messages."""
         messages = self._attributes.get('checkControlMessages', [])
         return [CheckControlMessage(m) for m in messages]
 
