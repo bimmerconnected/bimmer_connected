@@ -58,6 +58,36 @@ class ChargingState(Enum):
     WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
 
 
+class CheckControlMessage:
+    """Check control message sent from the server.
+
+    This class provides a nicer API than parsing the JSON format directly.
+    """
+
+    def __init__(self, ccm_dict: dict):
+        self._ccm_dict = ccm_dict
+
+    @property
+    def description_long(self) -> str:
+        """Long description of the check control message."""
+        return self._ccm_dict["ccmDescriptionLong"]
+
+    @property
+    def description_short(self) -> str:
+        """Short description of the check control message."""
+        return self._ccm_dict["ccmDescriptionShort"]
+
+    @property
+    def ccm_id(self) -> int:
+        """id of the check control message."""
+        return int(self._ccm_dict["ccmId"])
+
+    @property
+    def mileage(self) -> int:
+        """Mileage of the vehicle when the check control message appeared."""
+        return int(self._ccm_dict["ccmMileage"])
+
+
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -311,13 +341,10 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def check_control_messages(self) -> List:
-        """List of check control messages.
-
-        Right now they are not parsed, as we do not have sample data with CC messages.
-        See issue https://github.com/m1n3rva/bimmer_connected/issues/55
-        """
-        return self._attributes.get('checkControlMessages', [])
+    def check_control_messages(self) -> List[CheckControlMessage]:
+        """List of check control messages."""
+        messages = self._attributes.get('checkControlMessages', [])
+        return [CheckControlMessage(m) for m in messages]
 
     @property
     @backend_parameter

@@ -185,7 +185,7 @@ class TestState(unittest.TestCase):
         state._attributes['windowDriverFront'] = LidState.INTERMEDIATE
         self.assertFalse(state.all_windows_closed)
 
-    def test_windows_g48(self):
+    def test_windows_f48(self):
         """Test features around lids."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
@@ -239,3 +239,18 @@ class TestState(unittest.TestCase):
                     self.assertTrue(vehicle.state.has_check_control_messages)
                 else:
                     self.assertFalse(vehicle.state.has_check_control_messages)
+
+    def test_ccm_f48(self):
+        """Test parsing of a check control message."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes = F48_TEST_DATA['vehicleStatus']
+
+        ccms = state.check_control_messages
+        self.assertEqual(1, len(ccms))
+
+        ccm = ccms[0]
+        self.assertEqual(955, ccm.ccm_id)
+        self.assertEqual(41544, ccm.mileage)
+        self.assertIn("Tyre pressure", ccm.description_short)
+        self.assertIn("continue driving", ccm.description_long)
