@@ -1,7 +1,7 @@
 bimmer_connected
 ================
 
-This is a simple library to query and control the status of your BMW from
+This is a simple library to query and control the status of your BMW or Mini vehicle from
 the connected drive portal.
 
 See :code:`bimmerconnected` for usage instruction or the
@@ -17,7 +17,7 @@ So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav
 If you have any trouble with other navigation systems, please create an issue
 with your server responses (see next section).
 
-To use this library, your BMW must have the remote services enabled for your vehicle. You might need to book this in the Connected Drive portal and this might cost some money. In addition to that you need to enable the Remote Services in your infotainment system in the vehicle.
+To use this library, your BMW (or Mini) must have the remote services enabled for your vehicle. You might need to book this in the Connected Drive/Mini Connected portal and this might cost some money. In addition to that you need to enable the Remote Services in your infotainment system in the vehicle.
 
 Different models of vehicles and infotainment systems result in different types of attributes provided by the server. So the experience with the library will certaily vary across the different vehicle models.
 
