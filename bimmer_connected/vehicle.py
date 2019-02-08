@@ -3,6 +3,7 @@ from enum import Enum
 import logging
 from typing import List, Dict
 import json
+from urllib.parse import urlencode
 
 from bimmer_connected.state import VehicleState, WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
@@ -79,13 +80,15 @@ class PointOfInterest:
         self.phoneNumbers = None  # type: List[str]
 
     @property
-    def as_json(self) -> Dict:
+    def as_server_request(self) -> str:
         """Convert to a dictionary so that it can be sent to the server."""
         result = {
-            'lat': self.latitude,
-            'lon': self.longitude,
+            'poi' : {
+                'lat': self.latitude,
+                'lon': self.longitude,
+            }
         }
-        return {'data': result}
+        return urlencode({'data': json.dumps(result)})
 
 
 class ConnectedDriveVehicle:
@@ -227,5 +230,4 @@ class ConnectedDriveVehicle:
         header = self._account.request_header
         # the accept field of the header needs to be updated as we want a png not the usual JSON
         header['Content-Type'] = 'application/x-www-form-urlencoded'
-        response = self._account.send_request(url, headers=header, data=poi.as_json, post=True)
-        print(response.content)
+        self._account.send_request(url, headers=header, data=poi.as_server_request, post=True, expected_response=204)
