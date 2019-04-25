@@ -61,21 +61,26 @@ class PointOfInterest:
     used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
     """
 
-    def __init__(self, latitude: float, longitude: float, * , name: str = None):
+    def __init__(self, latitude: float, longitude: float, **kwargs):
         """Constructor.
 
         :arg latitude: latitude of the POI
         :arg longitude: longitude of the POI
         :arg name: name of the POI (Optional)
+        :arg street: street with house number of the POI (Optional)
+        :arg city: city of the POI (Optional)
+        :arg postalCode: zip code of the POI (Optional)
+        :arg country: country of the POI (Optional)
         """
-        self.latitude = latitude  # type: float
-        self.longitude = longitude  # type: float
-        self.name = name  # type: str
+        # pylint: disable=invalid-name
+        self.lat = latitude  # type: float
+        self.lon = longitude  # type: float
+        self.name = kwargs.get('name')  # type: str
         self.additionalInfo = None  # type: str
-        self.street = ""  # type: str
-        self.city = ""  # type: str
-        self.postalCode = ""  # type: str
-        self.country = ""  # type: str
+        self.street = kwargs.get('street')  # type: str
+        self.city = kwargs.get('city')  # type: str
+        self.postalCode = kwargs.get('postalcode')  # type: str
+        self.country = kwargs.get('country')  # type: str
         self.website = None  # type: str
         self.phoneNumbers = None  # type: List[str]
 
@@ -83,10 +88,7 @@ class PointOfInterest:
     def as_server_request(self) -> str:
         """Convert to a dictionary so that it can be sent to the server."""
         result = {
-            'poi' : {
-                'lat': self.latitude,
-                'lon': self.longitude,
-            }
+            'poi' : {k: v for k, v in self.__dict__.items() if v is not None}
         }
         return urlencode({'data': json.dumps(result)})
 
