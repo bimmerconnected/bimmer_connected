@@ -21,6 +21,7 @@ class LidState(Enum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
     CLOSED = 'CLOSED'
     OPEN = 'OPEN'
+    OPEN_TILT = 'OPEN_TILT'
     INTERMEDIATE = 'INTERMEDIATE'
     INVALID = 'INVALID'
 
