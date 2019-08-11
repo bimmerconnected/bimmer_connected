@@ -23,6 +23,7 @@ class LidState(Enum):
     OPEN = 'OPEN'
     INTERMEDIATE = 'INTERMEDIATE'
     INVALID = 'INVALID'
+    OPEN_TILT = 'OPEN_TILT'
 
 
 class LockState(Enum):
