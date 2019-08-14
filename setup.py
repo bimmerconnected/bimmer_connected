@@ -15,14 +15,14 @@ setuptools.setup(
     author_email="bietenbak@yahoo.com",
     description="Library to read data from the BMW Connected Drive portal",
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url="https://github.com/bimmerconnected/bimmer_connected",
     packages=setuptools.find_packages(),
     install_requires=[
         "requests",
     ],
+    license='Apache 2.0',
     classifiers=[
         "Programming Language :: Python :: 3",
-        "License :: Apache 2.0",
     ],
 )

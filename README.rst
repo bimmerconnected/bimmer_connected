@@ -47,7 +47,7 @@ The following attributes should be replaced with default values:
 * licensePlate
 
 Create a new
-`issue in bimmer_connected <https://github.com/m1n3rva/bimmer_connected/issues>`_
+`issue in bimmer_connected <https://github.com/bimmerconnected/bimmer_connected/issues>`_
 and
 `add the files as attachment <https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/>`_
 to the issue.
@@ -65,10 +65,10 @@ Code Contributions
 Contributions are welcome! Please make sure that your code passed the "tox" checks.
 And please add tests where it makes sense. The more the better.
 
-.. image:: https://travis-ci.org/m1n3rva/bimmer_connected.svg?branch=master
-    :target: https://travis-ci.org/m1n3rva/bimmer_connected
-.. image:: https://coveralls.io/repos/github/m1n3rva/bimmer_connected/badge.svg?branch=master
-    :target: https://coveralls.io/github/m1n3rva/bimmer_connected?branch=master
+.. image:: https://travis-ci.org/bimmerconnected/bimmer_connected.svg?branch=master
+    :target: https://travis-ci.org/bimmerconnected/bimmer_connected
+.. image:: https://coveralls.io/repos/github/bimmerconnected/bimmer_connected/badge.svg?branch=master
+    :target: https://coveralls.io/github/bimmerconnected/bimmer_connected?branch=master
 
 Thank you
 ---------
