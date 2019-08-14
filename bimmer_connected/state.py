@@ -21,9 +21,9 @@ class LidState(Enum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
     CLOSED = 'CLOSED'
     OPEN = 'OPEN'
+    OPEN_TILT = 'OPEN_TILT'
     INTERMEDIATE = 'INTERMEDIATE'
     INVALID = 'INVALID'
-    OPEN_TILT = 'OPEN_TILT'
 
 
 class LockState(Enum):
@@ -344,8 +344,10 @@ class VehicleState:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
         """List of check control messages."""
-        messages = self._attributes.get('checkControlMessages', [])
-        return [CheckControlMessage(m) for m in messages]
+        # TO DO change this in HA binary_sensor.py first
+        # messages = self._attributes.get('checkControlMessages', [])
+        # return [CheckControlMessage(m) for m in messages]
+        return self._attributes.get('checkControlMessages', [])
 
     @property
     @backend_parameter
