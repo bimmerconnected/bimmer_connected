@@ -1,5 +1,16 @@
 """ BMW ConnectedDrive exception class."""
 
+ERROR_CODE_MAPPING = {
+    401: 'UNAUTHORIZED',
+    404: 'NOT_FOUND',
+    405: 'MOBILE_ACCESS_DISABLED',
+    408: 'VEHICLE_UNAVAILABLE',
+    423: 'ACCOUNT_LOCKED',
+    429: 'TOO_MANY_REQUESTS',
+    500: 'SERVER_ERROR',
+    503: 'SERVICE_MAINTENANCE',
+}
+
 class BMWConnectedDriveException(Exception):
     """ BMW ConnectedDrive API Exception class."""
     def __init__(self, code, *args, **kwargs):
