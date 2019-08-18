@@ -19,8 +19,7 @@ import requests
 
 from bimmer_connected.country_selector import Regions, get_server_url
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-from bimmer_connected.const import AUTH_URL, VEHICLES_URL
-from bimmer_connected.exceptions import ERROR_CODE_MAPPING
+from bimmer_connected.const import AUTH_URL, VEHICLES_URL, ERROR_CODE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,7 +129,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
         if response.status_code != expected_response:
             error_description = ERROR_CODE_MAPPING.get(response.status_code, "UNKNOWN_ERROR")
-            msg = ("The BMW Connected Drive API returned error: {} (received status code {} and expected {})."
+            msg = ("The BMW Connected Drive portal returned an error: {} (received status code {} and expected {})."
                    .format(error_description, response.status_code, expected_response))
             _LOGGER.error(msg)
             _LOGGER.debug(response.text)

@@ -22,7 +22,6 @@ setup(
     keywords='BMW Connected Drive home automation',
     zip_safe=False,
     extras_require={'testing': ['pytest']},
-    scripts=['bimmerconnected'],
     license='Apache 2.0',
     classifiers=[
         'Development Status :: 4 - Beta',
