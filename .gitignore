@@ -16,4 +16,4 @@ dist/
 AUTHORS
 ChangeLog
 /.eggs
-.travis.yml
+build/

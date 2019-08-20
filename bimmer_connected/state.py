@@ -252,8 +252,20 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
+    def last_charging_end_result(self) -> str:
+        """Get the last charging end result"""
+        return self._attributes['lastChargingEndResult']
+
+    @property
+    @backend_parameter
+    def connection_status(self) -> str:
+        """Get status of the connection"""
+        return self._attributes['connectionStatus']
+
+    @property
+    @backend_parameter
     def condition_based_services(self) -> List['ConditionBasedServiceReport']:
-        """Get staus of the condition based services."""
+        """Get status of the condition based services."""
         return [ConditionBasedServiceReport(s) for s in self._attributes['cbsData']]
 
     @property
