@@ -16,5 +16,4 @@ dist/
 AUTHORS
 ChangeLog
 /.eggs
-.travis.yml
-build/lib/bimmer_connected/
+build/

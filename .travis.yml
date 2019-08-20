@@ -1,0 +1,27 @@
+sudo: false
+language: python
+install: pip install -U tox coveralls
+matrix:
+  fast_finish: true
+  include:
+  - python: 3.4.2
+    env: TOXENV=py34
+  - python: '3.5'
+    env: TOXENV=py35
+  - python: '3.6'
+    env: TOXENV=py36
+  - python: '3.6'
+    env: TOXENV=flake8
+  - python: '3.6'
+    env: TOXENV=pylint
+  - python: '3.6'
+    env: TOXENV=docs
+before_script:
+- echo 'Europe/Berlin' | sudo tee /etc/timezone
+- sudo dpkg-reconfigure --frontend noninteractive tzdata
+script: travis_wait tox
+after_success: coveralls
+deploy:
+  provider: pypi
+  on:
+    tags: true
