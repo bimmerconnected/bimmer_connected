@@ -17,11 +17,20 @@ setup(
     long_description=readme(),
     long_description_content_type="text/x-rst",
     url="https://github.com/bimmerconnected/bimmer_connected",
-    packages=find_packages(),
-    install_requires=['requests', 'typing>=3,<4'],
+    packages=['bimmer_connected'],
+    install_requires=[
+        'requests', 'typing>=3,<4'
+    ],
     keywords='BMW Connected Drive home automation',
     zip_safe=False,
-    extras_require={'testing': ['pytest']},
+    extras_require={
+        'testing': ['pytest']
+    },
+    entry_points={
+        'console_scripts': [
+            'bimmerconnected=bimmer_connected.cli:main'
+        ],
+    },
     license='Apache 2.0',
     classifiers=[
         'Development Status :: 4 - Beta',
