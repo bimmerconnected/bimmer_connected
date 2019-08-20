@@ -17,4 +17,4 @@ AUTHORS
 ChangeLog
 /.eggs
 .travis.yml
-build/
+build/*
