@@ -1,6 +1,6 @@
 ---
 name: Issue template
-about: Describe this issue here.
+about: Describe this issue here
 title: ''
 labels: ''
 assignees: ''
@@ -28,5 +28,5 @@ bmw_connected_drive:
     region: one of "north_america", "china" , "rest_of_world"
 ````
 
-**Have you run the bimmer_connected fingerprint**
+**Output of bimmer_connected fingerprint**
 If you have run the [bimmer_connected fingerprint](https://github.com/bimmerconnected/bimmer_connected#data-contributions) please share that data here
