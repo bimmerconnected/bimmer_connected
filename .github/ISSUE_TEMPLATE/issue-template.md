@@ -8,7 +8,7 @@ assignees: ''
 ---
 
 **Describe the issue**
-A clear and concise description of what the issueis.
+A clear and concise description of what the issue is.
 
 **Expected behavior**
 A clear and concise description of what you expected to happen.
