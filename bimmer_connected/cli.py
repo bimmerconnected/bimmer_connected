@@ -6,6 +6,8 @@ import logging
 import json
 import os
 import time
+import urllib.request
+import sys
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
 from bimmer_connected.vehicle import VehicleViewDirection, PointOfInterest
@@ -42,11 +44,10 @@ def main() -> None:
     image_parser.set_defaults(func=image)
 
     sendpoi_parser = subparsers.add_parser('sendpoi', description='send a point of interest to the vehicle')
-    _add_default_arguments(sendpoi_parser )
+    _add_default_arguments(sendpoi_parser)
     sendpoi_parser.add_argument('vin', help='vehicle identification number')
-    sendpoi_parser.add_argument('latitude', help='latitude of the POI', type=float)
-    sendpoi_parser.add_argument('longitude', help='longitude of the POI', type=float)
-    sendpoi_parser.add_argument('name', help='(optional) name of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('-n','--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('-a','--address', nargs='+', help="address ('street, city, zip, country' etc")
     sendpoi_parser.set_defaults(func=send_poi)
 
     args = parser.parse_args()
@@ -117,7 +118,37 @@ def image(args) -> None:
 def send_poi(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
-    poi = PointOfInterest(args.latitude, args.longitude, name=args.name)
+    address = (str(' '.join(args.address)).replace(' ', '+'))
+    url = "https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q="+address+"&format=json&limit=1"
+    try:
+        g = json.loads(urllib.request.urlopen(url).read().decode("utf-8").strip('[' ']'))
+    except json.decoder.JSONDecodeError:
+        print('Address not found')
+        sys.exit(1)
+#    print(g)
+    address=(g["display_name"])
+    lat=(g["lat"])
+    long=(g["lon"])
+    name=args.name
+    if "road" in (g["address"]):
+         street=((g["address"])["road"])
+    else:
+         street='null'
+    if "city" in (g["address"]):
+         city=((g["address"])["city"])
+    elif "town" in (g["address"]):
+         city=((g["address"])["town"])
+    else:
+         city='null'
+    if "postcode" in (g["address"]):
+         postcode=((g["address"])["postcode"])
+    else:
+         postcode='null'
+    country=((g["address"])["country"])
+    print()
+    print("Sending '" + lat, long, name, street, city, postcode, country + "' to your car")
+    print()
+    poi = PointOfInterest(lat, long, name=args.name, street=street, city=city, postalCode=postcode, country=country)
     vehicle.send_poi(poi)
 
 
@@ -139,3 +170,4 @@ def _add_position_arguments(parser: argparse.ArgumentParser):
 
 if __name__ == '__main__':
     main()
+
