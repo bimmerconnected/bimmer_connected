@@ -123,7 +123,7 @@ def send_poi(args) -> None:
     try:
         g = json.loads(urllib.request.urlopen(url).read().decode("utf-8").strip('[' ']'))
     except json.decoder.JSONDecodeError:
-        print('Address not found')
+        print('\nAddress not found')
         sys.exit(1)
 #    print(g)
     address=(g["display_name"])
@@ -145,9 +145,7 @@ def send_poi(args) -> None:
     else:
          postcode='null'
     country=((g["address"])["country"])
-    print()
-    print("Sending '" + lat, long, name, street, city, postcode, country + "' to your car")
-    print()
+    print("\nSending '" + lat, long, name, street, city, postcode, country + "' to your car\n")
     poi = PointOfInterest(lat, long, name=args.name, street=street, city=city, postalCode=postcode, country=country)
     vehicle.send_poi(poi)
 
