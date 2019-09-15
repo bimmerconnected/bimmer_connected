@@ -166,4 +166,3 @@ def _add_position_arguments(parser: argparse.ArgumentParser):
 
 if __name__ == '__main__':
     main()
-
