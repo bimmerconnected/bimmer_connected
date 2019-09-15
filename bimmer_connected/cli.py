@@ -125,8 +125,6 @@ def send_poi(args) -> None:
     except json.decoder.JSONDecodeError:
         print('\nAddress not found')
         sys.exit(1)
-#    print(g)
-    address=(g["display_name"])
     lat=(g["lat"])
     long=(g["lon"])
     name=args.name
