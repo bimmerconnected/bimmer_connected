@@ -61,28 +61,35 @@ class PointOfInterest:
     used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
     """
 
-    def __init__(self, latitude: float, longitude: float, **kwargs):
+    def __init__(self, latitude: float, longitude: float, name: str = None,
+                 additionalInfo: str = None, street: str = None, city: str = None,
+                 postalCode: str = None, country: str = None, website: str = None,
+                 phoneNumbers: [str] = None):
         """Constructor.
 
         :arg latitude: latitude of the POI
         :arg longitude: longitude of the POI
         :arg name: name of the POI (Optional)
+        :arg additionalInfo: additional text shown below the address (Optional)
         :arg street: street with house number of the POI (Optional)
         :arg city: city of the POI (Optional)
         :arg postalCode: zip code of the POI (Optional)
         :arg country: country of the POI (Optional)
+        :arg website: website of the POI (Optional)
+        :arg phoneNumbers: List of phone numbers of the POI (Optional)
         """
         # pylint: disable=invalid-name
         self.lat = latitude  # type: float
         self.lon = longitude  # type: float
-        self.name = kwargs.get('name')  # type: str
-        self.additionalInfo = None  # type: str
-        self.street = kwargs.get('street')  # type: str
-        self.city = kwargs.get('city')  # type: str
-        self.postalCode = kwargs.get('postalcode')  # type: str
-        self.country = kwargs.get('country')  # type: str
-        self.website = None  # type: str
-        self.phoneNumbers = None  # type: List[str]
+        self.name = name  # type: str
+        self.additionalInfo = additionalInfo if additionalInfo is not None \
+                              else 'Sent with ♥ by bimmer_connected' # type: str
+        self.street = street  # type: str
+        self.city = city  # type: str
+        self.postalCode = postalCode  # type: str
+        self.country = country  # type: str
+        self.website = website  # type: str
+        self.phoneNumbers = phoneNumbers  # type: List[str]
 
     @property
     def as_server_request(self) -> str:
