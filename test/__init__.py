@@ -98,6 +98,7 @@ POI_REQUEST = {
             "%2C+%22phoneNumbers%22%3A+%5B%22%2B1+408-562-4949%22%5D%7D%7D")
 }
 
+
 def load_response_json(filename: str) -> dict:
     """load a stored response from a file"""
     with open(os.path.join(RESPONSE_DIR, filename)) as json_file:

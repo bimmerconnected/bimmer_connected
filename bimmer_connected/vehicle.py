@@ -1,7 +1,7 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
 import logging
-from typing import List, Dict
+from typing import List
 import json
 from urllib.parse import urlencode
 
@@ -54,6 +54,7 @@ class LscType(Enum):
     LSC_PHEV = 'LSC_PHEV'
 
 
+# pylint: disable=too-many-instance-attributes, too-few-public-methods
 class PointOfInterest:
     """Point of interest to be sent to the vehicle.
 
@@ -61,6 +62,7 @@ class PointOfInterest:
     used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
     """
 
+    # pylint: disable=too-many-arguments
     def __init__(self, latitude: float, longitude: float, name: str = None,
                  additionalInfo: str = None, street: str = None, city: str = None,
                  postalCode: str = None, country: str = None, website: str = None,
@@ -83,7 +85,7 @@ class PointOfInterest:
         self.lon = longitude  # type: float
         self.name = name  # type: str
         self.additionalInfo = additionalInfo if additionalInfo is not None \
-                              else 'Sent with ♥ by bimmer_connected' # type: str
+            else 'Sent with ♥ by bimmer_connected'  # type: str
         self.street = street  # type: str
         self.city = city  # type: str
         self.postalCode = postalCode  # type: str
@@ -95,7 +97,7 @@ class PointOfInterest:
     def as_server_request(self) -> str:
         """Convert to a dictionary so that it can be sent to the server."""
         result = {
-            'poi' : {k: v for k, v in self.__dict__.items() if v is not None}
+            'poi': {k: v for k, v in self.__dict__.items() if v is not None}
         }
         return urlencode({'data': json.dumps(result)})
 
