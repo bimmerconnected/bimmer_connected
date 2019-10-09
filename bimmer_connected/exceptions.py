@@ -1,5 +1,6 @@
 """ BMW ConnectedDrive exception class."""
 
+
 class BMWConnectedDriveException(Exception):
     """ BMW ConnectedDrive API Exception class."""
     def __init__(self, code, *args, **kwargs):

@@ -398,7 +398,6 @@ class Window(Lid):  # pylint: disable=too-few-public-methods
 
     A window can be a normal window of the car or the sun roof.
     """
-    pass
 
 
 class ConditionBasedServiceReport:  # pylint: disable=too-few-public-methods
