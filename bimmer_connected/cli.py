@@ -4,14 +4,11 @@
 import argparse
 import logging
 import json
-import os
 import time
+from pathlib import Path
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
 from bimmer_connected.vehicle import VehicleViewDirection
-
-FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                               'vehicle_fingerprint')
 
 
 def main() -> None:
@@ -68,9 +65,8 @@ def get_status(args) -> None:
 
 def fingerprint(args) -> None:
     """Save the vehicle fingerprint."""
-    time_str = time.strftime("%Y-%m-%d_%H-%M-%S")
-    time_dir = os.path.join(FINGERPRINT_DIR, time_str)
-    os.makedirs(time_dir)
+    time_dir = Path.cwd() / 'vehicle_fingerprint' / time.strftime("%Y-%m-%d_%H-%M-%S")
+    time_dir.mkdir(parents=True)
 
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region),
                                     log_responses=time_dir)
