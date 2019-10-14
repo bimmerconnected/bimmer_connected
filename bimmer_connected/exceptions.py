@@ -1,4 +1,4 @@
-""" BMW ConnectedDrive exception class."""
+"""BMW ConnectedDrive exception class."""
 
 
 class BMWConnectedDriveException(Exception):
