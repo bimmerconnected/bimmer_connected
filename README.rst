@@ -13,7 +13,7 @@ This library is written to include it in Home Assistant.
 Compatibility
 -------------
 This works with BMW (and Mini) vehicles with a Connected Drive account.
-So far it is tested on vehicles with a 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav' navigation system.
+So far it is tested on vehicles with a 'MGU', 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav' navigation system.
 If you have any trouble with other navigation systems, please create an issue with your server responses (see next section).
 
 To use this library, your BMW (or Mini) must have the remote services enabled for your vehicle. You might need to book this in the Connected Drive/Mini Connected portal and this might cost some money. In addition to that you need to enable the Remote Services in your infotainment system in the vehicle.
