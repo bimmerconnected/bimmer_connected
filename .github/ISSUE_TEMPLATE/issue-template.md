@@ -31,4 +31,4 @@ bmw_connected_drive:
 **Output of bimmer_connected fingerprint**
 If you have run the [bimmer_connected fingerprint](https://github.com/bimmerconnected/bimmer_connected#data-contributions) please share that data here
 
-*NOTE: It might take me awhile to repond on GitHub (I only maintain this in my free time), but I will respond.*
+*NOTE: It might take me a while to respond on GitHub (I only maintain this in my free time), but I will respond.*
