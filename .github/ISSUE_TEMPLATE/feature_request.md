@@ -19,4 +19,4 @@ A clear and concise description of any alternative solutions or features you've 
 **Additional context**
 Add any other context or screenshots about the feature request here.
 
-*NOTE: It might take me awhile to repond on GitHub (I only maintain this in my free time), but I will respond.*
+*NOTE: It might take me a while to respond on GitHub (I only maintain this in my free time), but I will respond.*
