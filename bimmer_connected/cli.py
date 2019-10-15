@@ -6,7 +6,7 @@ import logging
 import json
 import os
 import time
-import urllib.request
+import requests
 import sys
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
@@ -121,8 +121,8 @@ def send_poi(args) -> None:
     address = (str(' '.join(args.address)).replace(' ', '+'))
     url = "https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q="+address+"&format=json&limit=1"
     try:
-        g = json.loads(urllib.request.urlopen(url).read().decode("utf-8").strip('[' ']'))
-    except json.decoder.JSONDecodeError:
+        g = (requests.get(url).json()[0])
+    except IndexError:
         print('\nAddress not found')
         sys.exit(1)
     lat=(g["lat"])
