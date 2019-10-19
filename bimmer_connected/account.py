@@ -42,7 +42,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None, retries_on_500_error: int = 0) -> None:
+    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None,
+                 retries_on_500_error: int = 0) -> None:
         self._region = region
         self._server_url = None
         self._username = username
@@ -129,9 +130,11 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
         for i in range(self._retries_on_500_error + 1):
             if post:
-                response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects, params=params)
+                response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects,
+                                         params=params)
             else:
-                response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects, params=params)
+                response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects,
+                                        params=params)
 
             if response.status_code != expected_response:
                 if response.status_code == 500:
@@ -144,8 +147,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 _LOGGER.debug(msg)
                 _LOGGER.debug(response.text)
                 raise IOError(msg)
-            else:
-                break
+            break
 
         self._log_response_to_file(response, logfilename)
         return response
