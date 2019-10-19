@@ -136,8 +136,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             if response.status_code != expected_response:
                 if response.status_code == 500:
                     _LOGGER.debug("Error 500 on attempt %d", i+1)
-                    continue;
-                
+                    continue
+
                 error_description = ERROR_CODE_MAPPING.get(response.status_code, "UNKNOWN_ERROR")
                 msg = ("The BMW Connected Drive portal returned an error: {} (received status code {} and expected {})."
                        .format(error_description, response.status_code, expected_response))
@@ -146,7 +146,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 raise IOError(msg)
             else:
                 break
-        
+
         self._log_response_to_file(response, logfilename)
         return response
 
