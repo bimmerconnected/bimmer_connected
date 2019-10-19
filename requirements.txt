@@ -1,2 +1,2 @@
 requests
-typing>=3,<4
+typing>=3,<4;python_version<"3.5"
