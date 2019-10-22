@@ -19,7 +19,7 @@ setup(
     url="https://github.com/bimmerconnected/bimmer_connected",
     packages=['bimmer_connected'],
     install_requires=[
-        'requests', 'typing>=3,<4'
+        'requests', 'typing>=3,<4;python_version<"3.5"'
     ],
     keywords='BMW Connected Drive home automation',
     zip_safe=False,
