@@ -152,7 +152,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
     def gps_position(self) -> (float, float):
         """Get the last known position of the vehicle.
 
-        Returns a tuple of (latitue, longitude).
+        Returns a tuple of (latitude, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
         pos = self._attributes['position']
