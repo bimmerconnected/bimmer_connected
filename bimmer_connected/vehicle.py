@@ -2,10 +2,12 @@
 from enum import Enum
 import logging
 from typing import List
+import json
+from urllib.parse import urlencode
 
 from bimmer_connected.state import VehicleState, WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_IMAGE_URL
+from bimmer_connected.const import VEHICLE_IMAGE_URL, VEHICLE_POI_URL, VEHICLE_STATISTICS_URL, VEHICLE_VIN_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +52,56 @@ class LscType(Enum):
     I_LSC_IMM = 'I_LSC_IMM'
     UNKNOWN = 'UNKNOWN'
     LSC_PHEV = 'LSC_PHEV'
+
+
+# pylint: disable=too-many-instance-attributes, too-few-public-methods
+class PointOfInterest:
+    """Point of interest to be sent to the vehicle.
+
+    The latitude/longitude of a POI are mandatory, all other attributes are optional. CamelCase attribute names are
+    used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
+    """
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, latitude: float, longitude: float, name: str = None,
+                 additionalInfo: str = None, street: str = None, city: str = None,
+                 postalCode: str = None, country: str = None, website: str = None,
+                 phoneNumbers: [str] = None):
+        """Constructor.
+
+        :arg latitude: latitude of the POI
+        :arg longitude: longitude of the POI
+        :arg name: name of the POI (Optional)
+        :arg additionalInfo: additional text shown below the address (Optional)
+        :arg street: street with house number of the POI (Optional)
+        :arg city: city of the POI (Optional)
+        :arg postalCode: zip code of the POI (Optional)
+        :arg country: country of the POI (Optional)
+        :arg website: website of the POI (Optional)
+        :arg phoneNumbers: List of phone numbers of the POI (Optional)
+        :arg type: should be set to "DESNINATION"
+        """
+        # pylint: disable=invalid-name
+        self.lat = latitude  # type: float
+        self.lon = longitude  # type: float
+        self.name = name  # type: str
+        self.additionalInfo = additionalInfo if additionalInfo is not None \
+            else 'Sent with ♥ by bimmer_connected'  # type: str
+        self.street = street  # type: str
+        self.city = city  # type: str
+        self.postalCode = postalCode  # type: str
+        self.country = country  # type: str
+        self.website = website  # type: str
+        self.phoneNumbers = phoneNumbers  # type: List[str]
+        self.type = 'DESTINATION'
+
+    @property
+    def as_server_request(self) -> str:
+        """Convert to a dictionary so that it can be sent to the server."""
+        result = {
+            'poi': {k: v for k, v in self.__dict__.items() if v is not None}
+        }
+        return urlencode({'data': json.dumps(result)})
 
 
 class ConnectedDriveVehicle:
@@ -159,6 +211,64 @@ class ConnectedDriveVehicle:
         response = self._account.send_request(url, headers=header)
         return response.content
 
+    def get_vehicle_lasttrip(self) -> str:
+        """Get details of last trip
+        """
+        url = VEHICLE_STATISTICS_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/lastTrip'
+        print(url)
+        input('is that right?')
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['lastTrip']
+
+    def get_vehicle_alltrips(self) -> str:
+        """Shows the statistics for all trips taken in the vehicle.
+        """
+        url = VEHICLE_STATISTICS_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/allTrips'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['allTrips']
+
+    def get_vehicle_charging_profile(self) -> str:
+        """Get the charging schedule for the vehicle
+        """
+        url = VEHICLE_VIN_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/chargingprofile'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['weeklyPlanner']
+
+    def get_vehicle_destinations(self) -> str:
+        """Shows the destinations you've previously sent to the car.
+        """
+        url = VEHICLE_VIN_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/destinations'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['destinations']
+
+    def get_vehicle_rangemap(self) -> str:
+        """Gets polygon bounding vehicle range
+        """
+        url = VEHICLE_VIN_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/rangemap'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['rangemap']
+
+
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
 
@@ -181,3 +291,14 @@ class ConnectedDriveVehicle:
             raise ValueError('Either latitude AND longitude are set or none of them. You cannot set only one of them!')
         self.observer_latitude = latitude
         self.observer_longitude = longitude
+
+    def send_poi(self, poi: PointOfInterest) -> None:
+        """Send a point of interest to the vehicle."""
+        url = VEHICLE_POI_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )
+        header = self._account.request_header
+        # the accept field of the header needs to be updated as we want a png not the usual JSON
+        header['Content-Type'] = 'application/x-www-form-urlencoded'
+        self._account.send_request(url, headers=header, data=poi.as_server_request, post=True, expected_response=204)
