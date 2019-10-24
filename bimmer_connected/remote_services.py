@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 _POLLING_CYCLE = 1
 
 #: maximum number of seconds to wait for the server to return a positive answer
-_POLLING_TIMEOUT = 60
+_POLLING_TIMEOUT = 600
 
 #: time in seconds to wait before updating the vehicle state from the server
 _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
@@ -28,6 +28,8 @@ class ExecutionState(Enum):
     PENDING = 'PENDING'
     DELIVERED = 'DELIVERED'
     EXECUTED = 'EXECUTED'
+    NOT_EXECUTED = 'NOT_EXECUTED'
+    TIMED_OUT = 'TIMED_OUT'
 
 
 class _Services(Enum):
@@ -37,6 +39,7 @@ class _Services(Enum):
     REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
     REMOTE_HORN = 'HORN_BLOW'
     REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
+    REMOTE_CHARGE_NOW = 'CHARGE_NOW'
 
 
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
@@ -111,16 +114,30 @@ class RemoteServices:
         return self._block_until_done(_Services.REMOTE_HORN)
 
     def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
-        """Trigger the air conditioning to start.
+        """Trigger the vehicle to climatize now.
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
+        ^^This isn't true, right?^^
         """
-        _LOGGER.debug('Triggering remote air conditioning')
+        _LOGGER.debug('Triggering remote climatize')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_AIR_CONDITIONING, post=True)
         result = self._block_until_done(_Services.REMOTE_AIR_CONDITIONING)
         self._trigger_state_update()
         return result
+
+    def trigger_remote_charge_now(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to charge immediately.
+
+        A state update is triggered
+        """
+        _LOGGER.debug('Triggering remote charge now')
+        # needs to be called via POST, GET is not working
+        self._trigger_remote_service(_Services.REMOTE_CHARGE_NOW, post=True)
+        result = self._block_until_done(_Services.REMOTE_CHARGE_NOW)
+        self._trigger_state_update()
+        return result
+
 
     def _trigger_remote_service(self, service_id: _Services, post=False) -> requests.Response:
         """Trigger a generic remote service.
