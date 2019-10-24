@@ -16,7 +16,7 @@ _LOGGER = logging.getLogger(__name__)
 _POLLING_CYCLE = 1
 
 #: maximum number of seconds to wait for the server to return a positive answer
-_POLLING_TIMEOUT = 600
+_POLLING_TIMEOUT = 60
 
 #: time in seconds to wait before updating the vehicle state from the server
 _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
