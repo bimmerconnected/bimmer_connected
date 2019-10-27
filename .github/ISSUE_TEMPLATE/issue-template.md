@@ -14,7 +14,7 @@ A clear and concise description of what the issue is.
 A clear and concise description of what you expected to happen.
 
 **Home Assistant version**
-Which Home Assistant version are you using
+Which Home Assistant version are you using. And did it work on a previous version, if so what was the last working version.
 
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
