@@ -71,6 +71,7 @@ class PointOfInterest:
 
         :arg latitude: latitude of the POI
         :arg longitude: longitude of the POI
+        :arg name: name of the POI (Optional)
         :arg additionalInfo: additional text shown below the address (Optional)
         :arg street: street with house number of the POI (Optional)
         :arg city: city of the POI (Optional)
