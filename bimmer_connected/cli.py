@@ -47,10 +47,13 @@ def main() -> None:
     sendpoi_parser.add_argument('latitude', help='latitude of the POI', type=float)
     sendpoi_parser.add_argument('longitude', help='longitude of the POI', type=float)
     sendpoi_parser.add_argument('--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
-    sendpoi_parser.add_argument('--street', help='(optional, display only) Street & House No. of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('--street', help='(optional, display only) Street & House No. of the POI',
+                                nargs='?', default=None)
     sendpoi_parser.add_argument('--city', help='(optional, display only) City of the POI', nargs='?', default=None)
-    sendpoi_parser.add_argument('--postalcode', help='(optional, display only) Postal code of the POI', nargs='?', default=None)
-    sendpoi_parser.add_argument('--country', help='(optional, display only) Country of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('--postalcode', help='(optional, display only) Postal code of the POI',
+                                nargs='?', default=None)
+    sendpoi_parser.add_argument('--country', help='(optional, display only) Country of the POI',
+                                nargs='?', default=None)
     sendpoi_parser.set_defaults(func=send_poi)
 
     args = parser.parse_args()
@@ -119,6 +122,7 @@ def image(args) -> None:
 
 
 def send_poi(args) -> None:
+    """Send Point Of Interest to car."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
     poi = PointOfInterest(args.latitude, args.longitude, name=args.name,
