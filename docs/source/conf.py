@@ -16,7 +16,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-from bimmer_connected import const
+from bimmer_connected import version as const
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +27,7 @@ author = 'm1n3rva'
 # The short X.Y version
 # version = const.__short_version__
 # The full version, including alpha/beta/rc tags
-# release = const.__version__
+release = const.__version__
 
 # -- General configuration ---------------------------------------------------
 
@@ -39,7 +39,6 @@ author = 'm1n3rva'
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'pbr.sphinxext',
     'sphinx.ext.autodoc',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',

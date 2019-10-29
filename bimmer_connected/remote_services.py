@@ -93,7 +93,7 @@ class RemoteServices:
 
         A state update is triggered after this, as the lock state of the vehicle changes.
         """
-        _LOGGER.debug('Triggering remote door lock')
+        _LOGGER.debug('Triggering remote door unlock')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_DOOR_UNLOCK, post=True)
         result = self._block_until_done(_Services.REMOTE_DOOR_UNLOCK)
@@ -105,7 +105,7 @@ class RemoteServices:
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-        _LOGGER.debug('Triggering remote light flash')
+        _LOGGER.debug('Triggering remote horn sound')
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_HORN, post=True)
         return self._block_until_done(_Services.REMOTE_HORN)

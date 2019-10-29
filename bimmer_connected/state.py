@@ -21,6 +21,7 @@ class LidState(Enum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
     CLOSED = 'CLOSED'
     OPEN = 'OPEN'
+    OPEN_TILT = 'OPEN_TILT'
     INTERMEDIATE = 'INTERMEDIATE'
     INVALID = 'INVALID'
 
@@ -56,6 +57,36 @@ class ChargingState(Enum):
     INVALID = 'INVALID'
     NOT_CHARGING = 'NOT_CHARGING'
     WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
+
+
+class CheckControlMessage:
+    """Check control message sent from the server.
+
+    This class provides a nicer API than parsing the JSON format directly.
+    """
+
+    def __init__(self, ccm_dict: dict):
+        self._ccm_dict = ccm_dict
+
+    @property
+    def description_long(self) -> str:
+        """Long description of the check control message."""
+        return self._ccm_dict["ccmDescriptionLong"]
+
+    @property
+    def description_short(self) -> str:
+        """Short description of the check control message."""
+        return self._ccm_dict["ccmDescriptionShort"]
+
+    @property
+    def ccm_id(self) -> int:
+        """id of the check control message."""
+        return int(self._ccm_dict["ccmId"])
+
+    @property
+    def mileage(self) -> int:
+        """Mileage of the vehicle when the check control message appeared."""
+        return int(self._ccm_dict["ccmMileage"])
 
 
 def backend_parameter(func):
@@ -121,7 +152,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
     def gps_position(self) -> (float, float):
         """Get the last known position of the vehicle.
 
-        Returns a tuple of (latitue, longitude).
+        Returns a tuple of (latitude, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
         pos = self._attributes['position']
@@ -221,8 +252,20 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
+    def last_charging_end_result(self) -> str:
+        """Get the last charging end result"""
+        return self._attributes['lastChargingEndResult']
+
+    @property
+    @backend_parameter
+    def connection_status(self) -> str:
+        """Get status of the connection"""
+        return self._attributes['connectionStatus']
+
+    @property
+    @backend_parameter
     def condition_based_services(self) -> List['ConditionBasedServiceReport']:
-        """Get staus of the condition based services."""
+        """Get status of the condition based services."""
         return [ConditionBasedServiceReport(s) for s in self._attributes['cbsData']]
 
     @property
@@ -311,12 +354,11 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def check_control_messages(self) -> List:
-        """List of check control messages.
-
-        Right now they are not parsed, as we do not have sample data with CC messages.
-        See issue https://github.com/m1n3rva/bimmer_connected/issues/55
-        """
+    def check_control_messages(self) -> List[CheckControlMessage]:
+        """List of check control messages."""
+        # TO DO change this in HA binary_sensor.py first
+        # messages = self._attributes.get('checkControlMessages', [])
+        # return [CheckControlMessage(m) for m in messages]
         return self._attributes.get('checkControlMessages', [])
 
     @property

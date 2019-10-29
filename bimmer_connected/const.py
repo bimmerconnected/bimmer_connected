@@ -1,4 +1,4 @@
-"""urls for different services."""
+"""URLs for different services and error code mapping."""
 
 AUTH_URL = 'https://{server}/gcdm/oauth/token'
 BASE_URL = 'https://{server}/webapi/v1'
@@ -10,3 +10,15 @@ REMOTE_SERVICE_STATUS_URL = VEHICLE_VIN_URL + '/serviceExecutionStatus?serviceTy
 REMOTE_SERVICE_URL = VEHICLE_VIN_URL + "/executeService"
 VEHICLE_IMAGE_URL = VEHICLE_VIN_URL + "/image?width={width}&height={height}&view={view}"
 VEHICLE_POI_URL = VEHICLE_VIN_URL + '/sendpoi'
+
+# Possible error codes, other codes are mapped to UNKNOWN_ERROR
+ERROR_CODE_MAPPING = {
+    401: 'UNAUTHORIZED',
+    404: 'NOT_FOUND',
+    405: 'MOBILE_ACCESS_DISABLED',
+    408: 'VEHICLE_UNAVAILABLE',
+    423: 'ACCOUNT_LOCKED',
+    429: 'TOO_MANY_REQUESTS',
+    500: 'SERVER_ERROR',
+    503: 'SERVICE_MAINTENANCE',
+}

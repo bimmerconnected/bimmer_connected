@@ -1,0 +1,2 @@
+[run]
+omit = bimmer_connected/cli.py

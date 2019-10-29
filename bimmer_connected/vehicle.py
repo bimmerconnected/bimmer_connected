@@ -144,7 +144,7 @@ class ConnectedDriveVehicle:
         have a combustion engine. Depending on the state of the vehicle, some of
         the attributes might still be None.
         """
-        result = ['remaining_range_total', 'remaining_fuel']
+        result = ['remaining_range_total', 'remaining_fuel', 'mileage']
         if self.has_hv_battery:
             result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv',
                        'chargingConnectionType', 'chargingInductivePositioning', 'connectionStatus',
@@ -175,9 +175,8 @@ class ConnectedDriveVehicle:
             result += WINDOWS
             result += self.drive_train_attributes
             result += ['DCS_CCH_Activation', 'DCS_CCH_Ongoing', 'condition_based_services', 'check_control_messages',
-                       'door_lock_state', 'internalDataTimeUTC', 'mileage', 'parking_lights',
+                       'door_lock_state', 'internalDataTimeUTC', 'lights_parking', 'lids', 'windows',
                        'positionLight', 'last_update_reason', 'singleImmediateCharging']
-
         return result
 
     def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:

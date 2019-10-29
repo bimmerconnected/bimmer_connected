@@ -4,7 +4,7 @@ install: pip install -U tox coveralls
 matrix:
   fast_finish: true
   include:
-  - python: 3.4.2
+  - python: '3.4'
     env: TOXENV=py34
   - python: '3.5'
     env: TOXENV=py35
@@ -23,7 +23,5 @@ script: travis_wait tox
 after_success: coveralls
 deploy:
   provider: pypi
-  user: m1n3rva
-  password: "fadv+z48i77VmoHtS7HTMNkRdeXrFffTGesgPIXmZ2q2EN4hLfaA9JHLKAagPIXkRRxrbAfMjSmSpvQ0hl+sQY7Btd2Xz76+tnFW5X8b4WVs7EaK+fyVvUT+S62TyejORqcgWDSBE9RwyToceSIKmVQ7kQet0px/aQaz2NB4J9DTvmPOC0a7hoJs2dD5QR/3QvTaE5KW9zQl5/RQ/LYy/emEnDjmghcMbbcLz6z/fOwPDO7PuhCDyIZLxUP7aNxHyFSx3S8RavjxREuE6KHU/dKcLfDJeVmzItlZ0BdxMLYhXRk73RBRsZhGwnJLJPhmDazhJYQ1baaHX4I+cTkTuU2lZTfbeLW2m+ijxcIyptorCCUaLG3G4hQ4aoucNYEZqdhPXNmB6GBGX9bSHayeY4A6tZVmeZiuSjxThOSMJazrpXJWGZqvw8VrtZw5d9rM7e2auvp5c9WV70//x3szfCz7U1q9U9aFBRdRYgyFZa2TPQzn8WU7of+PRColPJBYEcPKfnRqt93DefKfPMRpt3Kq21cxWOtwShJRYo9WmwZTqRn5+1TPhd1N/jQWXjiYrZRLezRfr6rCBm9KrK6LWmbptH57EdhgCiUISRuTO5jfrnlFHkENI7dv0AvWRRQXKAizzjBxH2b1tQb/eJbMNm2lfPymMLKLpk4v2xc9bo0="
   on:
     tags: true
