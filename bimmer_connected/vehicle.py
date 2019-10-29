@@ -1,11 +1,13 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
 import logging
-from typing import List
+from typing import List, Dict
+import json
+from urllib.parse import urlencode
 
 from bimmer_connected.state import VehicleState, WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_IMAGE_URL
+from bimmer_connected.const import VEHICLE_IMAGE_URL, VEHICLE_POI_URL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -50,6 +52,43 @@ class LscType(Enum):
     I_LSC_IMM = 'I_LSC_IMM'
     UNKNOWN = 'UNKNOWN'
     LSC_PHEV = 'LSC_PHEV'
+
+
+class PointOfInterest:
+    """Point of interest to be sent to the vehicle.
+
+    The latitude/longitude of a POI are mandatory, all other attributes are optional. CamelCase attribute names are
+    used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
+    """
+
+    def __init__(self, latitude: float, longitude: float, * , name: str = None):
+        """Constructor.
+
+        :arg latitude: latitude of the POI
+        :arg longitude: longitude of the POI
+        :arg name: name of the POI (Optional)
+        """
+        self.latitude = latitude  # type: float
+        self.longitude = longitude  # type: float
+        self.name = name  # type: str
+        self.additionalInfo = None  # type: str
+        self.street = ""  # type: str
+        self.city = ""  # type: str
+        self.postalCode = ""  # type: str
+        self.country = ""  # type: str
+        self.website = None  # type: str
+        self.phoneNumbers = None  # type: List[str]
+
+    @property
+    def as_server_request(self) -> str:
+        """Convert to a dictionary so that it can be sent to the server."""
+        result = {
+            'poi' : {
+                'lat': self.latitude,
+                'lon': self.longitude,
+            }
+        }
+        return urlencode({'data': json.dumps(result)})
 
 
 class ConnectedDriveVehicle:
@@ -180,3 +219,14 @@ class ConnectedDriveVehicle:
             raise ValueError('Either latitude AND longitude are set or none of them. You cannot set only one of them!')
         self.observer_latitude = latitude
         self.observer_longitude = longitude
+
+    def send_poi(self, poi: PointOfInterest) -> None:
+        """Send a point of interest to the vehicle."""
+        url = VEHICLE_POI_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )
+        header = self._account.request_header
+        # the accept field of the header needs to be updated as we want a png not the usual JSON
+        header['Content-Type'] = 'application/x-www-form-urlencoded'
+        self._account.send_request(url, headers=header, data=poi.as_server_request, post=True, expected_response=204)
