@@ -74,6 +74,30 @@ MISSING_ATTRIBUTES = [
     'sunroof',                    # not available in all vehicles
 ]
 
+POI_DATA = {
+    "lat": 37.4028943,
+    "lon": -121.9700289,
+    "name": "49ers",
+    "additionalInfo": "Hi Sam",
+    "street": "4949 Marie P DeBartolo Way",
+    "city": "Santa Clara",
+    "postalCode": "CA 95054",
+    "country": "United States",
+    "website": "https://www.49ers.com/",
+    "phoneNumbers": ["+1 408-562-4949"]
+}
+
+POI_REQUEST = {
+    "min": ("data=%7B%22poi%22%3A+%7B%22lat%22%3A+37.4028943%2C+%22lon%22%3A+-121.9700289"
+            "%2C+%22additionalInfo%22%3A+%22Sent+with+%5Cu2665+by+bimmer_connected%22%7D%7D"),
+    "all": ("data=%7B%22poi%22%3A+%7B%22lat%22%3A+37.4028943%2C+%22lon%22%3A+-121.9700289"
+            "%2C+%22name%22%3A+%2249ers%22%2C+%22additionalInfo%22%3A+%22Hi+Sam%22"
+            "%2C+%22street%22%3A+%224949+Marie+P+DeBartolo+Way%22%2C+%22city%22%3A+%22Santa+Clara%22"
+            "%2C+%22postalCode%22%3A+%22CA+95054%22%2C+%22country%22%3A+%22United+States%22"
+            "%2C+%22website%22%3A+%22https%3A%2F%2Fwww.49ers.com%2F%22"
+            "%2C+%22phoneNumbers%22%3A+%5B%22%2B1+408-562-4949%22%5D%7D%7D")
+}
+
 
 def load_response_json(filename: str) -> dict:
     """load a stored response from a file"""

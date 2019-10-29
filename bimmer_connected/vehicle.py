@@ -1,7 +1,7 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
 import logging
-from typing import List, Dict
+from typing import List
 import json
 from urllib.parse import urlencode
 
@@ -54,6 +54,7 @@ class LscType(Enum):
     LSC_PHEV = 'LSC_PHEV'
 
 
+# pylint: disable=too-many-instance-attributes, too-few-public-methods
 class PointOfInterest:
     """Point of interest to be sent to the vehicle.
 
@@ -61,32 +62,42 @@ class PointOfInterest:
     used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
     """
 
-    def __init__(self, latitude: float, longitude: float, * , name: str = None):
+    # pylint: disable=too-many-arguments
+    def __init__(self, latitude: float, longitude: float, name: str = None,
+                 additionalInfo: str = None, street: str = None, city: str = None,
+                 postalCode: str = None, country: str = None, website: str = None,
+                 phoneNumbers: [str] = None):
         """Constructor.
 
         :arg latitude: latitude of the POI
         :arg longitude: longitude of the POI
         :arg name: name of the POI (Optional)
+        :arg additionalInfo: additional text shown below the address (Optional)
+        :arg street: street with house number of the POI (Optional)
+        :arg city: city of the POI (Optional)
+        :arg postalCode: zip code of the POI (Optional)
+        :arg country: country of the POI (Optional)
+        :arg website: website of the POI (Optional)
+        :arg phoneNumbers: List of phone numbers of the POI (Optional)
         """
-        self.latitude = latitude  # type: float
-        self.longitude = longitude  # type: float
+        # pylint: disable=invalid-name
+        self.lat = latitude  # type: float
+        self.lon = longitude  # type: float
         self.name = name  # type: str
-        self.additionalInfo = None  # type: str
-        self.street = ""  # type: str
-        self.city = ""  # type: str
-        self.postalCode = ""  # type: str
-        self.country = ""  # type: str
-        self.website = None  # type: str
-        self.phoneNumbers = None  # type: List[str]
+        self.additionalInfo = additionalInfo if additionalInfo is not None \
+            else 'Sent with ♥ by bimmer_connected'  # type: str
+        self.street = street  # type: str
+        self.city = city  # type: str
+        self.postalCode = postalCode  # type: str
+        self.country = country  # type: str
+        self.website = website  # type: str
+        self.phoneNumbers = phoneNumbers  # type: List[str]
 
     @property
     def as_server_request(self) -> str:
         """Convert to a dictionary so that it can be sent to the server."""
         result = {
-            'poi' : {
-                'lat': self.latitude,
-                'lon': self.longitude,
-            }
+            'poi': {k: v for k, v in self.__dict__.items() if v is not None}
         }
         return urlencode({'data': json.dumps(result)})
 
