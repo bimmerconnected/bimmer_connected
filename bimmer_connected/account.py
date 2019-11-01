@@ -142,7 +142,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
             if response.status_code != expected_response:
                 if response.status_code == 500:
-                    _LOGGER.debug("Error 500 on attempt %d, waiting %d seconds before retry", i+1, self._retry_delay_on_500_error)
+                    _LOGGER.debug("Error 500 on attempt %d, waiting %d seconds before retry", i+1,
+                                  self._retry_delay_on_500_error)
                     if self._retry_delay_on_500_error > 0:
                         sleep(self._retry_delay_on_500_error)
                     continue
