@@ -14,6 +14,7 @@ import urllib
 import os
 import json
 from threading import Lock
+from time import sleep
 from typing import Callable, List
 import requests
 
@@ -35,10 +36,17 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     :param log_responses: If log_responses is set, all responses from the server will
                 be loged into this directory. This can be used for later analysis of the different
                 responses for different vehicles.
+    :param retries_on_500_error: If retries_on_500_error is set, a communication with the
+                Connected Drive server will automatically be retried the number of times
+                specified in the event the error code received was 500. This sometimes
+                occurs (presumably) due to bugs in the server implementation.
+    :param retry_delay_on_500_error: The number of seconds to wait between retries, only takes
+                affect when retries_on_500_error is set to a number greater than 0.
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None) -> None:
+    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None,
+                 retries_on_500_error: int = 5, retry_delay_on_500_error: int = 1) -> None:
         self._region = region
         self._server_url = None
         self._username = username
@@ -47,6 +55,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         self._refresh_token = None
         self._token_expiration = None
         self._log_responses = log_responses
+        self._retries_on_500_error = retries_on_500_error
+        self._retry_delay_on_500_error = retry_delay_on_500_error
         #: list of vehicles associated with this account.
         self._vehicles = []
         self._lock = Lock()
@@ -122,18 +132,30 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         if headers is None:
             headers = self.request_header
 
-        if post:
-            response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects, params=params)
-        else:
-            response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects, params=params)
+        for i in range(self._retries_on_500_error + 1):
+            if post:
+                response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects,
+                                         params=params)
+            else:
+                response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects,
+                                        params=params)
 
-        if response.status_code != expected_response:
-            error_description = ERROR_CODE_MAPPING.get(response.status_code, "UNKNOWN_ERROR")
-            msg = ("The BMW Connected Drive portal returned an error: {} (received status code {} and expected {})."
-                   .format(error_description, response.status_code, expected_response))
-            _LOGGER.debug(msg)
-            _LOGGER.debug(response.text)
-            raise IOError(msg)
+            if response.status_code != expected_response:
+                if response.status_code == 500:
+                    _LOGGER.debug("Error 500 on attempt %d, waiting %d seconds before retry", i+1,
+                                  self._retry_delay_on_500_error)
+                    if self._retry_delay_on_500_error > 0:
+                        sleep(self._retry_delay_on_500_error)
+                    continue
+
+                error_description = ERROR_CODE_MAPPING.get(response.status_code, "UNKNOWN_ERROR")
+                msg = ("The BMW Connected Drive portal returned an error: {} (received status code {} and expected {})."
+                       .format(error_description, response.status_code, expected_response))
+                _LOGGER.debug(msg)
+                _LOGGER.debug(response.text)
+                raise IOError(msg)
+            break
+
         self._log_response_to_file(response, logfilename)
         return response
 
