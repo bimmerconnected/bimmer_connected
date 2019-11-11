@@ -250,7 +250,7 @@ class TestState(unittest.TestCase):
         self.assertEqual(1, len(ccms))
 
         ccm = ccms[0]
-        self.assertEqual(955, ccm.ccm_id)
-        self.assertEqual(41544, ccm.mileage)
-        self.assertIn("Tyre pressure", ccm.description_short)
-        self.assertIn("continue driving", ccm.description_long)
+        self.assertEqual(955, ccm.ccmId)
+        self.assertEqual(41544, ccm.ccmMileage)
+        self.assertIn("Tyre pressure", ccm.ccmDescriptionShort)
+        self.assertIn("continue driving", ccm.ccmDescriptionLong)

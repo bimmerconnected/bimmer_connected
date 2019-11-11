@@ -60,8 +60,8 @@ class TestRemoteServices(unittest.TestCase):
                                       data_files=[_RESPONSE_INITIATED])
 
             backend_mock.add_response(
-                r'https://.+/webapi/v1/user/vehicles/{vin}/serviceExecutionStatus\?serviceType={service_type}'.format(
-                    vin=G31_VIN, service_type=service),
+                r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
+                    vin=G31_VIN),
                 data_files=[
                     _RESPONSE_PENDING,
                     _RESPONSE_PENDING,
