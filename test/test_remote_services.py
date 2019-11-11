@@ -58,8 +58,10 @@ class TestRemoteServices(unittest.TestCase):
 
             backend_mock.add_response('https://.+/webapi/v1/user/vehicles/{vin}/executeService'.format(vin=G31_VIN),
                                       data_files=[_RESPONSE_INITIATED])
-
+                                      
             backend_mock.add_response(
+                r'https://.+/webapi/v1/user/vehicles/{vin}/serviceExecutionStatus\?serviceType={service_type}'.format(
+                    vin=G31_VIN, service_type=service),
                 r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
                     vin=G31_VIN),
                 data_files=[
@@ -68,6 +70,11 @@ class TestRemoteServices(unittest.TestCase):
                     _RESPONSE_DELIVERED,
                     _RESPONSE_DELIVERED,
                     _RESPONSE_EXECUTED])
+
+            backend_mock.add_response(
+                r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
+                    vin=G31_VIN),
+                data_files=[_RESPONSE_EXECUTED])
 
             with mock.patch('bimmer_connected.account.requests', new=backend_mock):
                 account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
