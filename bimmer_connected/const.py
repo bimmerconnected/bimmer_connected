@@ -10,6 +10,7 @@ REMOTE_SERVICE_STATUS_URL = VEHICLE_VIN_URL + '/serviceExecutionStatus?serviceTy
 REMOTE_SERVICE_URL = VEHICLE_VIN_URL + "/executeService"
 VEHICLE_IMAGE_URL = VEHICLE_VIN_URL + "/image?width={width}&height={height}&view={view}"
 VEHICLE_POI_URL = VEHICLE_VIN_URL + '/sendpoi'
+VEHICLE_STATISTICS_URL = VEHICLE_VIN_URL + '/statistics'
 
 # Possible error codes, other codes are mapped to UNKNOWN_ERROR
 ERROR_CODE_MAPPING = {

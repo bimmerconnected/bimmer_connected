@@ -208,6 +208,61 @@ class ConnectedDriveVehicle:
         response = self._account.send_request(url, headers=header)
         return response.content
 
+    def get_vehicle_lasttrip(self) -> json:
+        """Get details of last trip
+        """
+        url = VEHICLE_STATISTICS_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/lastTrip'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['lastTrip']
+
+    def get_vehicle_alltrips(self) -> json:
+        """Shows the statistics for all trips taken in the vehicle.
+        """
+        url = VEHICLE_STATISTICS_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/allTrips'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['allTrips']
+
+    def get_vehicle_charging_profile(self) -> json:
+        """Get the charging schedule for the vehicle
+        """
+        url = VEHICLE_VIN_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/chargingprofile'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['weeklyPlanner']
+
+    def get_vehicle_destinations(self) -> json:
+        """Shows the destinations you've previously sent to the car.
+        """
+        url = VEHICLE_VIN_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/destinations'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['destinations']
+
+    def get_vehicle_rangemap(self) -> json:
+        """Gets polygon bounding vehicle range
+        """
+        url = VEHICLE_VIN_URL.format(
+            vin=self.vin,
+            server=self._account.server_url
+        )+'/rangemap'
+        header = self._account.request_header
+        response = self._account.send_request(url, headers=header)
+        return response.json()['rangemap']
+
     def __getattr__(self, item):
         """In the first version: just get the attributes from the dict.
 
