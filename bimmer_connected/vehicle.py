@@ -7,7 +7,7 @@ from urllib.parse import urlencode
 
 from bimmer_connected.state import VehicleState, WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_IMAGE_URL, VEHICLE_POI_URL
+from bimmer_connected.const import VEHICLE_IMAGE_URL, VEHICLE_POI_URL, VEHICLE_STATISTICS_URL
 
 _LOGGER = logging.getLogger(__name__)
 
