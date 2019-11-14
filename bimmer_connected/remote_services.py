@@ -37,6 +37,8 @@ class _Services(Enum):
     REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
     REMOTE_HORN = 'HORN_BLOW'
     REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
+    REMOTE_CHARGE_NOW = 'CHARGE_NOW'
+    REMOTE_CHARGING_CONTROL = 'CHARGING_CONTROL'
 
 
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
@@ -119,6 +121,18 @@ class RemoteServices:
         # needs to be called via POST, GET is not working
         self._trigger_remote_service(_Services.REMOTE_AIR_CONDITIONING, post=True)
         result = self._block_until_done(_Services.REMOTE_AIR_CONDITIONING)
+        self._trigger_state_update()
+        return result
+
+    def trigger_remote_charge_now(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to charge immediately.
+
+        A state update is triggered
+        """
+        _LOGGER.debug('Triggering remote charge now')
+        # needs to be called via POST, GET is not working
+        self._trigger_remote_service(_Services.REMOTE_CHARGE_NOW, post=True)
+        result = self._block_until_done(_Services.REMOTE_CHARGE_NOW)
         self._trigger_state_update()
         return result
 
