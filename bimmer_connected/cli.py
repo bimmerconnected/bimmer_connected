@@ -43,12 +43,26 @@ def main() -> None:
     image_parser.add_argument('vin', help='vehicle identification number')
     image_parser.set_defaults(func=image)
 
+
     sendpoi_parser = subparsers.add_parser('sendpoi', description='send a point of interest to the vehicle')
     _add_default_arguments(sendpoi_parser)
     sendpoi_parser.add_argument('vin', help='vehicle identification number')
-    sendpoi_parser.add_argument('-n','--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
-    sendpoi_parser.add_argument('-a','--address', nargs='+', help="address ('street, city, zip, country' etc")
+    sendpoi_parser.add_argument('latitude', help='latitude of the POI', type=float)
+    sendpoi_parser.add_argument('longitude', help='longitude of the POI', type=float)
+    sendpoi_parser.add_argument('--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('--street', help='(optional, display only) Street & House No. of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('--city', help='(optional, display only) City of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('--postalcode', help='(optional, display only) Postal code of the POI', nargs='?', default=None)
+    sendpoi_parser.add_argument('--country', help='(optional, display only) Country of the POI', nargs='?', default=None)
     sendpoi_parser.set_defaults(func=send_poi)
+
+    sendpoi_from_address_parser = subparsers.add_parser('sendpoi_from_address', description='send a point of interest from a street address to the vehicle')
+    _add_default_arguments(sendpoi_from_address_parser)
+    sendpoi_from_address_parser.add_argument('vin', help='vehicle identification number')
+    sendpoi_from_address_parser.add_argument('-n','--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
+    sendpoi_from_address_parser.add_argument('-a','--address', nargs='+', help="address ('street, city, zip, country' etc")
+    sendpoi_from_address_parser.set_defaults(func=send_poi_from_address)
+
 
     args = parser.parse_args()
     args.func(args)
@@ -114,8 +128,14 @@ def image(args) -> None:
         output_file.write(image_data)
     print('vehicle image saved to image.png')
 
-
 def send_poi(args) -> None:
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    poi = PointOfInterest(args.latitude, args.longitude, name=args.name,
+                          street=args.street, city=args.city, postalCode=args.postalcode, country=args.country)
+    vehicle.send_poi(poi)
+
+def send_poi_from_address(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
     address = (str(' '.join(args.address)).replace(' ', '+'))
@@ -131,17 +151,17 @@ def send_poi(args) -> None:
     if "road" in (g["address"]):
          street=((g["address"])["road"])
     else:
-         street='null'
+         street=None
     if "city" in (g["address"]):
          city=((g["address"])["city"])
     elif "town" in (g["address"]):
          city=((g["address"])["town"])
     else:
-         city='null'
+         city=None
     if "postcode" in (g["address"]):
          postcode=((g["address"])["postcode"])
     else:
-         postcode='null'
+         postcode=None
     country=((g["address"])["country"])
     print("\nSending '" + lat, long, name, street, city, postcode, country + "' to your car\n")
     poi = PointOfInterest(lat, long, name=args.name, street=street, city=city, postalCode=postcode, country=country)
