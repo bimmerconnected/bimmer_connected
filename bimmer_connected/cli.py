@@ -138,10 +138,11 @@ def send_poi(args) -> None:
 def send_poi_from_address(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
-    address = (str(' '.join(args.address)).replace(' ', '+'))
-    url = "https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q="+address+"&format=json&limit=1"
+#    address = (str(' '.join(args.address)).replace(' ', '+'))
+#    url = "https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q="+address+"&format=json&limit=1"
     try:
-        g = (requests.get(url).json()[0])
+#        g = (requests.get(url).json()[0])
+        g = requests.get("https://nominatim.openstreetmap.org", params={"q": args.address, "format": "json","addressdetails": 1,"limit": 1},).json()[0]
     except IndexError:
         print('\nAddress not found')
         sys.exit(1)
