@@ -60,7 +60,7 @@ def main() -> None:
     _add_default_arguments(sendpoi_from_address_parser)
     sendpoi_from_address_parser.add_argument('vin', help='vehicle identification number')
     sendpoi_from_address_parser.add_argument('-n','--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
-    sendpoi_from_address_parser.add_argument('-a','--address', nargs='+', help="address ('street, city, zip, country' etc")
+    sendpoi_from_address_parser.add_argument('-a','--address', nargs='+', help="address ('street, city, zip, country' etc)")
     sendpoi_from_address_parser.set_defaults(func=send_poi_from_address)
 
 
@@ -128,6 +128,7 @@ def image(args) -> None:
         output_file.write(image_data)
     print('vehicle image saved to image.png')
 
+
 def send_poi(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
@@ -135,14 +136,13 @@ def send_poi(args) -> None:
                           street=args.street, city=args.city, postalCode=args.postalcode, country=args.country)
     vehicle.send_poi(poi)
 
+
 def send_poi_from_address(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
-#    address = (str(' '.join(args.address)).replace(' ', '+'))
-#    url = "https://nominatim.openstreetmap.org/?format=json&addressdetails=1&q="+address+"&format=json&limit=1"
+    address = [(str(' '.join(args.address)))]
     try:
-#        g = (requests.get(url).json()[0])
-        g = requests.get("https://nominatim.openstreetmap.org", params={"q": args.address, "format": "json","addressdetails": 1,"limit": 1},).json()[0]
+        g = requests.get("https://nominatim.openstreetmap.org", params={"q": address, "format": "json","addressdetails": 1,"limit": 1},).json()[0]
     except IndexError:
         print('\nAddress not found')
         sys.exit(1)
