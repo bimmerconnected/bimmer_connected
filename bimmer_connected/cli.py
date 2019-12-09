@@ -162,7 +162,7 @@ def image(args) -> None:
         output_file.write(image_data)
     print('vehicle image saved to image.png')
 
-def get_last_trip(args) -> json:
+def get_last_trip(args) -> None:
     """Downlad details of last trip"""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
@@ -172,7 +172,7 @@ def get_last_trip(args) -> json:
         return
     print(json.dumps(vehicle.get_vehicle_lasttrip(),indent=4))    
 
-def get_all_trips(args) -> json:
+def get_all_trips(args) -> None:
     """Downlad statistics of all trips"""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
@@ -182,7 +182,7 @@ def get_all_trips(args) -> json:
         return
     print(json.dumps(vehicle.get_vehicle_alltrips(),indent=4))
 
-def get_vehicle_charging_profile(args) -> json:
+def get_vehicle_charging_profile(args) -> None:
     """Download one-time and weekly charging schedules and settings"""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
@@ -192,7 +192,7 @@ def get_vehicle_charging_profile(args) -> json:
         return
     print(json.dumps(vehicle.get_vehicle_charging_profile(),indent=4))
 
-def get_vehicle_destinations(args) -> json:
+def get_vehicle_destinations(args) -> None:
     """Shows the destinations you've previously sent to the car."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
@@ -202,7 +202,7 @@ def get_vehicle_destinations(args) -> json:
         return
     print(json.dumps(vehicle.get_vehicle_destinations(),indent=4))
 
-def get_vehicle_rangemap(args) -> json:
+def get_vehicle_rangemap(args) -> None:
     """Get a set of lat/lon points defining a polygon bounding vehicle range"""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
