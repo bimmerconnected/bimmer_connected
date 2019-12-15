@@ -93,11 +93,28 @@ class PointOfInterest:
         self.website = website  # type: str
         self.phoneNumbers = phoneNumbers  # type: List[str]
 
+
+class Message:
+    """Text message or PointOfInterst to be sent to the vehicle."""
+
+    @classmethod
+    def from_poi(cls, poi: PointOfInterest):
+        """Create a message from a PointOfInterest"""
+        return cls(poi.__dict__)
+
+    @classmethod
+    def from_text(cls, text: str, subject: str = None):
+        """Create a text message"""
+        return cls({"name": subject, "additionalInfo": text[:255]})
+
+    def __init__(self, data: dict):
+        self.data = data
+
     @property
     def as_server_request(self) -> str:
         """Convert to a dictionary so that it can be sent to the server."""
         result = {
-            'poi': {k: v for k, v in self.__dict__.items() if v is not None}
+            'poi': {k: v for k, v in self.data.items() if v is not None}
         }
         return urlencode({'data': json.dumps(result)})
 
@@ -233,8 +250,8 @@ class ConnectedDriveVehicle:
         self.observer_latitude = latitude
         self.observer_longitude = longitude
 
-    def send_poi(self, poi: PointOfInterest) -> None:
-        """Send a point of interest to the vehicle."""
+    def send_message(self, msg: Message) -> None:
+        """Send a message/point of interest to the vehicle."""
         url = VEHICLE_POI_URL.format(
             vin=self.vin,
             server=self._account.server_url
@@ -242,4 +259,4 @@ class ConnectedDriveVehicle:
         header = self._account.request_header
         # the accept field of the header needs to be updated as we want a png not the usual JSON
         header['Content-Type'] = 'application/x-www-form-urlencoded'
-        self._account.send_request(url, headers=header, data=poi.as_server_request, post=True, expected_response=204)
+        self._account.send_request(url, headers=header, data=msg.as_server_request, post=True, expected_response=204)

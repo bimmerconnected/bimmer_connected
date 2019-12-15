@@ -8,7 +8,7 @@ import os
 import time
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
-from bimmer_connected.vehicle import VehicleViewDirection, PointOfInterest
+from bimmer_connected.vehicle import VehicleViewDirection, PointOfInterest, Message
 
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
@@ -55,6 +55,13 @@ def main() -> None:
     sendpoi_parser.add_argument('--country', help='(optional, display only) Country of the POI',
                                 nargs='?', default=None)
     sendpoi_parser.set_defaults(func=send_poi)
+
+    message_parser = subparsers.add_parser('sendmessage', description='send a text message to the vehicle')
+    _add_default_arguments(message_parser)
+    message_parser.add_argument('vin', help='vehicle identification number')
+    message_parser.add_argument('text', help='text to be sent')
+    message_parser.add_argument('subject', help='(optional) message subject', nargs='?')
+    message_parser.set_defaults(func=send_message)
 
     args = parser.parse_args()
     args.func(args)
@@ -127,7 +134,16 @@ def send_poi(args) -> None:
     vehicle = account.get_vehicle(args.vin)
     poi = PointOfInterest(args.latitude, args.longitude, name=args.name,
                           street=args.street, city=args.city, postalCode=args.postalcode, country=args.country)
-    vehicle.send_poi(poi)
+    msg = Message.from_poi(poi)
+    vehicle.send_message(msg)
+
+
+def send_message(args) -> None:
+    """Send Point Of Interest to car."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    msg = Message.from_text(args.text, args.subject)
+    vehicle.send_message(msg)
 
 
 def _add_default_arguments(parser: argparse.ArgumentParser):
