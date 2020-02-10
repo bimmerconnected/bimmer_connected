@@ -113,7 +113,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         """Constructor."""
         self._account = account
         self._vehicle = vehicle
-        self._attributes = None
+        self._attributes = {}
 
     def update_data(self) -> None:
         """Read new status data from the server."""
@@ -304,7 +304,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
-        return self._attributes[item]
+        return self._attributes.get(item)
 
     @property
     @backend_parameter
