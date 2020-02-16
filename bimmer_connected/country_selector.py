@@ -20,6 +20,13 @@ _SERVER_URLS = {
     Regions.CHINA: 'b2vapi.bmwgroup.cn:8592'
 }
 
+#: Mapping from regions to servers
+_GCDM_OAUTH_ENDPOINTS = {
+    Regions.NORTH_AMERICA: 'gcdm/usa/oauth',
+    Regions.REST_OF_WORLD: 'gcdm/oauth',
+    Regions.CHINA: 'gcdm/oauth'
+}
+
 
 def valid_regions() -> List[str]:
     """Get list of valid regions as strings."""
@@ -42,3 +49,7 @@ def get_region_from_name(name: str) -> Regions:
 def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return _SERVER_URLS[region]
+
+def get_gcdm_oauth_endpoint(region: Regions) -> str:
+    """Get the url of the server for the region."""
+    return _GCDM_OAUTH_ENDPOINTS[region]

@@ -17,7 +17,7 @@ from threading import Lock
 from typing import Callable, List
 import requests
 
-from bimmer_connected.country_selector import Regions, get_server_url
+from bimmer_connected.country_selector import Regions, get_server_url, get_gcdm_oauth_endpoint
 from bimmer_connected.vehicle import ConnectedDriveVehicle
 from bimmer_connected.const import AUTH_URL, VEHICLES_URL, ERROR_CODE_MAPPING
 
@@ -82,28 +82,31 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
             # we really need all of these parameters
             values = {
-                'grant_type': 'password',
+                'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
+                'response_type': 'token',
+                'redirect_uri': 'https://www.bmw-connecteddrive.com/app/static/external-dispatch.html',
                 'scope': 'authenticate_user vehicle_data remote_services',
                 'username': self._username,
                 'password': self._password,
             }
 
             data = urllib.parse.urlencode(values)
-            url = AUTH_URL.format(server=self.server_url)
+            url = AUTH_URL.format(
+                gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
+            )
             try:
                 response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
-                                             expected_response=200, post=True)
+                                             expected_response=302, post=True)
             except OSError as exception:
                 msg = 'Authentication failed. Maybe your password is invalid?'
                 _LOGGER.error(msg)
                 _LOGGER.exception(exception)
                 raise OSError(msg) from exception
 
-            response_json = response.json()
+            response_json = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment))
+
             self._oauth_token = response_json['access_token']
-            # not sure how to use the refresh_token, but might be useful in the future...
-            self._refresh_token = response_json['refresh_token']
-            expiration_time = response_json['expires_in']
+            expiration_time = int(response_json['expires_in'])
             self._token_expiration = datetime.datetime.now() + datetime.timedelta(seconds=expiration_time)
             _LOGGER.debug('got new token %s with expiration date %s', self._oauth_token, self._token_expiration)
 
