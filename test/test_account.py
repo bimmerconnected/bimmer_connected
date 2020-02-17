@@ -18,7 +18,7 @@ class TestAccount(unittest.TestCase):
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
             self.assertIsNotNone(account._oauth_token)
-            self.assertEqual(6, len(account.vehicles))
+            self.assertEqual(8, len(account.vehicles))
             vehicle = account.get_vehicle(G31_VIN)
             self.assertEqual(G31_VIN, vehicle.vin)
 

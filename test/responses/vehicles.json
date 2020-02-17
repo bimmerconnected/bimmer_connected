@@ -348,7 +348,7 @@
     "steering": "RH",
     "vehicleFinder": "ACTIVATED",
     "vehicleFinderRestriction": "NONE",
-    "vin": "some_vin",
+    "vin": "F31_VIN",
     "yearOfConstruction": 2015
   },
   {
@@ -400,7 +400,7 @@
     "statisticsCommunityEnabled": false,
     "steering": "LH",
     "vehicleFinder": "NOT_SUPPORTED",
-    "vin": "some_vin",
+    "vin": "F31_VIN",
     "yearOfConstruction": 2015
   }
   ]
