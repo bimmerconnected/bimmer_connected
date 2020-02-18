@@ -82,28 +82,44 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
             # we really need all of these parameters
             values = {
-                'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
-                'response_type': 'token',
-                'redirect_uri': 'https://www.bmw-connecteddrive.com/app/static/external-dispatch.html',
                 'scope': 'authenticate_user vehicle_data remote_services',
                 'username': self._username,
                 'password': self._password,
             }
 
+            if self._region == Regions.REST_OF_WORLD:
+                values.update({
+                    'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
+                    'response_type': 'token',
+                    'redirect_uri': 'https://www.bmw-connecteddrive.com/app/static/external-dispatch.html',
+                })
+            else: 
+                values.update({
+                    'grant_type': 'password',
+                })
+
             data = urllib.parse.urlencode(values)
-            url = AUTH_URL.format(
-                gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
-            )
+            if self._region == Regions.REST_OF_WORLD:
+                url = AUTH_URL.format(
+                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
+                )
+                expected_response_code = 302
+            else:
+                url = AUTH_URL_LEGACY.format(server=self.server_url)
+                expected_response_code = 200
             try:
                 response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
-                                             expected_response=302, post=True)
+                                             expected_response=expected_response_code, post=True)
             except OSError as exception:
                 msg = 'Authentication failed. Maybe your password is invalid?'
                 _LOGGER.error(msg)
                 _LOGGER.exception(exception)
                 raise OSError(msg) from exception
 
-            response_json = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment))
+            if self._region == Regions.REST_OF_WORLD:
+                response_json = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment))
+            else:
+                response_json = response.json()
 
             self._oauth_token = response_json['access_token']
             expiration_time = int(response_json['expires_in'])
