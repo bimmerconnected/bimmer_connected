@@ -19,7 +19,7 @@ import requests
 
 from bimmer_connected.country_selector import Regions, get_server_url, get_gcdm_oauth_endpoint
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-from bimmer_connected.const import AUTH_URL, VEHICLES_URL, ERROR_CODE_MAPPING
+from bimmer_connected.const import AUTH_URL, AUTH_URL_LEGACY, VEHICLES_URL, ERROR_CODE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -93,7 +93,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                     'response_type': 'token',
                     'redirect_uri': 'https://www.bmw-connecteddrive.com/app/static/external-dispatch.html',
                 })
-            else: 
+            else:
                 values.update({
                     'grant_type': 'password',
                 })
@@ -117,7 +117,9 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 raise OSError(msg) from exception
 
             if self._region == Regions.REST_OF_WORLD:
-                response_json = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment))
+                response_json = dict(
+                    urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment)
+                )
             else:
                 response_json = response.json()
 
