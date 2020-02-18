@@ -247,19 +247,19 @@ class VehicleState:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def last_update_reason(self) -> str:
-        """The reason for the last state update"""
+        """The reason for the last state update."""
         return self._attributes['updateReason']
 
     @property
     @backend_parameter
     def last_charging_end_result(self) -> str:
-        """Get the last charging end result"""
+        """Get the last charging end result."""
         return self._attributes['lastChargingEndResult']
 
     @property
     @backend_parameter
     def connection_status(self) -> str:
-        """Get status of the connection"""
+        """Get status of the connection."""
         return self._attributes['connectionStatus']
 
     @property
