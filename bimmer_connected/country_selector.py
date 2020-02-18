@@ -50,6 +50,7 @@ def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return _SERVER_URLS[region]
 
+
 def get_gcdm_oauth_endpoint(region: Regions) -> str:
     """Get the url of the server for the region."""
     return _GCDM_OAUTH_ENDPOINTS[region]

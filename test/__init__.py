@@ -17,6 +17,7 @@ I01_VIN = 'I01_VIN'
 F15_VIN = 'F15_VIN'
 I01_NOREX_VIN = 'I01_NOREX_VIN'
 F45_VIN = 'F45_VIN'
+F31_VIN = 'F31_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
@@ -26,6 +27,7 @@ TEST_VEHICLE_DATA = {
     I01_NOREX_VIN: 'I01_NOREX',
     F15_VIN: 'F15',
     F45_VIN: 'F45',
+    F31_VIN: 'F31',
 }
 
 _AUTH_RESPONSE_HEADERS = {
@@ -37,7 +39,10 @@ _AUTH_RESPONSE_HEADERS = {
     'X-NodeID': '02',
     'Max-Forwards': '20',
     'Date': 'Sun, 11 Mar 2018 08:16:13 GMT',
-    'Content-Encoding': 'gzip'}
+    'Content-Encoding': 'gzip',
+    'Location': ('https://www.bmw-connecteddrive.com/app/static/external-dispatch.html'
+                 '#access_token=TOKEN&token_type=Bearer&expires_in=7199')
+}
 
 # VehicleState has different names than the json file. So we need to map some of the
 # parameters.
@@ -63,6 +68,9 @@ ADDITIONAL_ATTRIBUTES = [
     'remaining_range_total',    # added by bimmer_connected
     'charging_time_remaining',  # only present while charging
     'sunroof',                  # not available in all vehicles
+    'lids',                     # required for existing Home Assistant binary sensors
+    'windows',                  # required for existing Home Assistant binary sensors
+    'lights_parking',           # required for existing Home Assistant binary sensors
 ]
 
 # there attributes are not (yet) implemented
@@ -72,6 +80,8 @@ MISSING_ATTRIBUTES = [
     'maxRangeElectricMls',        # we're not using miles
     'chargingTimeRemaining',      # only present while charging
     'sunroof',                    # not available in all vehicles
+    'lights_parking',             # required for existing Home Assistant binary sensors
+
 ]
 
 POI_DATA = {
@@ -118,6 +128,10 @@ class BackendMock:
                          headers=_AUTH_RESPONSE_HEADERS,
                          data_files=['G31_NBTevo/auth_response.json'],
                          status_code=200),
+            MockResponse('https://.+/gcdm/(.+/)?oauth/authenticate',
+                         headers=_AUTH_RESPONSE_HEADERS,
+                         data_files=['G31_NBTevo/auth_response.json'],
+                         status_code=302),
             MockResponse('https://.+/webapi/v1/user/vehicles$',
                          data_files=['vehicles.json']),
         ]

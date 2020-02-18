@@ -1,7 +1,7 @@
 {
+  "DCS_CCH_Activation": "NA",	
+  "DCS_CCH_Ongoing": false,
   "vehicleStatus": {
-      "DCS_CCH_Activation": "NA",
-      "DCS_CCH_Ongoing": false,
       "position": {
           "lat": 12.3456,
           "lon": 34.5678,
@@ -9,7 +9,6 @@
       },
       "steering": "RH",
       "updateTime": "2018-07-25T16:02:04+0200",
-      "vehicleCountry": "GB",
-      "vin": "some_vin"
+      "vin": "F31_VIN"
   }
 }

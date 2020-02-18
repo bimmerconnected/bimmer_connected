@@ -2,7 +2,7 @@
 import unittest
 from unittest import mock
 from test import load_response_json, BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_REGION, \
-    G31_VIN, F48_VIN, I01_VIN, I01_NOREX_VIN, F15_VIN, F45_VIN, TEST_VEHICLE_DATA, \
+    G31_VIN, F48_VIN, I01_VIN, I01_NOREX_VIN, F15_VIN, F45_VIN, F31_VIN, TEST_VEHICLE_DATA, \
     ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES, ADDITIONAL_ATTRIBUTES, POI_DATA, POI_REQUEST
 
 from bimmer_connected.vehicle import ConnectedDriveVehicle, DriveTrainType, PointOfInterest
@@ -42,8 +42,7 @@ class TestVehicle(unittest.TestCase):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
         for vehicle in account.vehicles:
-            print(vehicle.name)
-            self.assertEqual(vehicle.vin in [G31_VIN, F48_VIN, F15_VIN, I01_VIN, F45_VIN],
+            self.assertEqual(vehicle.vin in [G31_VIN, F48_VIN, F15_VIN, I01_VIN, F45_VIN, F31_VIN],
                              vehicle.has_internal_combustion_engine)
             self.assertEqual(vehicle.vin in [I01_VIN, I01_NOREX_VIN],
                              vehicle.has_hv_battery)

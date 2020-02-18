@@ -136,8 +136,7 @@ class TestState(unittest.TestCase):
         """Test if error handling is working correctly."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
-        with self.assertRaises(ValueError):
-            state.mileage  # pylint: disable = pointless-statement
+        self.assertIsNone(state.mileage)
 
     def test_update_data(self):
         """Test update_data method."""
@@ -248,9 +247,8 @@ class TestState(unittest.TestCase):
 
         ccms = state.check_control_messages
         self.assertEqual(1, len(ccms))
-
         ccm = ccms[0]
-        self.assertEqual(955, ccm.ccm_id)
-        self.assertEqual(41544, ccm.mileage)
-        self.assertIn("Tyre pressure", ccm.description_short)
-        self.assertIn("continue driving", ccm.description_long)
+        self.assertEqual(955, ccm["ccmId"])
+        self.assertEqual(41544, ccm["ccmMileage"])
+        self.assertIn("Tyre pressure", ccm["ccmDescriptionShort"])
+        self.assertIn("continue driving", ccm["ccmDescriptionLong"])
