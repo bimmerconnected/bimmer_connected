@@ -188,6 +188,8 @@ class ConnectedDriveVehicle:
             result += ['DCS_CCH_Activation', 'DCS_CCH_Ongoing', 'condition_based_services',
                        'check_control_messages', 'door_lock_state', 'internalDataTimeUTC',
                        'parking_lights', 'positionLight', 'last_update_reason', 'singleImmediateCharging']
+            # required for existing Home Assistant binary sensors
+            result += ['lights_parking', 'lids', 'windows']
         return result
 
     def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:

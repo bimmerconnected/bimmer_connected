@@ -68,6 +68,9 @@ ADDITIONAL_ATTRIBUTES = [
     'remaining_range_total',    # added by bimmer_connected
     'charging_time_remaining',  # only present while charging
     'sunroof',                  # not available in all vehicles
+    'lids',                     # required for existing Home Assistant binary sensors
+    'windows',                  # required for existing Home Assistant binary sensors
+    'lights_parking',           # required for existing Home Assistant binary sensors
 ]
 
 # there attributes are not (yet) implemented
@@ -77,6 +80,8 @@ MISSING_ATTRIBUTES = [
     'maxRangeElectricMls',        # we're not using miles
     'chargingTimeRemaining',      # only present while charging
     'sunroof',                    # not available in all vehicles
+    'lights_parking',             # required for existing Home Assistant binary sensors
+
 ]
 
 POI_DATA = {
