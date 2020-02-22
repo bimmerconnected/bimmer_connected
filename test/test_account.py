@@ -37,8 +37,16 @@ class TestAccount(unittest.TestCase):
         backend_mock = BackendMock()
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA)
-            request = [r for r in backend_mock.last_request if 'oauth' in r.url][0]
-            self.assertEqual('b2vapi.bmwgroup.us', request.headers['Host'])
+            request = [r for r in backend_mock.last_request if 'vehicle' in r.url][0]
+            self.assertIn('myc-profile.bmwusa.com', request.url)
+
+    def test_china_header(self):
+        """Test if the host is set correctly in the request."""
+        backend_mock = BackendMock()
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.CHINA)
+            request = [r for r in backend_mock.last_request if 'vehicle' in r.url][0]
+            self.assertIn('b2vapi.bmwgroup.cn', request.url)
 
     def test_anonymize_data(self):
         """Test anonymization function."""

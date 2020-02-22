@@ -13,18 +13,29 @@ class Regions(Enum):
     REST_OF_WORLD = 2
 
 
-#: Mapping from regions to servers
-_SERVER_URLS = {
-    Regions.NORTH_AMERICA: 'b2vapi.bmwgroup.us',
-    Regions.REST_OF_WORLD: 'b2vapi.bmwgroup.com',
-    Regions.CHINA: 'b2vapi.bmwgroup.cn:8592'
-}
+class LoginType(Enum):
+    """Login types of BMW API."""
+    GLOBAL = 0
+    LEGACY = 1
+
 
 #: Mapping from regions to servers
-_GCDM_OAUTH_ENDPOINTS = {
-    Regions.NORTH_AMERICA: 'gcdm/usa/oauth',
-    Regions.REST_OF_WORLD: 'gcdm/oauth',
-    Regions.CHINA: 'gcdm/oauth'
+_SERVER_URLS = {
+    Regions.NORTH_AMERICA: {
+        'login_type': LoginType.GLOBAL,
+        'auth_url': 'customer.bmwgroup.com/gcdm/usa/oauth/token',
+        'server': 'myc-profile.bmwusa.com',
+    },
+    Regions.REST_OF_WORLD: {
+        'login_type': LoginType.GLOBAL,
+        'auth_url': 'customer.bmwgroup.com/gcdm/oauth/token',
+        'server': 'myc-profile.bmwgroup.com',
+    },
+    Regions.CHINA: {
+        'login_type': LoginType.LEGACY,
+        'auth_url': 'b2vapi.bmwgroup.cn:8592/gcdm/oauth/token',
+        'server': 'b2vapi.bmwgroup.cn:8592',
+    }
 }
 
 
@@ -48,9 +59,14 @@ def get_region_from_name(name: str) -> Regions:
 
 def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
-    return _SERVER_URLS[region]
+    return _SERVER_URLS[region]['server']
 
 
-def get_gcdm_oauth_endpoint(region: Regions) -> str:
+def get_auth_url(region: Regions) -> str:
     """Get the url of the server for the region."""
-    return _GCDM_OAUTH_ENDPOINTS[region]
+    return _SERVER_URLS[region]['auth_url']
+
+
+def get_login_type(region: Regions) -> str:
+    """Get the url of the server for the region."""
+    return _SERVER_URLS[region]['login_type']
