@@ -23,5 +23,6 @@ script: travis_wait tox
 after_success: coveralls
 deploy:
   provider: pypi
+  edge: true
   on:
     tags: true
