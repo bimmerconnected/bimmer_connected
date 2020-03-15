@@ -21,8 +21,3 @@ before_script:
 - sudo dpkg-reconfigure --frontend noninteractive tzdata
 script: travis_wait tox
 after_success: coveralls
-deploy:
-  provider: pypi
-  edge: true
-  on:
-    tags: true
