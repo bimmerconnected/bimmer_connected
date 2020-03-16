@@ -6,6 +6,10 @@ import logging
 import json
 import os
 import time
+import sys
+
+import requests
+
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
 from bimmer_connected.vehicle import VehicleViewDirection, PointOfInterest, Message
@@ -55,6 +59,17 @@ def main() -> None:
     sendpoi_parser.add_argument('--country', help='(optional, display only) Country of the POI',
                                 nargs='?', default=None)
     sendpoi_parser.set_defaults(func=send_poi)
+
+    sendpoi_from_address_parser = subparsers.add_parser('sendpoi_from_address',
+                                                        description=('send a point of interest from a street address'
+                                                                     ' to the vehicle'))
+    _add_default_arguments(sendpoi_from_address_parser)
+    sendpoi_from_address_parser.add_argument('vin', help='vehicle identification number')
+    sendpoi_from_address_parser.add_argument('-n', '--name', help='(optional, display only) Name of the POI',
+                                             nargs='?', default=None)
+    sendpoi_from_address_parser.add_argument('-a', '--address', nargs='+',
+                                             help="address ('street, city, zip, country' etc)")
+    sendpoi_from_address_parser.set_defaults(func=send_poi_from_address)
 
     message_parser = subparsers.add_parser('sendmessage', description='send a text message to the vehicle')
     _add_default_arguments(message_parser)
@@ -134,6 +149,39 @@ def send_poi(args) -> None:
     vehicle = account.get_vehicle(args.vin)
     poi = PointOfInterest(args.latitude, args.longitude, name=args.name,
                           street=args.street, city=args.city, postalCode=args.postalcode, country=args.country)
+    msg = Message.from_poi(poi)
+    vehicle.send_message(msg)
+
+
+def send_poi_from_address(args) -> None:
+    """Create Point of Interest from OSM Nominatim and send to car."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    address = [(str(' '.join(args.address)))]
+    try:
+        response = requests.get("https://nominatim.openstreetmap.org",
+                                params={
+                                    "q": address,
+                                    "format": "json",
+                                    "addressdetails": 1,
+                                    "limit": 1
+                                }).json()[0]
+    except IndexError:
+        print('\nAddress not found')
+        sys.exit(1)
+    lat = response["lat"]
+    long = response["lon"]
+    name = args.name
+    address = response.get("address", {})
+    street = address.get("road")
+    city = address.get("city")
+    town = address.get("town")
+    city = town if city is None and town is not None else None
+    postcode = address.get("postcode")
+    country = address.get("country")
+
+    print("\nSending '" + lat, long, name, street, city, postcode, country + "' to your car\n")
+    poi = PointOfInterest(lat, long, name=args.name, street=street, city=city, postalCode=postcode, country=country)
     msg = Message.from_poi(poi)
     vehicle.send_message(msg)
 
