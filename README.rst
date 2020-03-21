@@ -4,12 +4,8 @@
     :target: https://pepy.tech/project/bimmer-connected/month
 .. image:: https://pepy.tech/badge/bimmer-connected
     :target: https://pepy.tech/project/bimmer-connected
-|
-
 .. image:: https://badge.fury.io/py/bimmer-connected.svg
     :target: https://pypi.org/project/bimmer-connected
-|
-
 .. image:: https://travis-ci.org/bimmerconnected/bimmer_connected.svg?branch=master
     :target: https://travis-ci.org/bimmerconnected/bimmer_connected
 .. image:: https://coveralls.io/repos/github/bimmerconnected/bimmer_connected/badge.svg?branch=master
