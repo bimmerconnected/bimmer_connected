@@ -12,7 +12,7 @@ import requests
 
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions
-from bimmer_connected.vehicle import VehicleViewDirection, PointOfInterest, Message
+from bimmer_connected.vehicle import VehicleViewDirection
 
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
@@ -147,10 +147,16 @@ def send_poi(args) -> None:
     """Send Point Of Interest to car."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
-    poi = PointOfInterest(args.latitude, args.longitude, name=args.name,
-                          street=args.street, city=args.city, postalCode=args.postalcode, country=args.country)
-    msg = Message.from_poi(poi)
-    vehicle.send_message(msg)
+    poi_data = dict(
+        lat=args.latitude,
+        lon=args.longitude,
+        name=args.name,
+        street=args.street,
+        city=args.city,
+        postalCode=args.postalcode,
+        country=args.country
+    )
+    vehicle.remote_services.trigger_send_poi(poi_data)
 
 
 def send_poi_from_address(args) -> None:
@@ -169,29 +175,31 @@ def send_poi_from_address(args) -> None:
     except IndexError:
         print('\nAddress not found')
         sys.exit(1)
-    lat = response["lat"]
-    long = response["lon"]
-    name = args.name
     address = response.get("address", {})
-    street = address.get("road")
     city = address.get("city")
     town = address.get("town")
-    city = town if city is None and town is not None else None
-    postcode = address.get("postcode")
-    country = address.get("country")
 
-    print("\nSending '" + lat, long, name, street, city, postcode, country + "' to your car\n")
-    poi = PointOfInterest(lat, long, name=args.name, street=street, city=city, postalCode=postcode, country=country)
-    msg = Message.from_poi(poi)
-    vehicle.send_message(msg)
+    poi_data = dict(
+        lat=response["lat"],
+        lon=response["lon"],
+        name=args.name,
+        street=address.get("road"),
+        city=town if city is None and town is not None else None,
+        postalCode=address.get("postcode"),
+        country=address.get("country")
+    )
+    vehicle.remote_services.trigger_send_poi(poi_data)
 
 
 def send_message(args) -> None:
     """Send Point Of Interest to car."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
-    msg = Message.from_text(args.text, args.subject)
-    vehicle.send_message(msg)
+    msg_data = dict(
+        message=args.text,
+        subject=args.subject
+    )
+    vehicle.remote_services.trigger_send_message(msg_data)
 
 
 def _add_default_arguments(parser: argparse.ArgumentParser):

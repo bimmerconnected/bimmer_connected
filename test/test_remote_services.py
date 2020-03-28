@@ -2,16 +2,18 @@
 import unittest
 from unittest import mock
 import datetime
-from test import BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_REGION, G31_VIN, load_response_json
+from test import BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_REGION, G31_VIN, load_response_json, \
+    POI_DATA, POI_REQUEST, MESSAGE_DATA, MESSAGE_REQUEST
 
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState
+from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState, PointOfInterest, Message
 from bimmer_connected import remote_services
 
 _RESPONSE_INITIATED = 'G31_NBTevo/flash_initiated.json'
 _RESPONSE_PENDING = 'G31_NBTevo/flash_pending.json'
 _RESPONSE_DELIVERED = 'G31_NBTevo/flash_delivered.json'
 _RESPONSE_EXECUTED = 'G31_NBTevo/flash_executed.json'
+_MSG_EXECUTED = 'G31_NBTevo/msg_executed.json'
 
 
 class TestRemoteServices(unittest.TestCase):
@@ -49,7 +51,9 @@ class TestRemoteServices(unittest.TestCase):
             ('DOOR_LOCK', 'trigger_remote_door_lock', True),
             ('DOOR_UNLOCK', 'trigger_remote_door_unlock', True),
             ('CLIMATE_NOW', 'trigger_remote_air_conditioning', True),
-            ('HORN_BLOW', 'trigger_remote_horn', False)
+            ('HORN_BLOW', 'trigger_remote_horn', False),
+            ('SEND_MESSAGE', 'trigger_send_message', False),
+            ('SEND_POI', 'trigger_send_poi', False),
         ]
 
         for service, call, triggers_update in services:
@@ -76,13 +80,24 @@ class TestRemoteServices(unittest.TestCase):
                     vin=G31_VIN),
                 data_files=[_RESPONSE_EXECUTED])
 
+            backend_mock.add_response(
+                r'https://.+/webapi/v1/user/vehicles/{vin}/sendpoi'.format(
+                    vin=G31_VIN),
+                data_files=[_MSG_EXECUTED],
+                status_code=204)
+
             with mock.patch('bimmer_connected.account.requests', new=backend_mock):
                 account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
                 mock_listener = mock.Mock(return_value=None)
                 account.add_update_listener(mock_listener)
                 vehicle = account.get_vehicle(G31_VIN)
 
-                response = getattr(vehicle.remote_services, call)()
+                if service == 'SEND_MESSAGE':
+                    response = getattr(vehicle.remote_services, call)(MESSAGE_DATA)
+                elif service == 'SEND_POI':
+                    response = getattr(vehicle.remote_services, call)(POI_DATA)
+                else:
+                    response = getattr(vehicle.remote_services, call)()
                 self.assertEqual(ExecutionState.EXECUTED, response.state)
 
                 if triggers_update:
@@ -105,3 +120,29 @@ class TestRemoteServices(unittest.TestCase):
                 data_files=['G31_NBTevo/flash_executed.json'])
             status = vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
             self.assertEqual(ExecutionState.EXECUTED, status.state)
+
+    def test_parsing_of_poi_min_attributes(self):
+        """Check that a PointOfInterest can be constructed using only latitude & longitude."""
+        poi = PointOfInterest(POI_DATA["lat"], POI_DATA["lon"])
+        msg = Message.from_poi(poi)
+        self.assertEqual(msg.as_server_request, POI_REQUEST["min"])
+
+    def test_parsing_of_poi_all_attributes(self):
+        """Check that a PointOfInterest can be constructed using all attributes."""
+        poi = PointOfInterest(POI_DATA["lat"], POI_DATA["lon"], name=POI_DATA["name"],
+                              additionalInfo=POI_DATA["additionalInfo"], street=POI_DATA["street"],
+                              city=POI_DATA["city"], postalCode=POI_DATA["postalCode"],
+                              country=POI_DATA["country"], website=POI_DATA["website"],
+                              phoneNumbers=POI_DATA["phoneNumbers"])
+        msg = Message.from_poi(poi)
+        self.assertEqual(msg.as_server_request, POI_REQUEST["all"])
+
+    def test_parsing_of_message_min_attributes(self):
+        """Check that a Message can be constructed using text."""
+        msg = Message.from_text(MESSAGE_DATA["text"])
+        self.assertEqual(msg.as_server_request, MESSAGE_REQUEST["min"])
+
+    def test_parsing_of_message_all_attributes(self):
+        """Check that a Message can be constructed using text."""
+        msg = Message.from_text(MESSAGE_DATA["text"], MESSAGE_DATA["subject"])
+        self.assertEqual(msg.as_server_request, MESSAGE_REQUEST["all"])

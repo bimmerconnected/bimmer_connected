@@ -1,12 +1,17 @@
 """Trigger remote services on a vehicle."""
 
-from enum import Enum
 import datetime
+import json
 import logging
 import time
-import requests
-from bimmer_connected.const import REMOTE_SERVICE_URL, REMOTE_SERVICE_STATUS_URL
+from enum import Enum
+from urllib.parse import urlencode
 
+import requests
+
+from bimmer_connected.const import (REMOTE_SERVICE_STATUS_URL,
+                                    REMOTE_SERVICE_URL,
+                                    VEHICLE_POI_URL)
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -37,6 +42,71 @@ class _Services(Enum):
     REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
     REMOTE_HORN = 'HORN_BLOW'
     REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
+
+
+# pylint: disable=too-many-instance-attributes, too-few-public-methods
+class PointOfInterest:
+    """Point of interest to be sent to the vehicle.
+
+    The latitude/longitude of a POI are mandatory, all other attributes are optional. CamelCase attribute names are
+    used here so that we do not have to convert the names between the attributes and the keys as expected on the server.
+    """
+
+    # pylint: disable=too-many-arguments
+    def __init__(self, lat: float, lon: float, name: str = None,
+                 additionalInfo: str = None, street: str = None, city: str = None,
+                 postalCode: str = None, country: str = None, website: str = None,
+                 phoneNumbers: [str] = None):
+        """Constructor.
+
+        :arg latitude: latitude of the POI
+        :arg longitude: longitude of the POI
+        :arg name: name of the POI (Optional)
+        :arg additionalInfo: additional text shown below the address (Optional)
+        :arg street: street with house number of the POI (Optional)
+        :arg city: city of the POI (Optional)
+        :arg postalCode: zip code of the POI (Optional)
+        :arg country: country of the POI (Optional)
+        :arg website: website of the POI (Optional)
+        :arg phoneNumbers: List of phone numbers of the POI (Optional)
+        """
+        # pylint: disable=invalid-name
+        self.lat = lat  # type: float
+        self.lon = lon  # type: float
+        self.name = name  # type: str
+        self.additionalInfo = additionalInfo if additionalInfo is not None \
+            else 'Sent with ♥ by bimmer_connected'  # type: str
+        self.street = street  # type: str
+        self.city = city  # type: str
+        self.postalCode = postalCode  # type: str
+        self.country = country  # type: str
+        self.website = website  # type: str
+        self.phoneNumbers = phoneNumbers  # type: list[str]
+
+
+class Message:
+    """Text message or PointOfInterst to be sent to the vehicle."""
+
+    @classmethod
+    def from_poi(cls, poi: PointOfInterest):
+        """Create a message from a PointOfInterest"""
+        return cls(poi.__dict__)
+
+    @classmethod
+    def from_text(cls, text: str, subject: str = None):
+        """Create a text message"""
+        return cls({"name": subject, "additionalInfo": text[:255]})
+
+    def __init__(self, data: dict):
+        self.data = data
+
+    @property
+    def as_server_request(self) -> str:
+        """Convert to a dictionary so that it can be sent to the server."""
+        result = {
+            'poi': {k: v for k, v in self.data.items() if v is not None}
+        }
+        return urlencode({'data': json.dumps(result)})
 
 
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
@@ -172,3 +242,49 @@ class RemoteServices:
     def _trigger_state_update(self) -> None:
         time.sleep(_UPDATE_AFTER_REMOTE_SERVICE_DELAY)
         self._account.update_vehicle_states()
+
+    def trigger_send_message(self, data: dict) -> RemoteServiceStatus:
+        """Send a message to the vehicle.
+        :param data: A dictonary containing a 'text' and an optional 'subject'
+        :type data: dict
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
+        _LOGGER.debug('Sending message to car')
+        if "text" not in data:
+            raise TypeError("from_text() missing 1 required positional argument: 'text'")
+        self._send_message(Message.from_text(data['text'], data.get('subject')))
+        # _send_message has no separate ExecutionStates
+        return RemoteServiceStatus({'executionStatus': {'status': 'EXECUTED', 'eventId': -1}})
+
+    def trigger_send_poi(self, data: dict) -> RemoteServiceStatus:
+        """Send a PointOfInterest to the vehicle.
+        :param data: A dictonary containing at least 'lat' and 'lon' and optionally
+                     'name', 'additionalInfo', 'street', 'city', 'postalCode', 'country',
+                     'website' or 'phoneNumbers'
+        :type data: dict
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
+        _LOGGER.debug('Sending PointOfInterest to car')
+        if "lat" not in data or "lon" not in data:
+            raise TypeError("__init__() missing 2 required positional arguments: 'lat' and 'lon'")
+        poi = PointOfInterest(**data)
+        self._send_message(Message.from_poi(poi))
+        # _send_message has no separate ExecutionStates
+        return RemoteServiceStatus({'executionStatus': {'status': 'EXECUTED', 'eventId': -1}})
+
+    def _send_message(self, msg: Message) -> None:
+        """Send a message/point of interest to the vehicle."""
+        url = VEHICLE_POI_URL.format(
+            vin=self._vehicle.vin,
+            server=self._account.server_url
+        )
+        header = self._account.request_header
+        # the accept field of the header needs to be updated not the usual JSON
+        header['Content-Type'] = 'application/x-www-form-urlencoded'
+        return self._account.send_request(url,
+                                          headers=header,
+                                          data=msg.as_server_request,
+                                          post=True,
+                                          expected_response=204)
