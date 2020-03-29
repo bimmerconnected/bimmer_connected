@@ -245,6 +245,7 @@ class RemoteServices:
 
     def trigger_send_message(self, data: dict) -> RemoteServiceStatus:
         """Send a message to the vehicle.
+
         :param data: A dictonary containing a 'text' and an optional 'subject'
         :type data: dict
 
@@ -259,9 +260,10 @@ class RemoteServices:
 
     def trigger_send_poi(self, data: dict) -> RemoteServiceStatus:
         """Send a PointOfInterest to the vehicle.
+
         :param data: A dictonary containing at least 'lat' and 'lon' and optionally
-                     'name', 'additionalInfo', 'street', 'city', 'postalCode', 'country',
-                     'website' or 'phoneNumbers'
+            'name', 'additionalInfo', 'street', 'city', 'postalCode', 'country',
+            'website' or 'phoneNumbers'
         :type data: dict
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.

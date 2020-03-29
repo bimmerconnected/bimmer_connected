@@ -192,7 +192,7 @@ def send_poi_from_address(args) -> None:
 
 
 def send_message(args) -> None:
-    """Send Point Of Interest to car."""
+    """Send a message to car."""
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
     msg_data = dict(
