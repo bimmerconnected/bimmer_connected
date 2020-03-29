@@ -108,16 +108,12 @@ POI_REQUEST = {
             "%2C+%22phoneNumbers%22%3A+%5B%22%2B1+408-562-4949%22%5D%7D%7D")
 }
 
-MESSAGE_DATA = {
-    "min": {"text": "Message without subject!"},
-    "all": {"subject": "This is a subject...", "text": "... with some message!"}
-}
+MESSAGE_DATA = {"subject": "This is a subject...", "text": "This is a message!"}
 
 MESSAGE_REQUEST = {
-    "min": ("data=%7B%22poi%22%3A+%7B%22additionalInfo%22%3A+%22Message+without+subject%21%22%7D%7D"),
+    "min": ("data=%7B%22poi%22%3A+%7B%22additionalInfo%22%3A+%22This+is+a+message%21%22%7D%7D"),
     "all": ("data=%7B%22poi%22%3A+%7B%22name%22%3A+%22This+is+a+subject...%22%2C+%22additionalInfo"
-            "%22%3A+%22...+with+some+message%21%22%7D%7D")
-
+            "%22%3A+%22This+is+a+message%21%22%7D%7D")
 }
 
 
