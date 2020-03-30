@@ -196,7 +196,7 @@ def send_message(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
     msg_data = dict(
-        message=args.text,
+        text=args.text,
         subject=args.subject
     )
     vehicle.remote_services.trigger_send_message(msg_data)
