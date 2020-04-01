@@ -153,7 +153,7 @@ def send_poi(args) -> None:
         name=args.name,
         street=args.street,
         city=args.city,
-        postalCode=args.postalcode,
+        postal_code=args.postalcode,
         country=args.country
     )
     vehicle.remote_services.trigger_send_poi(poi_data)
@@ -185,7 +185,7 @@ def send_poi_from_address(args) -> None:
         name=args.name,
         street=address.get("road"),
         city=town if city is None and town is not None else None,
-        postalCode=address.get("postcode"),
+        postal_code=address.get("postcode"),
         country=address.get("country")
     )
     vehicle.remote_services.trigger_send_poi(poi_data)
