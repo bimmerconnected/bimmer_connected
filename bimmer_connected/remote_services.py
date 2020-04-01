@@ -54,34 +54,34 @@ class PointOfInterest:
 
     # pylint: disable=too-many-arguments
     def __init__(self, lat: float, lon: float, name: str = None,
-                 additionalInfo: str = None, street: str = None, city: str = None,
-                 postalCode: str = None, country: str = None, website: str = None,
-                 phoneNumbers: [str] = None):
-        """Constructor.
+                 additional_info: str = None, street: str = None, city: str = None,
+                 postal_code: str = None, country: str = None, website: str = None,
+                 phone_numbers: [str] = None):
+        """Create a PointOfInterest with attributes in camelCase as required by the API.
 
-        :arg latitude: latitude of the POI
-        :arg longitude: longitude of the POI
+        :arg lat: latitude of the POI
+        :arg lon: longitude of the POI
         :arg name: name of the POI (Optional)
-        :arg additionalInfo: additional text shown below the address (Optional)
+        :arg additional_info: additional text shown below the address (Optional)
         :arg street: street with house number of the POI (Optional)
         :arg city: city of the POI (Optional)
-        :arg postalCode: zip code of the POI (Optional)
+        :arg postal_code: zip code of the POI (Optional)
         :arg country: country of the POI (Optional)
         :arg website: website of the POI (Optional)
-        :arg phoneNumbers: List of phone numbers of the POI (Optional)
+        :arg phone_numbers: List of phone numbers of the POI (Optional)
         """
         # pylint: disable=invalid-name
         self.lat = lat  # type: float
         self.lon = lon  # type: float
         self.name = name  # type: str
-        self.additionalInfo = additionalInfo if additionalInfo is not None \
+        self.additionalInfo = additional_info if additional_info is not None \
             else 'Sent with ♥ by bimmer_connected'  # type: str
         self.street = street  # type: str
         self.city = city  # type: str
-        self.postalCode = postalCode  # type: str
+        self.postalCode = postal_code  # type: str
         self.country = country  # type: str
         self.website = website  # type: str
-        self.phoneNumbers = phoneNumbers  # type: list[str]
+        self.phoneNumbers = phone_numbers  # type: list[str]
 
 
 class Message:

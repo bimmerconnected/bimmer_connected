@@ -130,10 +130,10 @@ class TestRemoteServices(unittest.TestCase):
     def test_parsing_of_poi_all_attributes(self):
         """Check that a PointOfInterest can be constructed using all attributes."""
         poi = PointOfInterest(POI_DATA["lat"], POI_DATA["lon"], name=POI_DATA["name"],
-                              additionalInfo=POI_DATA["additionalInfo"], street=POI_DATA["street"],
-                              city=POI_DATA["city"], postalCode=POI_DATA["postalCode"],
+                              additional_info=POI_DATA["additional_info"], street=POI_DATA["street"],
+                              city=POI_DATA["city"], postal_code=POI_DATA["postal_code"],
                               country=POI_DATA["country"], website=POI_DATA["website"],
-                              phoneNumbers=POI_DATA["phoneNumbers"])
+                              phone_numbers=POI_DATA["phone_numbers"])
         msg = Message.from_poi(poi)
         self.assertEqual(msg.as_server_request, POI_REQUEST["all"])
 
