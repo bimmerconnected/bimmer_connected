@@ -88,13 +88,13 @@ POI_DATA = {
     "lat": 37.4028943,
     "lon": -121.9700289,
     "name": "49ers",
-    "additionalInfo": "Hi Sam",
+    "additional_info": "Hi Sam",
     "street": "4949 Marie P DeBartolo Way",
     "city": "Santa Clara",
-    "postalCode": "CA 95054",
+    "postal_code": "CA 95054",
     "country": "United States",
     "website": "https://www.49ers.com/",
-    "phoneNumbers": ["+1 408-562-4949"]
+    "phone_numbers": ["+1 408-562-4949"]
 }
 
 POI_REQUEST = {
