@@ -1,1 +1,7 @@
 include README.rst
+include LICENSE
+include requirements.txt
+graft bimmer_connected
+recursive-exclude * *.py[co]
+include versioneer.py
+include bimmer_connected/_version.py

@@ -16,7 +16,7 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
-from bimmer_connected import version as const
+import bimmer_connected as const
 
 # -- Project information -----------------------------------------------------
 

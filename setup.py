@@ -1,16 +1,19 @@
 """Python package description."""
-from setuptools import setup, find_packages
+from setuptools import setup
 
-from bimmer_connected.version import __version__ as version
+import versioneer
+
 
 def readme():
     """Load the readme file."""
     with open('README.rst') as readme_file:
         return readme_file.read()
 
+
 setup(
     name="bimmer_connected",
-    version=version,
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author="gerard33",
     author_email="bietenbak@yahoo.com",
     description="Library to read data from the BMW Connected Drive portal",
