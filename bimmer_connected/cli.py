@@ -19,7 +19,7 @@ FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 
 
 def main_parser() -> argparse.ArgumentParser:
-    """Main function."""
+    """Creates the ArgumentParser with all relevant subparsers."""
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description='demo script to show usage of the bimmer_connected library')
@@ -218,6 +218,7 @@ def _add_position_arguments(parser: argparse.ArgumentParser):
 
 
 def main():
+    """Main function."""
     parser = main_parser()
     args = parser.parse_args()
     args.func(args)
