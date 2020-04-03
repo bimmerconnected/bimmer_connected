@@ -21,8 +21,8 @@ from bimmer_connected import version as const
 # -- Project information -----------------------------------------------------
 
 project = 'bimmer_connected'
-copyright = '2018, m1n3rva'
-author = 'm1n3rva'
+copyright = '2018-2020, m1n3rva, gerard33'
+author = 'rikroe'
 
 # The short X.Y version
 # version = const.__short_version__
@@ -44,6 +44,8 @@ extensions = [
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
+    'sphinx_rtd_theme',
+    'sphinxarg.ext'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
@@ -79,7 +81,8 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+# html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the

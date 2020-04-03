@@ -1,7 +1,7 @@
 .. _remote_services_module:
 
-bimmer_connected.remote_services
---------------------------------
+:mod:`bimmer_connected.remote_services`
+=======================================
 
 .. automodule:: bimmer_connected.remote_services
     :members:

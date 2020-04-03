@@ -18,7 +18,7 @@ FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
 
 
-def main() -> None:
+def main_parser() -> argparse.ArgumentParser:
     """Main function."""
     logging.basicConfig(level=logging.DEBUG)
 
@@ -78,8 +78,7 @@ def main() -> None:
     message_parser.add_argument('subject', help='(optional) message subject', nargs='?')
     message_parser.set_defaults(func=send_message)
 
-    args = parser.parse_args()
-    args.func(args)
+    return parser
 
 
 def get_status(args) -> None:
@@ -216,6 +215,12 @@ def _add_position_arguments(parser: argparse.ArgumentParser):
     parser.add_argument('lng', type=float, nargs='?', const=0.0,
                         help='optional: your gps longitude (as float)')
     parser.set_defaults(func=get_status)
+
+
+def main():
+    parser = main_parser()
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == '__main__':
