@@ -1,19 +1,18 @@
+bimmer_connected
+================
+
+.. image:: https://badge.fury.io/py/bimmer-connected.svg
+    :target: https://pypi.org/project/bimmer-connected
 .. image:: https://pepy.tech/badge/bimmer-connected/week
     :target: https://pepy.tech/project/bimmer-connected/week
 .. image:: https://pepy.tech/badge/bimmer-connected/month
     :target: https://pepy.tech/project/bimmer-connected/month
 .. image:: https://pepy.tech/badge/bimmer-connected
     :target: https://pepy.tech/project/bimmer-connected
-.. image:: https://badge.fury.io/py/bimmer-connected.svg
-    :target: https://pypi.org/project/bimmer-connected
 .. image:: https://travis-ci.org/bimmerconnected/bimmer_connected.svg?branch=master
     :target: https://travis-ci.org/bimmerconnected/bimmer_connected
 .. image:: https://coveralls.io/repos/github/bimmerconnected/bimmer_connected/badge.svg?branch=master
     :target: https://coveralls.io/github/bimmerconnected/bimmer_connected?branch=master
-
-.. raw:: html
-
-   <h1>bimmer_connected</h1>
 
 This is a simple library to query and control the status of your BMW or Mini vehicle from
 the Connected Drive portal.
@@ -21,10 +20,10 @@ the Connected Drive portal.
 
 Installation
 ============
-Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
-using :code:`pip install bimmer_connected`.
+:code:`bimmer_connected` requires **Python 3.6 or above** but should also run with Python 3.5. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
+using :code:`pip3 install --upgrade bimmer_connected`. 
 
-Alteratively, clone the project and execute :code:`pip install .` to install the current 
+Alteratively, clone the project and execute :code:`pip install -e .` to install the current 
 :code:`master` branch.
 
 Usage
@@ -35,7 +34,7 @@ or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/la
 The description of the :code:`modules` can be found in the `module documentation 
 <http://bimmer-connected.readthedocs.io/en/latest/#module>`_.
 
-This library is written to include it in `Home Assistant <https://www.home-assistant.io>`_.
+This library is written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_.
 
 
 Compatibility
@@ -72,9 +71,9 @@ If you want to contribute your data, perform the following steps:
     bimmerconnected fingerprint <username> <password> <region>
 
 This will create a set of log files in the "vehicle_fingerprint" folder.
-Before sending the data to anyone please **check for any personal data**.
+Before sending the data to anyone please **check for any personal data** such as **dealer name** or **country**. 
 
-The following attributes should be replaced with default values:
+The following attributes are by default replaced with anonymized values:
 
 * :code:`vin` (Vehicle Identification Number)
 * :code:`lat` and :code:`lon` (GPS position)

@@ -1,8 +1,7 @@
 .. include:: ../../README.rst
 
 .. toctree::
-   :caption: bimmer_connected
-   :titlesonly: 
+   :caption: Readme
 
    readme
 

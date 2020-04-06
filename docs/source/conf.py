@@ -25,7 +25,7 @@ copyright = '2018-2020, m1n3rva, gerard33'
 author = 'rikroe'
 
 # The short X.Y version
-# version = const.__short_version__
+version = const.__version__
 # The full version, including alpha/beta/rc tags
 release = const.__version__
 
@@ -88,7 +88,9 @@ html_theme = 'sphinx_rtd_theme'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'display_version': True,
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
