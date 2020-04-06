@@ -23,7 +23,7 @@ copyright = '2018-2020, m1n3rva, gerard33'
 author = 'rikroe'
 
 # The short X.Y version
-version = const.__version__
+# version = const.__version__
 # The full version, including alpha/beta/rc tags
 # release = const.__version__
 
