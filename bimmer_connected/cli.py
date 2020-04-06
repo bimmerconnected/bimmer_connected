@@ -17,39 +17,41 @@ from bimmer_connected.vehicle import VehicleViewDirection
 FINGERPRINT_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                'vehicle_fingerprint')
 
+TEXT_VIN = 'Vehicle Identification Number'
 
-def main() -> None:
-    """Main function."""
+
+def main_parser() -> argparse.ArgumentParser:
+    """Creates the ArgumentParser with all relevant subparsers."""
     logging.basicConfig(level=logging.DEBUG)
 
-    parser = argparse.ArgumentParser(description='demo script to show usage of the bimmer_connected library')
+    parser = argparse.ArgumentParser(description='A simple executable to use and test the library.')
     subparsers = parser.add_subparsers(dest='cmd')
     subparsers.required = True
 
-    status_parser = subparsers.add_parser('status', description='get current status of the vehicle')
+    status_parser = subparsers.add_parser('status', description='Get the current status of the vehicle.')
     _add_default_arguments(status_parser)
     _add_position_arguments(status_parser)
 
-    fingerprint_parser = subparsers.add_parser('fingerprint', description='save a vehicle fingerprint')
+    fingerprint_parser = subparsers.add_parser('fingerprint', description='Save a vehicle fingerprint.')
     _add_default_arguments(fingerprint_parser)
     _add_position_arguments(fingerprint_parser)
     fingerprint_parser.set_defaults(func=fingerprint)
 
-    flash_parser = subparsers.add_parser('lightflash', description='flash the vehicle lights')
+    flash_parser = subparsers.add_parser('lightflash', description='Flash the vehicle lights.')
     _add_default_arguments(flash_parser)
-    flash_parser.add_argument('vin', help='vehicle identification number')
+    flash_parser.add_argument('vin', help=TEXT_VIN)
     flash_parser.set_defaults(func=light_flash)
 
-    image_parser = subparsers.add_parser('image', description='download a vehicle image')
+    image_parser = subparsers.add_parser('image', description='Download a vehicle image.')
     _add_default_arguments(image_parser)
-    image_parser.add_argument('vin', help='vehicle identification number')
+    image_parser.add_argument('vin', help=TEXT_VIN)
     image_parser.set_defaults(func=image)
 
-    sendpoi_parser = subparsers.add_parser('sendpoi', description='send a point of interest to the vehicle')
+    sendpoi_parser = subparsers.add_parser('sendpoi', description='Send a point of interest to the vehicle.')
     _add_default_arguments(sendpoi_parser)
-    sendpoi_parser.add_argument('vin', help='vehicle identification number')
-    sendpoi_parser.add_argument('latitude', help='latitude of the POI', type=float)
-    sendpoi_parser.add_argument('longitude', help='longitude of the POI', type=float)
+    sendpoi_parser.add_argument('vin', help=TEXT_VIN)
+    sendpoi_parser.add_argument('latitude', help='Latitude of the POI', type=float)
+    sendpoi_parser.add_argument('longitude', help='Longitude of the POI', type=float)
     sendpoi_parser.add_argument('--name', help='(optional, display only) Name of the POI', nargs='?', default=None)
     sendpoi_parser.add_argument('--street', help='(optional, display only) Street & House No. of the POI',
                                 nargs='?', default=None)
@@ -61,25 +63,24 @@ def main() -> None:
     sendpoi_parser.set_defaults(func=send_poi)
 
     sendpoi_from_address_parser = subparsers.add_parser('sendpoi_from_address',
-                                                        description=('send a point of interest from a street address'
-                                                                     ' to the vehicle'))
+                                                        description=('Send a point of interest parsed from a'
+                                                                     ' street address to the vehicle.'))
     _add_default_arguments(sendpoi_from_address_parser)
-    sendpoi_from_address_parser.add_argument('vin', help='vehicle identification number')
+    sendpoi_from_address_parser.add_argument('vin', help=TEXT_VIN)
     sendpoi_from_address_parser.add_argument('-n', '--name', help='(optional, display only) Name of the POI',
                                              nargs='?', default=None)
     sendpoi_from_address_parser.add_argument('-a', '--address', nargs='+',
-                                             help="address ('street, city, zip, country' etc)")
+                                             help="Address (e.g. 'Street 17, city, zip, country')")
     sendpoi_from_address_parser.set_defaults(func=send_poi_from_address)
 
-    message_parser = subparsers.add_parser('sendmessage', description='send a text message to the vehicle')
+    message_parser = subparsers.add_parser('sendmessage', description='Send a text message to the vehicle.')
     _add_default_arguments(message_parser)
-    message_parser.add_argument('vin', help='vehicle identification number')
-    message_parser.add_argument('text', help='text to be sent')
-    message_parser.add_argument('subject', help='(optional) message subject', nargs='?')
+    message_parser.add_argument('vin', help=TEXT_VIN)
+    message_parser.add_argument('text', help='Text to be sent.')
+    message_parser.add_argument('subject', help='(optional) Message subject', nargs='?')
     message_parser.set_defaults(func=send_message)
 
-    args = parser.parse_args()
-    args.func(args)
+    return parser
 
 
 def get_status(args) -> None:
@@ -96,10 +97,10 @@ def get_status(args) -> None:
 
     for vehicle in account.vehicles:
         print('VIN: {}'.format(vehicle.vin))
-        print('mileage: {}'.format(vehicle.state.mileage))
-        print('vehicle properties:')
+        print('Mileage: {}'.format(vehicle.state.mileage))
+        print('Vehicle properties:')
         print(json.dumps(vehicle.attributes, indent=4))
-        print('vehicle status:')
+        print('Vehicle status:')
         print(json.dumps(vehicle.state.attributes, indent=4))
 
 
@@ -204,7 +205,7 @@ def send_message(args) -> None:
 
 def _add_default_arguments(parser: argparse.ArgumentParser):
     """Add the default arguments username, password, region to the parser."""
-    parser.add_argument('username', help='Connected Drive user name')
+    parser.add_argument('username', help='Connected Drive username')
     parser.add_argument('password', help='Connected Drive password')
     parser.add_argument('region', choices=valid_regions(), help='Region of the Connected Drive account')
 
@@ -212,10 +213,17 @@ def _add_default_arguments(parser: argparse.ArgumentParser):
 def _add_position_arguments(parser: argparse.ArgumentParser):
     """Add the lat and lng attributes to the parser."""
     parser.add_argument('lat', type=float, nargs='?', const=0.0,
-                        help='optional: your gps latitide (as float)')
+                        help='(optional) Your current GPS latitude (as float)')
     parser.add_argument('lng', type=float, nargs='?', const=0.0,
-                        help='optional: your gps longitude (as float)')
+                        help='(optional) Your current GPS longitude (as float)')
     parser.set_defaults(func=get_status)
+
+
+def main():
+    """Main function."""
+    parser = main_parser()
+    args = parser.parse_args()
+    args.func(args)
 
 
 if __name__ == '__main__':
