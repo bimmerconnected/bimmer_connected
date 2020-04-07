@@ -105,7 +105,7 @@ And please add tests where it makes sense. The more the better.
 Thank you
 =========
 
-Thank you Christian, @m1n3rva, @gerard33, @kernelkraut, @robbz23 and @lawtancool for your research and contributions!
+Thank you Christian, m1n3rva, gerard33, rikroe, robthebold, timmccor, kernelkraut, robbz23 and lawtancool for your research and contributions!
 
 This library is basically a best-of of other similar solutions,
 yet none of them provided a ready to use library with a matching interface
