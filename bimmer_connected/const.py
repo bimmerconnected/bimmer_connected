@@ -1,10 +1,9 @@
 """URLs for different services and error code mapping."""
 
-AUTH_URL = 'https://customer.bmwgroup.com/{gcdm_oauth_endpoint}/authenticate'
-AUTH_URL_LEGACY = 'https://{server}/gcdm/oauth/token'
-BASE_URL = 'https://{server}/webapi/v1'
+BASE_URL = 'https://{server}'
+ENDPOINT_URL = BASE_URL + '/api/gateway/brs/webapi/v1'
 
-VEHICLES_URL = BASE_URL + '/user/vehicles'
+VEHICLES_URL = ENDPOINT_URL + '/user/vehicles'
 VEHICLE_VIN_URL = VEHICLES_URL + '/{vin}'
 VEHICLE_STATUS_URL = VEHICLE_VIN_URL + '/status'
 REMOTE_SERVICE_STATUS_URL = VEHICLE_VIN_URL + '/serviceExecutionStatus?serviceType={service_type}'
