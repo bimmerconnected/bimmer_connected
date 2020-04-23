@@ -4,13 +4,12 @@
 import argparse
 import logging
 import json
-import os
 import time
 import sys
 
-import requests
-
 from pathlib import Path
+
+import requests
 
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions

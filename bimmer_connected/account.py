@@ -12,7 +12,6 @@ import datetime
 import logging
 import pathlib
 import urllib
-import os
 import json
 from threading import Lock
 from typing import Callable, List
