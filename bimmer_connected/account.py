@@ -10,8 +10,8 @@ This library is not affiliated with or endorsed by BMW Group.
 
 import datetime
 import logging
+import pathlib
 import urllib
-import os
 import json
 from threading import Lock
 from typing import Callable, List
@@ -42,7 +42,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     """
 
     # pylint: disable=too-many-arguments
-    def __init__(self, username: str, password: str, region: Regions, log_responses: str = None,
+    def __init__(self, username: str, password: str, region: Regions, log_responses: pathlib.Path = None,
                  retries_on_500_error: int = 5) -> None:
         self._region = region
         self._server_url = None
@@ -183,8 +183,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         output_path = None
         count = 0
 
-        while output_path is None or os.path.exists(output_path):
-            output_path = os.path.join(self._log_responses, '{}_{}.txt'.format(logfilename, count))
+        while output_path is None or output_path.exists():
+            output_path = self._log_responses / '{}_{}.txt'.format(logfilename, count)
             count += 1
 
         with open(output_path, 'w') as logfile:
