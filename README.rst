@@ -11,6 +11,8 @@ bimmer_connected
     :target: https://pepy.tech/project/bimmer-connected
 .. image:: https://travis-ci.org/bimmerconnected/bimmer_connected.svg?branch=master
     :target: https://travis-ci.org/bimmerconnected/bimmer_connected
+.. image:: https://readthedocs.org/projects/bimmer-connected/badge/?version=latest
+    :target: https://bimmer-connected.readthedocs.io/en/latest/?badge=latest
 .. image:: https://coveralls.io/repos/github/bimmerconnected/bimmer_connected/badge.svg?branch=master
     :target: https://coveralls.io/github/bimmerconnected/bimmer_connected?branch=master
 
