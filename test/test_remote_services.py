@@ -51,6 +51,7 @@ class TestRemoteServices(unittest.TestCase):
             ('DOOR_LOCK', 'trigger_remote_door_lock', True),
             ('DOOR_UNLOCK', 'trigger_remote_door_unlock', True),
             ('CLIMATE_NOW', 'trigger_remote_air_conditioning', True),
+            ('VEHICLE_FINDER', 'trigger_remote_vehicle_finder', True),
             ('HORN_BLOW', 'trigger_remote_horn', False),
             ('SEND_MESSAGE', 'trigger_send_message', False),
             ('SEND_POI', 'trigger_send_poi', False),

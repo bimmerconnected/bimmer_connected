@@ -38,6 +38,7 @@ class ExecutionState(Enum):
 class _Services(Enum):
     """Enumeration of possible services to be executed."""
     REMOTE_LIGHT_FLASH = 'LIGHT_FLASH'
+    REMOTE_VEHICLE_FINDER = 'VEHICLE_FINDER'
     REMOTE_DOOR_LOCK = 'DOOR_LOCK'
     REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
     REMOTE_HORN = 'HORN_BLOW'
@@ -290,3 +291,15 @@ class RemoteServices:
                                           data=msg.as_server_request,
                                           post=True,
                                           expected_response=204)
+
+    def trigger_remote_vehicle_finder(self) -> RemoteServiceStatus:
+        """Trigger the vehicle finder.
+
+        A state update is triggered after this, as the location state of the vehicle changes.
+        """
+        _LOGGER.debug('Triggering remote vehicle finder')
+        # needs to be called via POST, GET is not working
+        self._trigger_remote_service(_Services.REMOTE_VEHICLE_FINDER, post=True)
+        result = self._block_until_done(_Services.REMOTE_VEHICLE_FINDER)
+        self._trigger_state_update()
+        return result
