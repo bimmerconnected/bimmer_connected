@@ -40,6 +40,11 @@ def main_parser() -> argparse.ArgumentParser:
     flash_parser.add_argument('vin', help=TEXT_VIN)
     flash_parser.set_defaults(func=light_flash)
 
+    finder_parser = subparsers.add_parser('vehiclefinder', description='Update the vehicle GPS location.')
+    _add_default_arguments(finder_parser)
+    finder_parser.add_argument('vin', help=TEXT_VIN)
+    finder_parser.set_defaults(func=vehicle_finder)
+
     image_parser = subparsers.add_parser('image', description='Download a vehicle image.')
     _add_default_arguments(image_parser)
     image_parser.add_argument('vin', help=TEXT_VIN)
@@ -127,6 +132,18 @@ def light_flash(args) -> None:
         print('Error: Could not find vehicle for VIN "{}". Valid VINs are: {}'.format(args.vin, valid_vins))
         return
     status = vehicle.remote_services.trigger_remote_light_flash()
+    print(status.state)
+
+
+def vehicle_finder(args) -> None:
+    """Trigger the vehicle finder to locate it."""
+    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    vehicle = account.get_vehicle(args.vin)
+    if not vehicle:
+        valid_vins = ", ".join(v.vin for v in account.vehicles)
+        print('Error: Could not find vehicle for VIN "{}". Valid VINs are: {}'.format(args.vin, valid_vins))
+        return
+    status = vehicle.remote_services.trigger_remote_vehicle_finder()
     print(status.state)
 
 
