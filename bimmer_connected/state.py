@@ -125,12 +125,17 @@ class VehicleState:  # pylint: disable=too-many-public-methods
             'dlat': self._vehicle.observer_latitude,
             'dlon': self._vehicle.observer_longitude,
         }
-        response = self._account.send_request(
-            VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin), logfilename='status',
-            params=params)
-        attributes = response.json()['vehicleStatus']
+        # Pre-NBT vehicles don't seem to have a status that can be reported
+        try:
+            response = self._account.send_request(
+                VEHICLE_STATUS_URL.format(server=self._account.server_url, vin=self._vehicle.vin), logfilename='status',
+                params=params)
+            attributes = response.json()['vehicleStatus']
+            _LOGGER.debug('received new data from connected drive')
+        except OSError:
+            attributes = {}
+            _LOGGER.debug('Unable to retrieve vehicle status from connected drive')
         self._attributes = attributes
-        _LOGGER.debug('received new data from connected drive')
 
     @property
     @backend_parameter
