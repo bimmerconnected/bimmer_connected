@@ -134,7 +134,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
             _LOGGER.debug('received new data from connected drive')
         except OSError:
             attributes = {}
-            _LOGGER.debug('Unable to retrieve vehicle status from connected drive')
+            _LOGGER.debug('Unable to retrieve vehicle status from connected drive (car too old)')
         self._attributes = attributes
 
     @property
