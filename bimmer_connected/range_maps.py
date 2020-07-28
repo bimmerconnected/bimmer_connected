@@ -1,0 +1,99 @@
+"""Models the charging profiles of a vehicle."""
+
+import logging
+from typing import List
+from enum import Enum
+
+from bimmer_connected.const import *
+
+_LOGGER = logging.getLogger(__name__)
+
+class RangeMapType(Enum):
+    """Range map types."""
+    ECO_PRO_PLUS  = 'ECO_PRO_PLUS '
+    COMFORT  = 'COMFORT '
+
+class MapPoint:
+    """
+    This class provides a nicer API than parsing the JSON format directly.
+    """
+
+    def __init__(self, ccm_dict: dict):
+        self._ccm_dict = ccm_dict
+
+    @property
+    def latitude(self) -> float:
+        """latitude of this point."""
+        return float(self._ccm_dict["lat"])
+
+    @property
+    def longitude(self) -> float:
+        """longitude of this point."""
+        return float(self._ccm_dict["lon"])
+
+class RangeMap:
+    """
+    This class provides a nicer API than parsing the JSON format directly.
+    """
+
+    def __init__(self, ccm_dict: dict):
+        self._ccm_dict = ccm_dict
+
+    @property
+    def type(self) -> RangeMapType:
+        """Type of the range map."""
+        return RangeMapType(self._ccm_dict["type"])
+
+    @property
+    def polyline(self) -> List[MapPoint]:
+        """polylines of this range map."""
+        pol_list = []
+        for mp in self._ccm_dict["polyline"]:
+            pol_list.append(MapPoint(mp))
+        return pol_list
+
+ 
+def backend_parameter(func):
+    """Decorator for parameters reading data from the backend.
+
+    Errors are handled in a default way.
+    """
+    def _func_wrapper(self: 'RangeMaps', *args, **kwargs):
+        # pylint: disable=protected-access
+        if self._state.attributes[SERVICE_RANGE_MAP] is None:
+            raise ValueError('No data available for range maps!')
+        try:
+            return func(self, *args, **kwargs)
+        except KeyError:
+            _LOGGER.debug('No data available for attribute %s!', str(func))
+            return None
+    return _func_wrapper
+
+
+class RangeMaps:  # pylint: disable=too-many-public-methods
+    """Models the range maps of a vehicle."""
+
+    def __init__(self, state):
+        """Constructor."""
+        self._state = state
+ 
+    @property
+    @backend_parameter
+    def attributes(self) -> dict:
+        """Retrieve all attributes from the sever.
+
+        This does not parse the results in any way.
+        """
+        return self._state.attributes[SERVICE_RANGE_MAP]
+
+    def __getattr__(self, item):
+        """Generic get function for all backend attributes."""
+        return self._state.attributes[SERVICE_RANGE_MAP][item]
+
+    @property
+    @backend_parameter
+    def range_maps(self) -> List[RangeMap]:
+        """Get the list range maps."""
+        range_maps_list = []
+        for dest in self._state.attributes[SERVICE_RANGE_MAP]:
+            range_maps_list.append(RangeMap(range_maps_list))
