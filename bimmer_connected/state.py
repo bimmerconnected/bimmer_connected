@@ -70,6 +70,9 @@ class VehicleState:  # pylint: disable=too-many-public-methods
             SERVICE_DESTINATIONS : 'destinations',
             SERVICE_RANGEMAP : 'rangemap'}
 
+        for service in self._url:
+            self._attributes[service] = {}
+
 
     def update_data(self) -> None:
         """Read new status data from the server."""
@@ -83,7 +86,6 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         }
 
         for service in self._url:
-            self._attributes[service] = {}
             try:
                 response = self._account.send_request(
                     self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin), logfilename=service,
@@ -109,142 +111,175 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         """Generic get function for all backend attributes."""
         return self._attributes[item]
 
+    @staticmethod
+    def _parse_datetime(date_str: str) -> datetime.datetime:
+        _LOGGER.info("Funcion depreceted use state.vehicle_status._parse_datetime instead")
+        return VehicleStatus._parse_datetime(date_str)
+
     @property
+    @backend_parameter
     def timestamp(self) -> datetime.datetime:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.timestamp instead")
         return self.vehicle_status.timestamp
 
     @property
+    @backend_parameter
     def gps_position(self) -> (float, float):
         _LOGGER.info("Funcion depreceted use state.vehicle_status.gps_position instead")
-        return float(self.vehicle_status.gps_position[0]), float(self.vehicle_status.gps_position[1])
+        return self.vehicle_status.gps_position
 
     @property
+    @backend_parameter
     def is_vehicle_tracking_enabled(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.is_vehicle_tracking_enabled instead")
         return bool(self.vehicle_status.is_vehicle_tracking_enabled)
 
     @property
+    @backend_parameter
     def mileage(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.mileage instead")
         return self.vehicle_status.mileage
 
     @property
+    @backend_parameter
     def remaining_range_fuel(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.remaining_range_fuel instead")
         return self.vehicle_status.remaining_range_fuel
 
     @property
+    @backend_parameter
     def remaining_fuel(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.remaining_fuel instead")
         return self.vehicle_status.remaining_fuel
 
     @property
+    @backend_parameter
     def lids(self) -> List['Lid']:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.lids instead")
         return self.vehicle_status.lids
 
     @property
+    @backend_parameter
     def open_lids(self) -> List['Lid']:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.open_lids instead")
         return self.vehicle_status.open_lids
 
     @property
+    @backend_parameter
     def all_lids_closed(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.all_lids_closed instead")
         return self.vehicle_status.all_lids_closed
 
     @property
+    @backend_parameter
     def windows(self) -> List['Window']:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.windows instead")
         return self.vehicle_status.windows
 
     @property
+    @backend_parameter
     def open_windows(self) -> List['Window']:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.open_windows instead")
         return self.vehicle_status.open_windows
 
     @property
+    @backend_parameter
     def all_windows_closed(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.all_windows_closed instead")
         return self.vehicle_status.all_windows_closed
 
     @property
+    @backend_parameter
     def door_lock_state(self) -> LockState:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.all_windows_closed instead")
-        return self.vehicle_status.all_windows_closed
+        return self.vehicle_status.door_lock_state
 
     @property
+    @backend_parameter
     def last_update_reason(self) -> str:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.last_update_reason instead")
         return self.vehicle_status.last_update_reason
 
     @property
+    @backend_parameter
     def last_charging_end_result(self) -> str:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.last_charging_end_result instead")
         return self.vehicle_status.last_charging_end_result
 
     @property
+    @backend_parameter
     def connection_status(self) -> str:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.connection_status instead")
         return self.vehicle_status.connection_status
 
     @property
+    @backend_parameter
     def condition_based_services(self) -> List['ConditionBasedServiceReport']:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.condition_based_services instead")
         return self.vehicle_status.condition_based_services
 
     @property
+    @backend_parameter
     def are_all_cbs_ok(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.are_all_cbs_ok instead")
         return bool(self.vehicle_status.are_all_cbs_ok)
 
     @property
+    @backend_parameter
     def parking_lights(self) -> ParkingLightState:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.parking_lights instead")
         return self.vehicle_status.parking_lights
 
     @property
+    @backend_parameter
     def are_parking_lights_on(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.are_parking_lights_on instead")
         return bool(self.vehicle_status.are_parking_lights_on)
 
     @property
+    @backend_parameter
     def remaining_range_electric(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.remaining_range_electric instead")
         return self.vehicle_status.remaining_range_electric
 
     @property
+    @backend_parameter
     def remaining_range_total(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.remaining_range_total instead")
         return self.vehicle_status.remaining_range_total
 
     @property
+    @backend_parameter
     def max_range_electric(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.max_range_electric instead")
         return self.vehicle_status.max_range_electric
 
     @property
+    @backend_parameter
     def charging_status(self) -> ChargingState:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.charging_status instead")
         return self.vehicle_status.charging_status
 
     @property
+    @backend_parameter
     def charging_time_remaining(self) -> datetime.timedelta:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.charging_time_remaining instead")
         return self.vehicle_status.charging_time_remaining
 
     @property
+    @backend_parameter
     def charging_level_hv(self) -> int:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.charging_level_hv instead")
         return self.vehicle_status.charging_level_hv
 
     @property
+    @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.check_control_messages instead")
         return self.vehicle_status.check_control_messages
 
     @property
+    @backend_parameter
     def has_check_control_messages(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.has_check_control_messages instead")
         return bool(self.vehicle_status.has_check_control_messages)
