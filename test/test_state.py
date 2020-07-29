@@ -222,7 +222,6 @@ class TestState(unittest.TestCase):
             for vehicle in account.vehicles:
                 print(vehicle.name)
                 for attribute in (a for a in vehicle.available_attributes if a not in ignored_attributes):
-                    print(attribute)
                     self.assertIsNotNone(getattr(vehicle.state.vehicle_status, attribute), attribute)
 
     def test_check_control_messages(self):
