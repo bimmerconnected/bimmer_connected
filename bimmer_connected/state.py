@@ -5,7 +5,11 @@ import datetime
 from typing import List
 from enum import Enum
 
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_LAST_TRIP, \
+    VEHICLE_STATISTICS_LAST_TRIP_URL, SERVICE_ALL_TRIPS, VEHICLE_STATISTICS_ALL_TRIPS_URL, \
+    SERVICE_CHARGING_PROFILE, VEHICLE_CHARGING_PROFILE_URL, SERVICE_DESTINATIONS, VEHICLE_DESTINATIONS_URL, \
+    SERVICE_RANGEMAP, VEHICLE_RANGEMAP_URL
+
 from bimmer_connected.vehicle_status import VehicleStatus
 from bimmer_connected.vehicle_status import LockState
 from bimmer_connected.vehicle_status import ParkingLightState

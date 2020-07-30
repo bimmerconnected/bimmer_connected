@@ -2,7 +2,7 @@
 
 import logging
 
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_LAST_TRIP
 
 _LOGGER = logging.getLogger(__name__)
 

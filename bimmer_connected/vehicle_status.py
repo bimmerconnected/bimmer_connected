@@ -6,7 +6,7 @@ import time
 from enum import Enum
 from typing import List
 
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_STATUS
 
 _LOGGER = logging.getLogger(__name__)
 

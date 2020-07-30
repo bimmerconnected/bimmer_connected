@@ -3,7 +3,7 @@
 import logging
 from typing import List
 
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_ALL_TRIPS
 
 _LOGGER = logging.getLogger(__name__)
 

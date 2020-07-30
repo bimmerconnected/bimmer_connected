@@ -4,7 +4,7 @@ import logging
 from typing import List
 from enum import Enum
 
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_RANGEMAP
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,7 +60,7 @@ def backend_parameter(func):
     """
     def _func_wrapper(self: 'RangeMaps', *args, **kwargs):
         # pylint: disable=protected-access
-        if self._state.attributes[SERVICE_RANGE_MAP] is None:
+        if self._state.attributes[SERVICE_RANGEMAP] is None:
             raise ValueError('No data available for range maps!')
         try:
             return func(self, *args, **kwargs)
@@ -84,16 +84,16 @@ class RangeMaps:  # pylint: disable=too-many-public-methods
 
         This does not parse the results in any way.
         """
-        return self._state.attributes[SERVICE_RANGE_MAP]
+        return self._state.attributes[SERVICE_RANGEMAP]
 
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
-        return self._state.attributes[SERVICE_RANGE_MAP][item]
+        return self._state.attributes[SERVICE_RANGEMAP][item]
 
     @property
     @backend_parameter
     def range_maps(self) -> List[RangeMap]:
         """Get the list range maps."""
         range_maps_list = []
-        for dest in self._state.attributes[SERVICE_RANGE_MAP]:
+        for dest in self._state.attributes[SERVICE_RANGEMAP]:
             range_maps_list.append(RangeMap(range_maps_list))

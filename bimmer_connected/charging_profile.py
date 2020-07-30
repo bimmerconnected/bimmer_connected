@@ -4,7 +4,7 @@ import logging
 from typing import List
 from enum import Enum
 
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_CHARGING_PROFILE
 
 _LOGGER = logging.getLogger(__name__)
 
