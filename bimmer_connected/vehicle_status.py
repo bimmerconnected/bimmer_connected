@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-import time
 from enum import Enum
 from typing import List
 
@@ -15,7 +14,8 @@ LIDS = ['doorDriverFront', 'doorPassengerFront', 'doorDriverRear', 'doorPassenge
         'hood', 'trunk']
 
 WINDOWS = ['windowDriverFront', 'windowPassengerFront', 'windowDriverRear', 'windowPassengerRear', 'rearWindow',
-            'sunroof']
+           'sunroof']
+
 
 class LidState(Enum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
@@ -25,6 +25,7 @@ class LidState(Enum):
     INTERMEDIATE = 'INTERMEDIATE'
     INVALID = 'INVALID'
 
+
 class LockState(Enum):
     """Possible states of the door locks."""
     LOCKED = 'LOCKED'
@@ -32,17 +33,20 @@ class LockState(Enum):
     SELECTIVE_LOCKED = 'SELECTIVE_LOCKED'
     UNLOCKED = 'UNLOCKED'
 
+
 class ParkingLightState(Enum):
     """Possible states of the parking lights"""
     LEFT = 'LEFT'
     RIGHT = 'RIGHT'
     OFF = 'OFF'
 
+
 class ConditionBasedServiceStatus(Enum):
     """Status of the condition based services."""
     OK = 'OK'
     OVERDUE = 'OVERDUE'
     PENDING = 'PENDING'
+
 
 class ChargingState(Enum):
     """Charging state of electric vehicle."""
@@ -53,6 +57,7 @@ class ChargingState(Enum):
     INVALID = 'INVALID'
     NOT_CHARGING = 'NOT_CHARGING'
     WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
+
 
 class CheckControlMessage:
     """Check control message sent from the server.
@@ -82,6 +87,7 @@ class CheckControlMessage:
     def mileage(self) -> int:
         """Mileage of the vehicle when the check control message appeared."""
         return int(self._ccm_dict["ccmMileage"])
+
 
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
@@ -179,7 +185,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         """Get all lids (doors+hatch+trunk) of the car."""
         result = []
         for lid in LIDS:
-            if lid in self._state.attributes[SERVICE_STATUS] and self._state.attributes[SERVICE_STATUS][lid] != LidState.INVALID.value:
+            if lid in self._state.attributes[SERVICE_STATUS] and \
+                    self._state.attributes[SERVICE_STATUS][lid] != LidState.INVALID.value:
                 result.append(Lid(self, lid))
         return result
 
@@ -199,7 +206,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         """Get all windows (doors+sun roof) of the car."""
         result = []
         for window in WINDOWS:
-            if window in self._state.attributes[SERVICE_STATUS] and self._state.attributes[SERVICE_STATUS][window] != LidState.INVALID.value:
+            if window in self._state.attributes[SERVICE_STATUS] and \
+                    self._state.attributes[SERVICE_STATUS][window] != LidState.INVALID.value:
                 result.append(Window(self, window))
         return result
 
@@ -342,7 +350,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         """Return true if any check control message is present."""
         return len(self.check_control_messages) > 0
 
- 
+
 class Lid:  # pylint: disable=too-few-public-methods
     """A lid of the vehicle.
 

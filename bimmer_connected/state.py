@@ -3,18 +3,14 @@
 import logging
 import datetime
 from typing import List
-from enum import Enum
 
 from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_LAST_TRIP, \
     VEHICLE_STATISTICS_LAST_TRIP_URL, SERVICE_ALL_TRIPS, VEHICLE_STATISTICS_ALL_TRIPS_URL, \
     SERVICE_CHARGING_PROFILE, VEHICLE_CHARGING_PROFILE_URL, SERVICE_DESTINATIONS, VEHICLE_DESTINATIONS_URL, \
     SERVICE_RANGEMAP, VEHICLE_RANGEMAP_URL
 
-from bimmer_connected.vehicle_status import VehicleStatus
-from bimmer_connected.vehicle_status import LockState
-from bimmer_connected.vehicle_status import ParkingLightState
-from bimmer_connected.vehicle_status import ChargingState
-from bimmer_connected.vehicle_status import CheckControlMessage
+from bimmer_connected.vehicle_status import VehicleStatus, LockState, ParkingLightState, ChargingState, \
+    CheckControlMessage
 from bimmer_connected.last_trip import LastTrip
 from bimmer_connected.all_trips import AllTrips
 from bimmer_connected.charging_profile import ChargingProfile
@@ -22,6 +18,7 @@ from bimmer_connected.last_destinations import LastDestinations
 from bimmer_connected.range_maps import RangeMaps
 
 _LOGGER = logging.getLogger(__name__)
+
 
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
@@ -57,26 +54,25 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         self.last_trip = LastTrip(self)
         self.last_destinations = LastDestinations(self)
         self.range_maps = RangeMaps(self)
-  
+
         self._url = {
-            SERVICE_STATUS : VEHICLE_STATUS_URL,
-            SERVICE_LAST_TRIP : VEHICLE_STATISTICS_LAST_TRIP_URL,
-            SERVICE_ALL_TRIPS : VEHICLE_STATISTICS_ALL_TRIPS_URL,
-            SERVICE_CHARGING_PROFILE : VEHICLE_CHARGING_PROFILE_URL,
-            SERVICE_DESTINATIONS : VEHICLE_DESTINATIONS_URL,
-            SERVICE_RANGEMAP : VEHICLE_RANGEMAP_URL}
+            SERVICE_STATUS: VEHICLE_STATUS_URL,
+            SERVICE_LAST_TRIP: VEHICLE_STATISTICS_LAST_TRIP_URL,
+            SERVICE_ALL_TRIPS: VEHICLE_STATISTICS_ALL_TRIPS_URL,
+            SERVICE_CHARGING_PROFILE: VEHICLE_CHARGING_PROFILE_URL,
+            SERVICE_DESTINATIONS: VEHICLE_DESTINATIONS_URL,
+            SERVICE_RANGEMAP: VEHICLE_RANGEMAP_URL}
 
         self._key = {
-            SERVICE_STATUS : 'vehicleStatus',
-            SERVICE_LAST_TRIP : 'lastTrip',
-            SERVICE_ALL_TRIPS : 'allTrips',
-            SERVICE_CHARGING_PROFILE : 'weeklyPlanner',
-            SERVICE_DESTINATIONS : 'destinations',
-            SERVICE_RANGEMAP : 'rangemap'}
+            SERVICE_STATUS: 'vehicleStatus',
+            SERVICE_LAST_TRIP: 'lastTrip',
+            SERVICE_ALL_TRIPS: 'allTrips',
+            SERVICE_CHARGING_PROFILE: 'weeklyPlanner',
+            SERVICE_DESTINATIONS: 'destinations',
+            SERVICE_RANGEMAP: 'rangemap'}
 
         for service in self._url:
             self._attributes[service] = {}
-
 
     def update_data(self) -> None:
         """Read new status data from the server."""
@@ -92,10 +88,11 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         for service in self._url:
             try:
                 response = self._account.send_request(
-                    self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin), logfilename=service,
+                    self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin), \
+                        logfilename=service,
                     params=params)
                 self._attributes[service] = response.json()[self._key[service]]
-            except:
+            except BaseException:
                 _LOGGER.debug('Service ' + service + ' failed')
 
         _LOGGER.debug(self._attributes)
@@ -109,7 +106,6 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         This does not parse the results in any way.
         """
         return self._attributes
-
 
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
@@ -287,5 +283,3 @@ class VehicleState:  # pylint: disable=too-many-public-methods
     def has_check_control_messages(self) -> bool:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.has_check_control_messages instead")
         return bool(self.vehicle_status.has_check_control_messages)
-
-

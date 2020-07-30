@@ -1,11 +1,11 @@
 """Models the all trips of a vehicle."""
 
 import logging
-from typing import List
 
 from bimmer_connected.const import SERVICE_ALL_TRIPS
 
 _LOGGER = logging.getLogger(__name__)
+
 
 def backend_parameter_statistic(func):
     """Decorator for parameters reading data from the backend.
@@ -62,9 +62,9 @@ class StatisticValues:
 
     @property
     @backend_parameter_statistic
-    def user_current_charge_cycle(self) ->float:
+    def user_current_charge_cycle(self) -> float:
         return float(self._ccm_dict["userCurrentChargeCycle"])
-        
+
 
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
@@ -111,13 +111,13 @@ class AllTrips:  # pylint: disable=too-many-public-methods
     def average_electric_consumption(self) -> StatisticValues:
         """Returns the average electric consumption."""
         return StatisticValues(self._state.attributes[SERVICE_ALL_TRIPS]['avgElectricConsumption'])
-        
+ 
     @property
     @backend_parameter
     def average_recopuration(self) -> StatisticValues:
         """Returns the average recopuration."""
         return StatisticValues(self._state.attributes[SERVICE_ALL_TRIPS]['avgRecuperation'])
-        
+
     @property
     @backend_parameter
     def chargecycle_range(self) -> StatisticValues:
@@ -135,4 +135,3 @@ class AllTrips:  # pylint: disable=too-many-public-methods
     def average_combined_consumption(self) -> StatisticValues:
         """Returns the average combined consumption."""
         return StatisticValues(self._state.attributes[SERVICE_ALL_TRIPS]['avgCombinedConsumption'])
-

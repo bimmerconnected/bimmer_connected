@@ -6,6 +6,7 @@ from bimmer_connected.const import SERVICE_LAST_TRIP
 
 _LOGGER = logging.getLogger(__name__)
 
+
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -29,7 +30,7 @@ class LastTrip:  # pylint: disable=too-many-public-methods
     def __init__(self, state):
         """Constructor."""
         self._state = state
- 
+
     @property
     @backend_parameter
     def attributes(self) -> dict:
@@ -42,7 +43,6 @@ class LastTrip:  # pylint: disable=too-many-public-methods
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
         return self._state.attributes[SERVICE_LAST_TRIP][item]
-
 
     @property
     @backend_parameter
@@ -73,7 +73,7 @@ class LastTrip:  # pylint: disable=too-many-public-methods
     def averege_recuperation(self) -> float:
         """Returns the average recuperation."""
         return float(self._state.attributes[SERVICE_LAST_TRIP]['avgRecuperation'])
- 
+
     @property
     @backend_parameter
     def driving_mode_value(self) -> float:

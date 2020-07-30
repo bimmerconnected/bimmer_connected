@@ -8,9 +8,11 @@ from bimmer_connected.const import SERVICE_DESTINATIONS
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class DestinationType(Enum):
     """Types of destinations."""
     DESTINATION = 'DESTINATION'
+
 
 class Destination:
     """
@@ -31,16 +33,17 @@ class Destination:
         return self._ccm_dict["lon"]
 
     @property
-    def country(self)  -> str:
+    def country(self) -> str:
         """Country of this destination."""
         return int(self._ccm_dict["country"])
 
     @property
-    def city(self)  -> str:
+    def city(self) -> str:
         """City of this destination."""
         return int(self._ccm_dict["city"])
+
     @property
-    def street(self)  -> str:
+    def street(self) -> str:
         """Street of this destination."""
         return int(self._ccm_dict["street"])
 

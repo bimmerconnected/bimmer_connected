@@ -8,15 +8,18 @@ from bimmer_connected.const import SERVICE_CHARGING_PROFILE
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class ChargingMode(Enum):
     """Charging mode of electric vehicle."""
     IMMEDIATE_CHARGING = 'IMMEDIATE_CHARGING'
     DELAYED_CHARGING = 'DELAYED_CHARGING'
 
+
 class ChargingPreferences(Enum):
     """Charging preferences of electric vehicle."""
     NO_PRESELECTION = 'NO_PRESELECTION'
     CHARGING_WINDOW = 'CHARGING_WINDOW'
+
 
 class ChargingWindow:
     """
@@ -35,6 +38,7 @@ class ChargingWindow:
     def endTime(self) -> str:
         """End of the charging window."""
         return self._ccm_dict["endTime"]
+
 
 class ClimatizationTimer:
     """
@@ -58,6 +62,7 @@ class ClimatizationTimer:
     def weekdays(self) -> List[str]:
         """Active weekdays for this timer."""
         return int(self._ccm_dict["weekdays"])
+
 
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
@@ -111,7 +116,7 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
         for timer in timer_names:
             try:
                 timer_list.append(ClimatizationTimer(self._state.attributes[SERVICE_CHARGING_PROFILE][timer]))
-            except:
+            except BaseException:
                 _LOGGER.debug('Timer ' + timer + ' not found')
         return timer_list
 

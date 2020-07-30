@@ -8,10 +8,12 @@ from bimmer_connected.const import SERVICE_RANGEMAP
 
 _LOGGER = logging.getLogger(__name__)
 
+
 class RangeMapType(Enum):
     """Range map types."""
-    ECO_PRO_PLUS  = 'ECO_PRO_PLUS '
-    COMFORT  = 'COMFORT '
+    ECO_PRO_PLUS = 'ECO_PRO_PLUS '
+    COMFORT = 'COMFORT '
+
 
 class MapPoint:
     """
@@ -30,6 +32,7 @@ class MapPoint:
     def longitude(self) -> float:
         """longitude of this point."""
         return float(self._ccm_dict["lon"])
+
 
 class RangeMap:
     """
@@ -52,7 +55,7 @@ class RangeMap:
             pol_list.append(MapPoint(mp))
         return pol_list
 
- 
+
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
