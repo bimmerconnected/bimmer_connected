@@ -373,7 +373,7 @@ class Lid:  # pylint: disable=too-few-public-methods
         return self.state == LidState.CLOSED
 
     def __str__(self) -> str:
-        return '{}: {}'.format(self.name, self.status.value)
+        return '{}: {}'.format(self.name, self._vehicle_status)
 
 
 class Window(Lid):  # pylint: disable=too-few-public-methods

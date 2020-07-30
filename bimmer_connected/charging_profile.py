@@ -30,12 +30,12 @@ class ChargingWindow:
         self._ccm_dict = ccm_dict
 
     @property
-    def startTime(self) -> str:
+    def start_time(self) -> str:
         """Start of the charging window."""
         return self._ccm_dict["startTime"]
 
     @property
-    def endTime(self) -> str:
+    def end_time(self) -> str:
         """End of the charging window."""
         return self._ccm_dict["endTime"]
 
@@ -49,12 +49,12 @@ class ClimatizationTimer:
         self._ccm_dict = ccm_dict
 
     @property
-    def departureTime(self) -> str:
+    def departure_time(self) -> str:
         """Deperture time for this timer."""
         return self._ccm_dict["departureTime"]
 
     @property
-    def timerEnabled(self) -> bool:
+    def timer_enabled(self) -> bool:
         """Is the timer enabled."""
         return self._ccm_dict["timerEnabled"]
 

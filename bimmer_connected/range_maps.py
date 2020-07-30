@@ -51,8 +51,8 @@ class RangeMap:
     def polyline(self) -> List[MapPoint]:
         """polylines of this range map."""
         pol_list = []
-        for mp in self._ccm_dict["polyline"]:
-            pol_list.append(MapPoint(mp))
+        for map_point in self._ccm_dict["polyline"]:
+            pol_list.append(MapPoint(map_point))
         return pol_list
 
 
@@ -99,4 +99,4 @@ class RangeMaps:  # pylint: disable=too-many-public-methods
         """Get the list range maps."""
         range_maps_list = []
         for dest in self._state.attributes[SERVICE_RANGEMAP]:
-            range_maps_list.append(RangeMap(range_maps_list))
+            range_maps_list.append(RangeMap(dest))
