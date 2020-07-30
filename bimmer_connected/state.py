@@ -10,7 +10,7 @@ from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_L
     SERVICE_RANGEMAP, VEHICLE_RANGEMAP_URL
 
 from bimmer_connected.vehicle_status import VehicleStatus, LockState, ParkingLightState, ChargingState, \
-    CheckControlMessage
+    CheckControlMessage, ConditionBasedServiceReport, Lid, Window
 from bimmer_connected.last_trip import LastTrip
 from bimmer_connected.all_trips import AllTrips
 from bimmer_connected.charging_profile import ChargingProfile
@@ -37,9 +37,12 @@ def backend_parameter(func):
     return _func_wrapper
 
 
-class VehicleState:  # pylint: disable=too-many-public-methods
+class VehicleState:
     """Models the state of a vehicle."""
 
+    # pylint: disable=too-many-public-methods
+    # pylint: disable=too-many-instance-attributes
+    # Nine is reasonable in this case.
     def __init__(self, account, vehicle):
         """Constructor."""
         self._account = account
@@ -88,8 +91,8 @@ class VehicleState:  # pylint: disable=too-many-public-methods
                     self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin),
                     logfilename=service, params=params)
                 self._attributes[service] = response.json()[self._key[service]]
-            except BaseException:
-                _LOGGER.debug('Service ' + service + ' failed')
+            except IOError:
+                _LOGGER.debug('Service %s failed', service)
 
         _LOGGER.debug(self._attributes)
         _LOGGER.debug('received new data from connected drive')
@@ -109,8 +112,9 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @staticmethod
     def _parse_datetime(date_str: str) -> datetime.datetime:
-        _LOGGER.info("Funcion depreceted use state.vehicle_status._parse_datetime instead")
-        return VehicleStatus._parse_datetime(date_str)
+        """Convert a time string into datetime."""
+        date_format = "%Y-%m-%dT%H:%M:%S%z"
+        return datetime.datetime.strptime(date_str, date_format)
 
     @property
     @backend_parameter
@@ -150,13 +154,13 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def lids(self) -> List['Lid']:
+    def lids(self) -> List[Lid]:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.lids instead")
         return self.vehicle_status.lids
 
     @property
     @backend_parameter
-    def open_lids(self) -> List['Lid']:
+    def open_lids(self) -> List[Lid]:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.open_lids instead")
         return self.vehicle_status.open_lids
 
@@ -168,13 +172,13 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def windows(self) -> List['Window']:
+    def windows(self) -> List[Window]:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.windows instead")
         return self.vehicle_status.windows
 
     @property
     @backend_parameter
-    def open_windows(self) -> List['Window']:
+    def open_windows(self) -> List[Window]:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.open_windows instead")
         return self.vehicle_status.open_windows
 
@@ -210,7 +214,7 @@ class VehicleState:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def condition_based_services(self) -> List['ConditionBasedServiceReport']:
+    def condition_based_services(self) -> List[ConditionBasedServiceReport]:
         _LOGGER.info("Funcion depreceted use state.vehicle_status.condition_based_services instead")
         return self.vehicle_status.condition_based_services
 

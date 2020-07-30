@@ -116,8 +116,8 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
         for timer in timer_names:
             try:
                 timer_list.append(ClimatizationTimer(self._state.attributes[SERVICE_CHARGING_PROFILE][timer]))
-            except BaseException:
-                _LOGGER.debug('Timer ' + timer + ' not found')
+            except KeyError:
+                _LOGGER.debug('Timer %s not found', timer)
         return timer_list
 
     @property
