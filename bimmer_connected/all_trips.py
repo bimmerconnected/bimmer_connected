@@ -33,36 +33,43 @@ class StatisticValues:
     @property
     @backend_parameter_statistic
     def community_low(self) -> float:
+        """Get the community low value."""
         return float(self._ccm_dict["communityLow"])
 
     @property
     @backend_parameter_statistic
     def community_average(self) -> float:
+        """Get the community average value."""
         return float(self._ccm_dict["communityAverage"])
 
     @property
     @backend_parameter_statistic
     def community_high(self) -> float:
+        """Get the community high value."""
         return float(self._ccm_dict["communityHigh"])
 
     @property
     @backend_parameter_statistic
     def user_average(self) -> float:
+        """Get the user average value."""
         return float(self._ccm_dict["userAverage"])
 
     @property
     @backend_parameter_statistic
     def user_high(self) -> float:
+        """Get the user high value."""
         return float(self._ccm_dict["userHigh"])
 
     @property
     @backend_parameter_statistic
     def user_total(self) -> float:
+        """Get the user total value."""
         return float(self._ccm_dict["userTotal"])
 
     @property
     @backend_parameter_statistic
     def user_current_charge_cycle(self) -> float:
+        """Get the users current change cycle."""
         return float(self._ccm_dict["userCurrentChargeCycle"])
 
 
