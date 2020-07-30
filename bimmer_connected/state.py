@@ -88,9 +88,8 @@ class VehicleState:  # pylint: disable=too-many-public-methods
         for service in self._url:
             try:
                 response = self._account.send_request(
-                    self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin), \
-                        logfilename=service,
-                    params=params)
+                    self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin),
+                    logfilename=service, params=params)
                 self._attributes[service] = response.json()[self._key[service]]
             except BaseException:
                 _LOGGER.debug('Service ' + service + ' failed')

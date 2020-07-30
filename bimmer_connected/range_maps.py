@@ -79,7 +79,7 @@ class RangeMaps:  # pylint: disable=too-many-public-methods
     def __init__(self, state):
         """Constructor."""
         self._state = state
- 
+
     @property
     @backend_parameter
     def attributes(self) -> dict:

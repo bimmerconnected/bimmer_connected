@@ -21,7 +21,7 @@ def backend_parameter_statistic(func):
             return None
     return _func_wrapper
 
-        
+
 class StatisticValues:
     """
     This class provides a nicer API than parsing the JSON format directly.
@@ -89,7 +89,7 @@ class AllTrips:  # pylint: disable=too-many-public-methods
     def __init__(self, state):
         """Constructor."""
         self._state = state
- 
+
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
         return self._state.attributes[SERVICE_ALL_TRIPS][item]
@@ -111,7 +111,7 @@ class AllTrips:  # pylint: disable=too-many-public-methods
     def average_electric_consumption(self) -> StatisticValues:
         """Returns the average electric consumption."""
         return StatisticValues(self._state.attributes[SERVICE_ALL_TRIPS]['avgElectricConsumption'])
- 
+
     @property
     @backend_parameter
     def average_recopuration(self) -> StatisticValues:
