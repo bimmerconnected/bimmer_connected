@@ -7,7 +7,7 @@ from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, 
     ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES, F48_VIN
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState
-from bimmer_connected.const import *
+from bimmer_connected.const import SERVICE_STATUS
 from bimmer_connected.vehicle_status import LidState, LockState, ConditionBasedServiceStatus, \
     ParkingLightState, ChargingState
 
