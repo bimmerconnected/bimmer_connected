@@ -1,0 +1,40 @@
+{
+    "allTrips": {
+        "avgElectricConsumption": {
+            "communityLow": 0,
+            "communityAverage": 16.33,
+            "communityHigh": 35.53,
+            "userAverage": 14.76
+        },
+        "avgRecuperation": {
+            "communityLow": 0,
+            "communityAverage": 3.76,
+            "communityHigh": 14.03,
+            "userAverage": 2.3
+        },
+        "chargecycleRange": {
+            "communityAverage": 121.58,
+            "communityHigh": 200,
+            "userAverage": 72.62,
+            "userHigh": 135,
+            "userCurrentChargeCycle": 60
+        },
+        "totalElectricDistance": {
+            "communityLow": 1,
+            "communityAverage": 12293.65,
+            "communityHigh": 77533.6,
+            "userTotal": 3158.66
+        },
+        "avgCombinedConsumption": {
+            "communityLow": 0,
+            "communityAverage": 1.21,
+            "communityHigh": 6.2,
+            "userAverage": 0.36
+        },
+        "batterySizeMax": 35820,
+        "savedCO2": 87.58,
+        "savedCO2greenEnergy": 515.177,
+        "totalSavedFuel": 0,
+        "resetDate": "1970-01-01T01:00:00+0100"
+    }
+}

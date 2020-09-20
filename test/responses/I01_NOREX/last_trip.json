@@ -1,0 +1,19 @@
+{
+   "lastTrip":{
+      "efficiencyValue":0.53,
+      "totalDistance":141,
+      "electricDistance":100.1,
+      "avgElectricConsumption":16.6,
+      "avgRecuperation":2,
+      "drivingModeValue":0,
+      "accelerationValue":0.39,
+      "anticipationValue":0.81,
+      "totalConsumptionValue":0.79,
+      "auxiliaryConsumptionValue":0.66,
+      "avgCombinedConsumption":1.9,
+      "electricDistanceRatio":71,
+      "savedFuel":0,
+      "date":"2015-12-01T20:44:00+0100",
+      "duration":124
+   }
+}
