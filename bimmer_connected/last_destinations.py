@@ -1,4 +1,4 @@
-"""Models the charging profiles of a vehicle."""
+"""Models the last destinations of a vehicle."""
 
 import logging
 from typing import List
@@ -25,37 +25,37 @@ class Destination:
     @property
     def latitude(self) -> float:
         """latitude of this destination."""
-        return self._ccm_dict["lat"]
+        return float(self._ccm_dict["lat"])
 
     @property
     def longitude(self) -> float:
         """longitude of this destination."""
-        return self._ccm_dict["lon"]
+        return float(self._ccm_dict["lon"])
 
     @property
     def country(self) -> str:
         """Country of this destination."""
-        return int(self._ccm_dict["country"])
+        return self._ccm_dict["country"]
 
     @property
     def city(self) -> str:
         """City of this destination."""
-        return int(self._ccm_dict["city"])
+        return self._ccm_dict["city"]
 
     @property
     def street(self) -> str:
         """Street of this destination."""
-        return int(self._ccm_dict["street"])
+        return self._ccm_dict["street"]
 
     @property
-    def type(self) -> DestinationType:
+    def destination_type(self) -> DestinationType:
         """Type of this destination."""
         return DestinationType(self._ccm_dict["type"])
 
     @property
     def created_at(self) -> str:
         """Date of creation of this destination."""
-        return int(self._ccm_dict["createdAt"])
+        return self._ccm_dict["createdAt"]
 
 
 def backend_parameter(func):
@@ -102,3 +102,4 @@ class LastDestinations:  # pylint: disable=too-many-public-methods
         destinations_list = []
         for dest in self._state.attributes[SERVICE_DESTINATIONS]:
             destinations_list.append(Destination(dest))
+        return destinations_list

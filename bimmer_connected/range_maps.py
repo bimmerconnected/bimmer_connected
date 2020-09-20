@@ -1,4 +1,4 @@
-"""Models the charging profiles of a vehicle."""
+"""Models the range maps of a vehicle."""
 
 import logging
 from typing import List
@@ -11,8 +11,13 @@ _LOGGER = logging.getLogger(__name__)
 
 class RangeMapType(Enum):
     """Range map types."""
-    ECO_PRO_PLUS = 'ECO_PRO_PLUS '
-    COMFORT = 'COMFORT '
+    ECO_PRO_PLUS = 'ECO_PRO_PLUS'
+    COMFORT = 'COMFORT'
+
+
+class RangeMapQuality(Enum):
+    """Range map types."""
+    AVERAGE = 'AVERAGE'
 
 
 class MapPoint:
@@ -43,7 +48,7 @@ class RangeMap:
         self._ccm_dict = ccm_dict
 
     @property
-    def type(self) -> RangeMapType:
+    def range_map_type(self) -> RangeMapType:
         """Type of the range map."""
         return RangeMapType(self._ccm_dict["type"])
 
@@ -95,8 +100,21 @@ class RangeMaps:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
+    def range_map_quality(self) -> RangeMapQuality:
+        """Type of the range map."""
+        return RangeMapQuality(self._state.attributes[SERVICE_RANGEMAP]["quality"])
+
+    @property
+    @backend_parameter
+    def range_map_center(self) -> RangeMapQuality:
+        """Type of the range map."""
+        return MapPoint(self._state.attributes[SERVICE_RANGEMAP]["center"])
+
+    @property
+    @backend_parameter
     def range_maps(self) -> List[RangeMap]:
         """Get the list range maps."""
         range_maps_list = []
-        for dest in self._state.attributes[SERVICE_RANGEMAP]:
+        for dest in self._state.attributes[SERVICE_RANGEMAP]["rangemaps"]:
             range_maps_list.append(RangeMap(dest))
+        return range_maps_list

@@ -21,6 +21,14 @@ class ChargingPreferences(Enum):
     CHARGING_WINDOW = 'CHARGING_WINDOW'
 
 
+class TimerTypes(Enum):
+    """Different Timer-Types."""
+    TIMER_1 = 'timer1'
+    TIMER_2 = 'timer2'
+    TIMER_3 = 'timer3'
+    OVERRIDE_TIMER = 'overrideTimer'
+
+
 class ChargingWindow:
     """
     This class provides a nicer API than parsing the JSON format directly.
@@ -61,7 +69,7 @@ class ClimatizationTimer:
     @property
     def weekdays(self) -> List[str]:
         """Active weekdays for this timer."""
-        return int(self._ccm_dict["weekdays"])
+        return self._ccm_dict["weekdays"]
 
 
 def backend_parameter(func):
@@ -109,15 +117,14 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def pre_entry_climatization_timer(self) -> List[ClimatizationTimer]:
+    def pre_entry_climatization_timer(self) -> dict:
         """List of pre entry climatization timer messages."""
-        timer_list = []
-        timer_names = ['timer1', 'timer2', 'timer3', 'overrideTimer']
-        for timer in timer_names:
+        timer_list = {}
+        for timer in TimerTypes:
             try:
-                timer_list.append(ClimatizationTimer(self._state.attributes[SERVICE_CHARGING_PROFILE][timer]))
+                timer_list[timer] = ClimatizationTimer(self._state.attributes[SERVICE_CHARGING_PROFILE][timer.value])
             except KeyError:
-                _LOGGER.debug('Timer %s not found', timer)
+                _LOGGER.debug('Timer %s not found', timer.value)
         return timer_list
 
     @property

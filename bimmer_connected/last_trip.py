@@ -124,9 +124,9 @@ class LastTrip:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def date(self) -> float:
+    def date(self) -> str:
         """Returns the date."""
-        return float(self._state.attributes[SERVICE_LAST_TRIP]['date'])
+        return self._state.attributes[SERVICE_LAST_TRIP]['date']
 
     @property
     @backend_parameter

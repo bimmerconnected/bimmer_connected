@@ -115,6 +115,24 @@ class AllTrips:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
+    def saved_CO2(self) -> int:
+        """Maximal battery size, in Wh."""
+        return float(self._state.attributes[SERVICE_ALL_TRIPS]['savedCO2'])
+
+    @property
+    @backend_parameter
+    def saved_CO2_green_energy(self) -> int:
+        """Maximal battery size, in Wh."""
+        return float(self._state.attributes[SERVICE_ALL_TRIPS]['savedCO2greenEnergy'])
+
+    @property
+    @backend_parameter
+    def total_saved_fuel(self) -> int:
+        """Maximal battery size, in Wh."""
+        return float(self._state.attributes[SERVICE_ALL_TRIPS]['totalSavedFuel'])
+
+    @property
+    @backend_parameter
     def average_electric_consumption(self) -> StatisticValues:
         """Returns the average electric consumption."""
         return StatisticValues(self._state.attributes[SERVICE_ALL_TRIPS]['avgElectricConsumption'])
