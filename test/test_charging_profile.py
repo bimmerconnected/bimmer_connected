@@ -25,7 +25,8 @@ class TestState(unittest.TestCase):
         self.assertEqual(ChargingPreferences.CHARGING_WINDOW, state.charging_profile.charging_preferences)
 
         self.assertTrue(state.charging_profile.pre_entry_climatization_timer[TimerTypes.TIMER_1].timer_enabled)
-        self.assertEqual('07:30', state.charging_profile.pre_entry_climatization_timer[TimerTypes.TIMER_1].departure_time)
+        self.assertEqual('07:30',
+                         state.charging_profile.pre_entry_climatization_timer[TimerTypes.TIMER_1].departure_time)
         self.assertEqual('MONDAY', state.charging_profile.pre_entry_climatization_timer[TimerTypes.TIMER_1].weekdays[0])
 
         self.assertEqual('05:02', state.charging_profile.prefered_charging_window.start_time)
