@@ -1,5 +1,6 @@
 """Test for LastTrip"""
 import unittest
+from unittest import mock
 from test import load_response_json
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.state import VehicleState
@@ -15,7 +16,7 @@ class TestState(unittest.TestCase):
 
     def test_parse_i01(self):
         """Test if the parsing of the attributes is working."""
-        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        account = mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         state._attributes[SERVICE_LAST_TRIP] = I01_TEST_DATA['lastTrip']
         self.assertEqual(0.53, state.last_trip.efficiencyValue)

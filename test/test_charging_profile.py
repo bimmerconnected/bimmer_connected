@@ -17,7 +17,7 @@ class TestState(unittest.TestCase):
 
     def test_parse_i01(self):
         """Test if the parsing of the attributes is working."""
-        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        account = mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         state._attributes[SERVICE_CHARGING_PROFILE] = I01_TEST_DATA['weeklyPlanner']
         self.assertTrue(state.charging_profile.is_pre_entry_climatization_enabled)

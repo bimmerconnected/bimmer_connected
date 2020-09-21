@@ -16,13 +16,13 @@ class TestState(unittest.TestCase):
 
     def test_parse_i01(self):
         """Test if the parsing of the attributes is working."""
-        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        account = mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         state._attributes[SERVICE_ALL_TRIPS] = I01_TEST_DATA['allTrips']
         self.assertEqual('1970-01-01T01:00:00+0100', state.all_trips.reset_date)
         self.assertEqual(35820, state.all_trips.battery_size_max)
-        self.assertEqual(87.58, state.all_trips.saved_CO2)
-        self.assertEqual(515.177, state.all_trips.saved_CO2_green_energy)
+        self.assertEqual(87.58, state.all_trips.saved_co2)
+        self.assertEqual(515.177, state.all_trips.saved_co2_green_energy)
         self.assertEqual(0, state.all_trips.total_saved_fuel)
 
         self.assertEqual(0, state.all_trips.average_electric_consumption.community_low)

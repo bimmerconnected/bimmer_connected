@@ -17,7 +17,7 @@ class TestState(unittest.TestCase):
 
     def test_parse_i01(self):
         """Test if the parsing of the attributes is working."""
-        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        account = mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         state._attributes[SERVICE_DESTINATIONS] = I01_TEST_DATA['destinations']
         self.assertEqual(DestinationType.DESTINATION, state.last_destinations.last_destinations[0].destination_type)

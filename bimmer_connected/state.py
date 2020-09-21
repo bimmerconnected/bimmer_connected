@@ -10,7 +10,7 @@ from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_L
     SERVICE_RANGEMAP, VEHICLE_RANGEMAP_URL
 
 from bimmer_connected.vehicle_status import VehicleStatus, LockState, ParkingLightState, ChargingState, \
-    CheckControlMessage, ConditionBasedServiceReport, Lid, Window, LidState, ConditionBasedServiceStatus
+    CheckControlMessage, ConditionBasedServiceReport, Lid, Window
 from bimmer_connected.last_trip import LastTrip
 from bimmer_connected.all_trips import AllTrips
 from bimmer_connected.charging_profile import ChargingProfile

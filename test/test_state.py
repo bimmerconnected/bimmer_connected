@@ -6,9 +6,9 @@ import datetime
 from test import load_response_json, TEST_REGION, TEST_PASSWORD, TEST_USERNAME, BackendMock, G31_VIN, \
     ATTRIBUTE_MAPPING, MISSING_ATTRIBUTES, F48_VIN
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.state import VehicleState, LidState, LockState, ConditionBasedServiceStatus, \
-    ParkingLightState, ChargingState
+from bimmer_connected.state import VehicleState, LockState, ParkingLightState, ChargingState
 from bimmer_connected.const import SERVICE_STATUS
+from bimmer_connected.vehicle_status import ConditionBasedServiceStatus, LidState
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
 G31_NO_POSITION_TEST_DATA = load_response_json('G31_NBTevo/status_position_disabled.json')
