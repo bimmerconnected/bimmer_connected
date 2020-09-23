@@ -3,7 +3,8 @@ from enum import Enum
 import logging
 from typing import List
 
-from bimmer_connected.state import VehicleState, WINDOWS, LIDS
+from bimmer_connected.state import VehicleState
+from bimmer_connected.vehicle_status import WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import VEHICLE_IMAGE_URL
 
