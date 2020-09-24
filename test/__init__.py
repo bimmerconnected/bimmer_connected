@@ -73,7 +73,7 @@ ADDITIONAL_ATTRIBUTES = [
     'lids',                     # required for existing Home Assistant binary sensors
     'windows',                  # required for existing Home Assistant binary sensors
     'lights_parking',           # required for existing Home Assistant binary sensors
-    'steering',                 # para not available in all vehicles  
+    'steering',                 # para not available in all vehicles
 ]
 
 # there attributes are not (yet) implemented

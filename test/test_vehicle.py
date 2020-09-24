@@ -7,7 +7,6 @@ from test import load_response_json, BackendMock, TEST_USERNAME, TEST_PASSWORD, 
 
 from bimmer_connected.vehicle import ConnectedDriveVehicle, DriveTrainType
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.const import SERVICE_STATUS
 
 
 _VEHICLES = load_response_json('vehicles.json')['vehicles']
