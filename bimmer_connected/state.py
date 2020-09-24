@@ -7,7 +7,8 @@ from typing import List
 from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_LAST_TRIP, \
     VEHICLE_STATISTICS_LAST_TRIP_URL, SERVICE_ALL_TRIPS, VEHICLE_STATISTICS_ALL_TRIPS_URL, \
     SERVICE_CHARGING_PROFILE, VEHICLE_CHARGING_PROFILE_URL, SERVICE_DESTINATIONS, VEHICLE_DESTINATIONS_URL, \
-    SERVICE_RANGEMAP, VEHICLE_RANGEMAP_URL
+    SERVICE_RANGEMAP, VEHICLE_RANGEMAP_URL, SERVICE_EFFICIENCY, VEHICLE_EFFICIENCY, SERVICE_NAVIGATION, \
+    VEHICLE_NAVIGATION
 
 from bimmer_connected.vehicle_status import VehicleStatus, LockState, ParkingLightState, ChargingState, \
     CheckControlMessage, ConditionBasedServiceReport, Lid, Window
@@ -16,6 +17,8 @@ from bimmer_connected.all_trips import AllTrips
 from bimmer_connected.charging_profile import ChargingProfile
 from bimmer_connected.last_destinations import LastDestinations
 from bimmer_connected.range_maps import RangeMaps
+from bimmer_connected.navigation import Navigation
+from bimmer_connected.efficiency import Efficiency
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,6 +57,8 @@ class VehicleState:
         self.last_trip = LastTrip(self)
         self.last_destinations = LastDestinations(self)
         self.range_maps = RangeMaps(self)
+        self.navigation = Navigation(self)
+        self.efficiency = Efficiency(self)
 
         self._url = {
             SERVICE_STATUS: VEHICLE_STATUS_URL,
@@ -61,7 +66,9 @@ class VehicleState:
             SERVICE_ALL_TRIPS: VEHICLE_STATISTICS_ALL_TRIPS_URL,
             SERVICE_CHARGING_PROFILE: VEHICLE_CHARGING_PROFILE_URL,
             SERVICE_DESTINATIONS: VEHICLE_DESTINATIONS_URL,
-            SERVICE_RANGEMAP: VEHICLE_RANGEMAP_URL}
+            SERVICE_RANGEMAP: VEHICLE_RANGEMAP_URL,
+            SERVICE_EFFICIENCY: VEHICLE_EFFICIENCY,
+            SERVICE_NAVIGATION: VEHICLE_NAVIGATION}
 
         self._key = {
             SERVICE_STATUS: 'vehicleStatus',
@@ -69,7 +76,9 @@ class VehicleState:
             SERVICE_ALL_TRIPS: 'allTrips',
             SERVICE_CHARGING_PROFILE: 'weeklyPlanner',
             SERVICE_DESTINATIONS: 'destinations',
-            SERVICE_RANGEMAP: 'rangemap'}
+            SERVICE_RANGEMAP: 'rangemap',
+            SERVICE_EFFICIENCY: '',
+            SERVICE_NAVIGATION: ''}
 
         for service in self._url:
             self._attributes[service] = {}
@@ -90,7 +99,10 @@ class VehicleState:
                 response = self._account.send_request(
                     self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin),
                     logfilename=service, params=params)
-                self._attributes[service] = response.json()[self._key[service]]
+                if not self._key[service]:
+                    self._attributes[service] = response.json()
+                else:
+                    self._attributes[service] = response.json()[self._key[service]]
             except IOError:
                 _LOGGER.debug('Service %s failed', service)
 

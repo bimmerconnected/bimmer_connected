@@ -1,0 +1,30 @@
+{
+	"allTrips": {
+		"avgElectricConsumption": {
+			"communityLow": -4.75,
+			"communityAverage": 5.89,
+			"communityHigh": 21.11
+		},
+		"avgRecuperation": {
+			"communityLow": 1.27,
+			"communityAverage": 5.31,
+			"communityHigh": 19.77
+		},
+		"chargecycleRange": {
+			"communityAverage": 11.04,
+			"communityHigh": 169.59
+		},
+		"totalElectricDistance": {
+			"communityLow": 468.19,
+			"communityAverage": 15879.33,
+			"communityHigh": 58982
+		},
+		"avgCombinedConsumption": {
+			"communityLow": 2.45,
+			"communityAverage": 6.06,
+			"communityHigh": 10.86
+		},
+		"resetDate": "2020-01-11T21:51:10+0000",
+		"batterySizeMax": 9140
+	}
+}

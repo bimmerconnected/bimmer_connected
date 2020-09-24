@@ -1,0 +1,75 @@
+{
+	"vehicleStatus": {
+		"vin": "G30_PHEV_OS7_VIN",
+		"mileage": 5050,
+		"updateReason": "DOOR_STATE_CHANGED",
+		"updateTime": "2020-07-25T12:27:42+0000",
+		"doorDriverFront": "CLOSED",
+		"doorDriverRear": "CLOSED",
+		"doorPassengerFront": "CLOSED",
+		"doorPassengerRear": "CLOSED",
+		"windowDriverFront": "CLOSED",
+		"windowDriverRear": "CLOSED",
+		"windowPassengerFront": "CLOSED",
+		"windowPassengerRear": "CLOSED",
+		"trunk": "CLOSED",
+		"rearWindow": "INVALID",
+		"hood": "CLOSED",
+		"doorLockState": "SECURED",
+		"parkingLight": "OFF",
+		"positionLight": "OFF",
+		"remainingFuel": 39,
+		"remainingRangeElectric": 32,
+		"remainingRangeElectricMls": 19,
+		"remainingRangeFuel": 484,
+		"remainingRangeFuelMls": 300,
+		"fuelPercent": 92.4,
+		"connectionStatus": "DISCONNECTED",
+		"chargingStatus": "INVALID",
+		"chargingLevelHv": 85,
+		"lastChargingEndReason": "CHARGING_GOAL_REACHED",
+		"lastChargingEndResult": "SUCCESS",
+		"position": {
+			"lat": 52.82273,
+			"lon": 8.82767,
+			"heading": 81,
+			"status": "OK"
+		},
+		"internalDataTimeUTC": "2020-07-25T12:27:43+0000",
+		"singleImmediateCharging": false,
+		"chargingConnectionType": "CONDUCTIVE",
+		"chargingInductivePositioning": "NOT_POSITIONED",
+		"vehicleCountry": "DE",
+		"checkControlMessages": [],
+		"cbsData": [
+			{
+				"cbsType": "OIL",
+				"cbsState": "OK",
+				"cbsRemainingMileage": 26000,
+				"cbsDueDate": "2021-12",
+				"cbsDescription": "Next service due when the stated distance has been covered or by the specified date."
+			},
+			{
+				"cbsType": "BRAKE_FLUID",
+				"cbsState": "OK",
+				"cbsDueDate": "2022-12",
+				"cbsDescription": "Next change due at the latest by the stated date."
+			},
+			{
+				"cbsType": "VEHICLE_TUV",
+				"cbsState": "OK",
+				"cbsDueDate": "2023-02",
+				"cbsDescription": "Next statutory vehicle inspection due by the stated date."
+			},
+			{
+				"cbsType": "VEHICLE_CHECK",
+				"cbsState": "OK",
+				"cbsRemainingMileage": 60000,
+				"cbsDueDate": "2023-12",
+				"cbsDescription": "Next visual inspection due when the stated distance has been covered or by the stated date."
+			}
+		],
+		"DCS_CCH_Activation": "NA",
+		"DCS_CCH_Ongoing": false
+	}
+}

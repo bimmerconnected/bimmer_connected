@@ -3,6 +3,7 @@
 AUTH_URL = 'https://customer.bmwgroup.com/{gcdm_oauth_endpoint}/authenticate'
 AUTH_URL_LEGACY = 'https://{server}/gcdm/oauth/token'
 BASE_URL = 'https://{server}/webapi/v1'
+BASE_URL_LEGACY = 'https://{server}/api/vehicle/'
 
 VEHICLES_URL = BASE_URL + '/user/vehicles'
 VEHICLE_VIN_URL = VEHICLES_URL + '/{vin}'
@@ -17,6 +18,8 @@ VEHICLE_STATISTICS_ALL_TRIPS_URL = VEHICLE_STATISTICS_URL + '/allTrips'
 VEHICLE_CHARGING_PROFILE_URL = VEHICLE_VIN_URL + '/chargingprofile'
 VEHICLE_DESTINATIONS_URL = VEHICLE_VIN_URL + '/destinations'
 VEHICLE_RANGEMAP_URL = VEHICLE_VIN_URL + '/rangemap'
+VEHICLE_EFFICIENCY = BASE_URL_LEGACY + '/efficiency' + '/v1/{vin}'
+VEHICLE_NAVIGATION = BASE_URL_LEGACY + '/navigation' + '/v1/{vin}'
 
 SERVICE_STATUS = 'STATUS'
 SERVICE_LAST_TRIP = 'LAST_TRIP'
@@ -24,7 +27,8 @@ SERVICE_ALL_TRIPS = 'ALL_TRIPS'
 SERVICE_CHARGING_PROFILE = 'CHARGING_PROFILE'
 SERVICE_DESTINATIONS = 'DESTINATIONS'
 SERVICE_RANGEMAP = 'RANGEMAP'
-
+SERVICE_EFFICIENCY = 'EFFICIENCY'
+SERVICE_NAVIGATION = 'NAVIGATION'
 
 # Possible error codes, other codes are mapped to UNKNOWN_ERROR
 ERROR_CODE_MAPPING = {
