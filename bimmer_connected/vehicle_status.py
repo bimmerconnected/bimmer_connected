@@ -337,6 +337,12 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
+    def fuel_percent(self) -> int:
+        """State of fuel in percent."""
+        return int(self._state.attributes[SERVICE_STATUS]['fuelPercent'])
+
+    @property
+    @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
         """List of check control messages."""
         # TO DO change this in HA binary_sensor.py first

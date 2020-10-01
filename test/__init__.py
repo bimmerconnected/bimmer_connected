@@ -18,6 +18,7 @@ F15_VIN = 'F15_VIN'
 I01_NOREX_VIN = 'I01_NOREX_VIN'
 F45_VIN = 'F45_VIN'
 F31_VIN = 'F31_VIN'
+G30_PHEV_OS7_VIN = 'G30_PHEV_OS7_VIN'
 
 #: Mapping of VINs to test data directories
 TEST_VEHICLE_DATA = {
@@ -28,6 +29,7 @@ TEST_VEHICLE_DATA = {
     F15_VIN: 'F15',
     F45_VIN: 'F45',
     F31_VIN: 'F31',
+    G30_PHEV_OS7_VIN: 'G30_PHEV_OS7'
 }
 
 _AUTH_RESPONSE_HEADERS = {
@@ -60,7 +62,7 @@ ATTRIBUTE_MAPPING = {
     'parkingLight': 'parking_lights',
     'remainingRangeFuel': 'remaining_range_fuel',
     'updateTime': 'timestamp',
-    'chargingTimeRemaining': 'charging_time_remaining',
+    'chargingTimeRemaining': 'charging_time_remaining'
 }
 
 # these are additional attributes in the API, not available in the status.json
@@ -71,6 +73,7 @@ ADDITIONAL_ATTRIBUTES = [
     'lids',                     # required for existing Home Assistant binary sensors
     'windows',                  # required for existing Home Assistant binary sensors
     'lights_parking',           # required for existing Home Assistant binary sensors
+    'steering',                 # para not available in all vehicles
 ]
 
 # there attributes are not (yet) implemented
@@ -81,7 +84,8 @@ MISSING_ATTRIBUTES = [
     'chargingTimeRemaining',      # only present while charging
     'sunroof',                    # not available in all vehicles
     'lights_parking',             # required for existing Home Assistant binary sensors
-
+    'steering',                   # para not available in all vehicles
+    'vehicleCountry',             # para not available in all vehicles
 ]
 
 POI_DATA = {

@@ -1,0 +1,55 @@
+{
+	"modelType": "PHEV",
+	"lastTripList": [
+		{
+			"name": "LASTTRIP_DELTA_KM",
+			"unit": "KM",
+			"lastTrip": "--"
+		},
+		{
+			"name": "LASTTRIP_DELTA_TIME",
+			"unit": "NONE",
+			"lastTrip": "--"
+		},
+		{
+			"name": "COMBINED_AVG_CONSUMED_LITERS_OVERALL",
+			"unit": "L_PER_100KM",
+			"lastTrip": "--"
+		}
+	],
+	"lifeTimeList": [
+		{
+			"name": "CUMULATED_ELECTRIC_DRIVEN_DISTANCE",
+			"unit": "KM",
+			"lifeTime": "--"
+		},
+		{
+			"name": "SAVED_LITERS_OVERALL",
+			"unit": "LITER",
+			"lifeTime": "0.0"
+		},
+		{
+			"name": "TIMESTAMP_STATISTICS_RESET",
+			"lifeTime": "12.01.2020"
+		}
+	],
+	"efficiencyQuotient": 0,
+	"characteristicList": [
+		{
+			"characteristic": "CONSUMPTION",
+			"quantity": 0
+		},
+		{
+			"characteristic": "DRIVING_MODE",
+			"quantity": 0
+		},
+		{
+			"characteristic": "CHARGING_BEHAVIOUR",
+			"quantity": 0
+		},
+		{
+			"characteristic": "ELECTRIC_DRIVING",
+			"quantity": 0
+		}
+	]
+}
