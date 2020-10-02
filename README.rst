@@ -107,7 +107,7 @@ And please add tests where it makes sense. The more the better.
 Thank you
 =========
 
-Thank you Christian, m1n3rva, gerard33, rikroe, robthebold, timmccor, kernelkraut, robbz23, swimsystems and lawtancool for your research and contributions!
+Thank you to all `contributors <https://github.com/bimmerconnected/bimmer_connected/graphs/contributors>`_ for your research and contributions! And thanks to everyone who shares the `fingerprint data <https://github.com/bimmerconnected/bimmer_connected#data-contributions>`_ of their vehicles which we use to test the code.
 
 This library is basically a best-of of other similar solutions,
 yet none of them provided a ready to use library with a matching interface
