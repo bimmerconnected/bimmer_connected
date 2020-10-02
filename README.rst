@@ -104,6 +104,8 @@ Contributions are welcome! Please make sure that your code passed the :code:`tox
 We currently test against :code:`flake8`, :code:`pylint` and our own :code:`pytest` suite.
 And please add tests where it makes sense. The more the better.
 
+See the `contributing guidelines <https://github.com/bimmerconnected/bimmer_connected/blob/master/CONTRIBUTING.md>`_ for more details.
+
 Thank you
 =========
 
