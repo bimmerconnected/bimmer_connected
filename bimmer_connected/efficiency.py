@@ -136,19 +136,19 @@ class Efficiency:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def model_type(self) -> str:
-        """Returns the average electric consumption."""
+        """Returns the model type."""
         return self._state.attributes[SERVICE_EFFICIENCY]['modelType']
 
     @property
     @backend_parameter
     def efficiency_quotient(self) -> int:
-        """Returns the average electric consumption."""
+        """Returns the efficiency quotient."""
         return int(self._state.attributes[SERVICE_EFFICIENCY]['efficiencyQuotient'])
 
     @property
     @backend_parameter
     def last_trip_list(self) -> List[LastTrip]:
-        """Returns the average electric consumption."""
+        """Returns the list of last trips."""
         ret_list = []
         last_trip_list = self._state.attributes[SERVICE_EFFICIENCY].get('lastTripList', [])
         for trip in last_trip_list:
@@ -158,7 +158,7 @@ class Efficiency:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def life_time_list(self) -> List[LifeTime]:
-        """Returns the average electric consumption."""
+        """Returns the life time list."""
         ret_list = []
         last_time_list = self._state.attributes[SERVICE_EFFICIENCY].get('lifeTimeList', [])
         for time in last_time_list:
@@ -168,7 +168,7 @@ class Efficiency:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def characteristic_list(self) -> List[Characteristic]:
-        """Returns the average electric consumption."""
+        """Returns the characteristic list."""
         ret_list = []
         characteristic_list = self._state.attributes[SERVICE_EFFICIENCY].get('characteristicList', [])
         for characteristic in characteristic_list:

@@ -1,4 +1,4 @@
-"""Models the charging profiles of a vehicle."""
+"""Models the last trip of a vehicle."""
 
 import logging
 
@@ -64,13 +64,13 @@ class LastTrip:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def averege_electric_consumption(self) -> float:
+    def average_electric_consumption(self) -> float:
         """Returns the average electric consumption."""
         return float(self._state.attributes[SERVICE_LAST_TRIP]['avgElectricConsumption'])
 
     @property
     @backend_parameter
-    def averege_recuperation(self) -> float:
+    def average_recuperation(self) -> float:
         """Returns the average recuperation."""
         return float(self._state.attributes[SERVICE_LAST_TRIP]['avgRecuperation'])
 
@@ -106,8 +106,8 @@ class LastTrip:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def averege_combined_consumption(self) -> float:
-        """Returns the averege combined consumption."""
+    def average_combined_consumption(self) -> float:
+        """Returns the average combined consumption."""
         return float(self._state.attributes[SERVICE_LAST_TRIP]['avgCombinedConsumption'])
 
     @property
