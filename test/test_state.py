@@ -144,8 +144,7 @@ class TestState(unittest.TestCase):
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             vehicle = account.get_vehicle(G31_VIN)
-            with self.assertRaises(IOError):
-                vehicle.state.update_data()
+            vehicle.state.update_data()
 
             backend_mock.setup_default_vehicles()
 
