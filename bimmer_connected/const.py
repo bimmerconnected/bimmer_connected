@@ -1,6 +1,6 @@
 """URLs for different services and error code mapping."""
 
-AUTH_URL = 'https://customer.bmwgroup.com/{gcdm_oauth_endpoint}/authenticate'
+AUTH_URL = 'https://customer.bmwgroup.com/{gcdm_oauth_endpoint}/token'
 AUTH_URL_LEGACY = 'https://{server}/gcdm/oauth/token'
 BASE_URL = 'https://{server}/webapi/v1'
 BASE_URL_LEGACY = 'https://{server}/api/vehicle/'
