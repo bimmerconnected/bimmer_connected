@@ -3,7 +3,8 @@ from enum import Enum
 import logging
 from typing import List
 
-from bimmer_connected.state import VehicleState, WINDOWS, LIDS
+from bimmer_connected.state import VehicleState
+from bimmer_connected.vehicle_status import WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import VEHICLE_IMAGE_URL
 
@@ -19,7 +20,10 @@ class DriveTrainType(Enum):
 
 
 #: Set of drive trains that have a combustion engine
-COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.CONVENTIONAL, DriveTrainType.PHEV, DriveTrainType.BEV_REX}
+COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.CONVENTIONAL, DriveTrainType.PHEV}
+
+#: Set of drive trains that have a range extender
+RANGE_EXTENDER_DRIVE_TRAINS = {DriveTrainType.BEV_REX}
 
 #: set of drive trains that have a high voltage battery
 HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PHEV, DriveTrainType.BEV, DriveTrainType.BEV_REX}
@@ -90,6 +94,13 @@ class ConnectedDriveVehicle:
         return self.drive_train in HV_BATTERY_DRIVE_TRAINS
 
     @property
+    def has_range_extender(self) -> bool:
+        """Return True if vehicle is equipped with a range extender.
+
+        In this case we can get the state of the gas tank."""
+        return self.drive_train in RANGE_EXTENDER_DRIVE_TRAINS
+
+    @property
     def has_internal_combustion_engine(self) -> bool:
         """Return True if vehicle is equipped with an internal combustion engine.
 
@@ -112,8 +123,11 @@ class ConnectedDriveVehicle:
                        'lastChargingEndReason', 'remaining_range_electric', 'lastChargingEndResult']
         if self.has_internal_combustion_engine:
             result += ['remaining_range_fuel']
+        if self.has_hv_battery and self.has_range_extender:
+            result += ['maxFuel', 'remaining_range_fuel']
         if self.has_hv_battery and self.has_internal_combustion_engine:
-            result += ['maxFuel']
+            result += ['fuelPercent']
+            result.remove('max_range_electric')
         return result
 
     @property

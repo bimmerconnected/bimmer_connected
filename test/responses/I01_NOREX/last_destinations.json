@@ -1,0 +1,13 @@
+{
+   "destinations":[
+      {
+         "lat":51.53053283691406,
+         "lon":-0.08362331241369247,
+         "country":"UNITED KINGDOM",
+         "city":"LONDON",
+         "street":"PITFIELD STREET",
+         "type":"DESTINATION",
+         "createdAt":"2015-09-25T08:06:11+0200"
+      }
+   ]
+}
