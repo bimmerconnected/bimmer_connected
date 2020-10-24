@@ -69,7 +69,7 @@ class StatisticValues:
     @property
     @backend_parameter_statistic
     def user_current_charge_cycle(self) -> float:
-        """Get the users current change cycle."""
+        """Get the users current charge cycle."""
         return float(self._ccm_dict["userCurrentChargeCycle"])
 
 
@@ -104,31 +104,31 @@ class AllTrips:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def reset_date(self) -> str:
-        """Returns the average combined consumption."""
+        """Returns the reset date."""
         return self._state.attributes[SERVICE_ALL_TRIPS]['resetDate']
 
     @property
     @backend_parameter
     def battery_size_max(self) -> int:
-        """Maximal battery size, in Wh."""
+        """Returns the maximal battery size, in Wh."""
         return int(self._state.attributes[SERVICE_ALL_TRIPS]['batterySizeMax'])
 
     @property
     @backend_parameter
     def saved_co2(self) -> int:
-        """Maximal battery size, in Wh."""
+        """Returns the saved CO2, in kg."""
         return float(self._state.attributes[SERVICE_ALL_TRIPS]['savedCO2'])
 
     @property
     @backend_parameter
     def saved_co2_green_energy(self) -> int:
-        """Maximal battery size, in Wh."""
+        """Returns the save CO2GreenEnergym in kg."""
         return float(self._state.attributes[SERVICE_ALL_TRIPS]['savedCO2greenEnergy'])
 
     @property
     @backend_parameter
     def total_saved_fuel(self) -> int:
-        """Maximal battery size, in Wh."""
+        """Returns the total saved fuel, in l."""
         return float(self._state.attributes[SERVICE_ALL_TRIPS]['totalSavedFuel'])
 
     @property

@@ -1,4 +1,4 @@
-"""Test for old deprecate state api."""
+"""Test for old deprecated state api."""
 
 import unittest
 from unittest import mock
