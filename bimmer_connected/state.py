@@ -94,7 +94,7 @@ class VehicleState:
             'dlon': self._vehicle.observer_longitude,
         }
 
-        for service in self._url:
+        for service in self._vehicle.available_state_services:
             try:
                 response = self._account.send_request(
                     self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin),

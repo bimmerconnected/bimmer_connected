@@ -88,6 +88,13 @@ MISSING_ATTRIBUTES = [
     'vehicleCountry',             # para not available in all vehicles
 ]
 
+AVAILABLE_STATES_MAPPING = {
+    "statisticsAvailable": {True: ["LAST_TRIP", "ALL_TRIPS"]},
+    "chargingControl": {"WEEKLY_PLANNER": ["CHARGING_PROFILE"]},
+    "lastDestinations": {"SUPPORTED": ["DESTINATIONS"]},
+    "rangeMap": {"RANGE_CIRCLE": ["RANGEMAP"]}
+}
+
 POI_DATA = {
     "lat": 37.4028943,
     "lon": -121.9700289,
