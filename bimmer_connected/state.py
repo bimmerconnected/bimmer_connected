@@ -134,7 +134,7 @@ class VehicleState:
     @backend_parameter
     def timestamp(self) -> datetime.datetime:
         """Get the timestamp when the data was recorded."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.timestamp instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.timestamp instead")
         return self.vehicle_status.timestamp
 
     @property
@@ -145,7 +145,7 @@ class VehicleState:
         Returns a tuple of (latitude, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.gps_position instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.gps_position instead")
         return self.vehicle_status.gps_position
 
     @property
@@ -155,7 +155,7 @@ class VehicleState:
 
         The server return "OK" if tracking is enabled and "DRIVER_DISABLED" if it is disabled in the vehicle.
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.is_vehicle_tracking_enabled instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.is_vehicle_tracking_enabled instead")
         return bool(self.vehicle_status.is_vehicle_tracking_enabled)
 
     @property
@@ -165,7 +165,7 @@ class VehicleState:
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.mileage instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.mileage instead")
         return self.vehicle_status.mileage
 
     @property
@@ -175,7 +175,7 @@ class VehicleState:
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.remaining_range_fuel instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.remaining_range_fuel instead")
         return self.vehicle_status.remaining_range_fuel
 
     @property
@@ -185,91 +185,91 @@ class VehicleState:
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.remaining_fuel instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.remaining_fuel instead")
         return self.vehicle_status.remaining_fuel
 
     @property
     @backend_parameter
     def lids(self) -> List[Lid]:
         """Get all lids (doors+hatch+trunk) of the car."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.lids instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.lids instead")
         return self.vehicle_status.lids
 
     @property
     @backend_parameter
     def open_lids(self) -> List[Lid]:
         """Get all open lids of the car."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.open_lids instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.open_lids instead")
         return self.vehicle_status.open_lids
 
     @property
     @backend_parameter
     def all_lids_closed(self) -> bool:
         """Check if all lids are closed."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.all_lids_closed instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.all_lids_closed instead")
         return self.vehicle_status.all_lids_closed
 
     @property
     @backend_parameter
     def windows(self) -> List[Window]:
         """Get all windows (doors+sun roof) of the car."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.windows instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.windows instead")
         return self.vehicle_status.windows
 
     @property
     @backend_parameter
     def open_windows(self) -> List[Window]:
         """Get all open windows of the car."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.open_windows instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.open_windows instead")
         return self.vehicle_status.open_windows
 
     @property
     @backend_parameter
     def all_windows_closed(self) -> bool:
         """Check if all windows are closed."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.all_windows_closed instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.all_windows_closed instead")
         return self.vehicle_status.all_windows_closed
 
     @property
     @backend_parameter
     def door_lock_state(self) -> LockState:
         """Get state of the door locks."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.all_windows_closed instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.all_windows_closed instead")
         return self.vehicle_status.door_lock_state
 
     @property
     @backend_parameter
     def last_update_reason(self) -> str:
         """The reason for the last state update"""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.last_update_reason instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.last_update_reason instead")
         return self.vehicle_status.last_update_reason
 
     @property
     @backend_parameter
     def last_charging_end_result(self) -> str:
         """Get the last charging end result"""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.last_charging_end_result instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.last_charging_end_result instead")
         return self.vehicle_status.last_charging_end_result
 
     @property
     @backend_parameter
     def connection_status(self) -> str:
         """Get status of the connection"""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.connection_status instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.connection_status instead")
         return self.vehicle_status.connection_status
 
     @property
     @backend_parameter
     def condition_based_services(self) -> List[ConditionBasedServiceReport]:
         """Get status of the condition based services."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.condition_based_services instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.condition_based_services instead")
         return self.vehicle_status.condition_based_services
 
     @property
     @backend_parameter
     def are_all_cbs_ok(self) -> bool:
         """Check if the status of all condition based services is "OK"."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.are_all_cbs_ok instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.are_all_cbs_ok instead")
         return bool(self.vehicle_status.are_all_cbs_ok)
 
     @property
@@ -279,7 +279,7 @@ class VehicleState:
 
         :returns None if status is unknown.
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.parking_lights instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.parking_lights instead")
         return self.vehicle_status.parking_lights
 
     @property
@@ -289,14 +289,14 @@ class VehicleState:
 
         :returns None if status is unknown.
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.are_parking_lights_on instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.are_parking_lights_on instead")
         return bool(self.vehicle_status.are_parking_lights_on)
 
     @property
     @backend_parameter
     def remaining_range_electric(self) -> int:
         """Remaining range on battery, in kilometers."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.remaining_range_electric instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.remaining_range_electric instead")
         return self.vehicle_status.remaining_range_electric
 
     @property
@@ -306,47 +306,47 @@ class VehicleState:
 
         That is electrical range + fuel range.
         """
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.remaining_range_total instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.remaining_range_total instead")
         return self.vehicle_status.remaining_range_total
 
     @property
     @backend_parameter
     def max_range_electric(self) -> int:
         """ This can change with driving style and temperature in kilometers."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.max_range_electric instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.max_range_electric instead")
         return self.vehicle_status.max_range_electric
 
     @property
     @backend_parameter
     def charging_status(self) -> ChargingState:
         """Charging state of the vehicle."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.charging_status instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.charging_status instead")
         return self.vehicle_status.charging_status
 
     @property
     @backend_parameter
     def charging_time_remaining(self) -> datetime.timedelta:
         """Get the remaining charging time."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.charging_time_remaining instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.charging_time_remaining instead")
         return self.vehicle_status.charging_time_remaining
 
     @property
     @backend_parameter
     def charging_level_hv(self) -> int:
         """State of charge of the high voltage battery in percent."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.charging_level_hv instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.charging_level_hv instead")
         return self.vehicle_status.charging_level_hv
 
     @property
     @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
         """List of check control messages."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.check_control_messages instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.check_control_messages instead")
         return self.vehicle_status.check_control_messages
 
     @property
     @backend_parameter
     def has_check_control_messages(self) -> bool:
         """Return true if any check control message is present."""
-        _LOGGER.warning("Funcion deprecated use state.vehicle_status.has_check_control_messages instead")
+        _LOGGER.warning("Function deprecated use state.vehicle_status.has_check_control_messages instead")
         return bool(self.vehicle_status.has_check_control_messages)
