@@ -105,6 +105,8 @@ class VehicleState:
                     self._attributes[service] = response.json()[self._key[service]]
             except IOError:
                 _LOGGER.debug('Service %s failed', service)
+            except KeyError: # When JSON contains no service-key
+                _LOGGER.debug('Service %s failed', service)
 
         _LOGGER.debug(self._attributes)
         _LOGGER.debug('received new data from connected drive')
