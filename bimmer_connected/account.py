@@ -72,38 +72,28 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Content-Length": "124",
                 "Connection": "Keep-Alive",
-                "Host": self.server_url,
+                "Host": "customer.bmwgroup.com" if self._region == Regions.REST_OF_WORLD else self.server_url,
                 "Accept-Encoding": "gzip",
-                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
-                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
+                "Authorization": "Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3ZjhkOjE1"
+                                 "ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==",
                 "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
-                "User-Agent": "okhttp/2.60",
+                "User-Agent": "okhttp/3.12.2",
             }
 
             # we really need all of these parameters
             values = {
                 'scope': 'authenticate_user vehicle_data remote_services',
+                'grant_type': 'password',
                 'username': self._username,
                 'password': self._password,
             }
-
-            if self._region == Regions.REST_OF_WORLD:
-                values.update({
-                    'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
-                    'response_type': 'token',
-                    'redirect_uri': 'https://www.bmw-connecteddrive.com/app/static/external-dispatch.html',
-                })
-            else:
-                values.update({
-                    'grant_type': 'password',
-                })
 
             data = urllib.parse.urlencode(values)
             if self._region == Regions.REST_OF_WORLD:
                 url = AUTH_URL.format(
                     gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
                 )
-                expected_response_code = 302
+                expected_response_code = 200
             else:
                 url = AUTH_URL_LEGACY.format(server=self.server_url)
                 expected_response_code = 200
@@ -116,12 +106,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 _LOGGER.exception(exception)
                 raise OSError(msg) from exception
 
-            if self._region == Regions.REST_OF_WORLD:
-                response_json = dict(
-                    urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment)
-                )
-            else:
-                response_json = response.json()
+            response_json = response.json()
 
             self._oauth_token = response_json['access_token']
             expiration_time = int(response_json['expires_in'])
