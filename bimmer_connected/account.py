@@ -185,6 +185,12 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             'heading': 123,
             'vin': 'some_vin',
             'licensePlate': 'some_license_plate',
+            'name': 'some_name',
+            'city': 'some_city',
+            'street': 'some_street',
+            'streetNumber': '999',
+            'postalCode': 'some_postal_code',
+            'phone': 'some_phone',
         }
 
         if isinstance(json_data, list):
