@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 _POLLING_CYCLE = 1
 
 #: maximum number of seconds to wait for the server to return a positive answer
-_POLLING_TIMEOUT = 60
+_POLLING_TIMEOUT = 120
 
 #: time in seconds to wait before updating the vehicle state from the server
 _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
@@ -33,6 +33,7 @@ class ExecutionState(Enum):
     PENDING = 'PENDING'
     DELIVERED = 'DELIVERED'
     EXECUTED = 'EXECUTED'
+    UNKOWN = 'UNKOWN'
 
 
 class _Services(Enum):
@@ -116,7 +117,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
         status = response['executionStatus']
-        self.state = ExecutionState(status['status'])
+        self.state = ExecutionState(status.get('status', 'UNKOWN'))
         self.event_id = status['eventId']
 
     @staticmethod
@@ -212,7 +213,7 @@ class RemoteServices:
         while True:
             status = self._get_remote_service_status(service)
             _LOGGER.debug('current state if remote service is: %s', status.state.value)
-            if status.state not in [ExecutionState.PENDING, ExecutionState.DELIVERED]:
+            if status.state not in [ExecutionState.UNKOWN, ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
             if datetime.datetime.now() > fail_after:
                 raise IOError(
