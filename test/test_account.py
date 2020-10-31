@@ -38,7 +38,7 @@ class TestAccount(unittest.TestCase):
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA)
             request = [r for r in backend_mock.last_request if 'oauth' in r.url][0]
-            self.assertEqual('b2vapi.bmwgroup.us', request.headers['Host'])
+            self.assertEqual('customer.bmwgroup.com', request.headers['Host'])
 
     def test_anonymize_data(self):
         """Test anonymization function."""

@@ -22,9 +22,9 @@ _SERVER_URLS = {
 
 #: Mapping from regions to servers
 _GCDM_OAUTH_ENDPOINTS = {
-    Regions.NORTH_AMERICA: 'gcdm/usa/oauth',
-    Regions.REST_OF_WORLD: 'gcdm/oauth',
-    Regions.CHINA: 'gcdm/oauth'
+    Regions.NORTH_AMERICA: 'customer.bmwgroup.com/gcdm/usa',
+    Regions.REST_OF_WORLD: 'customer.bmwgroup.com/gcdm',
+    Regions.CHINA: 'customer.bmwgroup.cn/gcdm'
 }
 
 
