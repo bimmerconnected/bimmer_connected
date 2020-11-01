@@ -5,6 +5,7 @@ from typing import List
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.vehicle_status import WINDOWS, LIDS
+from bimmer_connected.range_maps import RangeMapServices
 from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import VEHICLE_IMAGE_URL, SERVICE_ALL_TRIPS, SERVICE_CHARGING_PROFILE, \
     SERVICE_DESTINATIONS, SERVICE_EFFICIENCY, SERVICE_LAST_TRIP, SERVICE_NAVIGATION, \
@@ -117,17 +118,24 @@ class ConnectedDriveVehicle:
     @property
     def has_weekly_planner_service(self) -> bool:
         """Return True if charging control (weekly planner) is available."""
-        return self.attributes.get('chargingControl') == "WEEKLY_PLANNER"
+        return self.attributes.get('chargingControl') != "NOT_SUPPORTED"
 
     @property
     def has_destination_service(self) -> bool:
         """Return True if destinations are available."""
-        return self.attributes.get('lastDestinations') == "SUPPORTED"
+        return self.attributes.get('lastDestinations') != "NOT_SUPPORTED"
 
     @property
     def has_rangemap_service(self) -> bool:
         """Return True if rangemap (range circle) is available."""
-        return self.attributes.get('rangeMap') == "RANGE_CIRCLE"
+        return self.attributes.get('rangeMap') != "NOT_SUPPORTED"
+
+    @property
+    def rangemap_service_type(self) -> RangeMapServices:
+        """Returns the vehicles rangemap service type if available."""
+        if self.has_rangemap_service:
+            return RangeMapServices[self.attributes.get('rangeMap')]
+        return None
 
     @property
     def drive_train_attributes(self) -> List[str]:

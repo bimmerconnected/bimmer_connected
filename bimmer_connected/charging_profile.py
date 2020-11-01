@@ -34,18 +34,18 @@ class ChargingWindow:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, window_dict: dict):
+        self._window_dict = window_dict
 
     @property
     def start_time(self) -> str:
         """Start of the charging window."""
-        return self._ccm_dict["startTime"]
+        return self._window_dict["startTime"]
 
     @property
     def end_time(self) -> str:
         """End of the charging window."""
-        return self._ccm_dict["endTime"]
+        return self._window_dict["endTime"]
 
 
 class ClimatizationTimer:
@@ -53,23 +53,23 @@ class ClimatizationTimer:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, clima_dict: dict):
+        self._clima_dict = clima_dict
 
     @property
     def departure_time(self) -> str:
         """Deperture time for this timer."""
-        return self._ccm_dict["departureTime"]
+        return self._clima_dict["departureTime"]
 
     @property
     def timer_enabled(self) -> bool:
         """Is the timer enabled."""
-        return self._ccm_dict["timerEnabled"]
+        return self._clima_dict["timerEnabled"]
 
     @property
     def weekdays(self) -> List[str]:
         """Active weekdays for this timer."""
-        return self._ccm_dict["weekdays"]
+        return self._clima_dict["weekdays"]
 
 
 def backend_parameter(func):

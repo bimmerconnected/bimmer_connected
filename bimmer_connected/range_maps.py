@@ -9,6 +9,12 @@ from bimmer_connected.const import SERVICE_RANGEMAP
 _LOGGER = logging.getLogger(__name__)
 
 
+class RangeMapServices(Enum):
+    """Range map services."""
+    POLYGON = 'RANGE_POLYGON'
+    CIRCLE = 'RANGE_CIRCLE'
+
+
 class RangeMapType(Enum):
     """Range map types."""
     ECO_PRO_PLUS = 'ECO_PRO_PLUS'
@@ -25,18 +31,18 @@ class MapPoint:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, mp_dict: dict):
+        self._mp_dict = mp_dict
 
     @property
     def latitude(self) -> float:
         """latitude of this point."""
-        return float(self._ccm_dict["lat"])
+        return float(self._mp_dict["lat"])
 
     @property
     def longitude(self) -> float:
         """longitude of this point."""
-        return float(self._ccm_dict["lon"])
+        return float(self._mp_dict["lon"])
 
 
 class RangeMap:
@@ -44,19 +50,19 @@ class RangeMap:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, range_dict: dict):
+        self._range_dict = range_dict
 
     @property
     def range_map_type(self) -> RangeMapType:
         """Type of the range map."""
-        return RangeMapType(self._ccm_dict["type"])
+        return RangeMapType(self._range_dict["type"])
 
     @property
     def polyline(self) -> List[MapPoint]:
         """polylines of this range map."""
         pol_list = []
-        for map_point in self._ccm_dict["polyline"]:
+        for map_point in self._range_dict["polyline"]:
             pol_list.append(MapPoint(map_point))
         return pol_list
 

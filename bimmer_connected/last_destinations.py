@@ -19,43 +19,43 @@ class Destination:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, dest_dict: dict):
+        self._dest_dict = dest_dict
 
     @property
     def latitude(self) -> float:
         """latitude of this destination."""
-        return float(self._ccm_dict["lat"])
+        return float(self._dest_dict["lat"])
 
     @property
     def longitude(self) -> float:
         """longitude of this destination."""
-        return float(self._ccm_dict["lon"])
+        return float(self._dest_dict["lon"])
 
     @property
     def country(self) -> str:
         """Country of this destination."""
-        return self._ccm_dict["country"]
+        return self._dest_dict["country"]
 
     @property
     def city(self) -> str:
         """City of this destination."""
-        return self._ccm_dict["city"]
+        return self._dest_dict["city"]
 
     @property
     def street(self) -> str:
         """Street of this destination."""
-        return self._ccm_dict["street"]
+        return self._dest_dict["street"]
 
     @property
     def destination_type(self) -> DestinationType:
         """Type of this destination."""
-        return DestinationType(self._ccm_dict["type"])
+        return DestinationType(self._dest_dict["type"])
 
     @property
     def created_at(self) -> str:
         """Date of creation of this destination."""
-        return self._ccm_dict["createdAt"]
+        return self._dest_dict["createdAt"]
 
 
 def backend_parameter(func):

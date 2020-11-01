@@ -27,50 +27,50 @@ class StatisticValues:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, stats_dict: dict):
+        self._stats_dict = stats_dict
 
     @property
     @backend_parameter_statistic
     def community_low(self) -> float:
         """Get the community low value."""
-        return float(self._ccm_dict["communityLow"])
+        return float(self._stats_dict["communityLow"])
 
     @property
     @backend_parameter_statistic
     def community_average(self) -> float:
         """Get the community average value."""
-        return float(self._ccm_dict["communityAverage"])
+        return float(self._stats_dict["communityAverage"])
 
     @property
     @backend_parameter_statistic
     def community_high(self) -> float:
         """Get the community high value."""
-        return float(self._ccm_dict["communityHigh"])
+        return float(self._stats_dict["communityHigh"])
 
     @property
     @backend_parameter_statistic
     def user_average(self) -> float:
         """Get the user average value."""
-        return float(self._ccm_dict["userAverage"])
+        return float(self._stats_dict["userAverage"])
 
     @property
     @backend_parameter_statistic
     def user_high(self) -> float:
         """Get the user high value."""
-        return float(self._ccm_dict["userHigh"])
+        return float(self._stats_dict["userHigh"])
 
     @property
     @backend_parameter_statistic
     def user_total(self) -> float:
         """Get the user total value."""
-        return float(self._ccm_dict["userTotal"])
+        return float(self._stats_dict["userTotal"])
 
     @property
     @backend_parameter_statistic
     def user_current_charge_cycle(self) -> float:
         """Get the users current charge cycle."""
-        return float(self._ccm_dict["userCurrentChargeCycle"])
+        return float(self._stats_dict["userCurrentChargeCycle"])
 
 
 def backend_parameter(func):
