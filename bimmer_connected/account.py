@@ -78,10 +78,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "Connection": "Keep-Alive",
                 "Host": urllib.parse.urlparse(url).netloc,
                 "Accept-Encoding": "gzip",
-                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
-                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
+                "Authorization": "Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3ZjhkOjE1"
+                                 "ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==",
                 "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
-                "User-Agent": "okhttp/2.60",
+                "User-Agent": "okhttp/3.12.2",
             }
 
             # we really need all of these parameters
@@ -93,7 +93,6 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             }
 
             data = urllib.parse.urlencode(values)
-
             expected_response_code = 200
             try:
                 response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
@@ -183,6 +182,12 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             'heading': 123,
             'vin': 'some_vin',
             'licensePlate': 'some_license_plate',
+            'name': 'some_name',
+            'city': 'some_city',
+            'street': 'some_street',
+            'streetNumber': '999',
+            'postalCode': 'some_postal_code',
+            'phone': 'some_phone',
         }
 
         if isinstance(json_data, list):

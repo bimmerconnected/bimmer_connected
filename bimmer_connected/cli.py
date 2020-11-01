@@ -100,11 +100,11 @@ def get_status(args) -> None:
 
     for vehicle in account.vehicles:
         print('VIN: {}'.format(vehicle.vin))
-        print('Mileage: {}'.format(vehicle.state.mileage))
+        print('Mileage: {}'.format(vehicle.state.vehicle_status.mileage))
         print('Vehicle properties:')
         print(json.dumps(vehicle.attributes, indent=4))
         print('Vehicle status:')
-        print(json.dumps(vehicle.state.attributes, indent=4))
+        print(json.dumps(vehicle.state.vehicle_status.attributes, indent=4))
 
 
 def fingerprint(args) -> None:

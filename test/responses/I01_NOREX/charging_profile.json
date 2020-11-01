@@ -1,0 +1,40 @@
+{
+   "weeklyPlanner":{
+      "climatizationEnabled":true,
+      "chargingMode":"DELAYED_CHARGING",
+      "chargingPreferences":"CHARGING_WINDOW",
+      "timer1":{
+         "departureTime":"07:30",
+         "timerEnabled":true,
+         "weekdays":[
+            "MONDAY"
+         ]
+      },
+      "timer2":{
+         "departureTime":"13:00",
+         "timerEnabled":false,
+         "weekdays":[
+            "SATURDAY"
+         ]
+      },
+      "timer3":{
+         "departureTime":"08:00",
+         "timerEnabled":false,
+         "weekdays":[
+
+         ]
+      },
+      "overrideTimer":{
+         "departureTime":"07:30",
+         "timerEnabled":false,
+         "weekdays":[
+            "MONDAY"
+         ]
+      },
+      "preferredChargingWindow":{
+         "enabled":true,
+         "startTime":"05:02",
+         "endTime":"17:31"
+      }
+   }
+}
