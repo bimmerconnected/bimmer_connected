@@ -199,7 +199,8 @@ class VehicleState:
     def lids(self) -> List[Lid]:
         """DEPRECATED: Use state.vehicle_status.lids instead.
 
-        Get all lids (doors+hatch+trunk) of the car."""
+        Get all lids (doors+hatch+trunk) of the car.
+        """
         return self.vehicle_status.lids
 
     @property
@@ -207,7 +208,8 @@ class VehicleState:
     def open_lids(self) -> List[Lid]:
         """DEPRECATED: Use state.vehicle_status.open_lids instead.
 
-        Get all open lids of the car."""
+        Get all open lids of the car.
+        """
         return self.vehicle_status.open_lids
 
     @property
@@ -215,7 +217,8 @@ class VehicleState:
     def all_lids_closed(self) -> bool:
         """DEPRECATED: Use state.vehicle_status.all_lids_closed instead.
 
-        Check if all lids are closed."""
+        Check if all lids are closed.
+        """
         return self.vehicle_status.all_lids_closed
 
     @property
@@ -223,7 +226,8 @@ class VehicleState:
     def windows(self) -> List[Window]:
         """DEPRECATED: Use state.vehicle_status.windows instead.
 
-        Get all windows (doors+sun roof) of the car."""
+        Get all windows (doors+sun roof) of the car.
+        """
         return self.vehicle_status.windows
 
     @property
@@ -231,7 +235,8 @@ class VehicleState:
     def open_windows(self) -> List[Window]:
         """DEPRECATED: Use state.vehicle_status.open_windows instead.
 
-        Get all open windows of the car."""
+        Get all open windows of the car.
+        """
         return self.vehicle_status.open_windows
 
     @property
@@ -239,7 +244,8 @@ class VehicleState:
     def all_windows_closed(self) -> bool:
         """DEPRECATED: Use state.vehicle_status.all_windows_closed instead.
 
-        Check if all windows are closed."""
+        Check if all windows are closed.
+        """
         return self.vehicle_status.all_windows_closed
 
     @property
@@ -247,7 +253,8 @@ class VehicleState:
     def door_lock_state(self) -> LockState:
         """DEPRECATED: Use state.vehicle_status.all_windows_closed instead.
 
-        Get state of the door locks."""
+        Get state of the door locks.
+        """
         return self.vehicle_status.door_lock_state
 
     @property
@@ -279,7 +286,8 @@ class VehicleState:
     def condition_based_services(self) -> List[ConditionBasedServiceReport]:
         """DEPRECATED: Use state.vehicle_status.condition_based_services instead.
 
-        Get status of the condition based services."""
+        Get status of the condition based services.
+        """
         return self.vehicle_status.condition_based_services
 
     @property
@@ -287,7 +295,8 @@ class VehicleState:
     def are_all_cbs_ok(self) -> bool:
         """DEPRECATED: Use state.vehicle_status.are_all_cbs_ok instead.
 
-        Check if the status of all condition based services is "OK"."""
+        Check if the status of all condition based services is "OK".
+        """
         return bool(self.vehicle_status.are_all_cbs_ok)
 
     @property
@@ -317,7 +326,8 @@ class VehicleState:
     def remaining_range_electric(self) -> int:
         """DEPRECATED: Use state.vehicle_status.remaining_range_electric instead.
 
-        Remaining range on battery, in kilometers."""
+        Remaining range on battery, in kilometers.
+        """
         return self.vehicle_status.remaining_range_electric
 
     @property
@@ -326,7 +336,8 @@ class VehicleState:
         """DEPRECATED: Use state.vehicle_status.remaining_range_total instead.
 
         Get the total remaining range of the vehicle in kilometers.
-        That is electrical range + fuel range."""
+        That is electrical range + fuel range.
+        """
         return self.vehicle_status.remaining_range_total
 
     @property
@@ -334,7 +345,8 @@ class VehicleState:
     def max_range_electric(self) -> int:
         """DEPRECATED: Use state.vehicle_status.max_range_electric instead.
 
-        This can change with driving style and temperature in kilometers."""
+        This can change with driving style and temperature in kilometers.
+        """
         return self.vehicle_status.max_range_electric
 
     @property
@@ -342,7 +354,8 @@ class VehicleState:
     def charging_status(self) -> ChargingState:
         """DEPRECATED: Use state.vehicle_status.charging_status instead.
 
-        Charging state of the vehicle."""
+        Charging state of the vehicle.
+        """
         return self.vehicle_status.charging_status
 
     @property
@@ -350,7 +363,8 @@ class VehicleState:
     def charging_time_remaining(self) -> datetime.timedelta:
         """DEPRECATED: Use state.vehicle_status.charging_time_remaining instead.
 
-        Get the remaining charging time."""
+        Get the remaining charging time.
+        """
         return self.vehicle_status.charging_time_remaining
 
     @property
@@ -358,7 +372,8 @@ class VehicleState:
     def charging_level_hv(self) -> int:
         """DEPRECATED: Use state.vehicle_status.charging_level_hv instead.
 
-        State of charge of the high voltage battery in percent."""
+        State of charge of the high voltage battery in percent.
+        """
         return self.vehicle_status.charging_level_hv
 
     @property
@@ -366,7 +381,8 @@ class VehicleState:
     def check_control_messages(self) -> List[CheckControlMessage]:
         """DEPRECATED: Use state.vehicle_status.check_control_messages instead.
 
-        List of check control messages."""
+        List of check control messages.
+        """
         return self.vehicle_status.check_control_messages
 
     @property
@@ -374,5 +390,6 @@ class VehicleState:
     def has_check_control_messages(self) -> bool:
         """DEPRECATED: Use state.vehicle_status.has_check_control_messages instead.
 
-        Return true if any check control message is present."""
+        Return true if any check control message is present.
+        """
         return bool(self.vehicle_status.has_check_control_messages)
