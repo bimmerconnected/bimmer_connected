@@ -5,8 +5,11 @@ from typing import List
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.vehicle_status import WINDOWS, LIDS
+from bimmer_connected.range_maps import RangeMapServices
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_IMAGE_URL
+from bimmer_connected.const import VEHICLE_IMAGE_URL, SERVICE_ALL_TRIPS, SERVICE_CHARGING_PROFILE, \
+    SERVICE_DESTINATIONS, SERVICE_EFFICIENCY, SERVICE_LAST_TRIP, SERVICE_NAVIGATION, \
+    SERVICE_RANGEMAP, SERVICE_STATUS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -108,6 +111,33 @@ class ConnectedDriveVehicle:
         return self.drive_train in COMBUSTION_ENGINE_DRIVE_TRAINS
 
     @property
+    def has_statistics_service(self) -> bool:
+        """Return True if statistics are available."""
+        return self.attributes.get('statisticsAvailable')
+
+    @property
+    def has_weekly_planner_service(self) -> bool:
+        """Return True if charging control (weekly planner) is available."""
+        return self.attributes.get('chargingControl') != "NOT_SUPPORTED"
+
+    @property
+    def has_destination_service(self) -> bool:
+        """Return True if destinations are available."""
+        return self.attributes.get('lastDestinations') != "NOT_SUPPORTED"
+
+    @property
+    def has_rangemap_service(self) -> bool:
+        """Return True if rangemap (range circle) is available."""
+        return self.attributes.get('rangeMap') != "NOT_SUPPORTED"
+
+    @property
+    def rangemap_service_type(self) -> RangeMapServices:
+        """Returns the vehicles rangemap service type if available."""
+        if self.has_rangemap_service:
+            return RangeMapServices[self.attributes.get('rangeMap')]
+        return None
+
+    @property
     def drive_train_attributes(self) -> List[str]:
         """Get list of attributes available for the drive train of the vehicle.
 
@@ -154,6 +184,27 @@ class ConnectedDriveVehicle:
                        'parking_lights', 'positionLight', 'last_update_reason', 'singleImmediateCharging']
             # required for existing Home Assistant binary sensors
             result += ['lights_parking', 'lids', 'windows']
+        return result
+
+    @property
+    def available_state_services(self) -> List:
+        """Get the list of all available state services for this vehicle."""
+        result = [SERVICE_STATUS]
+        if self.has_statistics_service:
+            result += [SERVICE_LAST_TRIP, SERVICE_ALL_TRIPS]
+
+        if self.has_weekly_planner_service:
+            result += [SERVICE_CHARGING_PROFILE]
+
+        if self.has_destination_service:
+            result += [SERVICE_DESTINATIONS]
+
+        if self.has_rangemap_service:
+            result += [SERVICE_RANGEMAP]
+
+        if self.drive_train != DriveTrainType.CONVENTIONAL:
+            result += [SERVICE_EFFICIENCY, SERVICE_NAVIGATION]
+
         return result
 
     def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:

@@ -14,23 +14,23 @@ class LastTrip:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, trip_dict: dict):
+        self._trip_dict = trip_dict
 
     @property
     def name(self) -> str:
         """Name."""
-        return self._ccm_dict["name"]
+        return self._trip_dict["name"]
 
     @property
     def unit(self) -> str:
         """Unit."""
-        return self._ccm_dict["unit"]
+        return self._trip_dict["unit"]
 
     @property
     def last_trip(self) -> str:
         """Last Trip."""
-        return self._ccm_dict["lastTrip"]
+        return self._trip_dict["lastTrip"]
 
 
 def backend_parameter_life_time(func):
@@ -54,26 +54,26 @@ class LifeTime:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, time_dict: dict):
+        self._time_dict = time_dict
 
     @property
     @backend_parameter_life_time
     def name(self) -> str:
         """Name."""
-        return self._ccm_dict["name"]
+        return self._time_dict["name"]
 
     @property
     @backend_parameter_life_time
     def unit(self) -> str:
         """Unit."""
-        return self._ccm_dict["unit"]
+        return self._time_dict["unit"]
 
     @property
     @backend_parameter_life_time
     def life_time(self) -> str:
         """Life Time."""
-        return self._ccm_dict["lifeTime"]
+        return self._time_dict["lifeTime"]
 
 
 class Characteristic:
@@ -82,18 +82,18 @@ class Characteristic:
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
+    def __init__(self, char_dict: dict):
+        self._char_dict = char_dict
 
     @property
     def characteristic(self) -> str:
         """Characteristic."""
-        return self._ccm_dict["characteristic"]
+        return self._char_dict["characteristic"]
 
     @property
     def quantity(self) -> int:
         """Quantity."""
-        return int(self._ccm_dict["quantity"])
+        return int(self._char_dict["quantity"])
 
 
 def backend_parameter(func):
