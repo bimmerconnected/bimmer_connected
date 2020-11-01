@@ -19,7 +19,7 @@ import requests
 
 from bimmer_connected.country_selector import Regions, get_server_url, get_gcdm_oauth_endpoint
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-from bimmer_connected.const import AUTH_URL, AUTH_URL_LEGACY, VEHICLES_URL, ERROR_CODE_MAPPING
+from bimmer_connected.const import AUTH_URL, VEHICLES_URL, ERROR_CODE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -68,16 +68,20 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 return
 
             _LOGGER.debug('getting new oauth token')
+            url = AUTH_URL.format(
+                gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
+            )
+
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Content-Length": "124",
                 "Connection": "Keep-Alive",
-                "Host": "customer.bmwgroup.com" if self._region == Regions.REST_OF_WORLD else self.server_url,
+                "Host": urllib.parse.urlparse(url).netloc,
                 "Accept-Encoding": "gzip",
-                "Authorization": "Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3ZjhkOjE1"
-                                 "ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==",
+                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
+                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
                 "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
-                "User-Agent": "okhttp/3.12.2",
+                "User-Agent": "okhttp/2.60",
             }
 
             # we really need all of these parameters
@@ -89,14 +93,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             }
 
             data = urllib.parse.urlencode(values)
-            if self._region == Regions.REST_OF_WORLD:
-                url = AUTH_URL.format(
-                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
-                )
-                expected_response_code = 200
-            else:
-                url = AUTH_URL_LEGACY.format(server=self.server_url)
-                expected_response_code = 200
+
+            expected_response_code = 200
             try:
                 response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
                                              expected_response=expected_response_code, post=True)
