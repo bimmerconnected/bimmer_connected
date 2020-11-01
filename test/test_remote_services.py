@@ -9,7 +9,7 @@ from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState, PointOfInterest, Message
 from bimmer_connected import remote_services
 
-_RESPONSE_UNKOWN = 'G31_NBTevo/flash_unkown.json'
+_RESPONSE_UNKNOWN = 'G31_NBTevo/flash_unknown.json'
 _RESPONSE_INITIATED = 'G31_NBTevo/flash_initiated.json'
 _RESPONSE_PENDING = 'G31_NBTevo/flash_pending.json'
 _RESPONSE_DELIVERED = 'G31_NBTevo/flash_delivered.json'
@@ -30,8 +30,8 @@ class TestRemoteServices(unittest.TestCase):
 
     def test_states(self):
         """Test parsing the different response types."""
-        rss = RemoteServiceStatus(load_response_json(_RESPONSE_UNKOWN))
-        self.assertEqual(ExecutionState.UNKOWN, rss.state)
+        rss = RemoteServiceStatus(load_response_json(_RESPONSE_UNKNOWN))
+        self.assertEqual(ExecutionState.UNKNOWN, rss.state)
 
         rss = RemoteServiceStatus(load_response_json(_RESPONSE_INITIATED))
         self.assertEqual(ExecutionState.INITIATED, rss.state)
@@ -74,7 +74,7 @@ class TestRemoteServices(unittest.TestCase):
                 r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
                     vin=G31_VIN),
                 data_files=[
-                    _RESPONSE_UNKOWN,
+                    _RESPONSE_UNKNOWN,
                     _RESPONSE_PENDING,
                     _RESPONSE_PENDING,
                     _RESPONSE_DELIVERED,

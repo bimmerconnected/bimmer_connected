@@ -33,7 +33,7 @@ class ExecutionState(Enum):
     PENDING = 'PENDING'
     DELIVERED = 'DELIVERED'
     EXECUTED = 'EXECUTED'
-    UNKOWN = 'UNKOWN'
+    UNKNOWN = 'UNKNOWN'
 
 
 class _Services(Enum):
@@ -117,7 +117,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
         status = response['executionStatus']
-        self.state = ExecutionState(status.get('status', 'UNKOWN'))
+        self.state = ExecutionState(status.get('status', 'UNKNOWN'))
         self.event_id = status['eventId']
 
     @staticmethod
@@ -213,7 +213,7 @@ class RemoteServices:
         while True:
             status = self._get_remote_service_status(service)
             _LOGGER.debug('current state if remote service is: %s', status.state.value)
-            if status.state not in [ExecutionState.UNKOWN, ExecutionState.PENDING, ExecutionState.DELIVERED]:
+            if status.state not in [ExecutionState.UNKNOWN, ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
             if datetime.datetime.now() > fail_after:
                 raise IOError(
