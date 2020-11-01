@@ -143,14 +143,10 @@ class BackendMock:
         """Constructor."""
         self.last_request = []
         self.responses = [
-            MockResponse('https://.+/gcdm/oauth/token',
+            MockResponse('https://.+/gcdm/.*/?oauth/token',
                          headers=_AUTH_RESPONSE_HEADERS,
                          data_files=['G31_NBTevo/auth_response.json'],
                          status_code=200),
-            MockResponse('https://.+/gcdm/(.+/)?oauth/authenticate',
-                         headers=_AUTH_RESPONSE_HEADERS,
-                         data_files=['G31_NBTevo/auth_response.json'],
-                         status_code=302),
             MockResponse('https://.+/webapi/v1/user/vehicles$',
                          data_files=['vehicles.json']),
         ]
