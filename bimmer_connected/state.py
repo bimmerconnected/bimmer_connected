@@ -345,7 +345,8 @@ class VehicleState:
     def max_range_electric(self) -> int:
         """DEPRECATED: Use state.vehicle_status.max_range_electric instead.
 
-        This can change with driving style and temperature in kilometers.
+        Maximum range on battery, in kilometers.
+        This can change with driving style and temperature.
         """
         return self.vehicle_status.max_range_electric
 
