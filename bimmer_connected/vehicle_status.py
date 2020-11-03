@@ -136,12 +136,24 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         Returns a tuple of (latitude, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
-        pos = self._state.attributes[SERVICE_STATUS]['position']
         if not self.is_vehicle_tracking_enabled:
-            _LOGGER.warning('Positioning status is %s', pos['status'])
+            _LOGGER.warning('Vehicle tracking is disabled')
             return None
         pos = self._state.attributes[SERVICE_STATUS]['position']
         return float(pos['lat']), float(pos['lon'])
+
+    @property
+    @backend_parameter
+    def gps_heading(self) -> (int):
+        """Get the last known heading of the vehicle.
+
+        This only provides data, if the vehicle tracking is enabled!
+        """
+        if not self.is_vehicle_tracking_enabled:
+            _LOGGER.warning('Vehicle tracking is disabled')
+            return None
+        pos = self._state.attributes[SERVICE_STATUS]['position']
+        return int(pos['heading'])
 
     @property
     @backend_parameter
