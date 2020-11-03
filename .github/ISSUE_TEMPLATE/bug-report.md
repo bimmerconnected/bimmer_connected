@@ -1,9 +1,7 @@
 ---
 name: Bug report
 about: Report an issue related to bimmer_connected
-title: ''
 labels: 'bug :bug:'
-assignees: ''
 
 ---
 
