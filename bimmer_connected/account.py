@@ -78,10 +78,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "Connection": "Keep-Alive",
                 "Host": urllib.parse.urlparse(url).netloc,
                 "Accept-Encoding": "gzip",
-                "Authorization": "Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3ZjhkOjE1"
-                                 "ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==",
+                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
+                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
                 "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
-                "User-Agent": "okhttp/3.12.2",
+                "User-Agent": "okhttp/2.60",
             }
 
             # we really need all of these parameters
