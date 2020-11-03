@@ -37,6 +37,7 @@ class TestState(unittest.TestCase):
         self.assertTrue(state.vehicle_status.is_vehicle_tracking_enabled)
         self.assertAlmostEqual(50.5050, state.vehicle_status.gps_position[0])
         self.assertAlmostEqual(10.1010, state.vehicle_status.gps_position[1])
+        self.assertAlmostEqual(174, state.vehicle_status.gps_heading)
 
         self.assertAlmostEqual(33, state.vehicle_status.remaining_fuel)
 
@@ -68,6 +69,7 @@ class TestState(unittest.TestCase):
 
         self.assertFalse(state.vehicle_status.is_vehicle_tracking_enabled)
         self.assertIsNone(state.vehicle_status.gps_position)
+        self.assertIsNone(state.vehicle_status.gps_heading)
 
     def test_parse_f48(self):
         """Test if the parsing of the attributes is working."""
@@ -84,6 +86,7 @@ class TestState(unittest.TestCase):
         self.assertTrue(state.vehicle_status.is_vehicle_tracking_enabled)
         self.assertAlmostEqual(50.505050, state.vehicle_status.gps_position[0])
         self.assertAlmostEqual(10.1010101, state.vehicle_status.gps_position[1])
+        self.assertAlmostEqual(141, state.vehicle_status.gps_heading)
 
         self.assertAlmostEqual(39, state.vehicle_status.remaining_fuel)
 
