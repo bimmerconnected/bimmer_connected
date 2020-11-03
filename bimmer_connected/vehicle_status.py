@@ -149,9 +149,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         This only provides data, if the vehicle tracking is enabled!
         """
-        pos = self._state.attributes[SERVICE_STATUS]['position']
         if not self.is_vehicle_tracking_enabled:
-            _LOGGER.warning('Positioning status is %s', pos['status'])
+            _LOGGER.warning('Vehicle tracking is disabled')
             return None
         pos = self._state.attributes[SERVICE_STATUS]['position']
         return int(pos['heading'])
