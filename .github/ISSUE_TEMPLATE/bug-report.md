@@ -1,9 +1,7 @@
 ---
-name: Issue template
-about: Describe this issue here
-title: ''
-labels: ''
-assignees: ''
+name: Bug report
+about: Report an issue related to bimmer_connected
+labels: 'bug :bug:'
 
 ---
 
@@ -15,7 +13,7 @@ A clear and concise description of what the issue is.
 
 A clear and concise description of what you expected to happen.
 
-**Home Assistant version**
+**Home Assistant version (if used)**
 
 Which Home Assistant version are you using?
 
@@ -25,11 +23,11 @@ And did it work on a previous version, if so what was the last working version?
 
 If applicable, add screenshots to help explain your problem.
 
-**Connected Drive website**
+**ConnectedDrive website**
 
-If you see any issues with the BMW integration in Home Assistant (or when directly using the library), please make sure to first login to the BMW Connected Drive website of your country and check if you can successfully login and query the car status.
-- [ ] I can still successfully login to the BMW Connected Drive website and the car status is available there.
-- [ ] I have Connected Drive enabled for my vehicle.
+If you see any issues with the BMW integration in Home Assistant (or when directly using the library), please make sure to first login to the BMW ConnectedDrive website of your country and check if you can successfully login and query the car status.
+- [ ] I can still successfully login to the BMW ConnectedDrive website and the car status is available there.
+- [ ] I have ConnectedDrive enabled for my vehicle.
 
 **Your config.yaml**
 
@@ -44,7 +42,7 @@ bmw_connected_drive:
 **Number of cars**
 
 If you have more than 1 car please mention that here.
-- [ ] I have 2 or more cars linked to the Connected Drive account.
+- [ ] I have 2 or more cars linked to the ConnectedDrive account.
 - [ ] I have a Mini vehicle linked to my account.
 
 **Output of bimmer_connected fingerprint**

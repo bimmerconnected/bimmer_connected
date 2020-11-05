@@ -1,0 +1,17 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Request a feature for bimmer_connected
+    url: https://github.com/bimmerconnected/bimmer_connected/discussions/category_choices
+    about: Request an new feature for the bimmer_connected library.
+  - name: Fingerprint data contributions
+    url: https://github.com/bimmerconnected/bimmer_connected/discussions/category_choices
+    about: If some features do not work for your vehicle, we would need the data returned form the server to analyse this and potentially extend the code.
+  - name: Q&A
+    url: https://github.com/bimmerconnected/bimmer_connected/discussions/category_choices
+    about: Ask the community for help
+  - name: Show and tell
+    url: https://github.com/bimmerconnected/bimmer_connected/discussions/category_choices
+    about: We use GitHub for tracking bugs, check our website for resources on getting help.
+  - name: General
+    url: https://github.com/bimmerconnected/bimmer_connected/discussions/category_choices
+    about: Chat that doesn't fit anywhere else
