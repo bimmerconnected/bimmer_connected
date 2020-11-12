@@ -30,10 +30,10 @@ class TestState(unittest.TestCase):
         self.assertEqual(35.53, state.all_trips.average_electric_consumption.community_high)
         self.assertEqual(14.76, state.all_trips.average_electric_consumption.user_average)
 
-        self.assertEqual(0, state.all_trips.average_recopuration.community_low)
-        self.assertEqual(3.76, state.all_trips.average_recopuration.community_average)
-        self.assertEqual(14.03, state.all_trips.average_recopuration.community_high)
-        self.assertEqual(2.3, state.all_trips.average_recopuration.user_average)
+        self.assertEqual(0, state.all_trips.average_recuperation.community_low)
+        self.assertEqual(3.76, state.all_trips.average_recuperation.community_average)
+        self.assertEqual(14.03, state.all_trips.average_recuperation.community_high)
+        self.assertEqual(2.3, state.all_trips.average_recuperation.user_average)
 
         self.assertEqual(121.58, state.all_trips.chargecycle_range.community_average)
         self.assertEqual(200, state.all_trips.chargecycle_range.community_high)
