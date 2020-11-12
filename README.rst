@@ -17,7 +17,7 @@ bimmer_connected
     :target: https://coveralls.io/github/bimmerconnected/bimmer_connected?branch=master
 
 This is a simple library to query and control the status of your BMW or Mini vehicle from
-the Connected Drive portal.
+the ConnectedDrive portal.
 
 
 Installation
@@ -41,13 +41,13 @@ This library is written to be included in `Home Assistant <https://www.home-assi
 
 Compatibility
 =============
-This works with BMW (and Mini) vehicles with a Connected Drive account.
+This works with BMW (and Mini) vehicles with a ConnectedDrive account.
 So far it is tested on vehicles with a 'MGU', 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav'
 navigation system. If you have any trouble with other navigation systems, please create 
 an issue with your server responses (see next section).
 
 To use this library, your BMW (or Mini) must have the remote services enabled for your vehicle. 
-You might need to book this in the Connected Drive/Mini Connected portal and this might cost 
+You might need to book this in the ConnectedDrive/Mini Connected portal and this might cost 
 some money. In addition to that you need to enable the Remote Services in your infotainment 
 system in the vehicle.
 
@@ -80,12 +80,11 @@ The following attributes are by default replaced with anonymized values:
 * :code:`vin` (Vehicle Identification Number)
 * :code:`lat` and :code:`lon` (GPS position)
 * :code:`licensePlate`
+* :code:`information of dealer`
 
 Create a new
-`issue in bimmer_connected <https://github.com/bimmerconnected/bimmer_connected/issues>`_
-and
-`add the files as attachment <https://help.github.com/articles/file-attachments-on-issues-and-pull-requests/>`_
-to the issue.
+`fingerprint data contribution <https://github.com/bimmerconnected/bimmer_connected/discussions/new?category_id=32000818>`_
+and add the files as attachment to the discussion.
 
 Please add your model and year to the title of the issue, to make it easier to organize. 
 If you know the "chassis code" of your car, you can include that too. (For example, 

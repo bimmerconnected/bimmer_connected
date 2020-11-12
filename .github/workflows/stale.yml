@@ -1,0 +1,34 @@
+name: Stale
+
+# yamllint disable-line rule:truthy
+on:
+  schedule:
+    - cron: "0 3 * * *"
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      # The 90 day stale policy
+      # Used for: Everything (unless 30 day policy below beats it)
+      - name: 90 days stale policy
+        uses: actions/stale@v3.0.13
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          days-before-stale: 90
+          days-before-close: 7
+          operations-per-run: 25
+          remove-stale-when-updated: true
+          stale-issue-label: "stale :robot:"
+          exempt-issue-labels: "pinned :pick:"
+          stale-issue-message: >
+            This issue has been automatically marked as stale because it has not had
+            recent activity. It will be closed if no further activity occurs. Thank you
+            for your contributions.
+          stale-pr-label: "stale :robot:"
+          exempt-pr-labels: "pinned :pick:"
+          stale-pr-message: >
+            There hasn't been any activity on this pull request recently. This
+            pull request has been automatically marked as stale because of that
+            and will be closed if no further activity occurs within 7 days.
+            Thank you for your contributions.
