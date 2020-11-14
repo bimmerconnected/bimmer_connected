@@ -139,8 +139,8 @@ class AllTrips:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def average_recopuration(self) -> StatisticValues:
-        """Returns the average recopuration."""
+    def average_recuperation(self) -> StatisticValues:
+        """Returns the average recuperation."""
         return StatisticValues(self._state.attributes[SERVICE_ALL_TRIPS]['avgRecuperation'])
 
     @property

@@ -129,8 +129,8 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def prefered_charging_window(self) -> ChargingWindow:
-        """Returns the prefered charging window."""
+    def preferred_charging_window(self) -> ChargingWindow:
+        """Returns the preferred charging window."""
         return ChargingWindow(self._state.attributes[SERVICE_CHARGING_PROFILE]['preferredChargingWindow'])
 
     @property
