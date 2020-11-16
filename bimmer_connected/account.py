@@ -17,7 +17,12 @@ from threading import Lock
 from typing import Callable, List
 import requests
 
-from bimmer_connected.country_selector import Regions, get_server_url, get_gcdm_oauth_endpoint
+from bimmer_connected.country_selector import (
+    Regions,
+    get_server_url,
+    get_gcdm_oauth_endpoint,
+    get_gcdm_oauth_authorization
+)
 from bimmer_connected.vehicle import ConnectedDriveVehicle
 from bimmer_connected.const import AUTH_URL, VEHICLES_URL, ERROR_CODE_MAPPING
 
@@ -78,11 +83,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "Connection": "Keep-Alive",
                 "Host": urllib.parse.urlparse(url).netloc,
                 "Accept-Encoding": "gzip",
-                "Authorization": "Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGNEanli"
-                                 "TEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==",
                 "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
-                "User-Agent": "okhttp/2.60",
+                "User-Agent": "okhttp/3.12.2",
             }
+            headers.update(get_gcdm_oauth_authorization(self._region))
 
             # we really need all of these parameters
             values = {
