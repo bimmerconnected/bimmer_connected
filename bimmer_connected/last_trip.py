@@ -34,7 +34,7 @@ class LastTrip:  # pylint: disable=too-many-public-methods
     @property
     @backend_parameter
     def attributes(self) -> dict:
-        """Retrieve all attributes from the sever.
+        """Retrieve all attributes from the server.
 
         This does not parse the results in any way.
         """
@@ -43,6 +43,16 @@ class LastTrip:  # pylint: disable=too-many-public-methods
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
         return self._state.attributes[SERVICE_LAST_TRIP][item]
+
+    @property
+    def available_attributes(self) -> List[str]:
+        """Get the list of last-trip attributes available for this vehicle."""
+        result = ['acceleration_value', 'anticipation_value', 'auxiliary_consumption_value',
+            'average_combined_consumption', 'average_electric_consumption', 'average_recuperation',
+            'date', 'driving_mode_value', 'duration', 'efficiency_value', 'electric_distance',
+            'electric_distance_ratio', 'saved_fuel', 'total_consumption_value', 'total_distance'
+        ]
+        return result
 
     @property
     @backend_parameter
