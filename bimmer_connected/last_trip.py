@@ -1,6 +1,7 @@
 """Models the last trip of a vehicle."""
 
 import logging
+from typing import List
 
 from bimmer_connected.const import SERVICE_LAST_TRIP
 

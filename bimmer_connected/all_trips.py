@@ -1,6 +1,7 @@
 """Models the all trips of a vehicle."""
 
 import logging
+from typing import List
 
 from bimmer_connected.const import SERVICE_ALL_TRIPS
 
