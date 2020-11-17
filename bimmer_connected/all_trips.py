@@ -106,10 +106,9 @@ class AllTrips:  # pylint: disable=too-many-public-methods
     def available_attributes(self) -> List[str]:
         """Get the list of all-trips attributes available for this vehicle."""
         result = ['average_combined_consumption', 'average_electric_consumption',
-            'average_recuperation', 'battery_size_max', 'chargecycle_range',
-            'reset_date', 'saved_co2', 'saved_co2_green_energy', 
-            'total_electric_distance', 'total_saved_fuel'
-        ]
+                  'average_recuperation', 'battery_size_max', 'chargecycle_range',
+                  'reset_date', 'saved_co2', 'saved_co2_green_energy',
+                  'total_electric_distance', 'total_saved_fuel']
         return result
 
     @property

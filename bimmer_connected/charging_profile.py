@@ -113,8 +113,7 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
     def available_attributes(self) -> List[str]:
         """Get the list of charging-profile attributes available for this vehicle."""
         result = ['is_pre_entry_climatization_enabled', 'pre_entry_climatization_timer',
-            'preferred_charging_window', 'charging_preferences', 'charging_mode'
-        ]
+                  'preferred_charging_window', 'charging_preferences', 'charging_mode']
         return result
 
     @property
