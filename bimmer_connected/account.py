@@ -90,14 +90,16 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
             # we really need all of these parameters
             values = {
+                'client_id': 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35',
+                'response_type': 'token',
+                'redirect_uri': 'https://www.bmw-connecteddrive.com/app/static/external-dispatch.html',
                 'scope': 'authenticate_user vehicle_data remote_services',
-                'grant_type': 'password',
                 'username': self._username,
                 'password': self._password,
             }
 
             data = urllib.parse.urlencode(values)
-            expected_response_code = 200
+            expected_response_code = 302
             try:
                 response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
                                              expected_response=expected_response_code, post=True)
@@ -107,8 +109,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 _LOGGER.exception(exception)
                 raise OSError(msg) from exception
 
-            response_json = response.json()
-
+            response_json = dict(urllib.parse.parse_qsl(urllib.parse.urlparse(response.headers['Location']).fragment))
             self._oauth_token = response_json['access_token']
             expiration_time = int(response_json['expires_in'])
             self._token_expiration = datetime.datetime.now() + datetime.timedelta(seconds=expiration_time)

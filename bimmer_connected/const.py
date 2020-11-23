@@ -1,6 +1,6 @@
 """URLs for different services and error code mapping."""
 
-AUTH_URL = 'https://{gcdm_oauth_endpoint}/oauth/token'
+AUTH_URL = 'https://{gcdm_oauth_endpoint}/oauth/authenticate'
 BASE_URL = 'https://{server}/webapi/v1'
 BASE_URL_LEGACY = 'https://{server}/api/vehicle'
 
