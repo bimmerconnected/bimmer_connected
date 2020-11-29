@@ -50,3 +50,15 @@ class TestState(unittest.TestCase):
         self.assertEqual(1.21, state.all_trips.average_combined_consumption.community_average)
         self.assertEqual(6.2, state.all_trips.average_combined_consumption.community_high)
         self.assertEqual(0.36, state.all_trips.average_combined_consumption.user_average)
+
+    def test_available_attributes(self):
+        """Check available_attributes for all_trips service."""
+        account = mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        expected_attributes = ['average_combined_consumption', 'average_electric_consumption',
+                  'average_recuperation', 'battery_size_max', 'chargecycle_range',
+                  'reset_date', 'saved_co2', 'saved_co2_green_energy',
+                  'total_electric_distance', 'total_saved_fuel']
+        existing_attributes = state.all_trips.available_attributes
+        self.assertListEqual(existing_attributes, expected_attributes)
+

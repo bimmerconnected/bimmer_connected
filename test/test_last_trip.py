@@ -34,3 +34,15 @@ class TestState(unittest.TestCase):
         self.assertEqual(0, state.last_trip.saved_fuel)
         self.assertEqual('2015-12-01T20:44:00+0100', state.last_trip.date)
         self.assertEqual(124, state.last_trip.duration)
+
+    def test_available_attributes(self):
+        """Check available_attributes for last_trip service."""
+        account = mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        expected_attributes = ['acceleration_value', 'anticipation_value', 'auxiliary_consumption_value',
+                  'average_combined_consumption', 'average_electric_consumption', 'average_recuperation',
+                  'date', 'driving_mode_value', 'duration', 'efficiency_value', 'electric_distance',
+                  'electric_distance_ratio', 'saved_fuel', 'total_consumption_value', 'total_distance']
+        existing_attributes = state.last_trip.available_attributes
+        self.assertListEqual(existing_attributes, expected_attributes)
+
