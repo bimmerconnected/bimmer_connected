@@ -56,9 +56,8 @@ class TestState(unittest.TestCase):
         account = mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         expected_attributes = ['average_combined_consumption', 'average_electric_consumption',
-                  'average_recuperation', 'battery_size_max', 'chargecycle_range',
-                  'reset_date', 'saved_co2', 'saved_co2_green_energy',
-                  'total_electric_distance', 'total_saved_fuel']
+                               'average_recuperation', 'battery_size_max', 'chargecycle_range',
+                               'reset_date', 'saved_co2', 'saved_co2_green_energy',
+                               'total_electric_distance', 'total_saved_fuel']
         existing_attributes = state.all_trips.available_attributes
         self.assertListEqual(existing_attributes, expected_attributes)
-

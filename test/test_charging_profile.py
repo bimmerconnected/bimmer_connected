@@ -37,7 +37,6 @@ class TestState(unittest.TestCase):
         account = mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         expected_attributes = ['is_pre_entry_climatization_enabled', 'pre_entry_climatization_timer',
-                  'preferred_charging_window', 'charging_preferences', 'charging_mode']
+                               'preferred_charging_window', 'charging_preferences', 'charging_mode']
         existing_attributes = state.charging_profile.available_attributes
         self.assertListEqual(existing_attributes, expected_attributes)
-
