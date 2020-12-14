@@ -91,6 +91,12 @@ class LastDestinations:  # pylint: disable=too-many-public-methods
         """
         return self._state.attributes[SERVICE_DESTINATIONS]
 
+    @property
+    def available_attributes(self) -> List[str]:
+        """Get the list of last-destination attributes available for this vehicle."""
+        result = ['last_destinations']
+        return result
+
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
         return self._state.attributes[SERVICE_DESTINATIONS][item]

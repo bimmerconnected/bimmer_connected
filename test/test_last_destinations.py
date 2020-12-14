@@ -27,3 +27,11 @@ class TestState(unittest.TestCase):
         self.assertEqual('LONDON', state.last_destinations.last_destinations[0].city)
         self.assertEqual('PITFIELD STREET', state.last_destinations.last_destinations[0].street)
         self.assertEqual('2015-09-25T08:06:11+0200', state.last_destinations.last_destinations[0].created_at)
+
+    def test_available_attributes(self):
+        """Check available_attributes for last_destination service."""
+        account = mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        expected_attributes = ['last_destinations']
+        existing_attributes = state.last_destinations.available_attributes
+        self.assertListEqual(existing_attributes, expected_attributes)
