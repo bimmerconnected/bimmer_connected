@@ -122,7 +122,7 @@ class VehicleState:
 
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
-        return self.vehicle_status.attributes[item]
+        return self.vehicle_status.attributes.get(item)
 
     @staticmethod
     def _parse_datetime(date_str: str) -> datetime.datetime:

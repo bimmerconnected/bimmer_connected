@@ -162,7 +162,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         The server return "OK" if tracking is enabled and "DRIVER_DISABLED" if it is disabled in the vehicle.
         """
-        return self._state.attributes[SERVICE_STATUS]['position']['status'] == 'OK'
+        return self._state.attributes[SERVICE_STATUS]['position']['status'] not in ['DRIVER_DISABLED', 'TOO_FAR_AWAY']
 
     @property
     @backend_parameter

@@ -110,6 +110,13 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
         return self._state.attributes[SERVICE_CHARGING_PROFILE][item]
 
     @property
+    def available_attributes(self) -> List[str]:
+        """Get the list of charging-profile attributes available for this vehicle."""
+        result = ['is_pre_entry_climatization_enabled', 'pre_entry_climatization_timer',
+                  'preferred_charging_window', 'charging_preferences', 'charging_mode']
+        return result
+
+    @property
     @backend_parameter
     def is_pre_entry_climatization_enabled(self) -> bool:
         """Get status of pre-entry climatization."""
@@ -129,8 +136,8 @@ class ChargingProfile:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def prefered_charging_window(self) -> ChargingWindow:
-        """Returns the prefered charging window."""
+    def preferred_charging_window(self) -> ChargingWindow:
+        """Returns the preferred charging window."""
         return ChargingWindow(self._state.attributes[SERVICE_CHARGING_PROFILE]['preferredChargingWindow'])
 
     @property

@@ -29,5 +29,14 @@ class TestState(unittest.TestCase):
                          state.charging_profile.pre_entry_climatization_timer[TimerTypes.TIMER_1].departure_time)
         self.assertEqual('MONDAY', state.charging_profile.pre_entry_climatization_timer[TimerTypes.TIMER_1].weekdays[0])
 
-        self.assertEqual('05:02', state.charging_profile.prefered_charging_window.start_time)
-        self.assertEqual('17:31', state.charging_profile.prefered_charging_window.end_time)
+        self.assertEqual('05:02', state.charging_profile.preferred_charging_window.start_time)
+        self.assertEqual('17:31', state.charging_profile.preferred_charging_window.end_time)
+
+    def test_available_attributes(self):
+        """Check available_attributes for charging_profile service."""
+        account = mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        expected_attributes = ['is_pre_entry_climatization_enabled', 'pre_entry_climatization_timer',
+                               'preferred_charging_window', 'charging_preferences', 'charging_mode']
+        existing_attributes = state.charging_profile.available_attributes
+        self.assertListEqual(existing_attributes, expected_attributes)

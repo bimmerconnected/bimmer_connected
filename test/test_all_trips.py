@@ -30,10 +30,10 @@ class TestState(unittest.TestCase):
         self.assertEqual(35.53, state.all_trips.average_electric_consumption.community_high)
         self.assertEqual(14.76, state.all_trips.average_electric_consumption.user_average)
 
-        self.assertEqual(0, state.all_trips.average_recopuration.community_low)
-        self.assertEqual(3.76, state.all_trips.average_recopuration.community_average)
-        self.assertEqual(14.03, state.all_trips.average_recopuration.community_high)
-        self.assertEqual(2.3, state.all_trips.average_recopuration.user_average)
+        self.assertEqual(0, state.all_trips.average_recuperation.community_low)
+        self.assertEqual(3.76, state.all_trips.average_recuperation.community_average)
+        self.assertEqual(14.03, state.all_trips.average_recuperation.community_high)
+        self.assertEqual(2.3, state.all_trips.average_recuperation.user_average)
 
         self.assertEqual(121.58, state.all_trips.chargecycle_range.community_average)
         self.assertEqual(200, state.all_trips.chargecycle_range.community_high)
@@ -50,3 +50,14 @@ class TestState(unittest.TestCase):
         self.assertEqual(1.21, state.all_trips.average_combined_consumption.community_average)
         self.assertEqual(6.2, state.all_trips.average_combined_consumption.community_high)
         self.assertEqual(0.36, state.all_trips.average_combined_consumption.user_average)
+
+    def test_available_attributes(self):
+        """Check available_attributes for all_trips service."""
+        account = mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        expected_attributes = ['average_combined_consumption', 'average_electric_consumption',
+                               'average_recuperation', 'battery_size_max', 'chargecycle_range',
+                               'reset_date', 'saved_co2', 'saved_co2_green_energy',
+                               'total_electric_distance', 'total_saved_fuel']
+        existing_attributes = state.all_trips.available_attributes
+        self.assertListEqual(existing_attributes, expected_attributes)
