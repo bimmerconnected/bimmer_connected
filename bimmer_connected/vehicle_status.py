@@ -139,7 +139,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         if not self.is_vehicle_tracking_enabled:
             _LOGGER.warning('Vehicle tracking is disabled')
             return None
-        if self.is_vehicle_moving:
+        if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
         pos = self._state.attributes[SERVICE_STATUS]['position']
@@ -155,7 +155,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         if not self.is_vehicle_tracking_enabled:
             _LOGGER.warning('Vehicle tracking is disabled')
             return None
-        if self.is_vehicle_moving:
+        if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
         pos = self._state.attributes[SERVICE_STATUS]['position']
@@ -163,10 +163,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def is_vehicle_moving(self) -> bool:
-        """Check if the vehicle is moving.
+    def is_vehicle_active(self) -> bool:
+        """Check if the vehicle is active/moving.
 
-        If the vehicle was moving at the time of the last status update, current position is not available.
+        If the vehicle was active/moving at the time of the last status update, current position is not available.
         """
         return self._state.attributes[SERVICE_STATUS]['position']['status'] in ['VEHICLE_ACTIVE']
 
