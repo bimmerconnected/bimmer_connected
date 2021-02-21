@@ -55,7 +55,7 @@ def get_region_from_name(name: str) -> Regions:
     """
     for region in Regions:
         if name.lower() == region.name.lower():
-            return region.value
+            return region
     raise ValueError(
         "Unknown region {}. Valid regions are: {}".format(
             name, ",".join(valid_regions())
