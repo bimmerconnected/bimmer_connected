@@ -13,6 +13,7 @@ from bimmer_connected.vehicle_status import LidState, LockState, ConditionBasedS
 
 G31_TEST_DATA = load_response_json('G31_NBTevo/status.json')
 G31_NO_POSITION_TEST_DATA = load_response_json('G31_NBTevo/status_position_disabled.json')
+G31_NO_POSTITION_VEHICLE_ACTIVE_TEST_DATA = load_response_json('G31_NBTevo/status_position_vehicle_active.json')
 F48_TEST_DATA = load_response_json('F48/status.json')
 I01_TEST_DATA = load_response_json('I01_REX/status.json')
 
@@ -61,13 +62,24 @@ class TestState(unittest.TestCase):
         self.assertFalse(state.vehicle_status.are_parking_lights_on)
         self.assertEqual(ParkingLightState.OFF, state.vehicle_status.parking_lights)
 
-    def test_parse_g31_no_psoition(self):
+    def test_parse_g31_no_position(self):
         """Test parsing of G31 data with position tracking disabled in the vehicle."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
         state._attributes[SERVICE_STATUS] = G31_NO_POSITION_TEST_DATA['vehicleStatus']
 
         self.assertFalse(state.vehicle_status.is_vehicle_tracking_enabled)
+        self.assertIsNone(state.vehicle_status.gps_position)
+        self.assertIsNone(state.vehicle_status.gps_heading)
+
+    def test_parse_g31_no_position_vehicle_active(self):
+        """Test parsing of G31 data with vehicle beeing active."""
+        account = unittest.mock.MagicMock(ConnectedDriveAccount)
+        state = VehicleState(account, None)
+        state._attributes[SERVICE_STATUS] = G31_NO_POSTITION_VEHICLE_ACTIVE_TEST_DATA['vehicleStatus']
+
+        self.assertTrue(state.vehicle_status.is_vehicle_tracking_enabled)
+        self.assertTrue(state.vehicle_status.is_vehicle_active)
         self.assertIsNone(state.vehicle_status.gps_position)
         self.assertIsNone(state.vehicle_status.gps_heading)
 
