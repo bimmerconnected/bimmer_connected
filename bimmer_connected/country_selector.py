@@ -45,7 +45,7 @@ _GCDM_OAUTH_AUTHORIZATION = {
 
 def valid_regions() -> List[str]:
     """Get list of valid regions as strings."""
-    return [k.lower() for k in Regions.__members__.keys()]
+    return [region.name.lower() for region in Regions]
 
 
 def get_region_from_name(name: str) -> Regions:
@@ -53,8 +53,8 @@ def get_region_from_name(name: str) -> Regions:
 
     This function is not case-sensitive.
     """
-    for region_name, region in Regions.__members__.items():
-        if name.lower() == region_name.lower():
+    for region in Regions:
+        if name.lower() == region.name.lower():
             return region
     raise ValueError(
         "Unknown region {}. Valid regions are: {}".format(

@@ -116,9 +116,12 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
 
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
-        status = response['executionStatus']
+        status = response.get('executionStatus', {})
+        if len(status) == 0:
+            _LOGGER.warning("executionStatus not in response: %s", response)
+
         self.state = ExecutionState(status.get('status', 'UNKNOWN'))
-        self.event_id = status['eventId']
+        self.event_id = status.get('eventId')
 
     @staticmethod
     def _parse_timestamp(timestamp: str) -> datetime.datetime:
