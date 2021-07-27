@@ -29,15 +29,12 @@ If you see any issues with the BMW integration in Home Assistant (or when direct
 - [ ] I can still successfully login to the BMW ConnectedDrive website and the car status is available there.
 - [ ] I have ConnectedDrive enabled for my vehicle.
 
-**Your config.yaml**
+**Region**
 
-```yaml
-bmw_connected_drive:
-  name_of_car:
-    username: USERNAME_BMW_CONNECTED_DRIVE
-    password: PASSWORD_BMW_CONNECTED_DRIVE
-    region: one of "north_america", "china" , "rest_of_world"
-````
+Choose your region below.
+- [ ] Rest of world
+- [ ] North America
+- [ ] China
 
 **Number of cars**
 
