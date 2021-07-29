@@ -296,6 +296,11 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         return ParkingLightState(self._state.attributes[SERVICE_STATUS]['parkingLight'])
 
     @property
+    def has_parking_light_state(self) -> bool:
+        """Return True if parking light is available."""
+        return 'parkingLight' in self._state.attributes[SERVICE_STATUS]
+
+    @property
     def are_parking_lights_on(self) -> bool:
         """Get status of parking lights.
 
