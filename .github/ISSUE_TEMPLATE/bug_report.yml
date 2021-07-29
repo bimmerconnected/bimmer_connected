@@ -1,0 +1,94 @@
+name: Report an issue with bimmerconnected
+description: Report an issue with bimmer_connected.
+labels: 'bug :bug:'
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This issue form is for reporting bugs only!
+
+        If you have a question or feature request, please use the [discussions][dg].
+
+        [dg]: https://github.com/bimmerconnected/bimmer_connected/discussions
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Describe the issue
+      description: >-
+        A clear and concise description of what the issue is.
+  - type: textarea
+    validations:
+      required: true
+    attributes:
+      label: Expected behavior
+      description: >-
+        A clear and concise description of what you expected to happen.
+  - type: markdown
+    attributes:
+      value: |
+        ## Environment
+  - type: input
+    id: version
+    validations:
+      required: true
+    attributes:
+      label: Which Home Assistant version are you using?
+      placeholder: core-
+      description: >
+        Can be found in the Configuration panel -> Info.
+  - type: input
+    attributes:
+      label: What was the last working version of Home Assistant Core?
+      placeholder: core-
+      description: >
+        If known, otherwise leave blank.
+  - type: markdown
+    attributes:
+      value: |
+        ## Details
+  - type: dropdown
+    validations:
+      required: true
+    attributes:
+      label: What is your region?
+      description: >
+        Choose the region from the list
+      options:
+        - Rest of world
+        - North America
+        - China
+  - type: checkboxes
+    attributes:
+      label: ConnectedDrive website
+      description: If you see any issues with the BMW integration in Home Assistant (or when directly using the library), please make sure to first login to the BMW ConnectedDrive website of your country and check if you can successfully login and query the car status.
+      options:
+        - label: I can still successfully login to the BMW ConnectedDrive website and the car status is available there.
+        - label: I have ConnectedDrive enabled for my vehicle.
+  - type: checkboxes
+    attributes:
+      label: Number of cars
+      description: If you have more than 1 car please mention that here.
+      options:
+        - label: I have 2 or more cars linked to the ConnectedDrive account.
+        - label: I have a Mini vehicle linked to my account.
+  - type: textarea
+    attributes:
+      label: Output of bimmer_connected fingerprint
+      description: |
+        If you have run the [bimmer_connected fingerprint](https://github.com/bimmerconnected/bimmer_connected#data-contributions) please share that data here
+      render: txt
+  - type: textarea
+    attributes:
+      label: Anything in the logs that might be useful for us?
+      description: For example, error message, or stack traces.
+      render: txt
+  - type: textarea
+    attributes:
+      label: Additional information
+      description: >
+        If you have any additional information for us, use the field below.
+        Please note, you can attach screenshots or screen recordings here, by
+        dragging and dropping files in the field below.
+  
