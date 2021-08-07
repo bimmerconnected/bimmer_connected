@@ -4,6 +4,7 @@ import datetime
 import json
 import logging
 import time
+from typing import List
 from enum import Enum
 from urllib.parse import urlencode
 
@@ -58,7 +59,7 @@ class PointOfInterest:
     def __init__(self, lat: float, lon: float, name: str = None,
                  additional_info: str = None, street: str = None, city: str = None,
                  postal_code: str = None, country: str = None, website: str = None,
-                 phone_numbers: [str] = None):
+                 phone_numbers: List[str] = None):
         """Create a PointOfInterest with attributes in camelCase as required by the API.
 
         :arg lat: latitude of the POI
