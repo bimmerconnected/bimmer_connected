@@ -1,9 +1,11 @@
 """Mock for Connected Drive Backend."""
 
-import re
-import os
 import json
+import os
+import re
+import urllib
 from typing import List
+
 from bimmer_connected.country_selector import Regions
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'responses')
@@ -143,9 +145,13 @@ class BackendMock:
         """Constructor."""
         self.last_request = []
         self.responses = [
+            MockResponse('https://.+/gcdm/.*/?oauth/authenticate',
+                         headers=_AUTH_RESPONSE_HEADERS,
+                         data_files=['auth/authorization_response.json'],
+                         status_code=200),
             MockResponse('https://.+/gcdm/.*/?oauth/token',
                          headers=_AUTH_RESPONSE_HEADERS,
-                         data_files=['G31_NBTevo/auth_response.json'],
+                         data_files=['auth/auth_token.json'],
                          status_code=200),
             MockResponse('https://.+/webapi/v1/user/vehicles$',
                          data_files=['vehicles.json']),
@@ -184,6 +190,10 @@ class BackendMock:
             self.add_response('https://.+/webapi/v1/user/vehicles/{vin}/status$'.format(vin=vin),
                               data_files=['{path}/status.json'.format(path=path)])
 
+    def Session(self) -> 'BackendMock':  # pylint: disable=invalid-name
+        """Returns itself as a requests.Session style object"""
+        return self
+
 
 class MockRequest:  # pylint: disable=too-few-public-methods
     """Stores the attributes of a request."""
@@ -193,6 +203,7 @@ class MockRequest:  # pylint: disable=too-few-public-methods
     def __init__(self, url, headers, data, request_type=None, allow_redirects=None, params=None) -> None:
         self.url = url
         self.headers = headers
+        self.headers["Host"] = urllib.parse.urlparse(url).netloc
         self.data = data
         self.request_type = request_type
         self.allow_redirects = allow_redirects
@@ -205,10 +216,11 @@ class MockResponse:
     # pylint: disable=too-many-arguments
 
     def __init__(self, regex: str, data: str = None, data_files: List[str] = None, headers: dict = None,
-                 status_code: int = 200) -> None:
+                 status_code: int = 200, raise_for_status=None) -> None:
         """Constructor."""
         self.regex = re.compile(regex)
         self.status_code = status_code
+        self.raise_for_status_side_effect = raise_for_status
         self.headers = headers
         self._usage_count = 0
         if self.headers is None:
@@ -226,10 +238,29 @@ class MockResponse:
         """Parse the text of the response as a jsons string."""
         return json.loads(self.text)
 
+    def raise_for_status(self) -> bool:
+        """Simulate requests' raise_for_status and raise HTTPError if set as sideeffect."""
+        if self.raise_for_status_side_effect:
+            raise self.raise_for_status_side_effect
+
     @property
     def text(self) -> str:
         """Get the raw data from the response."""
         return self._data[self._usage_count-1]
+
+    @property
+    def next(self) -> str:
+        """Get the next url (i.e. forwarded URL) for a response. Only used for authentication."""
+        class AttributeDict(dict):
+            """Simulate attributes from a dict."""
+            __slots__ = ()
+            __getattr__ = dict.__getitem__
+            __setattr__ = dict.__setitem__
+        return AttributeDict(
+            {
+                "path_url": "/?code=some_login_code&client_id=31c357a0-7a1d-4590-aa99-33b97244d048&nonce=login_nonce"
+            }
+        )
 
     def step_responses(self):
         """Step through the list of responses.
