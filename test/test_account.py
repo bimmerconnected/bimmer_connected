@@ -32,15 +32,6 @@ class TestAccount(unittest.TestCase):
             with self.assertRaises(IOError):
                 account.send_request('invalid_url')
 
-    def test_invalid_auth(self):
-        """Test if the host is set correctly in the request."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            with mock.patch('bimmer_connected.account.get_gcdm_oauth_endpoint') as mocked_endpoint:
-                mocked_endpoint().return_value = 'customer.bmwgroup.com/gcdm/invalid'
-                with self.assertRaises(OSError):
-                    ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
-
     def test_china_header(self):
         """Test if the host is set correctly in the request."""
         backend_mock = BackendMock()

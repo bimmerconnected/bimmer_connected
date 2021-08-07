@@ -16,6 +16,7 @@ import json
 from threading import Lock
 from typing import Callable, List
 import requests
+from requests.exceptions import HTTPError
 
 from bimmer_connected.country_selector import (
     Regions,
@@ -24,7 +25,7 @@ from bimmer_connected.country_selector import (
     get_gcdm_oauth_authorization
 )
 from bimmer_connected.vehicle import ConnectedDriveVehicle
-from bimmer_connected.const import AUTH_URL, VEHICLES_URL, ERROR_CODE_MAPPING
+from bimmer_connected.const import AUTH_URL, TOKEN_URL, VEHICLES_URL, ERROR_CODE_MAPPING
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 occurs (presumably) due to bugs in the server implementation.
     """
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-locals
     def __init__(self, username: str, password: str, region: Regions, log_responses: pathlib.Path = None,
                  retries_on_500_error: int = 5) -> None:
         self._region = region
@@ -72,47 +73,109 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 _LOGGER.debug('Old token is still valid. Not getting a new one.')
                 return
 
-            _LOGGER.debug('getting new oauth token')
-            url = AUTH_URL.format(
-                gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
-            )
-
-            headers = {
-                "Content-Type": "application/x-www-form-urlencoded",
-                "Content-Length": "124",
-                "Connection": "Keep-Alive",
-                "Host": urllib.parse.urlparse(url).netloc,
-                "Accept-Encoding": "gzip",
-                "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
-                "User-Agent": "okhttp/3.12.2",
-            }
-            headers.update(get_gcdm_oauth_authorization(self._region))
-
-            # we really need all of these parameters
-            values = {
-                'scope': 'authenticate_user vehicle_data remote_services',
-                'grant_type': 'password',
-                'username': self._username,
-                'password': self._password,
-            }
-
-            data = urllib.parse.urlencode(values)
-            expected_response_code = 200
             try:
-                response = self.send_request(url, data=data, headers=headers, allow_redirects=False,
-                                             expected_response=expected_response_code, post=True)
-            except OSError as exception:
-                msg = 'Authentication failed. Maybe your password is invalid?'
-                _LOGGER.error(msg)
-                _LOGGER.exception(exception)
-                raise OSError(msg) from exception
+                # We need a session for cross-request cookies
+                oauth_session = requests.Session()
 
-            response_json = response.json()
+                _LOGGER.debug("Authenticating against GCDM.")
+                authenticate_url = AUTH_URL.format(
+                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
+                )
+                authenticate_headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json, text/plain, */*",
+                    "User-Agent": (
+                        "Mozilla/5.0 (iPhone; CPU iPhone OS 12_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, "
+                        "like Gecko) Version/12.1.2 Mobile/15E148 Safari/604.1"
+                    ),
+                }
 
-            self._oauth_token = response_json['access_token']
-            expiration_time = int(response_json['expires_in'])
-            self._token_expiration = datetime.datetime.now() + datetime.timedelta(seconds=expiration_time)
-            _LOGGER.debug('got new token %s with expiration date %s', self._oauth_token, self._token_expiration)
+                # we really need all of these parameters
+                oauth_base_values = {
+                    "client_id": "31c357a0-7a1d-4590-aa99-33b97244d048",
+                    "response_type": "code",
+                    "redirect_uri": "com.bmw.connected://oauth",
+                    "state": "cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw",
+                    "nonce": "login_nonce",
+                    "scope": (
+                        "openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi "
+                        "remote_services fupo authenticate_user"
+                    ),
+                }
+
+                authenticate_data = urllib.parse.urlencode(
+                    dict(
+                        oauth_base_values,
+                        **{
+                            "grant_type": "authorization_code",
+                            "username": self._username,
+                            "password": self._password,
+                        }
+                    )
+                )
+                response = oauth_session.post(
+                    authenticate_url, headers=authenticate_headers, data=authenticate_data
+                )
+                response.raise_for_status()
+                authorization = dict(urllib.parse.parse_qsl(response.json()["redirect_to"]))["authorization"]
+                _LOGGER.debug("got authorization challenge %s", authorization)
+
+                code_data = urllib.parse.urlencode(
+                    dict(oauth_base_values, **{"authorization": authorization})
+                )
+                response = oauth_session.post(
+                    authenticate_url, headers=authenticate_headers, data=code_data, allow_redirects=False
+                )
+                response.raise_for_status()
+                code = dict(urllib.parse.parse_qsl(response.next.path_url.split('?')[1]))["code"]
+                _LOGGER.debug("got login code %s", code)
+
+                _LOGGER.debug("getting new oauth token")
+                token_url = TOKEN_URL.format(
+                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
+                )
+                token_headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "*/*",
+                    "User-Agent": "My%20BMW/8932 CFNetwork/978.0.7 Darwin/18.7.0",
+                }
+                token_headers.update(get_gcdm_oauth_authorization(self._region))
+                token_values = {
+                    "code": code,
+                    "code_verifier": "7PsmfPS5MpaNt0jEcPpi-B7M7u0gs1Nzw6ex0Y9pa-0",
+                    "redirect_uri": "com.bmw.connected://oauth",
+                    "grant_type": "authorization_code",
+                }
+
+                token_data = urllib.parse.urlencode(token_values)
+                response = oauth_session.post(
+                    token_url,
+                    headers=token_headers,
+                    data=token_data
+                )
+                response.raise_for_status()
+                response_json = response.json()
+
+                self._oauth_token = response_json["access_token"]
+                expiration_time = int(response_json["expires_in"])
+                self._token_expiration = datetime.datetime.now() + datetime.timedelta(
+                    seconds=expiration_time
+                )
+                _LOGGER.debug(
+                    "got new token %s with expiration date %s",
+                    self._oauth_token,
+                    self._token_expiration,
+                )
+            except HTTPError as ex:
+                try:
+                    err = response.json()
+                    _LOGGER.error("Authentication failed (%s): %s", err["error"], err["error_description"])
+                except Exception:  # pylint: disable=broad-except
+                    _LOGGER.error("Authentication failed: %s", response.text)
+                raise ex
+            except Exception as ex:  # pylint: disable=broad-except
+                _LOGGER.exception(ex)
+                raise ex
 
     @property
     def request_header(self):

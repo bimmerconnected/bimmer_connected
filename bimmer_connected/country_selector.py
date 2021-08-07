@@ -22,23 +22,23 @@ _SERVER_URLS = {
 
 #: Mapping from regions to servers
 _GCDM_OAUTH_ENDPOINTS = {
-    Regions.NORTH_AMERICA: "b2vapi.bmwgroup.us/gcdm",
+    Regions.NORTH_AMERICA: "customer.bmwgroup.com/gcdm/usa",
     Regions.REST_OF_WORLD: "customer.bmwgroup.com/gcdm",
     Regions.CHINA: "customer.bmwgroup.cn/gcdm",
 }
 
 _GCDM_OAUTH_AUTHORIZATION = {
     Regions.NORTH_AMERICA: {
-        "Authorization": ("Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3Zjh"
-                          "kOjE1ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==")
+        "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
+                          "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==")
     },
     Regions.REST_OF_WORLD: {
-        "Authorization": ("Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3Zjh"
-                          "kOjE1ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==")
+        "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
+                          "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==")
     },
     Regions.CHINA: {
-        "Authorization": ("Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGN"
-                          "EanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg==")
+        "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
+                          "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==")
     },
 }
 
