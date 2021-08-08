@@ -76,6 +76,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             try:
                 # We need a session for cross-request cookies
                 oauth_session = requests.Session()
+                oauth_settings = get_gcdm_oauth_authorization(self._region)
 
                 _LOGGER.debug("Authenticating against GCDM.")
                 authenticate_url = AUTH_URL.format(
@@ -83,19 +84,14 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 )
                 authenticate_headers = {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "application/json, text/plain, */*",
-                    "User-Agent": (
-                        "Mozilla/5.0 (iPhone; CPU iPhone OS 12_5_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, "
-                        "like Gecko) Version/12.1.2 Mobile/15E148 Safari/604.1"
-                    ),
                 }
 
                 # we really need all of these parameters
                 oauth_base_values = {
-                    "client_id": "31c357a0-7a1d-4590-aa99-33b97244d048",
+                    "client_id": oauth_settings["authenticate"]["client_id"],
                     "response_type": "code",
                     "redirect_uri": "com.bmw.connected://oauth",
-                    "state": "cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw",
+                    "state": oauth_settings["authenticate"]["state"],
                     "nonce": "login_nonce",
                     "scope": (
                         "openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi "
@@ -136,13 +132,11 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 )
                 token_headers = {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    "Accept": "*/*",
-                    "User-Agent": "My%20BMW/8932 CFNetwork/978.0.7 Darwin/18.7.0",
+                    "Authorization": oauth_settings["token"]["Authorization"],
                 }
-                token_headers.update(get_gcdm_oauth_authorization(self._region))
                 token_values = {
                     "code": code,
-                    "code_verifier": "7PsmfPS5MpaNt0jEcPpi-B7M7u0gs1Nzw6ex0Y9pa-0",
+                    "code_verifier": oauth_settings["token"]["code_verifier"],
                     "redirect_uri": "com.bmw.connected://oauth",
                     "grant_type": "authorization_code",
                 }
