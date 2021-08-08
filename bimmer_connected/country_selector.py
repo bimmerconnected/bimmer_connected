@@ -22,23 +22,44 @@ _SERVER_URLS = {
 
 #: Mapping from regions to servers
 _GCDM_OAUTH_ENDPOINTS = {
-    Regions.NORTH_AMERICA: "customer.bmwgroup.com/gcdm/usa",
+    Regions.NORTH_AMERICA: "login.bmwusa.com/gcdm",
     Regions.REST_OF_WORLD: "customer.bmwgroup.com/gcdm",
     Regions.CHINA: "customer.bmwgroup.cn/gcdm",
 }
 
 _GCDM_OAUTH_AUTHORIZATION = {
     Regions.NORTH_AMERICA: {
-        "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
-                          "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==")
+        "token": {
+            "Authorization": ("Basic NTQzOTRhNGItYjZjMS00NWZlLWI3YjItOGZkM2FhOTI1M2F"
+                              "hOmQ5MmYzMWMwLWY1NzktNDRmNS1hNzdkLTk2NmY4ZjAwZTM1MQ=="),
+            "code_verifier": "KDarcVUpgymBDCgHDH0PwwMfzycDxu1joeklioOhwXA",
+        },
+        "authenticate": {
+            "client_id": "54394a4b-b6c1-45fe-b7b2-8fd3aa9253aa",
+            "state": "rgastJbZsMtup49-Lp0FMQ",
+        },
     },
     Regions.REST_OF_WORLD: {
-        "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
-                          "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==")
+        "token": {
+            "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
+                              "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg=="),
+            "code_verifier": "7PsmfPS5MpaNt0jEcPpi-B7M7u0gs1Nzw6ex0Y9pa-0",
+        },
+        "authenticate": {
+            "client_id": "31c357a0-7a1d-4590-aa99-33b97244d048",
+            "state": "cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw",
+        },
     },
     Regions.CHINA: {
-        "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
-                          "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==")
+        "token": {
+            "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
+                              "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg=="),
+            "code_verifier": "",
+        },
+        "authenticate": {
+            "client_id": None,
+            "state": None,
+        },
     },
 }
 
