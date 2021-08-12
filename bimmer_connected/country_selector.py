@@ -20,6 +20,12 @@ _SERVER_URLS = {
     Regions.CHINA: "b2vapi.bmwgroup.cn:8592",
 }
 
+_EADRAX_URLS = {
+    Regions.NORTH_AMERICA: "not-known.bmwusa.com",
+    Regions.REST_OF_WORLD: "cocoapi.bmwgroup.com",
+    Regions.CHINA: "myprofile.bmw.com.cn",
+}
+
 #: Mapping from regions to servers
 _GCDM_OAUTH_ENDPOINTS = {
     Regions.NORTH_AMERICA: "login.bmwusa.com/gcdm",
@@ -87,6 +93,11 @@ def get_region_from_name(name: str) -> Regions:
 def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return _SERVER_URLS[region]
+
+
+def get_server_url_v2(region: Regions) -> str:
+    """Get the url of the server for the region."""
+    return _EADRAX_URLS[region]
 
 
 def get_gcdm_oauth_endpoint(region: Regions) -> str:

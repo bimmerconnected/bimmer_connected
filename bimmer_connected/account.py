@@ -21,6 +21,7 @@ from requests.exceptions import HTTPError
 from bimmer_connected.country_selector import (
     Regions,
     get_server_url,
+    get_server_url_v2,
     get_gcdm_oauth_endpoint,
     get_gcdm_oauth_authorization
 )
@@ -52,6 +53,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                  retries_on_500_error: int = 5) -> None:
         self._region = region
         self._server_url = None
+        self._server_url_v2 = None
         self._username = username
         self._password = password
         self._oauth_token = None
@@ -178,7 +180,6 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         headers = {
             "accept": "application/json",
             "Authorization": "Bearer {}".format(self._oauth_token),
-            "referer": "https://www.bmw-connecteddrive.de/app/index.html",
         }
         return headers
 
@@ -212,6 +213,41 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 _LOGGER.debug(response.text)
                 raise IOError(msg)
             break
+
+        self._log_response_to_file(response, logfilename)
+        return response
+
+    def send_request_v2(self, url: str, data=None, headers=None, post=False, allow_redirects=True,
+                        logfilename: str = None, params: dict = None):
+        """Send an http request to the server.
+
+        If the http headers are not set, default headers are generated.
+        You can choose if you want a GET or POST request.
+        """
+        if headers is None:
+            self._get_oauth_token()
+            headers = {
+                "x-user-agent": "android(v1.07_20200330);bmw;1.5.2(8932)",
+                "Authorization": "Bearer {}".format(self._oauth_token),
+            }
+        if params is None:
+            params = {
+                "apptimezone": 120,
+                "appDateTime": int(datetime.datetime.utcnow().timestamp()),
+                "tireGuardMode": "ENABLED",
+            }
+
+        if post:
+            response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects,
+                                     params=params)
+        else:
+            response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects,
+                                    params=params)
+
+        try:
+            response.raise_for_status()
+        except HTTPError as ex:
+            _LOGGER.exception(ex)
 
         self._log_response_to_file(response, logfilename)
         return response
@@ -268,6 +304,18 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         if self._server_url is None:
             self._server_url = get_server_url(self._region)
         return self._server_url
+
+    @property
+    def server_url_v2(self) -> str:
+        """Get the url of the server for this country."""
+        if self._server_url_v2 is None:
+            self._server_url_v2 = get_server_url_v2(self._region)
+        return self._server_url_v2
+
+    @property
+    def region(self) -> str:
+        """Get the region."""
+        return self._region
 
     def _get_vehicles(self):
         """Retrieve list of vehicle for the account."""
