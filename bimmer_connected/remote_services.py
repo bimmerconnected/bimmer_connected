@@ -23,7 +23,7 @@ TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 _LOGGER = logging.getLogger(__name__)
 
 #: time in seconds between polling updates on the status of a remote service
-_POLLING_CYCLE = 2
+_POLLING_CYCLE = 3
 
 #: maximum number of seconds to wait for the server to return a positive answer
 _POLLING_TIMEOUT = 120
@@ -119,14 +119,14 @@ class Message:
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
     """Wraps the status of the execution of a remote service."""
 
-    def __init__(self, status: dict):
+    def __init__(self, response: dict):
         """Construct a new object from a dict."""
-        if 'executionStatus' in status:
-            status = status["executionStatus"]
-        if len(status) == 0:
-            _LOGGER.warning("executionStatus not in response: %s", status)
+        if 'executionStatus' in response:
+            status = response["executionStatus"].get('status')
+        elif 'eventStatus' in response:
+            status = response.get("eventStatus")
 
-        self.state = ExecutionState(status.get('status', 'UNKNOWN'))
+        self.state = ExecutionState(status or 'UNKNOWN')
 
     @staticmethod
     def _parse_timestamp(timestamp: str) -> datetime.datetime:
@@ -213,7 +213,7 @@ class RemoteServices:
 
         You can choose if you want a POST or a GET operation.
         """
-        if self._account.region == Regions.REST_OF_WORLD:
+        if self._account.region in [Regions.REST_OF_WORLD, Regions.NORTH_AMERICA]:
             url = REMOTE_SERVICE_V2_URL.format(
                 server=self._account.server_url_v2,
                 vin=self._vehicle.vin,
@@ -259,20 +259,20 @@ class RemoteServices:
         _LOGGER.debug('getting remote service status')
         if event_id:
             url = REMOTE_SERVICE_V2_STATUS_URL.format(
-                server=self._account.server_url,
-                vin=self._vehicle.vin)
+                server=self._account.server_url_v2,
+                vin=self._vehicle.vin,
+                event_id=event_id)
+            response = self._account.send_request_v2(url, post=True)
         elif service:
             url = REMOTE_SERVICE_STATUS_URL.format(
                 server=self._account.server_url,
                 vin=self._vehicle.vin,
                 service_type=service.value)
-        response = self._account.send_request(url)
+            response = self._account.send_request(url)
         try:
             json_result = response.json()
-            if event_id:
-                json_result = [e for e in json_result["serviceExecutionHistory"] if e["eventId"] == event_id][0]
             return RemoteServiceStatus(json_result)
-        except (ValueError, IndexError):
+        except ValueError:
             _LOGGER.error('Error decoding json response from the server.')
             _LOGGER.debug(response.headers)
             _LOGGER.debug(response.text)
