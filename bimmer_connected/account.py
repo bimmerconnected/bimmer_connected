@@ -230,12 +230,6 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "x-user-agent": "android(v1.07_20200330);bmw;1.5.2(8932)",
                 "Authorization": "Bearer {}".format(self._oauth_token),
             }
-        if params is None:
-            params = {
-                "apptimezone": 120,
-                "appDateTime": int(datetime.datetime.utcnow().timestamp()),
-                "tireGuardMode": "ENABLED",
-            }
 
         if post:
             response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects,

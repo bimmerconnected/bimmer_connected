@@ -21,7 +21,7 @@ _SERVER_URLS = {
 }
 
 _EADRAX_URLS = {
-    Regions.NORTH_AMERICA: "not-known.bmwusa.com",
+    Regions.NORTH_AMERICA: "cocoapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "cocoapi.bmwgroup.com",
     Regions.CHINA: "myprofile.bmw.com.cn",
 }
