@@ -331,7 +331,8 @@ class RemoteServices:
                 "vin": self._vehicle.vin
             })
             self._account.send_request_v2(
-                VEHICLE_EADRAX_POI_URL,
+                VEHICLE_EADRAX_POI_URL.format(server=self._account.server_url_eadrax),
+                post=True,
                 headers={"Content-Type": "application/json"},
                 data=data_json
             )
