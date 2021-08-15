@@ -2,7 +2,7 @@
 
 import logging
 import datetime
-from typing import List
+from typing import List, Tuple
 
 from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_LAST_TRIP, \
     VEHICLE_STATISTICS_LAST_TRIP_URL, SERVICE_ALL_TRIPS, VEHICLE_STATISTICS_ALL_TRIPS_URL, \
@@ -97,7 +97,7 @@ class VehicleState:
         for service in self._vehicle.available_state_services:
             try:
                 response = self._account.send_request(
-                    self._url[service].format(server=self._account.server_url, vin=self._vehicle.vin),
+                    self._url[service].format(server=self._account.server_url_legacy, vin=self._vehicle.vin),
                     logfilename=service, params=params)
                 if not self._key[service]:
                     self._attributes[service] = response.json()
@@ -140,7 +140,7 @@ class VehicleState:
 
     @property
     @backend_parameter
-    def gps_position(self) -> (float, float):
+    def gps_position(self) -> Tuple[float, float]:
         """DEPRECATED: Use state.vehicle_status.gps_position instead.
 
         Get the last known position of the vehicle.

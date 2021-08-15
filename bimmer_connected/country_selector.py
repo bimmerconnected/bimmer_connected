@@ -14,17 +14,18 @@ class Regions(Enum):
 
 
 #: Mapping from regions to servers
-_SERVER_URLS = {
+_SERVER_URLS_LEGACY = {
     Regions.NORTH_AMERICA: "b2vapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "b2vapi.bmwgroup.com",
     Regions.CHINA: "b2vapi.bmwgroup.cn:8592",
 }
 
-_EADRAX_URLS = {
+_SERVER_URLS_EADRAX = {
     Regions.NORTH_AMERICA: "cocoapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "cocoapi.bmwgroup.com",
-    Regions.CHINA: "myprofile.bmw.com.cn",
+    Regions.CHINA: None,
 }
+
 
 #: Mapping from regions to servers
 _GCDM_OAUTH_ENDPOINTS = {
@@ -90,14 +91,14 @@ def get_region_from_name(name: str) -> Regions:
     )
 
 
-def get_server_url(region: Regions) -> str:
+def get_server_url_legacy(region: Regions) -> str:
     """Get the url of the server for the region."""
-    return _SERVER_URLS[region]
+    return _SERVER_URLS_LEGACY[region]
 
 
-def get_server_url_v2(region: Regions) -> str:
+def get_server_url_eadrax(region: Regions) -> str:
     """Get the url of the server for the region."""
-    return _EADRAX_URLS[region]
+    return _SERVER_URLS_EADRAX[region]
 
 
 def get_gcdm_oauth_endpoint(region: Regions) -> str:

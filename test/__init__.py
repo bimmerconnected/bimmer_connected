@@ -6,6 +6,8 @@ import re
 import urllib
 from typing import List
 
+from requests.exceptions import HTTPError
+
 from bimmer_connected.country_selector import Regions
 
 RESPONSE_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'responses')
@@ -216,11 +218,10 @@ class MockResponse:
     # pylint: disable=too-many-arguments
 
     def __init__(self, regex: str, data: str = None, data_files: List[str] = None, headers: dict = None,
-                 status_code: int = 200, raise_for_status=None) -> None:
+                 status_code: int = 200) -> None:
         """Constructor."""
         self.regex = re.compile(regex)
         self.status_code = status_code
-        self.raise_for_status_side_effect = raise_for_status
         self.headers = headers
         self._usage_count = 0
         if self.headers is None:
@@ -239,9 +240,14 @@ class MockResponse:
         return json.loads(self.text)
 
     def raise_for_status(self) -> bool:
-        """Simulate requests' raise_for_status and raise HTTPError if set as sideeffect."""
-        if self.raise_for_status_side_effect:
-            raise self.raise_for_status_side_effect
+        """Simulate requests' raise_for_status and raise HTTPError if non-ok status code."""
+        http_error_msg = ''
+        if 400 <= self.status_code < 500:
+            http_error_msg = u'%s Client Error' % (self.status_code)
+        elif 500 <= self.status_code < 600:
+            http_error_msg = u'%s Server Error' % (self.status_code)
+        if http_error_msg:
+            raise HTTPError(http_error_msg, response=self)
 
     @property
     def text(self) -> str:

@@ -12,12 +12,13 @@ VEHICLE_STATUS_URL = VEHICLE_VIN_URL + '/status'
 REMOTE_SERVICE_STATUS_URL = VEHICLE_VIN_URL + '/serviceExecutionStatus?serviceType={service_type}'
 REMOTE_SERVICE_URL = VEHICLE_VIN_URL + "/executeService"
 
-REMOTE_SERVICE_V2_BASE_URL = 'https://{server}/eadrax-vrccs/v2/presentation/remote-commands'
-REMOTE_SERVICE_V2_URL = REMOTE_SERVICE_V2_BASE_URL + '/{vin}/{service_type}'
-REMOTE_SERVICE_V2_STATUS_URL = REMOTE_SERVICE_V2_BASE_URL + '/eventStatus?eventId={event_id}'
+REMOTE_SERVICE_EADRAX_BASE_URL = 'https://{server}/eadrax-vrccs/v2/presentation/remote-commands'
+REMOTE_SERVICE_EADRAX_URL = REMOTE_SERVICE_EADRAX_BASE_URL + '/{vin}/{service_type}'
+REMOTE_SERVICE_EADRAX_STATUS_URL = REMOTE_SERVICE_EADRAX_BASE_URL + '/eventStatus?eventId={event_id}'
 
 VEHICLE_IMAGE_URL = VEHICLE_VIN_URL + "/image?width={width}&height={height}&view={view}"
 VEHICLE_POI_URL = VEHICLE_VIN_URL + '/sendpoi'
+VEHICLE_EADRAX_POI_URL = 'https://{server}/eadrax-dcs/v1/send-to-car/send-to-car'
 VEHICLE_STATISTICS_URL = VEHICLE_VIN_URL + '/statistics'
 VEHICLE_STATISTICS_LAST_TRIP_URL = VEHICLE_STATISTICS_URL + '/lastTrip'
 VEHICLE_STATISTICS_ALL_TRIPS_URL = VEHICLE_STATISTICS_URL + '/allTrips'
