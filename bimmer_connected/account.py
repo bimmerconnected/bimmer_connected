@@ -20,8 +20,8 @@ from requests.exceptions import HTTPError
 
 from bimmer_connected.country_selector import (
     Regions,
-    get_server_url,
-    get_server_url_v2,
+    get_server_url_legacy,
+    get_server_url_eadrax,
     get_gcdm_oauth_endpoint,
     get_gcdm_oauth_authorization
 )
@@ -52,8 +52,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     def __init__(self, username: str, password: str, region: Regions, log_responses: pathlib.Path = None,
                  retries_on_500_error: int = 5) -> None:
         self._region = region
-        self._server_url = None
-        self._server_url_v2 = None
+        self._server_url_legacy = None
+        self._server_url_eadrax = None
         self._username = username
         self._password = password
         self._oauth_token = None
@@ -224,24 +224,26 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         If the http headers are not set, default headers are generated.
         You can choose if you want a GET or POST request.
         """
-        if headers is None:
-            self._get_oauth_token()
-            headers = {
-                "x-user-agent": "android(v1.07_20200330);bmw;1.5.2(8932)",
-                "Authorization": "Bearer {}".format(self._oauth_token),
-            }
+        self._get_oauth_token()
+        request_headers = {
+            "x-user-agent": "android(v1.07_20200330);bmw;1.5.2(8932)",
+            "Authorization": "Bearer {}".format(self._oauth_token),
+        }
+        if headers:
+            request_headers.update(headers)
 
         if post:
-            response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects,
+            response = requests.post(url, headers=request_headers, data=data, allow_redirects=allow_redirects,
                                      params=params)
         else:
-            response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects,
+            response = requests.get(url, headers=request_headers, data=data, allow_redirects=allow_redirects,
                                     params=params)
 
         try:
             response.raise_for_status()
         except HTTPError as ex:
             _LOGGER.exception(ex)
+            raise ex
 
         self._log_response_to_file(response, logfilename)
         return response
@@ -293,18 +295,18 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         return json_data
 
     @property
-    def server_url(self) -> str:
+    def server_url_legacy(self) -> str:
         """Get the url of the server for this country."""
-        if self._server_url is None:
-            self._server_url = get_server_url(self._region)
-        return self._server_url
+        if self._server_url_legacy is None:
+            self._server_url_legacy = get_server_url_legacy(self._region)
+        return self._server_url_legacy
 
     @property
-    def server_url_v2(self) -> str:
+    def server_url_eadrax(self) -> str:
         """Get the url of the server for this country."""
-        if self._server_url_v2 is None:
-            self._server_url_v2 = get_server_url_v2(self._region)
-        return self._server_url_v2
+        if self._server_url_eadrax is None:
+            self._server_url_eadrax = get_server_url_eadrax(self._region)
+        return self._server_url_eadrax
 
     @property
     def region(self) -> str:
@@ -315,7 +317,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        response = self.send_request(VEHICLES_URL.format(server=self.server_url), headers=self.request_header,
+        response = self.send_request(VEHICLES_URL.format(server=self.server_url_legacy), headers=self.request_header,
                                      logfilename='vehicles')
 
         for vehicle_dict in response.json()['vehicles']:

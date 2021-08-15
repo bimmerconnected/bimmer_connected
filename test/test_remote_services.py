@@ -1,23 +1,33 @@
 """Test for remote_services."""
-import unittest
-from unittest import mock
 import datetime
-from test import BackendMock, TEST_USERNAME, TEST_PASSWORD, TEST_REGION, G31_VIN, load_response_json, \
-    POI_DATA, POI_REQUEST, MESSAGE_DATA, MESSAGE_REQUEST
+from test import (G31_VIN, MESSAGE_DATA, MESSAGE_REQUEST, POI_DATA,
+                  POI_REQUEST, TEST_PASSWORD, TEST_REGION, TEST_USERNAME,
+                  BackendMock, load_response_json)
+from unittest import mock, TestCase
 
-from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.remote_services import RemoteServiceStatus, ExecutionState, PointOfInterest, Message
+from requests.exceptions import HTTPError
+
 from bimmer_connected import remote_services
-
-_RESPONSE_UNKNOWN = 'G31_NBTevo/flash_unknown.json'
-_RESPONSE_INITIATED = 'G31_NBTevo/flash_initiated.json'
-_RESPONSE_PENDING = 'G31_NBTevo/flash_pending.json'
-_RESPONSE_DELIVERED = 'G31_NBTevo/flash_delivered.json'
-_RESPONSE_EXECUTED = 'G31_NBTevo/flash_executed.json'
-_MSG_EXECUTED = 'G31_NBTevo/msg_executed.json'
+from bimmer_connected.account import ConnectedDriveAccount
+from bimmer_connected.remote_services import (ExecutionState, Message,
+                                              PointOfInterest,
+                                              RemoteServiceStatus)
 
 
-class TestRemoteServices(unittest.TestCase):
+_RESPONSE_LEGACY_UNKNOWN = 'remote_services/legacy_flash_unknown.json'
+_RESPONSE_LEGACY_INITIATED = 'remote_services/legacy_flash_initiated.json'
+_RESPONSE_LEGACY_PENDING = 'remote_services/legacy_flash_pending.json'
+_RESPONSE_LEGACY_DELIVERED = 'remote_services/legacy_flash_delivered.json'
+_RESPONSE_LEGACY_EXECUTED = 'remote_services/legacy_flash_executed.json'
+_MSG_EXECUTED = 'remote_services/legacy_msg_executed.json'
+
+_RESPONSE_EADRAX_INITIATED = 'remote_services/eadrax_service_initiated.json'
+_RESPONSE_EADRAX_PENDING = 'remote_services/eadrax_service_pending.json'
+_RESPONSE_EADRAX_DELIVERED = 'remote_services/eadrax_service_delivered.json'
+_RESPONSE_EADRAX_EXECUTED = 'remote_services/eadrax_service_executed.json'
+
+
+class TestRemoteServices(TestCase):
     """Test for remote_services."""
 
     # pylint: disable=protected-access
@@ -30,19 +40,19 @@ class TestRemoteServices(unittest.TestCase):
 
     def test_states(self):
         """Test parsing the different response types."""
-        rss = RemoteServiceStatus(load_response_json(_RESPONSE_UNKNOWN))
+        rss = RemoteServiceStatus(load_response_json(_RESPONSE_LEGACY_UNKNOWN))
         self.assertEqual(ExecutionState.UNKNOWN, rss.state)
 
-        rss = RemoteServiceStatus(load_response_json(_RESPONSE_INITIATED))
+        rss = RemoteServiceStatus(load_response_json(_RESPONSE_LEGACY_INITIATED))
         self.assertEqual(ExecutionState.INITIATED, rss.state)
 
-        rss = RemoteServiceStatus(load_response_json(_RESPONSE_PENDING))
+        rss = RemoteServiceStatus(load_response_json(_RESPONSE_LEGACY_PENDING))
         self.assertEqual(ExecutionState.PENDING, rss.state)
 
-        rss = RemoteServiceStatus(load_response_json(_RESPONSE_DELIVERED))
+        rss = RemoteServiceStatus(load_response_json(_RESPONSE_LEGACY_DELIVERED))
         self.assertEqual(ExecutionState.DELIVERED, rss.state)
 
-        rss = RemoteServiceStatus(load_response_json(_RESPONSE_EXECUTED))
+        rss = RemoteServiceStatus(load_response_json(_RESPONSE_LEGACY_EXECUTED))
         self.assertEqual(ExecutionState.EXECUTED, rss.state)
 
     def test_trigger_remote_services(self):
@@ -65,8 +75,19 @@ class TestRemoteServices(unittest.TestCase):
             backend_mock = BackendMock()
             backend_mock.setup_default_vehicles()
 
-            backend_mock.add_response('https://.+/webapi/v1/user/vehicles/{vin}/executeService'.format(vin=G31_VIN),
-                                      data_files=[_RESPONSE_INITIATED])
+            backend_mock.add_response(
+                r'https://.+/eadrax-vrccs/v2/presentation/remote-commands/{vin}/.+$'.format(vin=G31_VIN),
+                data_files=[_RESPONSE_EADRAX_INITIATED])
+
+            backend_mock.add_response(
+                r'https://.+/eadrax-vrccs/v2/presentation/remote-commands/eventStatus\?eventId=.+',
+                data_files=[
+                    _RESPONSE_EADRAX_PENDING,
+                    _RESPONSE_EADRAX_DELIVERED,
+                    _RESPONSE_EADRAX_EXECUTED])
+
+            backend_mock.add_response(r'https://.+/webapi/v1/user/vehicles/{vin}/executeService'.format(vin=G31_VIN),
+                                      data_files=[_RESPONSE_LEGACY_INITIATED])
 
             backend_mock.add_response(
                 r'https://.+/webapi/v1/user/vehicles/{vin}/serviceExecutionStatus\?serviceType={service_type}'.format(
@@ -74,17 +95,20 @@ class TestRemoteServices(unittest.TestCase):
                 r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
                     vin=G31_VIN),
                 data_files=[
-                    _RESPONSE_UNKNOWN,
-                    _RESPONSE_PENDING,
-                    _RESPONSE_PENDING,
-                    _RESPONSE_DELIVERED,
-                    _RESPONSE_DELIVERED,
-                    _RESPONSE_EXECUTED])
+                    _RESPONSE_LEGACY_UNKNOWN,
+                    _RESPONSE_LEGACY_PENDING,
+                    _RESPONSE_LEGACY_DELIVERED,
+                    _RESPONSE_LEGACY_EXECUTED])
+
+            # backend_mock.add_response(
+            #     r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
+            #         vin=G31_VIN),
+            #     data_files=[_RESPONSE_LEGACY_EXECUTED])
 
             backend_mock.add_response(
-                r'https://.+/webapi/v1/user/vehicles/{vin}/status'.format(
-                    vin=G31_VIN),
-                data_files=[_RESPONSE_EXECUTED])
+                r'https://.+/eadrax-dcs/v1/send-to-car/send-to-car',
+                data_files=[_MSG_EXECUTED],
+                status_code=204)
 
             backend_mock.add_response(
                 r'https://.+/webapi/v1/user/vehicles/{vin}/sendpoi'.format(
@@ -99,7 +123,12 @@ class TestRemoteServices(unittest.TestCase):
                 vehicle = account.get_vehicle(G31_VIN)
 
                 if service == 'SEND_MESSAGE':
-                    response = getattr(vehicle.remote_services, call)(MESSAGE_DATA)
+                    if account.server_url_eadrax:
+                        with self.assertRaises(NotImplementedError):
+                            response = getattr(vehicle.remote_services, call)(MESSAGE_DATA)
+                        response = RemoteServiceStatus({"eventStatus": "EXECUTED"})
+                    else:
+                        response = getattr(vehicle.remote_services, call)(MESSAGE_DATA)
                 elif service == 'SEND_POI':
                     response = getattr(vehicle.remote_services, call)(POI_DATA)
                 else:
@@ -118,14 +147,35 @@ class TestRemoteServices(unittest.TestCase):
         with mock.patch('bimmer_connected.account.requests', new=backend_mock):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             vehicle = account.get_vehicle(G31_VIN)
-            with self.assertRaises(IOError):
-                vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
 
-            backend_mock.add_response(
-                r'https://.+/webapi/v1/user/vehicles/{vin}/serviceExecutionStatus\?.+'.format(vin=G31_VIN),
-                data_files=['G31_NBTevo/flash_executed.json'])
-            status = vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
-            self.assertEqual(ExecutionState.EXECUTED, status.state)
+            if account.server_url_eadrax:
+                backend_mock.add_response(
+                    r'https://.+/eadrax-vrccs/v2/presentation/remote-commands/eventStatus\?eventId=None',
+                    status_code=500,
+                    data='[]'
+                    )
+                with self.assertRaises(HTTPError):
+                    vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
+
+                backend_mock.add_response(
+                    r'https://.+/eadrax-vrccs/v2/presentation/remote-commands/eventStatus\?eventId=.+',
+                    data_files=[_RESPONSE_EADRAX_EXECUTED])
+
+                status = vehicle.remote_services._get_remote_service_status(event_id="000000")
+                self.assertEqual(ExecutionState.EXECUTED, status.state)
+
+            else:
+                with self.assertRaises(IOError):
+                    vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
+
+                backend_mock.add_response(
+                    r'https://.+/webapi/v1/user/vehicles/{vin}/serviceExecutionStatus\?.+'.format(vin=G31_VIN),
+                    data_files=[_RESPONSE_LEGACY_EXECUTED])
+
+                status = vehicle.remote_services._get_remote_service_status(
+                    remote_services._Services.REMOTE_LIGHT_FLASH
+                )
+                self.assertEqual(ExecutionState.EXECUTED, status.state)
 
     def test_parsing_of_poi_min_attributes(self):
         """Check that a PointOfInterest can be constructed using only latitude & longitude."""

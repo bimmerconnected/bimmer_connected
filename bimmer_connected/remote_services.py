@@ -11,12 +11,12 @@ from urllib.parse import urlencode
 
 import requests
 
-from bimmer_connected.country_selector import Regions
 from bimmer_connected.const import (REMOTE_SERVICE_STATUS_URL,
                                     REMOTE_SERVICE_URL,
-                                    REMOTE_SERVICE_V2_STATUS_URL,
-                                    REMOTE_SERVICE_V2_URL,
-                                    VEHICLE_POI_URL)
+                                    REMOTE_SERVICE_EADRAX_STATUS_URL,
+                                    REMOTE_SERVICE_EADRAX_URL,
+                                    VEHICLE_POI_URL,
+                                    VEHICLE_EADRAX_POI_URL)
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -121,6 +121,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
 
     def __init__(self, response: dict):
         """Construct a new object from a dict."""
+        status = None
         if 'executionStatus' in response:
             status = response["executionStatus"].get('status')
         elif 'eventStatus' in response:
@@ -213,9 +214,9 @@ class RemoteServices:
 
         You can choose if you want a POST or a GET operation.
         """
-        if self._account.region in [Regions.REST_OF_WORLD, Regions.NORTH_AMERICA]:
-            url = REMOTE_SERVICE_V2_URL.format(
-                server=self._account.server_url_v2,
+        if self._account.server_url_eadrax:
+            url = REMOTE_SERVICE_EADRAX_URL.format(
+                server=self._account.server_url_eadrax,
                 vin=self._vehicle.vin,
                 service_type=service_id.value.lower().replace('_', '-')
             )
@@ -223,7 +224,7 @@ class RemoteServices:
             response = self._account.send_request_v2(url, post=post, params=params)
         else:
             data = {'serviceType': service_id.value}
-            url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, server=self._account.server_url)
+            url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, server=self._account.server_url_legacy)
             response = self._account.send_request(url, post=post, data=data)
         try:
             return response.json().get('eventId')
@@ -257,15 +258,15 @@ class RemoteServices:
         if not service and not event_id:
             raise ValueError("One of 'service' or 'event_id' is required.")
         _LOGGER.debug('getting remote service status')
-        if event_id:
-            url = REMOTE_SERVICE_V2_STATUS_URL.format(
-                server=self._account.server_url_v2,
+        if self._account.server_url_eadrax:
+            url = REMOTE_SERVICE_EADRAX_STATUS_URL.format(
+                server=self._account.server_url_eadrax,
                 vin=self._vehicle.vin,
                 event_id=event_id)
             response = self._account.send_request_v2(url, post=True)
         elif service:
             url = REMOTE_SERVICE_STATUS_URL.format(
-                server=self._account.server_url,
+                server=self._account.server_url_legacy,
                 vin=self._vehicle.vin,
                 service_type=service.value)
             response = self._account.send_request(url)
@@ -311,15 +312,41 @@ class RemoteServices:
         if "lat" not in data or "lon" not in data:
             raise TypeError("__init__() missing 2 required positional arguments: 'lat' and 'lon'")
         poi = PointOfInterest(**data)
-        self._send_message(Message.from_poi(poi))
+        if self._account.server_url_eadrax:
+            data_json = json.dumps({
+                "location": {
+                    "coordinates": {
+                        "latitude": data["lat"],
+                        "longitude": data["lon"]
+                    },
+                    "name": data.get('name'),
+                    "locationAddress": {
+                        "street": data.get('street'),
+                        "postalCode": data.get('postal_code'),
+                        "city": data.get('city'),
+                        "country": data.get('country'),
+                    },
+                    "type": "SHARED_DESTINATION_FROM_EXTERNAL_APP"
+                },
+                "vin": self._vehicle.vin
+            })
+            self._account.send_request_v2(
+                VEHICLE_EADRAX_POI_URL,
+                headers={"Content-Type": "application/json"},
+                data=data_json
+            )
+        else:
+            self._send_message(Message.from_poi(poi))
         # _send_message has no separate ExecutionStates
-        return RemoteServiceStatus({'executionStatus': {'status': 'EXECUTED', 'eventId': -1}})
+        return RemoteServiceStatus({'eventStatus': 'EXECUTED'})
 
     def _send_message(self, msg: Message) -> None:
         """Send a message/point of interest to the vehicle."""
+        if self._account.server_url_eadrax:
+            raise NotImplementedError('The My BMW API does not support sending messages without location.')
         url = VEHICLE_POI_URL.format(
             vin=self._vehicle.vin,
-            server=self._account.server_url
+            server=self._account.server_url_legacy
         )
         header = self._account.request_header
         # the accept field of the header needs to be updated not the usual JSON

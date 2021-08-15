@@ -1,8 +1,11 @@
 """Tests for ConnectedDriveAccount."""
 import json
 import unittest
+from test import BackendMock, MockResponse, G31_VIN, TEST_PASSWORD, TEST_REGION, TEST_USERNAME
 from unittest import mock
-from test import BackendMock, G31_VIN, TEST_USERNAME, TEST_PASSWORD, TEST_REGION
+
+from requests.exceptions import HTTPError
+
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import Regions
 
@@ -23,6 +26,29 @@ class TestAccount(unittest.TestCase):
             self.assertEqual(G31_VIN, vehicle.vin)
 
             self.assertIsNone(account.get_vehicle('invalid_vin'))
+
+    def test_invalid_password(self):
+        """Test parsing the results of an invalid request"""
+        backend_mock = BackendMock()
+        backend_mock.responses = [
+            MockResponse(
+                'https://.+/gcdm/.*/?oauth/authenticate',
+                data_files=['auth/auth_error_wrong_password.json'],
+                status_code=401)
+        ]
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            with self.assertRaises(HTTPError):
+                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+
+        backend_mock.responses = [
+            MockResponse(
+                'https://.+/gcdm/.*/?oauth/authenticate',
+                data_files=['auth/auth_error_internal_error.txt'],
+                status_code=500)
+        ]
+        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+            with self.assertRaises(HTTPError):
+                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
 
     def test_invalid_send_response(self):
         """Test parsing the results of an invalid request"""

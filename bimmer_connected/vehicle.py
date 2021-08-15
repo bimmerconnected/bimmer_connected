@@ -216,7 +216,7 @@ class ConnectedDriveVehicle:
         """
         url = VEHICLE_IMAGE_URL.format(
             vin=self.vin,
-            server=self._account.server_url,
+            server=self._account.server_url_legacy,
             width=width,
             height=height,
             view=direction.value,
