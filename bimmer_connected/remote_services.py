@@ -26,7 +26,7 @@ _LOGGER = logging.getLogger(__name__)
 _POLLING_CYCLE = 3
 
 #: maximum number of seconds to wait for the server to return a positive answer
-_POLLING_TIMEOUT = 120
+_POLLING_TIMEOUT = 240
 
 #: time in seconds to wait before updating the vehicle state from the server
 _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
@@ -245,8 +245,11 @@ class RemoteServices:
             if status.state not in [ExecutionState.UNKNOWN, ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
             if datetime.datetime.now() > fail_after:
-                raise IOError(
-                    'Timeout on getting final answer from server. Current state: {}'.format(status.state.value))
+                raise TimeoutError(
+                    'Did not receive remote service result in {} seconds. Current state: {}'.format(
+                        _POLLING_TIMEOUT,
+                        status.state.value
+                    ))
             time.sleep(_POLLING_CYCLE)
 
     def _get_remote_service_status(self, service: _Services = None, event_id: str = None) -> RemoteServiceStatus:
