@@ -117,6 +117,7 @@ to be used in Home Assistant and is available on pypi.
 * https://github.com/edent/BMW-i-Remote
 * https://github.com/jupe76/bmwcdapi
 * https://github.com/frankjoke/iobroker.bmw
+* https://github.com/TA2k/ioBroker.bmw
 
 Thank you for your great software!
 
