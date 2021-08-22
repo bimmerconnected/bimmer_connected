@@ -145,7 +145,7 @@ class TestState(unittest.TestCase):
         """Test if error handling is working correctly."""
         account = unittest.mock.MagicMock(ConnectedDriveAccount)
         state = VehicleState(account, None)
-        state._attributes[SERVICE_STATUS] = dict()
+        state._attributes[SERVICE_STATUS] = {}
         self.assertIsNone(state.vehicle_status.mileage)
 
     @mock.patch('bimmer_connected.vehicle.VehicleState.update_data')

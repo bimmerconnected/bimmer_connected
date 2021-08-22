@@ -262,7 +262,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             output_path = self._log_responses / '{}_{}.txt'.format(logfilename, count)
             count += 1
 
-        with open(output_path, 'w') as logfile:
+        with open(output_path, 'w', encoding='UTF-8') as logfile:
             logfile.write(anonymized_data)
 
     @staticmethod
