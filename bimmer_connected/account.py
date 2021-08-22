@@ -80,68 +80,92 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 oauth_session = requests.Session()
                 oauth_settings = get_gcdm_oauth_authorization(self._region)
 
-                _LOGGER.debug("Authenticating against GCDM.")
-                authenticate_url = AUTH_URL.format(
-                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
-                )
-                authenticate_headers = {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                }
-
-                # we really need all of these parameters
-                oauth_base_values = {
-                    "client_id": oauth_settings["authenticate"]["client_id"],
-                    "response_type": "code",
-                    "redirect_uri": "com.bmw.connected://oauth",
-                    "state": oauth_settings["authenticate"]["state"],
-                    "nonce": "login_nonce",
-                    "scope": (
-                        "openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi "
-                        "remote_services fupo authenticate_user"
-                    ),
-                }
-
-                authenticate_data = urllib.parse.urlencode(
-                    dict(
-                        oauth_base_values,
-                        **{
-                            "grant_type": "authorization_code",
-                            "username": self._username,
-                            "password": self._password,
-                        }
+                if self.server_url_eadrax:
+                    # My BMW login flow
+                    _LOGGER.debug("Authenticating against GCDM with MyBMW flow.")
+                    authenticate_url = AUTH_URL.format(
+                        gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
                     )
-                )
-                response = oauth_session.post(
-                    authenticate_url, headers=authenticate_headers, data=authenticate_data
-                )
-                response.raise_for_status()
-                authorization = dict(urllib.parse.parse_qsl(response.json()["redirect_to"]))["authorization"]
-                _LOGGER.debug("got authorization challenge %s", authorization)
+                    authenticate_headers = {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                    }
 
-                code_data = urllib.parse.urlencode(
-                    dict(oauth_base_values, **{"authorization": authorization})
-                )
-                response = oauth_session.post(
-                    authenticate_url, headers=authenticate_headers, data=code_data, allow_redirects=False
-                )
-                response.raise_for_status()
-                code = dict(urllib.parse.parse_qsl(response.next.path_url.split('?')[1]))["code"]
-                _LOGGER.debug("got login code %s", code)
+                    # we really need all of these parameters
+                    oauth_base_values = {
+                        "client_id": oauth_settings["authenticate"]["client_id"],
+                        "response_type": "code",
+                        "redirect_uri": "com.bmw.connected://oauth",
+                        "state": oauth_settings["authenticate"]["state"],
+                        "nonce": "login_nonce",
+                        "scope": (
+                            "openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi "
+                            "remote_services fupo authenticate_user"
+                        ),
+                    }
+
+                    authenticate_data = urllib.parse.urlencode(
+                        dict(
+                            oauth_base_values,
+                            **{
+                                "grant_type": "authorization_code",
+                                "username": self._username,
+                                "password": self._password,
+                            }
+                        )
+                    )
+                    response = oauth_session.post(
+                        authenticate_url, headers=authenticate_headers, data=authenticate_data
+                    )
+                    response.raise_for_status()
+                    authorization = dict(urllib.parse.parse_qsl(response.json()["redirect_to"]))["authorization"]
+                    _LOGGER.debug("got authorization challenge %s", authorization)
+
+                    code_data = urllib.parse.urlencode(
+                        dict(oauth_base_values, **{"authorization": authorization})
+                    )
+                    response = oauth_session.post(
+                        authenticate_url, headers=authenticate_headers, data=code_data, allow_redirects=False
+                    )
+                    response.raise_for_status()
+                    code = dict(urllib.parse.parse_qsl(response.next.path_url.split('?')[1]))["code"]
+                    _LOGGER.debug("got login code %s", code)
 
                 _LOGGER.debug("getting new oauth token")
                 token_url = TOKEN_URL.format(
                     gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
                 )
-                token_headers = {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "Authorization": oauth_settings["token"]["Authorization"],
-                }
-                token_values = {
-                    "code": code,
-                    "code_verifier": oauth_settings["token"]["code_verifier"],
-                    "redirect_uri": "com.bmw.connected://oauth",
-                    "grant_type": "authorization_code",
-                }
+                if self.server_url_eadrax:
+                    # My BMW login flow
+                    token_headers = {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Authorization": oauth_settings["token"]["Authorization"],
+                    }
+                    token_values = {
+                        "code": code,
+                        "code_verifier": oauth_settings["token"]["code_verifier"],
+                        "redirect_uri": "com.bmw.connected://oauth",
+                        "grant_type": "authorization_code",
+                    }
+                else:
+                    # BMW Connected App login flow
+                    token_headers = {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "Content-Length": "124",
+                        "Connection": "Keep-Alive",
+                        "Host": urllib.parse.urlparse(token_url).netloc,
+                        "Accept-Encoding": "gzip",
+                        "Credentials": "nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ",
+                        "User-Agent": "okhttp/3.12.2",
+                        "Authorization": oauth_settings["token"]["Authorization"],
+                    }
+
+                    # we really need all of these parameters
+                    token_values = {
+                        'scope': 'authenticate_user vehicle_data remote_services',
+                        'grant_type': 'password',
+                        'username': self._username,
+                        'password': self._password,
+                    }
 
                 token_data = urllib.parse.urlencode(token_values)
                 response = oauth_session.post(
