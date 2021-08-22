@@ -134,7 +134,7 @@ MESSAGE_REQUEST = {
 
 def load_response_json(filename: str) -> dict:
     """load a stored response from a file"""
-    with open(os.path.join(RESPONSE_DIR, filename)) as json_file:
+    with open(os.path.join(RESPONSE_DIR, filename), encoding='UTF-8') as json_file:
         return json.load(json_file)
 
 
@@ -225,12 +225,12 @@ class MockResponse:
         self.headers = headers
         self._usage_count = 0
         if self.headers is None:
-            self.headers = dict()
+            self.headers = {}
 
         if data_files is not None:
             self._data = []
             for data_file in data_files:
-                with open(os.path.join(RESPONSE_DIR, data_file)) as response:
+                with open(os.path.join(RESPONSE_DIR, data_file), encoding='UTF-8') as response:
                     self._data.append(response.read())
         else:
             self._data = [data]
@@ -243,9 +243,9 @@ class MockResponse:
         """Simulate requests' raise_for_status and raise HTTPError if non-ok status code."""
         http_error_msg = ''
         if 400 <= self.status_code < 500:
-            http_error_msg = u'%s Client Error' % (self.status_code)
+            http_error_msg = '%s Client Error' % (self.status_code)
         elif 500 <= self.status_code < 600:
-            http_error_msg = u'%s Server Error' % (self.status_code)
+            http_error_msg = '%s Server Error' % (self.status_code)
         if http_error_msg:
             raise HTTPError(http_error_msg, response=self)
 
