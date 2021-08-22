@@ -59,8 +59,8 @@ _GCDM_OAUTH_AUTHORIZATION = {
     },
     Regions.CHINA: {
         "token": {
-            "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
-                              "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg=="),
+            "Authorization": ("Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGN"
+                              "EanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg=="),
             "code_verifier": "",
         },
         "authenticate": {
