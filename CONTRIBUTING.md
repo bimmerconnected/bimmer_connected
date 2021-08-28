@@ -11,4 +11,4 @@ The process is straight-forward.
 
 ## Feature suggestions
 
-If you want to suggest a new feature for bimmer_connected, please open one [here](https://github.com/bimmerconnected/bimmer_connected/issues/new?assignees=&labels=&template=feature_request.md&title=).
+If you want to suggest a new feature for bimmer_connected, please open one [here](https://github.com/bimmerconnected/bimmer_connected/discussions/new).
