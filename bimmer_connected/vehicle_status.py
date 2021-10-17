@@ -377,10 +377,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
         """List of check control messages."""
-        # TO DO change this in HA binary_sensor.py first
-        # messages = self._state.attributes[SERVICE_STATUS]['STATUS'].get('checkControlMessages', [])
-        # return [CheckControlMessage(m) for m in messages]
-        return self._state.attributes[SERVICE_STATUS].get('checkControlMessages', [])
+        messages = self._state.attributes[SERVICE_STATUS]['STATUS'].get('checkControlMessages', [])
+        return [CheckControlMessage(m) for m in messages]
 
     @property
     @backend_parameter
