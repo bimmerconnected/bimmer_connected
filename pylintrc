@@ -2,4 +2,6 @@
 max-line-length=120
 
 [MESSAGES CONTROL]
-disable=R0801
+disable=
+    duplicate-code,
+    consider-using-f-string,
