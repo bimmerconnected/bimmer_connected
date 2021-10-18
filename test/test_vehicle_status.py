@@ -264,9 +264,10 @@ class TestState(unittest.TestCase):
         state._attributes[SERVICE_STATUS] = F48_TEST_DATA['vehicleStatus']
 
         ccms = state.vehicle_status.check_control_messages
+
         self.assertEqual(1, len(ccms))
         ccm = ccms[0]
-        self.assertEqual(955, ccm["ccmId"])
-        self.assertEqual(41544, ccm["ccmMileage"])
-        self.assertIn("Tyre pressure", ccm["ccmDescriptionShort"])
-        self.assertIn("continue driving", ccm["ccmDescriptionLong"])
+        self.assertEqual(955, ccm.ccm_id)
+        self.assertEqual(41544, ccm.mileage)
+        self.assertIn("Tyre pressure", ccm.description_short)
+        self.assertIn("continue driving", ccm.description_long)
