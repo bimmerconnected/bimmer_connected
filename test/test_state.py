@@ -238,17 +238,3 @@ class TestState(unittest.TestCase):
                     self.assertTrue(vehicle.state.has_check_control_messages)
                 else:
                     self.assertFalse(vehicle.state.has_check_control_messages)
-
-    def test_ccm_f48(self):
-        """Test parsing of a check control message."""
-        account = unittest.mock.MagicMock(ConnectedDriveAccount)
-        state = VehicleState(account, None)
-        state._attributes[SERVICE_STATUS] = F48_TEST_DATA['vehicleStatus']
-
-        ccms = state.vehicle_status.check_control_messages
-        self.assertEqual(1, len(ccms))
-        ccm = ccms[0]
-        self.assertEqual(955, ccm["ccmId"])
-        self.assertEqual(41544, ccm["ccmMileage"])
-        self.assertIn("Tyre pressure", ccm["ccmDescriptionShort"])
-        self.assertIn("continue driving", ccm["ccmDescriptionLong"])
