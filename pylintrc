@@ -1,3 +1,6 @@
+[MASTER]
+py-version=3.5
+
 [FORMAT]
 max-line-length=120
 
