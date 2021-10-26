@@ -1,2 +1,11 @@
 [run]
 omit = bimmer_connected/cli.py
+
+[report]
+exclude_lines =
+    # Re-enable default pragma
+    pragma: no cover
+
+    # Type checking code not executed during pytest runs
+    if TYPE_CHECKING:
+    @overload
