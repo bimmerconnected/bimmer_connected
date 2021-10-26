@@ -1,8 +1,12 @@
 """Models the navigation of a vehicle."""
 
 import logging
+from typing import TYPE_CHECKING
 
 from bimmer_connected.const import SERVICE_NAVIGATION
+
+if TYPE_CHECKING:
+    from bimmer_connected.state import VehicleState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -27,7 +31,7 @@ def backend_parameter(func):
 class Navigation:  # pylint: disable=too-many-public-methods
     """Models the navigation of a vehicle."""
 
-    def __init__(self, state):
+    def __init__(self, state: "VehicleState"):
         """Constructor."""
         self._state = state
 

@@ -1,10 +1,13 @@
 """Models the charging profiles of a vehicle."""
 
 import logging
-from typing import List
+from typing import TYPE_CHECKING, List
 from enum import Enum
 
 from bimmer_connected.const import SERVICE_CHARGING_PROFILE
+
+if TYPE_CHECKING:
+    from bimmer_connected.state import VehicleState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,7 +95,7 @@ def backend_parameter(func):
 class ChargingProfile:  # pylint: disable=too-many-public-methods
     """Models the charging profile of a vehicle."""
 
-    def __init__(self, state):
+    def __init__(self, state: "VehicleState"):
         """Constructor."""
         self._state = state
 

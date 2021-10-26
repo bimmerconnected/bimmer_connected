@@ -1,7 +1,7 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
 import logging
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from bimmer_connected.state import VehicleState
 from bimmer_connected.vehicle_status import WINDOWS, LIDS
@@ -10,6 +10,9 @@ from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import VEHICLE_IMAGE_URL, SERVICE_ALL_TRIPS, SERVICE_CHARGING_PROFILE, \
     SERVICE_DESTINATIONS, SERVICE_EFFICIENCY, SERVICE_LAST_TRIP, SERVICE_NAVIGATION, \
     SERVICE_RANGEMAP, SERVICE_STATUS
+
+if TYPE_CHECKING:
+    from bimmer_connected.account import ConnectedDriveAccount
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +69,7 @@ class ConnectedDriveVehicle:
     :param attributes: attributes of the vehicle as provided by the server
     """
 
-    def __init__(self, account, attributes: dict) -> None:
+    def __init__(self, account: "ConnectedDriveAccount", attributes: dict) -> None:
         self._account = account
         self.attributes = attributes
         self.state = VehicleState(account, self)

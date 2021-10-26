@@ -1,10 +1,13 @@
 """Models the last destinations of a vehicle."""
 
 import logging
-from typing import List
+from typing import TYPE_CHECKING, List
 from enum import Enum
 
 from bimmer_connected.const import SERVICE_DESTINATIONS
+
+if TYPE_CHECKING:
+    from bimmer_connected.state import VehicleState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,7 +81,7 @@ def backend_parameter(func):
 class LastDestinations:  # pylint: disable=too-many-public-methods
     """Models the last destinations of a vehicle."""
 
-    def __init__(self, state):
+    def __init__(self, state: "VehicleState"):
         """Constructor."""
         self._state = state
 

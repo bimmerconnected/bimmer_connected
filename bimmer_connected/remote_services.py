@@ -5,7 +5,7 @@ import json
 from json.decoder import JSONDecodeError
 import logging
 import time
-from typing import List
+from typing import TYPE_CHECKING, List
 from enum import Enum
 from urllib.parse import urlencode
 
@@ -17,6 +17,10 @@ from bimmer_connected.const import (REMOTE_SERVICE_STATUS_URL,
                                     REMOTE_SERVICE_EADRAX_URL,
                                     VEHICLE_POI_URL,
                                     VEHICLE_EADRAX_POI_URL)
+
+if TYPE_CHECKING:
+    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.vehicle import ConnectedDriveVehicle
 
 TIME_FORMAT = '%Y-%m-%dT%H:%M:%S.%f'
 
@@ -142,7 +146,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
 class RemoteServices:
     """Trigger remote services on a vehicle."""
 
-    def __init__(self, account, vehicle):
+    def __init__(self, account: "ConnectedDriveAccount", vehicle: "ConnectedDriveVehicle"):
         """Constructor."""
         self._account = account
         self._vehicle = vehicle

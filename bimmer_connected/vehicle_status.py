@@ -3,9 +3,12 @@
 import datetime
 import logging
 from enum import Enum
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 from bimmer_connected.const import SERVICE_STATUS
+
+if TYPE_CHECKING:
+    from bimmer_connected.state import VehicleState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,7 +112,7 @@ def backend_parameter(func):
 class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
-    def __init__(self, state):
+    def __init__(self, state: "VehicleState"):
         """Constructor."""
         self._state = state
 
