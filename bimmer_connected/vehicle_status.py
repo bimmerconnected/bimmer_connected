@@ -3,7 +3,7 @@
 import datetime
 import logging
 from enum import Enum
-from typing import List
+from typing import List, Tuple
 
 from bimmer_connected.const import SERVICE_STATUS
 
@@ -130,7 +130,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def gps_position(self) -> (float, float):
+    def gps_position(self) -> Tuple[float, float]:
         """Get the last known position of the vehicle.
 
         Returns a tuple of (latitude, longitude).
@@ -147,7 +147,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def gps_heading(self) -> (int):
+    def gps_heading(self) -> int:
         """Get the last known heading of the vehicle.
 
         This only provides data, if the vehicle tracking is enabled!
