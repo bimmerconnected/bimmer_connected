@@ -5,7 +5,7 @@ import json
 from json.decoder import JSONDecodeError
 import logging
 import time
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, TypeVar
 from enum import Enum
 from urllib.parse import urlencode
 
@@ -34,6 +34,8 @@ _POLLING_TIMEOUT = 240
 
 #: time in seconds to wait before updating the vehicle state from the server
 _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
+
+TMessage = TypeVar("TMessage", bound="Message")
 
 
 class ExecutionState(Enum):
@@ -99,12 +101,12 @@ class Message:
     """Text message or PointOfInterst to be sent to the vehicle."""
 
     @classmethod
-    def from_poi(cls, poi: PointOfInterest):
+    def from_poi(cls: TMessage, poi: PointOfInterest) -> TMessage:
         """Create a message from a PointOfInterest"""
         return cls(poi.__dict__)
 
     @classmethod
-    def from_text(cls, text: str, subject: str = None):
+    def from_text(cls: TMessage, text: str, subject: str = None) -> TMessage:
         """Create a text message"""
         return cls({"name": subject, "additionalInfo": text[:255]})
 
