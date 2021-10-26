@@ -402,7 +402,7 @@ class Lid:  # pylint: disable=too-few-public-methods
         self._vehicle_status = vehicle_status
 
     @property
-    def state(self):
+    def state(self) -> LidState:
         """Get the current state of the lid."""
         return LidState(getattr(self._vehicle_status, self.name))
 

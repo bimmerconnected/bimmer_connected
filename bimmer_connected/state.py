@@ -54,7 +54,7 @@ class VehicleState:
         """Constructor."""
         self._account = account
         self._vehicle = vehicle
-        self._attributes = {}
+        self._attributes = {}  # type: dict[str, dict]
         self.vehicle_status = VehicleStatus(self)
         self.all_trips = AllTrips(self)
         self.charging_profile = ChargingProfile(self)
