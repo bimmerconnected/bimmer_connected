@@ -10,6 +10,7 @@ import requests
 from bimmer_connected import __version__ as bimmer_connected_version
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, get_server_url_eadrax, valid_regions
+from bimmer_connected.vehicle import HV_BATTERY_DRIVE_TRAINS
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -49,36 +50,38 @@ def fingerprint(args) -> None:
     print("Getting 'vehicles'")
     account.send_request_v2(
         "https://{}/eadrax-vcs/v1/vehicles".format(server_url),
-        params={"apptimezone": utcdiff, "appDateTime": time.time(), "tireGuardMode": "ENABLED"}
+        params={"apptimezone": utcdiff, "appDateTime": time.time(), "tireGuardMode": "ENABLED"},
+        logfilename="vehicles_v2"
     )
 
     for vehicle in account.vehicles:
-        try:
-            print(f"Getting 'charging-sessions' for {vehicle.vin}")
-            account.send_request_v2(
-                "https://{}/eadrax-chs/v1/charging-sessions".format(server_url),
-                params={
-                    "vin": vehicle.vin,
-                    "maxResults": 40,
-                    "include_date_picker": "true"
-                },
-                logfilename="charging-sessions"
-            )
-        except requests.HTTPError:
-            _LOGGER.info("Vehicle %s does not support 'charging-sessions'.", vehicle.name)
+        if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
+            try:
+                print(f"Getting 'charging-sessions' for {vehicle.vin}")
+                account.send_request_v2(
+                    "https://{}/eadrax-chs/v1/charging-sessions".format(server_url),
+                    params={
+                        "vin": vehicle.vin,
+                        "maxResults": 40,
+                        "include_date_picker": "true"
+                    },
+                    logfilename="charging-sessions"
+                )
+            except requests.HTTPError:
+                _LOGGER.info("Vehicle %s does not support 'charging-sessions'.", vehicle.name)
 
-        try:
-            print(f"Getting 'charging-statistics' for {vehicle.vin}")
-            account.send_request_v2(
-                "https://{}/eadrax-chs/v1/charging-statistics".format(server_url),
-                params={
-                    "vin": vehicle.vin,
-                    "currentDate": datetime.utcnow().isoformat()
-                },
-                logfilename="charging-statistics"
-            )
-        except requests.HTTPError:
-            _LOGGER.info("Vehicle %s does not support 'charging-statistics'.", vehicle.name)
+            try:
+                print(f"Getting 'charging-statistics' for {vehicle.vin}")
+                account.send_request_v2(
+                    "https://{}/eadrax-chs/v1/charging-statistics".format(server_url),
+                    params={
+                        "vin": vehicle.vin,
+                        "currentDate": datetime.utcnow().isoformat()
+                    },
+                    logfilename="charging-statistics"
+                )
+            except requests.HTTPError:
+                _LOGGER.info("Vehicle %s does not support 'charging-statistics'.", vehicle.name)
 
     print('fingerprint of the vehicles written to {}'.format(time_dir))
 
