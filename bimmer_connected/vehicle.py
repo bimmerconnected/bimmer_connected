@@ -192,7 +192,7 @@ class ConnectedDriveVehicle:
         return result
 
     @property
-    def available_state_services(self) -> List:
+    def available_state_services(self) -> List[str]:
         """Get the list of all available state services for this vehicle."""
         result = [SERVICE_STATUS]
         if self.has_statistics_service:
