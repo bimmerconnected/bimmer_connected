@@ -14,9 +14,10 @@ import pathlib
 import urllib
 import json
 from threading import Lock
-from typing import Callable, List
+from typing import Any, Callable, Dict, List
 import requests
 from requests.exceptions import HTTPError
+from requests.models import Response
 
 from bimmer_connected.country_selector import (
     Regions,
@@ -62,9 +63,9 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         self._log_responses = log_responses
         self._retries_on_500_error = retries_on_500_error
         #: list of vehicles associated with this account.
-        self._vehicles = []
+        self._vehicles = []  # type: list[ConnectedDriveVehicle]
         self._lock = Lock()
-        self._update_listeners = []
+        self._update_listeners = []  # type: list[Callable[[], Any]]
 
         self._get_vehicles()
 
@@ -198,7 +199,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 raise ex
 
     @property
-    def request_header(self):
+    def request_header(self) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
         self._get_oauth_token()
         headers = {
@@ -208,7 +209,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         return headers
 
     def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True,
-                     logfilename: str = None, params: dict = None):
+                     logfilename: str = None, params: dict = None) -> Response:
         """Send an http request to the server.
 
         If the http headers are not set, default headers are generated.
@@ -242,7 +243,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         return response
 
     def send_request_v2(self, url: str, data=None, headers=None, post=False, allow_redirects=True,
-                        logfilename: str = None, params: dict = None):
+                        logfilename: str = None, params: dict = None) -> Response:
         """Send an http request to the server.
 
         If the http headers are not set, default headers are generated.
@@ -337,7 +338,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Get the region."""
         return self._region
 
-    def _get_vehicles(self):
+    def _get_vehicles(self) -> None:
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
@@ -369,7 +370,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         for listener in self._update_listeners:
             listener()
 
-    def add_update_listener(self, listener: Callable) -> None:
+    def add_update_listener(self, listener: Callable[[], Any]) -> None:
         """Add a listener for state updates."""
         self._update_listeners.append(listener)
 
@@ -378,7 +379,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Get list of vehicle of this account"""
         return self._vehicles
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Use the user name as id for the account class."""
         return '{}: {}'.format(self.__class__, self._username)
 

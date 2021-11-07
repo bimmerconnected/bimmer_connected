@@ -2,7 +2,7 @@
 
 import logging
 import datetime
-from typing import List, Tuple
+from typing import TYPE_CHECKING, List, Tuple
 
 from bimmer_connected.const import SERVICE_STATUS, VEHICLE_STATUS_URL, SERVICE_LAST_TRIP, \
     VEHICLE_STATISTICS_LAST_TRIP_URL, SERVICE_ALL_TRIPS, VEHICLE_STATISTICS_ALL_TRIPS_URL, \
@@ -19,6 +19,10 @@ from bimmer_connected.last_destinations import LastDestinations
 from bimmer_connected.range_maps import RangeMaps
 from bimmer_connected.navigation import Navigation
 from bimmer_connected.efficiency import Efficiency
+
+if TYPE_CHECKING:
+    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.vehicle import ConnectedDriveVehicle
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,11 +50,11 @@ class VehicleState:
     # pylint: disable=too-many-public-methods
     # pylint: disable=too-many-instance-attributes
     # Nine is reasonable in this case.
-    def __init__(self, account, vehicle):
+    def __init__(self, account: "ConnectedDriveAccount", vehicle: "ConnectedDriveVehicle"):
         """Constructor."""
         self._account = account
         self._vehicle = vehicle
-        self._attributes = {}
+        self._attributes = {}  # type: dict[str, dict]
         self.vehicle_status = VehicleStatus(self)
         self.all_trips = AllTrips(self)
         self.charging_profile = ChargingProfile(self)

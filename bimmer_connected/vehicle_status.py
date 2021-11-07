@@ -3,9 +3,12 @@
 import datetime
 import logging
 from enum import Enum
-from typing import List
+from typing import TYPE_CHECKING, List, Tuple
 
 from bimmer_connected.const import SERVICE_STATUS
+
+if TYPE_CHECKING:
+    from bimmer_connected.state import VehicleState
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -109,7 +112,7 @@ def backend_parameter(func):
 class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
-    def __init__(self, state):
+    def __init__(self, state: "VehicleState"):
         """Constructor."""
         self._state = state
 
@@ -130,7 +133,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def gps_position(self) -> (float, float):
+    def gps_position(self) -> Tuple[float, float]:
         """Get the last known position of the vehicle.
 
         Returns a tuple of (latitude, longitude).
@@ -147,7 +150,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property
     @backend_parameter
-    def gps_heading(self) -> (int):
+    def gps_heading(self) -> int:
         """Get the last known heading of the vehicle.
 
         This only provides data, if the vehicle tracking is enabled!
@@ -399,7 +402,7 @@ class Lid:  # pylint: disable=too-few-public-methods
         self._vehicle_status = vehicle_status
 
     @property
-    def state(self):
+    def state(self) -> LidState:
         """Get the current state of the lid."""
         return LidState(getattr(self._vehicle_status, self.name))
 
