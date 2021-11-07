@@ -296,7 +296,9 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
         replacements = {
             'lat': 12.3456,
+            'latitude': 12.3456,
             'lon': 34.5678,
+            'longitude': 34.5678,
             'heading': 123,
             'vin': 'some_vin',
             'licensePlate': 'some_license_plate',
@@ -306,6 +308,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             'streetNumber': '999',
             'postalCode': 'some_postal_code',
             'phone': 'some_phone',
+            'formatted': 'some_formatted_address'
         }
 
         if isinstance(json_data, list):
