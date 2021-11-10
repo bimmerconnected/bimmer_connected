@@ -6,14 +6,15 @@ import logging
 import json
 import time
 import sys
+from datetime import datetime
 
 from pathlib import Path
 
 import requests
 
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.country_selector import get_region_from_name, valid_regions
-from bimmer_connected.vehicle import VehicleViewDirection
+from bimmer_connected.country_selector import get_region_from_name, valid_regions, get_server_url_eadrax
+from bimmer_connected.vehicle import VehicleViewDirection, HV_BATTERY_DRIVE_TRAINS
 
 TEXT_VIN = 'Vehicle Identification Number'
 
@@ -118,7 +119,41 @@ def fingerprint(args) -> None:
     if args.lat and args.lng:
         for vehicle in account.vehicles:
             vehicle.set_observer_position(args.lat, args.lng)
-    account.update_vehicle_states()
+    # doesn't work anymore
+    # account.update_vehicle_states()
+
+    # Patching in new My BMW endpoints for fingerprinting
+    server_url = get_server_url_eadrax(get_region_from_name(args.region))
+    utcdiff = round((datetime.now() - datetime.utcnow()).seconds / 60, 0)
+
+    account.send_request_v2(
+        "https://{}/eadrax-vcs/v1/vehicles".format(server_url),
+        params={"apptimezone": utcdiff, "appDateTime": time.time(), "tireGuardMode": "ENABLED"},
+        logfilename="vehicles_v2"
+    )
+
+    for vehicle in account.vehicles:
+        if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
+            print(f"Getting 'charging-sessions' for {vehicle.vin}")
+            account.send_request_v2(
+                "https://{}/eadrax-chs/v1/charging-sessions".format(server_url),
+                params={
+                    "vin": vehicle.vin,
+                    "maxResults": 40,
+                    "include_date_picker": "true"
+                },
+                logfilename="charging-sessions"
+            )
+
+            print(f"Getting 'charging-statistics' for {vehicle.vin}")
+            account.send_request_v2(
+                "https://{}/eadrax-chs/v1/charging-statistics".format(server_url),
+                params={
+                    "vin": vehicle.vin,
+                    "currentDate": datetime.utcnow().isoformat()
+                },
+                logfilename="charging-statistics"
+            )
 
     print('fingerprint of the vehicles written to {}'.format(time_dir))
 
