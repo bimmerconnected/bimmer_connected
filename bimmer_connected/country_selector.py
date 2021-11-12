@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class Regions(Enum):
     """Regions of the world with separate servers."""
     NORTH_AMERICA = 0
-    CHINA = 1
+    # CHINA = 1
     REST_OF_WORLD = 2
 
 
@@ -17,13 +17,13 @@ class Regions(Enum):
 _SERVER_URLS_LEGACY = {
     Regions.NORTH_AMERICA: "b2vapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "b2vapi.bmwgroup.com",
-    Regions.CHINA: "b2vapi.bmwgroup.cn:8592",
+    # Regions.CHINA: "b2vapi.bmwgroup.cn:8592",
 }
 
 _SERVER_URLS_EADRAX = {
     Regions.NORTH_AMERICA: "cocoapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "cocoapi.bmwgroup.com",
-    Regions.CHINA: None,
+    # Regions.CHINA: None,
 }
 
 
@@ -31,7 +31,7 @@ _SERVER_URLS_EADRAX = {
 _GCDM_OAUTH_ENDPOINTS = {
     Regions.NORTH_AMERICA: "login.bmwusa.com/gcdm",
     Regions.REST_OF_WORLD: "customer.bmwgroup.com/gcdm",
-    Regions.CHINA: "customer.bmwgroup.cn/gcdm",
+    # Regions.CHINA: "customer.bmwgroup.cn/gcdm",
 }
 
 _GCDM_OAUTH_AUTHORIZATION = {
@@ -57,17 +57,17 @@ _GCDM_OAUTH_AUTHORIZATION = {
             "state": "cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw",
         },
     },
-    Regions.CHINA: {
-        "token": {
-            "Authorization": ("Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGN"
-                              "EanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg=="),
-            "code_verifier": "",
-        },
-        "authenticate": {
-            "client_id": None,
-            "state": None,
-        },
-    },
+    # Regions.CHINA: {
+    #     "token": {
+    #         "Authorization": ("Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGN"
+    #                           "EanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg=="),
+    #         "code_verifier": "",
+    #     },
+    #     "authenticate": {
+    #         "client_id": None,
+    #         "state": None,
+    #     },
+    # },
 }
 
 
@@ -81,6 +81,10 @@ def get_region_from_name(name: str) -> Regions:
 
     This function is not case-sensitive.
     """
+    if name.lower() == 'china':
+        raise NotImplementedError(
+            "Support for region 'china' is currently not available. Please use `bimmer_connected<0.8.0"
+        )
     for region in Regions:
         if name.lower() == region.name.lower():
             return region
@@ -91,12 +95,12 @@ def get_region_from_name(name: str) -> Regions:
     )
 
 
-def get_server_url_legacy(region: Regions) -> str:
-    """Get the url of the server for the region."""
-    return _SERVER_URLS_LEGACY[region]
+# def get_server_url_legacy(region: Regions) -> str:
+#     """Get the url of the server for the region."""
+#     return _SERVER_URLS_LEGACY[region]
 
 
-def get_server_url_eadrax(region: Regions) -> str:
+def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return _SERVER_URLS_EADRAX[region]
 

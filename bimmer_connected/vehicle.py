@@ -1,15 +1,11 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING
 
 from bimmer_connected.state import VehicleState
-from bimmer_connected.vehicle_status import WINDOWS, LIDS
-from bimmer_connected.range_maps import RangeMapServices
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_IMAGE_URL, SERVICE_ALL_TRIPS, SERVICE_CHARGING_PROFILE, \
-    SERVICE_DESTINATIONS, SERVICE_EFFICIENCY, SERVICE_LAST_TRIP, SERVICE_NAVIGATION, \
-    SERVICE_RANGEMAP, SERVICE_STATUS
+from bimmer_connected.const import VEHICLE_IMAGE_URL  # , SERVICE_CHARGING_PROFILE
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
@@ -19,20 +15,16 @@ _LOGGER = logging.getLogger(__name__)
 
 class DriveTrainType(Enum):
     """Different types of drive trains."""
-    CONVENTIONAL = 'CONV'
-    PHEV = 'PHEV'
-    BEV = 'BEV'
-    BEV_REX = 'BEV_REX'
+    COMBUSTION = 'COMBUSTION'
+    PLUGIN_HYBRID = 'PLUGIN_HYBRID'
+    ELECTRIC = 'ELECTRIC'
 
 
 #: Set of drive trains that have a combustion engine
-COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.CONVENTIONAL, DriveTrainType.PHEV}
-
-#: Set of drive trains that have a range extender
-RANGE_EXTENDER_DRIVE_TRAINS = {DriveTrainType.BEV_REX}
+COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.COMBUSTION, DriveTrainType.PLUGIN_HYBRID}
 
 #: set of drive trains that have a high voltage battery
-HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PHEV, DriveTrainType.BEV, DriveTrainType.BEV_REX}
+HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PLUGIN_HYBRID, DriveTrainType.ELECTRIC}
 
 
 class VehicleViewDirection(Enum):
@@ -40,14 +32,14 @@ class VehicleViewDirection(Enum):
 
     This is used to get a rendered image of the vehicle.
     """
-    FRONTSIDE = 'FRONTSIDE'
-    FRONT = 'FRONT'
-    REARSIDE = 'REARSIDE'
-    REAR = 'REAR'
-    SIDE = 'SIDE'
-    DASHBOARD = 'DASHBOARD'
-    DRIVERDOOR = 'DRIVERDOOR'
-    REARBIRDSEYE = 'REARBIRDSEYE'
+    FRONTSIDE = 'VehicleStatus'
+    FRONT = 'VehicleInfo'
+    # REARSIDE = 'REARSIDE'
+    # REAR = 'REAR'
+    SIDE = 'ChargingHistory'
+    # DASHBOARD = 'DASHBOARD'
+    # DRIVERDOOR = 'DRIVERDOOR'
+    # REARBIRDSEYE = 'REARBIRDSEYE'
 
 
 class LscType(Enum):
@@ -55,11 +47,8 @@ class LscType(Enum):
 
     Not really sure, what this value really contains.
     """
-    NOT_SUPPORTED = 'NOT_SUPPORTED'
-    LSC_BASIS = 'LSC_BASIS'
-    I_LSC_IMM = 'I_LSC_IMM'
-    UNKNOWN = 'UNKNOWN'
-    LSC_PHEV = 'LSC_PHEV'
+    NOT_CAPABLE = 'NOT_CAPABLE'
+    ACTIVATED = 'ACTIVATED'
 
 
 class ConnectedDriveVehicle:
@@ -72,7 +61,7 @@ class ConnectedDriveVehicle:
     def __init__(self, account: "ConnectedDriveAccount", attributes: dict) -> None:
         self._account = account
         self.attributes = attributes
-        self.state = VehicleState(account, self)
+        self.state = VehicleState(account, attributes)
         self.remote_services = RemoteServices(account, self)
         self.observer_latitude = 0.0  # type: float
         self.observer_longitude = 0.0  # type: float
@@ -104,7 +93,9 @@ class ConnectedDriveVehicle:
         """Return True if vehicle is equipped with a range extender.
 
         In this case we can get the state of the gas tank."""
-        return self.drive_train in RANGE_EXTENDER_DRIVE_TRAINS
+        return None
+        # raise NotImplementedError("REX not specified explicitely, use ELECTRIC + fuel")
+        # return self.drive_train in RANGE_EXTENDER_DRIVE_TRAINS
 
     @property
     def has_internal_combustion_engine(self) -> bool:
@@ -114,114 +105,86 @@ class ConnectedDriveVehicle:
         return self.drive_train in COMBUSTION_ENGINE_DRIVE_TRAINS
 
     @property
-    def has_statistics_service(self) -> bool:
-        """Return True if statistics are available."""
-        return self.attributes.get('statisticsAvailable')
-
-    @property
     def has_weekly_planner_service(self) -> bool:
         """Return True if charging control (weekly planner) is available."""
-        return self.attributes.get('chargingControl') != "NOT_SUPPORTED"
+        # TODO: Check if chargingProfile should be own class
+        return self.attributes["status"].get("chargingProfile", {}).get("chargingControlType") != "NOT_SUPPORTED"
 
-    @property
-    def has_destination_service(self) -> bool:
-        """Return True if destinations are available."""
-        return self.attributes.get('lastDestinations') != "NOT_SUPPORTED"
+    # @property
+    # def drive_train_attributes(self) -> List[str]:
+    #     """Get list of attributes available for the drive train of the vehicle.
 
-    @property
-    def has_rangemap_service(self) -> bool:
-        """Return True if rangemap (range circle) is available."""
-        return self.attributes.get('rangeMap') != "NOT_SUPPORTED"
-
-    @property
-    def rangemap_service_type(self) -> RangeMapServices:
-        """Returns the vehicles rangemap service type if available."""
-        if self.has_rangemap_service:
-            return RangeMapServices[self.attributes.get('rangeMap')]
-        return None
-
-    @property
-    def drive_train_attributes(self) -> List[str]:
-        """Get list of attributes available for the drive train of the vehicle.
-
-        The list of available attributes depends if on the type of drive train.
-        Some attributes only exist for electric/hybrid vehicles, others only if you
-        have a combustion engine. Depending on the state of the vehicle, some of
-        the attributes might still be None.
-        """
-        result = ['remaining_range_total', 'remaining_fuel', 'mileage']
-        if self.has_hv_battery:
-            result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv',
-                       'chargingConnectionType', 'chargingInductivePositioning', 'connectionStatus',
-                       'lastChargingEndReason', 'remaining_range_electric', 'lastChargingEndResult']
-        if self.has_internal_combustion_engine:
-            result += ['remaining_range_fuel']
-        if self.has_hv_battery and self.has_range_extender:
-            result += ['maxFuel', 'remaining_range_fuel']
-        if self.has_hv_battery and self.has_internal_combustion_engine:
-            result += ['fuelPercent']
-            result.remove('max_range_electric')
-        return result
+    #     The list of available attributes depends if on the type of drive train.
+    #     Some attributes only exist for electric/hybrid vehicles, others only if you
+    #     have a combustion engine. Depending on the state of the vehicle, some of
+    #     the attributes might still be None.
+    #     """
+    #     result = ['remaining_range_total', 'remaining_fuel', 'mileage']
+    #     if self.has_hv_battery:
+    #         result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv',
+    #                    'chargingConnectionType', 'chargingInductivePositioning', 'connectionStatus',
+    #                    'lastChargingEndReason', 'remaining_range_electric', 'lastChargingEndResult']
+    #     if self.has_internal_combustion_engine:
+    #         result += ['remaining_range_fuel']
+    #     if self.has_hv_battery and self.has_range_extender:
+    #         result += ['maxFuel', 'remaining_range_fuel']
+    #     if self.has_hv_battery and self.has_internal_combustion_engine:
+    #         result += ['fuelPercent']
+    #         result.remove('max_range_electric')
+    #     return result
 
     @property
     def lsc_type(self) -> LscType:
         """Get the lscType of the vehicle.
 
-        Not really sure what that value really means. If it is NOT_SUPPORTED, that probably means that the
+        Not really sure what that value really means. If it is NOT_CAPABLE, that probably means that the
         vehicle state will not contain much data.
         """
-        return LscType(self.attributes.get('lscType'))
+        return LscType(self.attributes["capabilities"]["lastStateCall"].get('lscState'))
 
-    @property
-    def available_attributes(self) -> List[str]:
-        """Get the list of non-drivetrain attributes available for this vehicle."""
-        # attributes available in all vehicles
-        result = ['gps_position', 'steering', 'timestamp', 'vin']
-        if self.lsc_type in [LscType.LSC_BASIS, LscType.I_LSC_IMM, LscType.LSC_PHEV]:
-            # generic attributes if lsc_type =! NOT_SUPPORTED
-            result += LIDS
-            result += WINDOWS
-            result += self.drive_train_attributes
-            result += ['DCS_CCH_Activation', 'DCS_CCH_Ongoing', 'condition_based_services',
-                       'check_control_messages', 'door_lock_state', 'internalDataTimeUTC',
-                       'parking_lights', 'positionLight', 'last_update_reason', 'singleImmediateCharging']
-            # required for existing Home Assistant binary sensors
-            result += ['lids', 'windows']
-            if self.has_parking_light_state:
-                result += ['lights_parking']
-        return result
+    # TODO: A new logic has be be implemented for available attributes
+    #       Maybe we can keep the old logic, but now sure if this makes sense or not
 
-    @property
-    def available_state_services(self) -> List[str]:
-        """Get the list of all available state services for this vehicle."""
-        result = [SERVICE_STATUS]
-        if self.has_statistics_service:
-            result += [SERVICE_LAST_TRIP, SERVICE_ALL_TRIPS]
+    # @property
+    # def available_attributes(self) -> List[str]:
+    #     """Get the list of non-drivetrain attributes available for this vehicle."""
+    #     # attributes available in all vehicles
+    #     result = ['gps_position', 'steering', 'timestamp', 'vin']
+    #     if self.lsc_type in [LscType.LSC_BASIS, LscType.I_LSC_IMM, LscType.LSC_PHEV]:
+    #         # generic attributes if lsc_type =! NOT_SUPPORTED
+    #         result += LIDS
+    #         result += WINDOWS
+    #         result += self.drive_train_attributes
+    #         result += ['DCS_CCH_Activation', 'DCS_CCH_Ongoing', 'condition_based_services',
+    #                    'check_control_messages', 'door_lock_state', 'internalDataTimeUTC',
+    #                    'parking_lights', 'positionLight', 'last_update_reason', 'singleImmediateCharging']
+    #         # required for existing Home Assistant binary sensors
+    #         result += ['lids', 'windows']
+    #         if self.has_parking_light_state:
+    #             result += ['lights_parking']
+    #     return result
 
-        if self.has_weekly_planner_service:
-            result += [SERVICE_CHARGING_PROFILE]
+    # TODO: We could probably implement this via vehicle_status.capabilities
+    #       However currently not many endpoints are known.
 
-        if self.has_destination_service:
-            result += [SERVICE_DESTINATIONS]
+    # @property
+    # def available_state_services(self) -> List[str]:
+    #     """Get the list of all available state services for this vehicle."""
+    #     result = [SERVICE_PROPERTIES]
 
-        if self.has_rangemap_service:
-            result += [SERVICE_RANGEMAP]
+    #     if self.has_weekly_planner_service:
+    #         result += [SERVICE_CHARGING_PROFILE]
 
-        if self.drive_train != DriveTrainType.CONVENTIONAL:
-            result += [SERVICE_EFFICIENCY, SERVICE_NAVIGATION]
+    #     return result
 
-        return result
-
-    def get_vehicle_image(self, width: int, height: int, direction: VehicleViewDirection) -> bytes:
+    def get_vehicle_image(self, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.
 
         :returns bytes containing the image in PNG format.
         """
         url = VEHICLE_IMAGE_URL.format(
             vin=self.vin,
-            server=self._account.server_url_legacy,
-            width=width,
-            height=height,
+            server=self._account.server_url,
             view=direction.value,
         )
         header = self._account.request_header
