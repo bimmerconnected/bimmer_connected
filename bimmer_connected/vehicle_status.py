@@ -3,14 +3,18 @@
 import datetime
 import logging
 from enum import Enum
-from typing import TYPE_CHECKING, List, Tuple
+from typing import Dict, List, Tuple
 
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS
 
-if TYPE_CHECKING:
-    from bimmer_connected.state import VehicleState
-
 _LOGGER = logging.getLogger(__name__)
+
+
+LIDS = ['driverFront', 'passengerFront', 'driverRear', 'passengerRear', 'hood', 'trunk']
+
+WINDOWS = ['driverFront', 'passengerFront', 'driverRear', 'passengerRear', 'rearWindow', 'sunroof']
+
+STATUS_KEYS = [SERVICE_PROPERTIES, SERVICE_STATUS]
 
 
 class LidState(Enum):
@@ -94,19 +98,17 @@ def backend_parameter(func):
         except KeyError:
             _LOGGER.debug('No data available for attribute %s!', str(func))
             return None
+        except Exception as ex:
+            raise ex
     return _func_wrapper
 
 
 class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
-    def __init__(self, state: "VehicleState"):
+    def __init__(self, state: Dict):
         """Constructor."""
         self._state = state
-
-    def get(self, attr):
-        """Return requested attribute."""
-        return getattr(self, attr)
 
     @property
     @backend_parameter
@@ -172,7 +174,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return int(self._state[SERVICE_STATUS]['currentMileage']['mileage'])
+        return (
+            self._state[SERVICE_STATUS]['currentMileage']['mileage'],
+            self._state[SERVICE_STATUS]['currentMileage']['units']
+        )
 
     @property
     @backend_parameter
@@ -195,8 +200,19 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        # TODO: Unit?
-        return int(self._state[SERVICE_PROPERTIES]['fuelLevel']['value'])
+        return (
+            self._state[SERVICE_PROPERTIES]['fuelLevel']['value'],
+            self._state[SERVICE_PROPERTIES]['fuelLevel']['units'],
+        )
+
+    @property
+    @backend_parameter
+    def fuel_indicator_count(self) -> int:
+        """Gets the number of fuel indicators.
+
+        Can be used to identify REX vehicles if driveTrain == ELECTRIC.
+        """
+        return len(self._state[SERVICE_PROPERTIES]["fuelIndicators"])
 
     @property
     @backend_parameter
@@ -317,10 +333,6 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
                 pass
         raise ValueError("unable to parse '{}' using {}.".format(date_str, date_formats))
 
-    # def __getattr__(self, item):
-    #     """Generic get function for all backend attributes."""
-    #     return self._state[SERVICE_PROPERTIES][item]
-
     @property
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
@@ -340,6 +352,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         That is electrical range + fuel range.
         """
         # Calculated manually as SERVICE_PROPERTIES.combinedRange == SERVICE_PROPERTIES.combustionRange on fingerprints
+        if not self.remaining_range_fuel and not self.remaining_range_electric:
+            return None, None
         return (
             ((self.remaining_range_fuel or [0])[0] or 0) + ((self.remaining_range_electric or [0])[0] or 0),
             (self.remaining_range_fuel or self.remaining_range_electric)[1]
@@ -382,7 +396,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     def check_control_messages(self) -> List[CheckControlMessage]:
         """List of check control messages."""
         messages = self._state[SERVICE_STATUS].get('checkControlMessages', [])
-        return [CheckControlMessage(m) for m in messages]
+        return [CheckControlMessage(m) for m in messages if m["state"] != "OK"]
 
     @property
     @backend_parameter

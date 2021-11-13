@@ -8,8 +8,6 @@ import time
 from typing import TYPE_CHECKING
 from enum import Enum
 
-import requests
-
 from bimmer_connected.const import (REMOTE_SERVICE_STATUS_URL,
                                     REMOTE_SERVICE_URL,
                                     VEHICLE_POI_URL)
@@ -144,7 +142,7 @@ class RemoteServices:
         self._trigger_state_update()
         return result
 
-    def _trigger_remote_service(self, service_id: _Services, action=None, post=True) -> requests.Response:
+    def _trigger_remote_service(self, service_id: _Services, action=None, post=True) -> str:
         """Trigger a generic remote service.
 
         You can choose if you want a POST or a GET operation.
@@ -155,7 +153,7 @@ class RemoteServices:
             service_type=service_id.value.lower().replace('_', '-')
         )
         params = {"action": action}
-        response = self._account.send_request_v2(url, post=post, params=params)
+        response = self._account.send_request(url, post=post, params=params, brand=self._vehicle.brand)
         try:
             return response.json().get('eventId')
         except JSONDecodeError:
@@ -195,7 +193,7 @@ class RemoteServices:
             server=self._account.server_url,
             vin=self._vehicle.vin,
             event_id=event_id)
-        response = self._account.send_request_v2(url, post=True)
+        response = self._account.send_request(url, post=True, brand=self._vehicle.brand)
         try:
             json_result = response.json()
             return RemoteServiceStatus(json_result)
@@ -240,11 +238,12 @@ class RemoteServices:
             },
             "vin": self._vehicle.vin
         })
-        self._account.send_request_v2(
+        self._account.send_request(
             VEHICLE_POI_URL.format(server=self._account.server_url),
             post=True,
             headers={"Content-Type": "application/json"},
-            data=data_json
+            data=data_json,
+            brand=self._vehicle.brand
         )
         # _send_message has no separate ExecutionStates
         return RemoteServiceStatus({'eventStatus': 'EXECUTED'})

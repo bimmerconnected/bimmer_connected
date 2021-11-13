@@ -1,11 +1,14 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
+import inspect
 import logging
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
+import warnings
 
-from bimmer_connected.state import VehicleState
+from bimmer_connected.charging_profile import ChargingProfile
+from bimmer_connected.vehicle_status import VehicleStatus, WINDOWS, LIDS, STATUS_KEYS
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import VEHICLE_IMAGE_URL  # , SERVICE_CHARGING_PROFILE
+from bimmer_connected.const import SERVICE_STATUS, VEHICLE_IMAGE_URL
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
@@ -18,6 +21,19 @@ class DriveTrainType(Enum):
     COMBUSTION = 'COMBUSTION'
     PLUGIN_HYBRID = 'PLUGIN_HYBRID'
     ELECTRIC = 'ELECTRIC'
+
+
+class CarBrand(Enum):
+    """Car brands supported by the My BMW API."""
+    @classmethod
+    def _missing_(cls, value):
+        for member in cls:
+            if member.value == value.lower():
+                return member
+        raise ValueError("'{}' is not a valid {}".format(value, cls.__name__))
+
+    BMW = "bmw"
+    MINI = "mini"
 
 
 #: Set of drive trains that have a combustion engine
@@ -58,27 +74,38 @@ class ConnectedDriveVehicle:
     :param attributes: attributes of the vehicle as provided by the server
     """
 
-    def __init__(self, account: "ConnectedDriveAccount", attributes: dict) -> None:
+    def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
         self._account = account
-        self.attributes = attributes
-        self.state = VehicleState(account, attributes)
+        self._attributes = {k: v for k, v in vehicle_dict.items() if k not in STATUS_KEYS}
+        self.status = VehicleStatus({k: v for k, v in vehicle_dict.items() if k in STATUS_KEYS})
         self.remote_services = RemoteServices(account, self)
         self.observer_latitude = 0.0  # type: float
         self.observer_longitude = 0.0  # type: float
 
-    def update_state(self) -> None:
+    @staticmethod
+    def update_state() -> None:
         """Update the state of a vehicle."""
-        self.state.update_data()
+        warnings.warn("Not needed with MyBMW API.", DeprecationWarning)
+
+    @property
+    def charging_profile(self) -> ChargingProfile:
+        """Return the charging profile if available."""
+        return ChargingProfile(self.status) if self.has_weekly_planner_service else None
 
     @property
     def drive_train(self) -> DriveTrainType:
         """Get the type of drive train of the vehicle."""
-        return DriveTrainType(self.attributes['driveTrain'])
+        return DriveTrainType(self._attributes['driveTrain'])
 
     @property
     def name(self) -> str:
         """Get the name of the vehicle."""
-        return self.attributes['model']
+        return self._attributes['model']
+
+    @property
+    def brand(self) -> CarBrand:
+        """Get the car brand."""
+        return CarBrand(self._attributes["brand"])
 
     @property
     def has_hv_battery(self) -> bool:
@@ -93,9 +120,7 @@ class ConnectedDriveVehicle:
         """Return True if vehicle is equipped with a range extender.
 
         In this case we can get the state of the gas tank."""
-        return None
-        # raise NotImplementedError("REX not specified explicitely, use ELECTRIC + fuel")
-        # return self.drive_train in RANGE_EXTENDER_DRIVE_TRAINS
+        return self.drive_train == DriveTrainType.ELECTRIC and self.status.fuel_indicator_count == 3
 
     @property
     def has_internal_combustion_engine(self) -> bool:
@@ -107,31 +132,24 @@ class ConnectedDriveVehicle:
     @property
     def has_weekly_planner_service(self) -> bool:
         """Return True if charging control (weekly planner) is available."""
-        # TODO: Check if chargingProfile should be own class
-        return self.attributes["status"].get("chargingProfile", {}).get("chargingControlType") != "NOT_SUPPORTED"
+        return self._attributes["capabilities"]["isChargingPlanSupported"]
 
-    # @property
-    # def drive_train_attributes(self) -> List[str]:
-    #     """Get list of attributes available for the drive train of the vehicle.
+    @property
+    def drive_train_attributes(self) -> List[str]:
+        """Get list of attributes available for the drive train of the vehicle.
 
-    #     The list of available attributes depends if on the type of drive train.
-    #     Some attributes only exist for electric/hybrid vehicles, others only if you
-    #     have a combustion engine. Depending on the state of the vehicle, some of
-    #     the attributes might still be None.
-    #     """
-    #     result = ['remaining_range_total', 'remaining_fuel', 'mileage']
-    #     if self.has_hv_battery:
-    #         result += ['charging_time_remaining', 'charging_status', 'max_range_electric', 'charging_level_hv',
-    #                    'chargingConnectionType', 'chargingInductivePositioning', 'connectionStatus',
-    #                    'lastChargingEndReason', 'remaining_range_electric', 'lastChargingEndResult']
-    #     if self.has_internal_combustion_engine:
-    #         result += ['remaining_range_fuel']
-    #     if self.has_hv_battery and self.has_range_extender:
-    #         result += ['maxFuel', 'remaining_range_fuel']
-    #     if self.has_hv_battery and self.has_internal_combustion_engine:
-    #         result += ['fuelPercent']
-    #         result.remove('max_range_electric')
-    #     return result
+        The list of available attributes depends if on the type of drive train.
+        Some attributes only exist for electric/hybrid vehicles, others only if you
+        have a combustion engine. Depending on the state of the vehicle, some of
+        the attributes might still be None.
+        """
+        result = ['remaining_range_total', 'mileage']
+        if self.has_hv_battery:
+            result += ['charging_time_remaining', 'charging_status', 'charging_level_hv',
+                       'connection_status', 'remaining_range_electric', 'last_charging_end_result']
+        if self.has_internal_combustion_engine or self.has_range_extender:
+            result += ['remaining_fuel', 'remaining_range_fuel', 'fuel_percent']
+        return result
 
     @property
     def lsc_type(self) -> LscType:
@@ -140,42 +158,35 @@ class ConnectedDriveVehicle:
         Not really sure what that value really means. If it is NOT_CAPABLE, that probably means that the
         vehicle state will not contain much data.
         """
-        return LscType(self.attributes["capabilities"]["lastStateCall"].get('lscState'))
+        return LscType(self._attributes["capabilities"]["lastStateCall"].get('lscState'))
 
-    # TODO: A new logic has be be implemented for available attributes
-    #       Maybe we can keep the old logic, but now sure if this makes sense or not
-
-    # @property
-    # def available_attributes(self) -> List[str]:
-    #     """Get the list of non-drivetrain attributes available for this vehicle."""
-    #     # attributes available in all vehicles
-    #     result = ['gps_position', 'steering', 'timestamp', 'vin']
-    #     if self.lsc_type in [LscType.LSC_BASIS, LscType.I_LSC_IMM, LscType.LSC_PHEV]:
-    #         # generic attributes if lsc_type =! NOT_SUPPORTED
-    #         result += LIDS
-    #         result += WINDOWS
-    #         result += self.drive_train_attributes
-    #         result += ['DCS_CCH_Activation', 'DCS_CCH_Ongoing', 'condition_based_services',
-    #                    'check_control_messages', 'door_lock_state', 'internalDataTimeUTC',
-    #                    'parking_lights', 'positionLight', 'last_update_reason', 'singleImmediateCharging']
-    #         # required for existing Home Assistant binary sensors
-    #         result += ['lids', 'windows']
-    #         if self.has_parking_light_state:
-    #             result += ['lights_parking']
-    #     return result
+    @property
+    def available_attributes(self) -> List[str]:
+        """Get the list of non-drivetrain attributes available for this vehicle."""
+        # attributes available in all vehicles
+        result = ['gps_position', 'timestamp', 'vin']
+        if self.lsc_type == LscType.ACTIVATED:
+            # generic attributes if lsc_type =! NOT_SUPPORTED
+            result += LIDS
+            result += WINDOWS
+            result += self.drive_train_attributes
+            result += ['condition_based_services', 'check_control_messages', 'door_lock_state', 'timestamp'
+                       'last_update_reason']
+            # required for existing Home Assistant binary sensors
+            result += ['lids', 'windows']
+        return result
 
     # TODO: We could probably implement this via vehicle_status.capabilities
     #       However currently not many endpoints are known.
-
-    # @property
-    # def available_state_services(self) -> List[str]:
-    #     """Get the list of all available state services for this vehicle."""
-    #     result = [SERVICE_PROPERTIES]
+    @property
+    def available_state_services(self) -> List[str]:
+        """Get the list of all available state services for this vehicle."""
+        result = [SERVICE_STATUS]
 
     #     if self.has_weekly_planner_service:
     #         result += [SERVICE_CHARGING_PROFILE]
 
-    #     return result
+        return result
 
     def get_vehicle_image(self, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.
@@ -199,7 +210,11 @@ class ConnectedDriveVehicle:
         In a later version we might parse the attributes to provide a more advanced API.
         :param item: item to get, as defined in VEHICLE_ATTRIBUTES
         """
-        return self.attributes.get(item)
+        if item in self._get_class_property_names(self):
+            return getattr(self, item)
+        if item in self._get_class_property_names(self.status):
+            return getattr(self.status, item)
+        return self._attributes.get(item)
 
     def __str__(self) -> str:
         """Use the name as identifier for the vehicle."""
@@ -215,3 +230,10 @@ class ConnectedDriveVehicle:
             raise ValueError('Either latitude AND longitude are set or none of them. You cannot set only one of them!')
         self.observer_latitude = latitude
         self.observer_longitude = longitude
+
+    @staticmethod
+    def _get_class_property_names(obj: object):
+        return [
+            p[0] for p in inspect.getmembers(type(obj), inspect.isdatadescriptor)
+            if not p[0].startswith("_")
+        ]
