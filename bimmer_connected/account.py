@@ -25,7 +25,7 @@ from bimmer_connected.country_selector import (
     get_gcdm_oauth_endpoint,
     get_gcdm_oauth_authorization
 )
-from bimmer_connected.vehicle import ConnectedDriveVehicle
+from bimmer_connected.vehicle import ConnectedDriveVehicle, CarBrand
 from bimmer_connected.const import AUTH_URL, TOKEN_URL, VEHICLES_URL
 
 _LOGGER = logging.getLogger(__name__)
@@ -176,62 +176,27 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 _LOGGER.exception(ex)
                 raise ex
 
-    @property
-    def request_header(self) -> Dict[str, str]:
+    def request_header(self, brand: CarBrand = None) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
         self._get_oauth_token()
+        brand = brand or CarBrand.BMW
         headers = {
             "accept": "application/json",
+            "x-user-agent": "android(v1.07_20200330);{};1.7.0(11152)".format(brand.value),
             "Authorization": "Bearer {}".format(self._oauth_token),
         }
         return headers
 
-# def send_request(self, url: str, data=None, headers=None, expected_response=200, post=False, allow_redirects=True,
-#                  logfilename: str = None, params: dict = None) -> Response:
-#     """Send an http request to the server.
-
-#     If the http headers are not set, default headers are generated.
-#     You can choose if you want a GET or POST request.
-#     """
-#     if headers is None:
-#         headers = self.request_header
-
-#     for i in range(self._retries_on_500_error + 1):
-#         if post:
-#             response = requests.post(url, headers=headers, data=data, allow_redirects=allow_redirects,
-#                                      params=params)
-#         else:
-#             response = requests.get(url, headers=headers, data=data, allow_redirects=allow_redirects,
-#                                     params=params)
-
-#         if response.status_code != expected_response:
-#             if response.status_code == 500:
-#                 _LOGGER.debug("Error 500 on attempt %d", i+1)
-#                 continue
-
-#             error_description = ERROR_CODE_MAPPING.get(response.status_code, "UNKNOWN_ERROR")
-#             msg = ("The BMW Connected Drive portal returned an error: {} (received status code {} and expected {})."
-#                    .format(error_description, response.status_code, expected_response))
-#             _LOGGER.debug(msg)
-#             _LOGGER.debug(response.text)
-#             raise IOError(msg)
-#         break
-
-#     self._log_response_to_file(response, logfilename)
-#     return response
-
     def send_request(self, url: str, data=None, headers=None, post=False, allow_redirects=True,
-                     logfilename: str = None, params: dict = None) -> Response:
+                     logfilename: str = None, params: dict = None, brand: CarBrand = None) -> Response:
         """Send an http request to the server.
 
         If the http headers are not set, default headers are generated.
         You can choose if you want a GET or POST request.
         """
+        _LOGGER.debug("Request to: %s", url)
         self._get_oauth_token()
-        request_headers = {
-            "x-user-agent": "android(v1.07_20200330);bmw;1.5.2(8932)",
-            "Authorization": "Bearer {}".format(self._oauth_token),
-        }
+        request_headers = self.request_header(brand)
         if headers:
             request_headers.update(headers)
 
@@ -286,7 +251,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             'streetNumber': '999',
             'postalCode': 'some_postal_code',
             'phone': 'some_phone',
-            'formatted': 'some_formatted_address'
+            'formatted': 'some_formatted_address',
+            'subtitle': 'some_road \u2022 duration \u2022 -- EUR',
         }
 
         if isinstance(json_data, list):
@@ -316,17 +282,20 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        response = self.send_request(
-            VEHICLES_URL.format(server=self.server_url),
-            params={
-                "apptimezone": self._utcdiff,
-                "appDateTime": datetime.datetime.utcnow().timestamp(),
-                "tireGuardMode": "ENABLED"},
-            logfilename="vehicles_v2",
-        )
 
-        for vehicle_dict in response.json():
-            self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+        for brand in CarBrand:
+            response = self.send_request(
+                VEHICLES_URL.format(server=self.server_url),
+                headers=self.request_header(brand),
+                params={
+                    "apptimezone": self._utcdiff,
+                    "appDateTime": datetime.datetime.utcnow().timestamp(),
+                    "tireGuardMode": "ENABLED"},
+                logfilename="vehicles_v2_{}".format(brand.value),
+            )
+
+            for vehicle_dict in response.json():
+                self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
 
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
         """Get vehicle with given VIN.

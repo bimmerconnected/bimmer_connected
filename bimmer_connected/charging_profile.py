@@ -4,31 +4,30 @@ import logging
 from typing import TYPE_CHECKING, List
 from enum import Enum
 
-from bimmer_connected.const import SERVICE_CHARGING_PROFILE
+from bimmer_connected.const import SERVICE_STATUS
 
 if TYPE_CHECKING:
-    from bimmer_connected.state import VehicleState
+    from bimmer_connected.vehicle_status import VehicleStatus
 
 _LOGGER = logging.getLogger(__name__)
 
 
 class ChargingMode(Enum):
     """Charging mode of electric vehicle."""
-    IMMEDIATE_CHARGING = 'IMMEDIATE_CHARGING'
-    DELAYED_CHARGING = 'DELAYED_CHARGING'
+    IMMEDIATE_CHARGING = 'immediateCharging'
+    DELAYED_CHARGING = 'delayedCharging'
 
 
 class ChargingPreferences(Enum):
     """Charging preferences of electric vehicle."""
-    NO_PRESELECTION = 'NO_PRESELECTION'
-    CHARGING_WINDOW = 'CHARGING_WINDOW'
+    NO_PRESELECTION = 'noPreselection'
+    CHARGING_WINDOW = 'chargingWindow'
 
 
 class TimerTypes(Enum):
     """Different Timer-Types."""
-    TIMER_1 = 'timer1'
-    TIMER_2 = 'timer2'
-    TIMER_3 = 'timer3'
+    TWO_WEEKS = 'twoWeeksTimer'
+    ONE_WEEK = 'weeklyPlanner'
     OVERRIDE_TIMER = 'overrideTimer'
 
 
@@ -43,36 +42,52 @@ class ChargingWindow:
     @property
     def start_time(self) -> str:
         """Start of the charging window."""
-        return self._window_dict["startTime"]
+        # end of reductionOfChargeCurrent == start of charging window
+        return "{}:{}".format(
+            str(self._window_dict["end"]["hour"]).zfill(2),
+            str(self._window_dict["end"]["minute"]).zfill(2),
+        )
 
     @property
     def end_time(self) -> str:
         """End of the charging window."""
-        return self._window_dict["endTime"]
+        # start of reductionOfChargeCurrent == end of charging window
+        return "{}:{}".format(
+            str(self._window_dict["start"]["hour"]).zfill(2),
+            str(self._window_dict["start"]["minute"]).zfill(2),
+        )
 
 
-class ClimatizationTimer:
+class DepartureTimer:
     """
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, clima_dict: dict):
-        self._clima_dict = clima_dict
+    def __init__(self, timer_dict: dict):
+        self._timer_dict = timer_dict
 
     @property
-    def departure_time(self) -> str:
+    def timer_id(self) -> int:
+        """ID of this timer."""
+        return self._timer_dict["id"]
+
+    @property
+    def start_time(self) -> str:
         """Deperture time for this timer."""
-        return self._clima_dict["departureTime"]
+        return "{}:{}".format(
+            str(self._timer_dict["timeStamp"]["hour"]).zfill(2),
+            str(self._timer_dict["timeStamp"]["minute"]).zfill(2),
+        )
 
     @property
-    def timer_enabled(self) -> bool:
-        """Is the timer enabled."""
-        return self._clima_dict["timerEnabled"]
+    def action(self) -> bool:
+        """What does the timer do."""
+        return self._timer_dict["action"]
 
     @property
     def weekdays(self) -> List[str]:
         """Active weekdays for this timer."""
-        return self._clima_dict["weekdays"]
+        return self._timer_dict["timerWeekDays"]
 
 
 def backend_parameter(func):
@@ -82,75 +97,59 @@ def backend_parameter(func):
     """
     def _func_wrapper(self: 'ChargingProfile', *args, **kwargs):
         # pylint: disable=protected-access
-        if self._state.attributes[SERVICE_CHARGING_PROFILE] is None:
+        if self._charging_profile is None:
             raise ValueError('No data available for vehicles charging profile!')
         try:
             return func(self, *args, **kwargs)
         except KeyError:
             _LOGGER.debug('No data available for attribute %s!', str(func))
             return None
+        except Exception as ex:
+            raise ex
     return _func_wrapper
 
 
 class ChargingProfile:  # pylint: disable=too-many-public-methods
     """Models the charging profile of a vehicle."""
 
-    def __init__(self, state: "VehicleState"):
+    def __init__(self, status: "VehicleStatus"):
         """Constructor."""
-        self._state = state
-
-    @property
-    @backend_parameter
-    def attributes(self) -> dict:
-        """Retrieve all attributes from the sever.
-
-        This does not parse the results in any way.
-        """
-        return self._state.attributes[SERVICE_CHARGING_PROFILE]
+        self._charging_profile = status._state[SERVICE_STATUS]["chargingProfile"]
 
     def __getattr__(self, item):
         """Generic get function for all backend attributes."""
-        return self._state.attributes[SERVICE_CHARGING_PROFILE][item]
-
-    @property
-    def available_attributes(self) -> List[str]:
-        """Get the list of charging-profile attributes available for this vehicle."""
-        result = ['is_pre_entry_climatization_enabled', 'pre_entry_climatization_timer',
-                  'preferred_charging_window', 'charging_preferences', 'charging_mode']
-        return result
+        return self._charging_profile[item]
 
     @property
     @backend_parameter
     def is_pre_entry_climatization_enabled(self) -> bool:
         """Get status of pre-entry climatization."""
-        return bool(self._state.attributes[SERVICE_CHARGING_PROFILE]['climatizationEnabled'])
+        return bool(self._charging_profile['climatisationOn'])
 
     @property
     @backend_parameter
-    def pre_entry_climatization_timer(self) -> dict:
-        """List of pre entry climatization timer messages."""
+    def timer(self) -> dict:
+        """List of timer messages."""
         timer_list = {}
-        for timer in TimerTypes:
-            try:
-                timer_list[timer] = ClimatizationTimer(self._state.attributes[SERVICE_CHARGING_PROFILE][timer.value])
-            except KeyError:
-                _LOGGER.debug('Timer %s not found', timer.value)
+        for timer_dict in self._charging_profile["departureTimes"]:
+            curr_timer = DepartureTimer(timer_dict)
+            timer_list[curr_timer.timer_id] = curr_timer
         return timer_list
 
     @property
     @backend_parameter
     def preferred_charging_window(self) -> ChargingWindow:
         """Returns the preferred charging window."""
-        return ChargingWindow(self._state.attributes[SERVICE_CHARGING_PROFILE]['preferredChargingWindow'])
+        return ChargingWindow(self._charging_profile['reductionOfChargeCurrent'])
 
     @property
     @backend_parameter
     def charging_preferences(self) -> str:
         """Returns the prefered charging preferences."""
-        return ChargingPreferences(self._state.attributes[SERVICE_CHARGING_PROFILE]['chargingPreferences'])
+        return ChargingPreferences(self._charging_profile['chargingPreference'])
 
     @property
     @backend_parameter
     def charging_mode(self) -> str:
         """Returns the prefered charging mode."""
-        return ChargingMode(self._state.attributes[SERVICE_CHARGING_PROFILE]['chargingMode'])
+        return ChargingMode(self._charging_profile['chargingMode'])

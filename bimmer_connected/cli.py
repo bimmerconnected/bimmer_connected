@@ -124,13 +124,6 @@ def fingerprint(args) -> None:
 
     # Patching in new My BMW endpoints for fingerprinting
     server_url = get_server_url(get_region_from_name(args.region))
-    utcdiff = round((datetime.now() - datetime.utcnow()).seconds / 60, 0)
-
-    account.send_request(
-        "https://{}/eadrax-vcs/v1/vehicles".format(server_url),
-        params={"apptimezone": utcdiff, "appDateTime": time.time(), "tireGuardMode": "ENABLED"},
-        logfilename="vehicles_v2"
-    )
 
     for vehicle in account.vehicles:
         if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
