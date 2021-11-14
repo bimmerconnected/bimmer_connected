@@ -2,5 +2,6 @@ pytest
 pytest-cov
 pytest-timeout
 pylint
+requests-mock
 flake8
 pbr

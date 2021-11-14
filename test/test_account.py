@@ -1,103 +1,148 @@
 """Tests for ConnectedDriveAccount."""
 import json
 import unittest
-from test import BackendMock, MockResponse, G31_VIN, TEST_PASSWORD, TEST_REGION, TEST_USERNAME
-from unittest import mock
 
-from requests.exceptions import HTTPError
+import requests_mock
+from requests import HTTPError
 
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.country_selector import Regions
+from bimmer_connected.country_selector import get_region_from_name
+
+from . import (
+    TEST_PASSWORD,
+    TEST_USERNAME,
+    TEST_REGION,
+    RESPONSE_DIR,
+    TEST_REGION_STRING,
+    load_response,
+    get_fingerprint_count,
+    VIN_G21,
+)
+
+
+def authenticate_callback(request, context):  # pylint: disable=inconsistent-return-statements
+    """Returns /oauth/authentication response based on request."""
+    # pylint: disable=protected-access,unused-argument,no-self-use
+
+    if "username" in request.text and "password" in request.text and "grant_type" in request.text:
+        return load_response(RESPONSE_DIR / "auth" / "authorization_response.json")
+    context.headers = {
+        "Location": "com.mini.connected://oauth?code=CODE&state=STATE&client_id=CLIENT_ID&nonce=login_nonce",
+    }
+    context.status_code = 302
+
+
+def return_vehicles(request, context):  # pylint: disable=inconsistent-return-statements
+    """Returns /vehicles response based on x-user-agent."""
+    # pylint: disable=protected-access,unused-argument,no-self-use
+
+    x_user_agent = request._request.headers.get("x-user-agent", "").split(";")
+    if len(x_user_agent) == 3:
+        brand = x_user_agent[1]
+    else:
+        raise ValueError("x-user-agent not configured correctly!")
+
+    response_vehicles = []
+    files = RESPONSE_DIR.rglob("vehicles_v2_{}_0.json".format(brand))
+    for file in files:
+        response_vehicles.extend(load_response(file))
+    return response_vehicles
+
+
+def get_auth_adapter():
+    """Returns mocked adapter for auth."""
+    adapter = requests_mock.Adapter()
+    adapter.register_uri("POST", "/gcdm/oauth/authenticate", json=authenticate_callback)
+    adapter.register_uri("POST", "/gcdm/oauth/token", json=load_response(RESPONSE_DIR / "auth" / "auth_token.json"))
+    adapter.register_uri("GET", "/eadrax-vcs/v1/vehicles", json=return_vehicles)
+    return adapter
+
+
+def get_mocked_account():
+    """Returns pre-mocked account."""
+    with requests_mock.Mocker(adapter=get_auth_adapter()):
+        account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    return account
 
 
 class TestAccount(unittest.TestCase):
     """Tests for ConnectedDriveAccount."""
 
-    # pylint: disable=protected-access
+    def test_login(self):
+        """Test the login flow."""
+        with requests_mock.Mocker(adapter=get_auth_adapter()):
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+        self.assertIsNotNone(account)
 
-    def test_token_vehicles(self):
-        """Test getting backend token and vehicle list."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
-            self.assertIsNotNone(account._oauth_token)
-            self.assertEqual(9, len(account.vehicles))
-            vehicle = account.get_vehicle(G31_VIN)
-            self.assertEqual(G31_VIN, vehicle.vin)
+    def test_fail_china(self):
+        """Test raising an error for region `china`."""
+        with requests_mock.Mocker(adapter=get_auth_adapter()):
+            with self.assertRaises(NotImplementedError):
+                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
 
-            self.assertIsNone(account.get_vehicle('invalid_vin'))
+    def test_vehicles(self):
+        """Test the login flow."""
+        account = get_mocked_account()
+
+        self.assertIsNotNone(account._oauth_token)  # pylint: disable=protected-access
+        self.assertEqual(get_fingerprint_count(), len(account.vehicles))
+        vehicle = account.get_vehicle(VIN_G21)
+        self.assertEqual(VIN_G21, vehicle.vin)
+
+        self.assertIsNone(account.get_vehicle("invalid_vin"))
 
     def test_invalid_password(self):
-        """Test parsing the results of an invalid request"""
-        backend_mock = BackendMock()
-        backend_mock.responses = [
-            MockResponse(
-                'https://.+/gcdm/.*/?oauth/authenticate',
-                data_files=['auth/auth_error_wrong_password.json'],
-                status_code=401)
-        ]
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+        """Test parsing the results of an invalid password."""
+        with requests_mock.Mocker() as mock:
+            mock.post(
+                "/gcdm/oauth/authenticate",
+                json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json"),
+                status_code=401,
+            )
             with self.assertRaises(HTTPError):
-                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
-        backend_mock.responses = [
-            MockResponse(
-                'https://.+/gcdm/.*/?oauth/authenticate',
-                data_files=['auth/auth_error_internal_error.txt'],
-                status_code=500)
-        ]
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
+    def test_server_error(self):
+        """Test parsing the results of a server error."""
+        with requests_mock.Mocker() as mock:
+            mock.post(
+                "/gcdm/oauth/authenticate",
+                text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt"),
+                status_code=500,
+            )
             with self.assertRaises(HTTPError):
-                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
-
-    def test_invalid_send_response(self):
-        """Test parsing the results of an invalid request"""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
-            with self.assertRaises(IOError):
-                account.send_request('invalid_url')
-
-    def test_china_header(self):
-        """Test if the host is set correctly in the request."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.CHINA)
-            request = [r for r in backend_mock.last_request if 'oauth' in r.url][0]
-            self.assertEqual('customer.bmwgroup.cn', request.headers['Host'])
+                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
     def test_anonymize_data(self):
         """Test anonymization function."""
         test_dict = {
-            'vin': 'secret',
-            'a sub-dict': {
-                'lat': 666,
-                'lon': 666,
-                'heading': 666,
+            "vin": "secret",
+            "a sub-dict": {
+                "lat": 666,
+                "lon": 666,
+                "heading": 666,
             },
-            'licensePlate': 'secret',
-            'public': 'public_data',
-            'a_list': [
-                {'vin': 'secret'},
+            "licensePlate": "secret",
+            "public": "public_data",
+            "a_list": [
+                {"vin": "secret"},
                 {
-                    'lon': 666,
-                    'public': 'more_public_data',
-                }
+                    "lon": 666,
+                    "public": "more_public_data",
+                },
             ],
-            'b_list': ['a', 'b'],
-            'empty_list': [],
+            "b_list": ["a", "b"],
+            "empty_list": [],
         }
-        anon_text = json.dumps(ConnectedDriveAccount._anonymize_data(test_dict))
-        self.assertNotIn('secret', anon_text)
-        self.assertNotIn('666', anon_text)
-        self.assertIn('public_data', anon_text)
-        self.assertIn('more_public_data', anon_text)
+        anon_text = json.dumps(ConnectedDriveAccount._anonymize_data(test_dict))  # pylint: disable=protected-access
+        self.assertNotIn("secret", anon_text)
+        self.assertNotIn("666", anon_text)
+        self.assertIn("public_data", anon_text)
+        self.assertIn("more_public_data", anon_text)
 
     def test_vehicle_search_case(self):
         """Check if the search for the vehicle by VIN is NOT case sensitive."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+        account = get_mocked_account()
 
         vin = account.vehicles[1].vin
         self.assertEqual(vin, account.get_vehicle(vin).vin)
@@ -106,39 +151,33 @@ class TestAccount(unittest.TestCase):
 
     def test_set_observer_value(self):
         """Test set_observer_position with valid arguments."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+        account = get_mocked_account()
 
-            account.set_observer_position(1.0, 2.0)
-            for vehicle in account.vehicles:
-                self.assertEqual(vehicle.observer_latitude, 1.0)
-                self.assertEqual(vehicle.observer_longitude, 2.0)
+        account.set_observer_position(1.0, 2.0)
+        for vehicle in account.vehicles:
+            self.assertEqual(vehicle.observer_latitude, 1.0)
+            self.assertEqual(vehicle.observer_longitude, 2.0)
 
     def test_set_observer_not_set(self):
         """Test set_observer_position with no arguments."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+        account = get_mocked_account()
 
-            for vehicle in account.vehicles:
-                self.assertEqual(vehicle.observer_latitude, 0.0)
-                self.assertEqual(vehicle.observer_longitude, 0.0)
+        for vehicle in account.vehicles:
+            self.assertEqual(vehicle.observer_latitude, 0.0)
+            self.assertEqual(vehicle.observer_longitude, 0.0)
 
-            account.set_observer_position(None, None)
+        account.set_observer_position(None, None)
 
-            for vehicle in account.vehicles:
-                self.assertEqual(vehicle.observer_latitude, 0.0)
-                self.assertEqual(vehicle.observer_longitude, 0.0)
+        for vehicle in account.vehicles:
+            self.assertEqual(vehicle.observer_latitude, 0.0)
+            self.assertEqual(vehicle.observer_longitude, 0.0)
 
     def test_set_observer_some_none(self):
         """Test set_observer_position with invalid arguments."""
-        backend_mock = BackendMock()
-        with mock.patch('bimmer_connected.account.requests', new=backend_mock):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, Regions.REST_OF_WORLD)
+        account = get_mocked_account()
 
-            with self.assertRaises(ValueError):
-                account.set_observer_position(None, 2.0)
+        with self.assertRaises(ValueError):
+            account.set_observer_position(None, 2.0)
 
-            with self.assertRaises(ValueError):
-                account.set_observer_position(1.0, None)
+        with self.assertRaises(ValueError):
+            account.set_observer_position(1.0, None)
