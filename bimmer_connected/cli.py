@@ -112,7 +112,7 @@ def get_status(args) -> None:
 
         for vehicle in account.vehicles:
             print('VIN: {}'.format(vehicle.vin))
-            print('Mileage: {}'.format(vehicle.state.vehicle_status.mileage))
+            print('Mileage: {}'.format(vehicle.status.mileage))
             print('Vehicle data:')
             print(to_json(vehicle, indent=4))
 
