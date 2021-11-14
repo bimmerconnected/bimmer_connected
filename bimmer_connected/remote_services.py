@@ -30,7 +30,7 @@ _POLLING_TIMEOUT = 240
 _UPDATE_AFTER_REMOTE_SERVICE_DELAY = 10
 
 
-class ExecutionState(Enum):
+class ExecutionState(str, Enum):
     """Enumeration of possible states of the execution of a remote service."""
     INITIATED = 'INITIATED'
     PENDING = 'PENDING'
@@ -39,7 +39,7 @@ class ExecutionState(Enum):
     UNKNOWN = 'UNKNOWN'
 
 
-class _Services(Enum):
+class _Services(str, Enum):
     """Enumeration of possible services to be executed."""
     REMOTE_LIGHT_FLASH = 'LIGHT_FLASH'
     REMOTE_VEHICLE_FINDER = 'VEHICLE_FINDER'

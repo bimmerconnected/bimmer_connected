@@ -1,14 +1,14 @@
 """Models state and remote services of one vehicle."""
 from enum import Enum
-import inspect
 import logging
 from typing import TYPE_CHECKING, List
 import warnings
 
 from bimmer_connected.charging_profile import ChargingProfile
-from bimmer_connected.vehicle_status import VehicleStatus, WINDOWS, LIDS, STATUS_KEYS
+from bimmer_connected.vehicle_status import VehicleStatus, WINDOWS, LIDS
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import SERVICE_STATUS, VEHICLE_IMAGE_URL
+from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL
+from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
@@ -16,14 +16,14 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class DriveTrainType(Enum):
+class DriveTrainType(str, Enum):
     """Different types of drive trains."""
     COMBUSTION = 'COMBUSTION'
     PLUGIN_HYBRID = 'PLUGIN_HYBRID'
     ELECTRIC = 'ELECTRIC'
 
 
-class CarBrand(Enum):
+class CarBrand(str, Enum):
     """Car brands supported by the My BMW API."""
     @classmethod
     def _missing_(cls, value):
@@ -43,7 +43,7 @@ COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.COMBUSTION, DriveTrainType.PLUG
 HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PLUGIN_HYBRID, DriveTrainType.ELECTRIC}
 
 
-class VehicleViewDirection(Enum):
+class VehicleViewDirection(str, Enum):
     """Viewing angles for the vehicle.
 
     This is used to get a rendered image of the vehicle.
@@ -58,7 +58,7 @@ class VehicleViewDirection(Enum):
     # REARBIRDSEYE = 'REARBIRDSEYE'
 
 
-class LscType(Enum):
+class LscType(str, Enum):
     """Known Values for lsc_type field.
 
     Not really sure, what this value really contains.
@@ -67,7 +67,7 @@ class LscType(Enum):
     ACTIVATED = 'ACTIVATED'
 
 
-class ConnectedDriveVehicle:
+class ConnectedDriveVehicle(SerializableBaseClass):
     """Models state and remote services of one vehicle.
 
     :param account: ConnectedDrive account this vehicle belongs to
@@ -76,8 +76,10 @@ class ConnectedDriveVehicle:
 
     def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
         self._account = account
-        self._attributes = {k: v for k, v in vehicle_dict.items() if k not in STATUS_KEYS}
-        self.status = VehicleStatus({k: v for k, v in vehicle_dict.items() if k in STATUS_KEYS})
+        self.attributes = {k: v for k, v in vehicle_dict.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
+        self.status = VehicleStatus(
+            {k: v for k, v in vehicle_dict.items() if k in [SERVICE_STATUS, SERVICE_PROPERTIES]}
+        )
         self.remote_services = RemoteServices(account, self)
         self.observer_latitude = 0.0  # type: float
         self.observer_longitude = 0.0  # type: float
@@ -95,17 +97,17 @@ class ConnectedDriveVehicle:
     @property
     def drive_train(self) -> DriveTrainType:
         """Get the type of drive train of the vehicle."""
-        return DriveTrainType(self._attributes['driveTrain'])
+        return DriveTrainType(self.attributes['driveTrain'])
 
     @property
     def name(self) -> str:
         """Get the name of the vehicle."""
-        return self._attributes['model']
+        return self.attributes['model']
 
     @property
     def brand(self) -> CarBrand:
         """Get the car brand."""
-        return CarBrand(self._attributes["brand"])
+        return CarBrand(self.attributes["brand"])
 
     @property
     def has_hv_battery(self) -> bool:
@@ -132,7 +134,7 @@ class ConnectedDriveVehicle:
     @property
     def has_weekly_planner_service(self) -> bool:
         """Return True if charging control (weekly planner) is available."""
-        return self._attributes["capabilities"]["isChargingPlanSupported"]
+        return self.attributes["capabilities"]["isChargingPlanSupported"]
 
     @property
     def drive_train_attributes(self) -> List[str]:
@@ -158,7 +160,7 @@ class ConnectedDriveVehicle:
         Not really sure what that value really means. If it is NOT_CAPABLE, that probably means that the
         vehicle state will not contain much data.
         """
-        return LscType(self._attributes["capabilities"]["lastStateCall"].get('lscState'))
+        return LscType(self.attributes["capabilities"]["lastStateCall"].get('lscState'))
 
     @property
     def available_attributes(self) -> List[str]:
@@ -208,17 +210,21 @@ class ConnectedDriveVehicle:
         """In the first version: just get the attributes from the dict.
 
         In a later version we might parse the attributes to provide a more advanced API.
-        :param item: item to get, as defined in VEHICLE_ATTRIBUTES
+        :param item: item to get, as defined in VEHICLE attributes
         """
-        if item in self._get_class_property_names(self):
+        if item in get_class_property_names(self):
             return getattr(self, item)
-        if item in self._get_class_property_names(self.status):
+        if item in get_class_property_names(self.status):
             return getattr(self.status, item)
-        return self._attributes.get(item)
+        return self.attributes.get(item)
 
     def __str__(self) -> str:
         """Use the name as identifier for the vehicle."""
         return '{}: {}'.format(self.__class__, self.name)
+
+    @property
+    def to_json(self) -> dict:
+        return serialize_for_json(self, ["_account", "remote_services"])
 
     def set_observer_position(self, latitude: float, longitude: float) -> None:
         """Set the position of the observer, who requests the vehicle state.
@@ -230,10 +236,3 @@ class ConnectedDriveVehicle:
             raise ValueError('Either latitude AND longitude are set or none of them. You cannot set only one of them!')
         self.observer_latitude = latitude
         self.observer_longitude = longitude
-
-    @staticmethod
-    def _get_class_property_names(obj: object):
-        return [
-            p[0] for p in inspect.getmembers(type(obj), inspect.isdatadescriptor)
-            if not p[0].startswith("_")
-        ]

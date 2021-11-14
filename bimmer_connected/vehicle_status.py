@@ -5,7 +5,7 @@ import logging
 from enum import Enum
 from typing import Dict, List, Tuple
 
-from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS
+from bimmer_connected.utils import SerializableBaseClass
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -14,10 +14,8 @@ LIDS = ['driverFront', 'passengerFront', 'driverRear', 'passengerRear', 'hood', 
 
 WINDOWS = ['driverFront', 'passengerFront', 'driverRear', 'passengerRear', 'rearWindow', 'sunroof']
 
-STATUS_KEYS = [SERVICE_PROPERTIES, SERVICE_STATUS]
 
-
-class LidState(Enum):
+class LidState(str, Enum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
     CLOSED = 'CLOSED'
     OPEN = 'OPEN'
@@ -26,7 +24,7 @@ class LidState(Enum):
     INVALID = 'INVALID'
 
 
-class LockState(Enum):
+class LockState(str, Enum):
     """Possible states of the door locks."""
     LOCKED = 'LOCKED'
     SECURED = 'SECURED'
@@ -35,14 +33,14 @@ class LockState(Enum):
     UNKNOWN = 'UNKNOWN'
 
 
-class ConditionBasedServiceStatus(Enum):
+class ConditionBasedServiceStatus(str, Enum):
     """Status of the condition based services."""
     OK = 'OK'
     OVERDUE = 'OVERDUE'
     PENDING = 'PENDING'
 
 
-class ChargingState(Enum):
+class ChargingState(str, Enum):
     """Charging state of electric vehicle."""
     CHARGING = 'CHARGING'
     ERROR = 'ERROR'
@@ -54,7 +52,7 @@ class ChargingState(Enum):
     WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
 
 
-class CheckControlMessage:
+class CheckControlMessage(SerializableBaseClass):
     """Check control message sent from the server.
 
     This class provides a nicer API than parsing the JSON format directly.
@@ -91,7 +89,7 @@ def backend_parameter(func):
     """
     def _func_wrapper(self: 'VehicleStatus', *args, **kwargs):
         # pylint: disable=protected-access
-        if self._state[SERVICE_PROPERTIES] is None and self._state[SERVICE_STATUS]:
+        if self.properties is None and self.status:
             raise ValueError('No data available for vehicle status!')
         try:
             return func(self, *args, **kwargs)
@@ -103,18 +101,22 @@ def backend_parameter(func):
     return _func_wrapper
 
 
-class VehicleStatus:  # pylint: disable=too-many-public-methods
+class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
     def __init__(self, state: Dict):
         """Constructor."""
-        self._state = state
+        self.status = state["status"]
+        self.properties = state["properties"]
 
     @property
     @backend_parameter
     def timestamp(self) -> datetime.datetime:
         """Get the timestamp when the data was recorded."""
-        return self._parse_datetime(self._state[SERVICE_PROPERTIES]['lastUpdatedAt'])
+        return max(
+            self._parse_datetime(self.properties['lastUpdatedAt']),
+            self._parse_datetime(self.status['lastUpdatedAt'])
+        )
 
     @property
     @backend_parameter
@@ -130,7 +132,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
-        pos = self._state[SERVICE_PROPERTIES]['vehicleLocation']["coordinates"]
+        pos = self.properties['vehicleLocation']["coordinates"]
         return float(pos['latitude']), float(pos['longitude'])
 
     @property
@@ -146,7 +148,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
-        pos = self._state[SERVICE_PROPERTIES]['vehicleLocation']
+        pos = self.properties['vehicleLocation']
         return int(pos['heading'])
 
     @property
@@ -156,7 +158,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         If the vehicle was active/moving at the time of the last status update, current position is not available.
         """
-        return self._state[SERVICE_PROPERTIES]['inMotion']
+        return self.properties['inMotion']
 
     @property
     @backend_parameter
@@ -165,7 +167,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         The server return "OK" if tracking is enabled and "DRIVER_DISABLED" if it is disabled in the vehicle.
         """
-        return 'vehicleLocation' in self._state[SERVICE_PROPERTIES]
+        return 'vehicleLocation' in self.properties
 
     @property
     @backend_parameter
@@ -175,8 +177,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         Returns a tuple of (value, unit_of_measurement)
         """
         return (
-            self._state[SERVICE_STATUS]['currentMileage']['mileage'],
-            self._state[SERVICE_STATUS]['currentMileage']['units']
+            self.status['currentMileage']['mileage'],
+            self.status['currentMileage']['units']
         )
 
     @property
@@ -186,11 +188,11 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        if "combustionRange" not in self._state[SERVICE_PROPERTIES]:
+        if "combustionRange" not in self.properties:
             return (None, None)
         return (
-            self._state[SERVICE_PROPERTIES]["combustionRange"]["distance"]["value"],
-            self._state[SERVICE_PROPERTIES]["combustionRange"]["distance"]["units"]
+            self.properties["combustionRange"]["distance"]["value"],
+            self.properties["combustionRange"]["distance"]["units"]
         )
 
     @property
@@ -201,8 +203,8 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         Returns a tuple of (value, unit_of_measurement)
         """
         return (
-            self._state[SERVICE_PROPERTIES]['fuelLevel']['value'],
-            self._state[SERVICE_PROPERTIES]['fuelLevel']['units'],
+            self.properties['fuelLevel']['value'],
+            self.properties['fuelLevel']['units'],
         )
 
     @property
@@ -212,14 +214,14 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
         Can be used to identify REX vehicles if driveTrain == ELECTRIC.
         """
-        return len(self._state[SERVICE_PROPERTIES]["fuelIndicators"])
+        return len(self.status["fuelIndicators"])
 
     @property
     @backend_parameter
     def lids(self) -> List['Lid']:
         """Get all lids (doors+hatch+trunk) of the car."""
         result = []
-        lids = self._state[SERVICE_PROPERTIES]["doorsAndWindows"]
+        lids = self.properties["doorsAndWindows"]
         result.extend([Lid(k, v) for k, v in lids.items() if k in ["hood", "trunk"] and v != LidState.INVALID.value])
         result.extend([Lid(k, v) for k, v in lids["doors"].items() if v != LidState.INVALID.value])
 
@@ -241,7 +243,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         """Get all windows (doors+sun roof) of the car."""
         result = [
             Window(k, v)
-            for k, v in self._state[SERVICE_PROPERTIES]["doorsAndWindows"].get("windows").items()
+            for k, v in self.properties["doorsAndWindows"].get("windows").items()
             if v != LidState.INVALID.value
         ]
         return result
@@ -260,13 +262,13 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def door_lock_state(self) -> LockState:
         """Get state of the door locks."""
-        return LockState(self._state[SERVICE_STATUS]['doorsGeneralState'].upper())
+        return LockState(self.status['doorsGeneralState'].upper())
 
     @property
     @backend_parameter
     def last_update_reason(self) -> str:
         """The reason for the last state update"""
-        return self._state[SERVICE_STATUS]['timestampMessage']
+        return self.status['timestampMessage']
 
     @property
     @backend_parameter
@@ -278,11 +280,11 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def connection_status(self) -> str:
         """Get status of the connection"""
-        if "chargingState" not in self._state[SERVICE_PROPERTIES]:
+        if "chargingState" not in self.properties:
             return None
         return (
             "CONNECTED"
-            if self._state[SERVICE_PROPERTIES]["chargingState"]["isChargerConnected"]
+            if self.properties["chargingState"]["isChargerConnected"]
             else "DISCONNECTED"
         )
 
@@ -290,7 +292,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def condition_based_services(self) -> List['ConditionBasedServiceReport']:
         """Get status of the condition based services."""
-        return [ConditionBasedServiceReport(s) for s in self._state[SERVICE_PROPERTIES]['serviceRequired']]
+        return [ConditionBasedServiceReport(s) for s in self.properties['serviceRequired']]
 
     @property
     def are_all_cbs_ok(self) -> bool:
@@ -337,11 +339,11 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
         """Remaining range on battery, in kilometers."""
-        if "electricRange" not in self._state[SERVICE_PROPERTIES]:
+        if "electricRange" not in self.properties:
             return None, None
         return (
-            self._state[SERVICE_PROPERTIES]["electricRange"]["distance"]["value"],
-            self._state[SERVICE_PROPERTIES]["electricRange"]["distance"]["units"]
+            self.properties["electricRange"]["distance"]["value"],
+            self.properties["electricRange"]["distance"]["units"]
         )
 
     @property
@@ -369,9 +371,9 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def charging_status(self) -> ChargingState:
         """Charging state of the vehicle."""
-        if "chargingState" not in self._state[SERVICE_PROPERTIES]:
+        if "chargingState" not in self.properties:
             return None
-        return ChargingState(self._state[SERVICE_PROPERTIES]['chargingState']["state"])
+        return ChargingState(self.properties['chargingState']["state"])
 
     @property
     @backend_parameter
@@ -383,19 +385,19 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     @backend_parameter
     def charging_level_hv(self) -> int:
         """State of charge of the high voltage battery in percent."""
-        return int(self._state[SERVICE_PROPERTIES]["electricRangeAndStatus"]["chargePercentage"])
+        return int(self.properties["electricRangeAndStatus"]["chargePercentage"])
 
     @property
     @backend_parameter
     def fuel_percent(self) -> int:
         """State of fuel in percent."""
-        return int(self._state[SERVICE_PROPERTIES]['fuelPercentage']["value"])
+        return int(self.properties['fuelPercentage']["value"])
 
     @property
     @backend_parameter
     def check_control_messages(self) -> List[CheckControlMessage]:
         """List of check control messages."""
-        messages = self._state[SERVICE_STATUS].get('checkControlMessages', [])
+        messages = self.status.get('checkControlMessages', [])
         return [CheckControlMessage(m) for m in messages if m["state"] != "OK"]
 
     @property

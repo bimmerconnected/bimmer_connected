@@ -3,7 +3,6 @@
 
 import argparse
 import logging
-import json
 import time
 import sys
 from datetime import datetime
@@ -15,6 +14,7 @@ import requests
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name, valid_regions, get_server_url
 from bimmer_connected.vehicle import VehicleViewDirection, HV_BATTERY_DRIVE_TRAINS
+from bimmer_connected.utils import to_json
 
 TEXT_VIN = 'Vehicle Identification Number'
 
@@ -28,6 +28,10 @@ def main_parser() -> argparse.ArgumentParser:
     subparsers.required = True
 
     status_parser = subparsers.add_parser('status', description='Get the current status of the vehicle.')
+    status_parser.add_argument('-j', '--json',
+                               help='Output as JSON only. Removes all other output.',
+                               action='store_true'
+                               )
     _add_default_arguments(status_parser)
     _add_position_arguments(status_parser)
 
@@ -89,23 +93,28 @@ def main_parser() -> argparse.ArgumentParser:
 
 def get_status(args) -> None:
     """Get the vehicle status."""
+    if args.json:
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     if args.lat and args.lng:
         for vehicle in account.vehicles:
             vehicle.set_observer_position(args.lat, args.lng)
     account.update_vehicle_states()
 
-    print('Found {} vehicles: {}'.format(
-        len(account.vehicles),
-        ','.join([v.name for v in account.vehicles])))
+    if args.json:
+        print(to_json(account.vehicles))
+    else:
+        print('Found {} vehicles: {}'.format(
+            len(account.vehicles),
+            ','.join([v.name for v in account.vehicles])))
 
-    for vehicle in account.vehicles:
-        print('VIN: {}'.format(vehicle.vin))
-        print('Mileage: {}'.format(vehicle.state.vehicle_status.mileage))
-        print('Vehicle properties:')
-        print(json.dumps(vehicle.attributes, indent=4))
-        print('Vehicle status:')
-        print(json.dumps(vehicle.state.vehicle_status.attributes, indent=4))
+        for vehicle in account.vehicles:
+            print('VIN: {}'.format(vehicle.vin))
+            print('Mileage: {}'.format(vehicle.state.vehicle_status.mileage))
+            print('Vehicle data:')
+            print(to_json(vehicle, indent=4))
 
 
 def fingerprint(args) -> None:
