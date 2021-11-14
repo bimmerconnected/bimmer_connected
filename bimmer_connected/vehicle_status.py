@@ -77,6 +77,41 @@ class CheckControlMessage(SerializableBaseClass):
         return self._ccm_dict.get("state")
 
 
+class RemainingRange(SerializableBaseClass):
+    """Parsed fuel indicators.
+
+    This class provides a nicer API than parsing the JSON format directly.
+    """
+
+    def __init__(self, fuel_indicator_dict: dict):
+        self.fuel = None
+        self.electric = None
+        self.combined = None
+
+        self._map_to_attributes(fuel_indicator_dict)
+
+    def _map_to_attributes(self, fuel_indicators):
+        """Parse fuel indicators based on Ids."""
+        for fi in fuel_indicators:
+            if fi.get("rangeIconId", "infoIconId") == 59691:
+                self.combined = self._parse_to_tuple(fi)
+            elif fi.get("rangeIconId", "infoIconId") == 59683:
+                self.electric = self._parse_to_tuple(fi)
+                self.combined = self.combined or self.electric
+            elif (fi["rangeIconId"] or fi["infoIconId"]) == 59681:
+                self.fuel = self._parse_to_tuple(fi)
+                self.combined = self.combined or self.fuel
+
+    @staticmethod
+    def _parse_to_tuple(fuel_indicator):
+        """Parse fuel indicator to standard range tuple."""
+        try:
+            range = int(fuel_indicator["rangeValue"])
+        except ValueError:
+            return None
+        return (range, fuel_indicator["rangeUnits"])
+
+
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -84,7 +119,7 @@ def backend_parameter(func):
     """
     def _func_wrapper(self: 'VehicleStatus', *args, **kwargs):
         # pylint: disable=protected-access
-        if self.properties is None and self.status:
+        if self.properties is None and self.status is None:
             raise ValueError('No data available for vehicle status!')
         try:
             return func(self, *args, **kwargs)
@@ -101,6 +136,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Constructor."""
         self.status = state["status"]
         self.properties = state["properties"]
+        self._remaining_range = RemainingRange(state["status"]["fuelIndicators"])
 
     @property
     @backend_parameter
@@ -181,12 +217,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        if "combustionRange" not in self.properties:
-            return (None, None)
-        return (
-            self.properties["combustionRange"]["distance"]["value"],
-            self.properties["combustionRange"]["distance"]["units"]
-        )
+        return self._remaining_range.fuel
 
     @property
     @backend_parameter
@@ -323,12 +354,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
         """Remaining range on battery, in kilometers."""
-        if "electricRange" not in self.properties:
-            return None, None
-        return (
-            self.properties["electricRange"]["distance"]["value"],
-            self.properties["electricRange"]["distance"]["units"]
-        )
+        return self._remaining_range.electric
 
     @property
     @backend_parameter
@@ -337,13 +363,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         That is electrical range + fuel range.
         """
-        # Calculated manually as SERVICE_PROPERTIES.combinedRange == SERVICE_PROPERTIES.combustionRange on fingerprints
-        if not self.remaining_range_fuel and not self.remaining_range_electric:
-            return None, None
-        return (
-            ((self.remaining_range_fuel or [0])[0] or 0) + ((self.remaining_range_electric or [0])[0] or 0),
-            (self.remaining_range_fuel or self.remaining_range_electric)[1]
-        )
+        return self._remaining_range.combined
 
     @property
     @backend_parameter
