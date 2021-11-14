@@ -239,6 +239,8 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
             for k, v in self.properties["doorsAndWindows"].get("windows").items()
             if v != LidState.INVALID.value
         ]
+        if "moonroof" in self.properties["doorsAndWindows"]:
+            result.append(Window("moonroof", self.properties["doorsAndWindows"]["moonroof"]))
         return result
 
     @property
