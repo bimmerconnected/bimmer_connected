@@ -1,8 +1,12 @@
 """General utils and base classes used in the library."""
 
 from abc import ABC
+from datetime import datetime
 import inspect
 import json
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool = True) -> dict:
@@ -35,6 +39,20 @@ def to_json(obj: object, *args, **kwargs):
     def serialize(obj: object):
         return getattr(obj, 'to_json',  getattr(obj, '__dict__') if hasattr(obj, '__dict__') else str(obj))
     return json.dumps(obj, default=serialize, *args, **kwargs)
+
+
+def parse_datetime(date_str: str) -> datetime:
+    """Convert a time string into datetime."""
+    if not date_str:
+        return None
+    date_formats = ["%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ"]
+    for date_format in date_formats:
+        try:
+            return datetime.strptime(date_str, date_format)
+        except ValueError:
+            pass
+    _LOGGER.error("unable to parse '%s' using %s", date_str, date_formats)
+    return None
 
 
 class SerializableBaseClass(ABC):  # pylint: disable=too-few-public-methods

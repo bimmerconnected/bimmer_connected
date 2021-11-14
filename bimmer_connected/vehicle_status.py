@@ -5,7 +5,7 @@ import logging
 from enum import Enum
 from typing import Dict, List, Tuple
 
-from bimmer_connected.utils import SerializableBaseClass
+from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -114,8 +114,8 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     def timestamp(self) -> datetime.datetime:
         """Get the timestamp when the data was recorded."""
         return max(
-            self._parse_datetime(self.properties['lastUpdatedAt']),
-            self._parse_datetime(self.status['lastUpdatedAt'])
+            parse_datetime(self.properties['lastUpdatedAt']),
+            parse_datetime(self.status['lastUpdatedAt'])
         )
 
     @property
@@ -324,17 +324,6 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """
         return None  # Not available in My BMW
 
-    @staticmethod
-    def _parse_datetime(date_str: str) -> datetime.datetime:
-        """Convert a time string into datetime."""
-        date_formats = ["%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z"]
-        for date_format in date_formats:
-            try:
-                return datetime.datetime.strptime(date_str, date_format)
-            except ValueError:
-                pass
-        raise ValueError("unable to parse '{}' using {}.".format(date_str, date_formats))
-
     @property
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
@@ -437,7 +426,7 @@ class ConditionBasedServiceReport:  # pylint: disable=too-few-public-methods
     def __init__(self, cbs_data: dict):
 
         #: date when the service is due
-        self.due_date = VehicleStatus._parse_datetime(cbs_data.get('dateTime'))
+        self.due_date = parse_datetime(cbs_data.get('dateTime'))
 
         #: status of the service
         self.state = ConditionBasedServiceStatus(cbs_data['status'])
@@ -452,21 +441,3 @@ class ConditionBasedServiceReport:  # pylint: disable=too-few-public-methods
 
         #: description of the required service
         self.description = None  # Could be retrieved from status.requiredServices if needed
-
-    @staticmethod
-    def _parse_date(datestr: str) -> datetime.datetime:
-        if datestr is None:
-            return None
-        formats = [
-            '%Y-%m-%dT%H:%M:%S.000Z',
-            '%Y-%m',
-            '%m.%Y',
-        ]
-        for date_format in formats:
-            try:
-                date = datetime.datetime.strptime(datestr, date_format)
-                return date.replace(day=1)
-            except ValueError:
-                pass
-        _LOGGER.error('Unknown time format for CBS: %s', datestr)
-        return None
