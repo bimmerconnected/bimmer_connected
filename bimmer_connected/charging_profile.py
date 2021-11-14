@@ -106,8 +106,6 @@ def backend_parameter(func):
         except KeyError:
             _LOGGER.debug('No data available for attribute %s!', str(func))
             return None
-        except Exception as ex:
-            raise ex
     return _func_wrapper
 
 

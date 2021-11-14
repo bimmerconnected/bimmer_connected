@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, List
 import warnings
 
 from bimmer_connected.charging_profile import ChargingProfile
-from bimmer_connected.vehicle_status import VehicleStatus, WINDOWS, LIDS
+from bimmer_connected.vehicle_status import VehicleStatus
 from bimmer_connected.remote_services import RemoteServices
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL
 from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
@@ -166,13 +166,11 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def available_attributes(self) -> List[str]:
         """Get the list of non-drivetrain attributes available for this vehicle."""
         # attributes available in all vehicles
-        result = ['gps_position', 'timestamp', 'vin']
+        result = ['gps_position', 'vin']
         if self.lsc_type == LscType.ACTIVATED:
             # generic attributes if lsc_type =! NOT_SUPPORTED
-            result += LIDS
-            result += WINDOWS
             result += self.drive_train_attributes
-            result += ['condition_based_services', 'check_control_messages', 'door_lock_state', 'timestamp'
+            result += ['condition_based_services', 'check_control_messages', 'door_lock_state', 'timestamp',
                        'last_update_reason']
             # required for existing Home Assistant binary sensors
             result += ['lids', 'windows']

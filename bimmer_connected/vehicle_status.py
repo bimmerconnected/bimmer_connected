@@ -10,11 +10,6 @@ from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 _LOGGER = logging.getLogger(__name__)
 
 
-LIDS = ['driverFront', 'passengerFront', 'driverRear', 'passengerRear', 'hood', 'trunk']
-
-WINDOWS = ['driverFront', 'passengerFront', 'driverRear', 'passengerRear', 'rearWindow', 'sunroof']
-
-
 class LidState(str, Enum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
     CLOSED = 'CLOSED'
@@ -96,8 +91,6 @@ def backend_parameter(func):
         except KeyError:
             _LOGGER.debug('No data available for attribute %s!', str(func))
             return None
-        except Exception as ex:
-            raise ex
     return _func_wrapper
 
 
