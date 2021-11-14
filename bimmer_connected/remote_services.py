@@ -217,6 +217,9 @@ class RemoteServices:
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
+
+        # TODO: POIs should be parsed correctly via a separate class
+
         _LOGGER.debug('Sending PointOfInterest to car')
         if "lat" not in data or "lon" not in data:
             raise TypeError("__init__() missing 2 required positional arguments: 'lat' and 'lon'")

@@ -198,7 +198,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
             server=self._account.server_url,
             view=direction.value,
         )
-        header = self._account.request_header
+        header = self._account.request_header()
         # the accept field of the header needs to be updated as we want a png not the usual JSON
         header['accept'] = 'image/png'
         response = self._account.send_request(url, headers=header)
@@ -230,7 +230,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         Some vehicle require you to send your position to the server before you get the vehicle state.
         Your position must be within some range (2km?) of the vehicle to get you a proper answer.
         """
-        if (latitude == 0.0 or longitude == 0.0) and latitude != longitude:
-            raise ValueError('Either latitude AND longitude are set or none of them. You cannot set only one of them!')
+        if bool(latitude) != bool(longitude):
+            raise ValueError('Either latitude and longitude are both not None or both are None.')
         self.observer_latitude = latitude
         self.observer_longitude = longitude

@@ -77,7 +77,7 @@ class CheckControlMessage(SerializableBaseClass):
         return self._ccm_dict.get("state")
 
 
-class RemainingRange(SerializableBaseClass):
+class RemainingRange(SerializableBaseClass):  # pylint: disable=too-few-public-methods
     """Parsed fuel indicators.
 
     This class provides a nicer API than parsing the JSON format directly.
@@ -92,24 +92,24 @@ class RemainingRange(SerializableBaseClass):
 
     def _map_to_attributes(self, fuel_indicators):
         """Parse fuel indicators based on Ids."""
-        for fi in fuel_indicators:
-            if fi.get("rangeIconId", "infoIconId") == 59691:
-                self.combined = self._parse_to_tuple(fi)
-            elif fi.get("rangeIconId", "infoIconId") == 59683:
-                self.electric = self._parse_to_tuple(fi)
+        for indicator in fuel_indicators:
+            if indicator.get("rangeIconId", "infoIconId") == 59691:
+                self.combined = self._parse_to_tuple(indicator)
+            elif indicator.get("rangeIconId", "infoIconId") == 59683:
+                self.electric = self._parse_to_tuple(indicator)
                 self.combined = self.combined or self.electric
-            elif (fi["rangeIconId"] or fi["infoIconId"]) == 59681:
-                self.fuel = self._parse_to_tuple(fi)
+            elif (indicator["rangeIconId"] or indicator["infoIconId"]) == 59681:
+                self.fuel = self._parse_to_tuple(indicator)
                 self.combined = self.combined or self.fuel
 
     @staticmethod
     def _parse_to_tuple(fuel_indicator):
         """Parse fuel indicator to standard range tuple."""
         try:
-            range = int(fuel_indicator["rangeValue"])
+            range_val = int(fuel_indicator["rangeValue"])
         except ValueError:
             return None
-        return (range, fuel_indicator["rangeUnits"])
+        return (range_val, fuel_indicator["rangeUnits"])
 
 
 def backend_parameter(func):
