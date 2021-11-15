@@ -2,7 +2,6 @@
 from enum import Enum
 import logging
 from typing import TYPE_CHECKING, List
-import warnings
 
 from bimmer_connected.charging_profile import ChargingProfile
 from bimmer_connected.vehicle_status import VehicleStatus
@@ -87,7 +86,8 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     @staticmethod
     def update_state() -> None:
         """Update the state of a vehicle."""
-        warnings.warn("Not needed with MyBMW API.", DeprecationWarning)
+        # Updating single vehicle state is currently not needed with MyBMW API.
+        pass
 
     @property
     def charging_profile(self) -> ChargingProfile:

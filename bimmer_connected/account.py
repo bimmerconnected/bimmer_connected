@@ -314,6 +314,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
         Notify all listeners of the vehicle state update.
         """
+        # With MyBMW, we only have to get the vehicles list.
+        self._get_vehicles()
+        # Still calling `update_state` for each vehicle in case we will have
+        # vehicle-specific endpoints again.
         for car in self.vehicles:
             car.update_state()
         for listener in self._update_listeners:
