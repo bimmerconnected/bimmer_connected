@@ -9,14 +9,14 @@ from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.country_selector import get_region_from_name
 
 from . import (
-    TEST_PASSWORD,
-    TEST_USERNAME,
-    TEST_REGION,
     RESPONSE_DIR,
+    TEST_PASSWORD,
+    TEST_REGION,
     TEST_REGION_STRING,
-    load_response,
-    get_fingerprint_count,
+    TEST_USERNAME,
     VIN_G21,
+    get_fingerprint_count,
+    load_response,
 )
 
 
@@ -49,7 +49,7 @@ def return_vehicles(request, context):  # pylint: disable=inconsistent-return-st
     return response_vehicles
 
 
-def get_auth_adapter():
+def get_base_adapter():
     """Returns mocked adapter for auth."""
     adapter = requests_mock.Adapter()
     adapter.register_uri("POST", "/gcdm/oauth/authenticate", json=authenticate_callback)
@@ -60,7 +60,7 @@ def get_auth_adapter():
 
 def get_mocked_account():
     """Returns pre-mocked account."""
-    with requests_mock.Mocker(adapter=get_auth_adapter()):
+    with requests_mock.Mocker(adapter=get_base_adapter()):
         account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
     return account
 
@@ -70,13 +70,13 @@ class TestAccount(unittest.TestCase):
 
     def test_login(self):
         """Test the login flow."""
-        with requests_mock.Mocker(adapter=get_auth_adapter()):
+        with requests_mock.Mocker(adapter=get_base_adapter()):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
         self.assertIsNotNone(account)
 
     def test_fail_china(self):
         """Test raising an error for region `china`."""
-        with requests_mock.Mocker(adapter=get_auth_adapter()):
+        with requests_mock.Mocker(adapter=get_base_adapter()):
             with self.assertRaises(NotImplementedError):
                 ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
 

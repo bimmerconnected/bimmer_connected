@@ -62,15 +62,6 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
 
         self.state = ExecutionState(status or 'UNKNOWN')
 
-    @staticmethod
-    def _parse_timestamp(timestamp: str) -> datetime.datetime:
-        """Parse the timestamp format from the response."""
-        offset = int(timestamp[-3:])
-        time_zone = datetime.timezone(datetime.timedelta(hours=offset))
-        result = datetime.datetime.strptime(timestamp[:-3], TIME_FORMAT)
-        result.replace(tzinfo=time_zone)
-        return result
-
 
 class RemoteServices:
     """Trigger remote services on a vehicle."""
@@ -217,8 +208,6 @@ class RemoteServices:
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-
-        # TODO: POIs should be parsed correctly via a separate class
 
         _LOGGER.debug('Sending PointOfInterest to car')
         if "lat" not in data or "lon" not in data:

@@ -3,6 +3,7 @@
 import datetime
 import logging
 import unittest
+import sys
 
 from bimmer_connected.vehicle_status import LidState, LockState, ConditionBasedServiceStatus, ChargingState
 
@@ -19,10 +20,12 @@ class TestState(unittest.TestCase):
         """Test generic attributes."""
         status = get_mocked_account().get_vehicle(VIN_G30).status
 
-        self.assertEqual(
-            datetime.datetime(year=2021, month=11, day=11, hour=8, minute=58, second=53, tzinfo=datetime.timezone.utc),
-            status.timestamp,
+        expected = datetime.datetime(
+            year=2021, month=11, day=11, hour=8, minute=58, second=53, tzinfo=datetime.timezone.utc
         )
+        if sys.version_info <= (3, 6):
+            expected.tzinfo = None
+        self.assertEqual(expected, status.timestamp)
 
         self.assertEqual(7991, status.mileage[0])
         self.assertEqual("km", status.mileage[1])
@@ -111,15 +114,24 @@ class TestState(unittest.TestCase):
         cbs = status.condition_based_services
         self.assertEqual(3, len(cbs))
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[0].state)
-        self.assertEqual(datetime.datetime(year=2022, month=8, day=1, tzinfo=datetime.timezone.utc), cbs[0].due_date)
+        expected_cbs0 = datetime.datetime(year=2022, month=8, day=1, tzinfo=datetime.timezone.utc)
+        if sys.version_info <= (3, 6):
+            expected_cbs0.tzinfo = None
+        self.assertEqual(expected_cbs0, cbs[0].due_date)
         self.assertTupleEqual((25000, "KILOMETERS"), cbs[0].due_distance)
 
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[1].state)
-        self.assertEqual(datetime.datetime(year=2023, month=8, day=1, tzinfo=datetime.timezone.utc), cbs[1].due_date)
+        expected_cbs1 = datetime.datetime(year=2023, month=8, day=1, tzinfo=datetime.timezone.utc)
+        if sys.version_info <= (3, 6):
+            expected_cbs1.tzinfo = None
+        self.assertEqual(expected_cbs1, cbs[1].due_date)
         self.assertIsNone(cbs[1].due_distance)
 
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[2].state)
-        self.assertEqual(datetime.datetime(year=2024, month=8, day=1, tzinfo=datetime.timezone.utc), cbs[2].due_date)
+        expected_cbs2 = datetime.datetime(year=2024, month=8, day=1, tzinfo=datetime.timezone.utc)
+        if sys.version_info <= (3, 6):
+            expected_cbs2.tzinfo = None
+        self.assertEqual(expected_cbs2, cbs[2].due_date)
         self.assertTupleEqual((60000, "KILOMETERS"), cbs[2].due_distance)
 
         self.assertTrue(status.are_all_cbs_ok)

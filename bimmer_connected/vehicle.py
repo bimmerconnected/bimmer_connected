@@ -87,7 +87,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def update_state() -> None:
         """Update the state of a vehicle."""
         # Updating single vehicle state is currently not needed with MyBMW API.
-        pass
+        pass  # pylint: disable=unnecessary-pass
 
     @property
     def charging_profile(self) -> ChargingProfile:
@@ -176,15 +176,10 @@ class ConnectedDriveVehicle(SerializableBaseClass):
             result += ['lids', 'windows']
         return result
 
-    # TODO: We could probably implement this via vehicle_status.capabilities
-    #       However currently not many endpoints are known.
     @property
     def available_state_services(self) -> List[str]:
         """Get the list of all available state services for this vehicle."""
         result = [SERVICE_STATUS]
-
-    #     if self.has_weekly_planner_service:
-    #         result += [SERVICE_CHARGING_PROFILE]
 
         return result
 

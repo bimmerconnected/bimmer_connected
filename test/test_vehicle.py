@@ -4,7 +4,7 @@ import unittest
 
 import requests_mock
 
-from bimmer_connected.vehicle import DriveTrainType, CarBrand, VehicleViewDirection
+from bimmer_connected.vehicle import CarBrand, DriveTrainType, VehicleViewDirection
 
 from . import (
     VIN_F11,
@@ -21,7 +21,6 @@ from . import (
     VIN_I01_REX,
 )
 from .test_account import get_mocked_account
-
 
 ATTRIBUTE_MAPPING = {
     "remainingFuel": "remaining_fuel",
