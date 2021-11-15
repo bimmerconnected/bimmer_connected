@@ -48,7 +48,7 @@ class TestVehicle(unittest.TestCase):
         dt_with_milliseconds = datetime(2021, 11, 12, 13, 14, 15, 567000, tzinfo=timezone.utc)
         dt_without_milliseconds = datetime(2021, 11, 12, 13, 14, 15, tzinfo=timezone.utc)
 
-        if sys.version_info <= (3, 6):
+        if sys.version_info < (3, 7):
             dt_with_milliseconds.tzinfo = None
             dt_without_milliseconds.tzinfo = None
 
