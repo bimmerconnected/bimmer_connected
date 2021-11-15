@@ -282,7 +282,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-
+        vehicles = []
         for brand in CarBrand:
             response = self.send_request(
                 VEHICLES_URL.format(server=self.server_url),
@@ -295,7 +295,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             )
 
             for vehicle_dict in response.json():
-                self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+                vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+        self._vehicles = vehicles
 
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
         """Get vehicle with given VIN.
