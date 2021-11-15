@@ -189,10 +189,12 @@ def image(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
 
-    with open('image.png', 'wb') as output_file:
-        image_data = vehicle.get_vehicle_image(400, 400, VehicleViewDirection.FRONT)
-        output_file.write(image_data)
-    print('vehicle image saved to image.png')
+    for viewdirection in VehicleViewDirection:
+        filename = str(viewdirection.name).lower() + '.png'
+        with open(filename, 'wb') as output_file:
+            image_data = vehicle.get_vehicle_image(viewdirection)
+            output_file.write(image_data)
+        print('vehicle image saved to {}'.format(filename))
 
 
 def send_poi(args) -> None:
