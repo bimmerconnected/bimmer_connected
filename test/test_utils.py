@@ -49,8 +49,8 @@ class TestVehicle(unittest.TestCase):
         dt_without_milliseconds = datetime(2021, 11, 12, 13, 14, 15, tzinfo=timezone.utc)
 
         if sys.version_info < (3, 7):
-            dt_with_milliseconds.tzinfo = None
-            dt_without_milliseconds.tzinfo = None
+            dt_with_milliseconds.replace(tzinfo=None)
+            dt_without_milliseconds.replace(tzinfo=None)
 
         self.assertEqual(dt_with_milliseconds, parse_datetime("2021-11-12T13:14:15.567Z"))
 
