@@ -295,7 +295,12 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             )
 
             for vehicle_dict in response.json():
-                vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+                # If vehicle already exists, just update it's state
+                existing_vehicle = self.get_vehicle(vehicle_dict["vin"])
+                if existing_vehicle:
+                    existing_vehicle.update_state(vehicle_dict)
+                else:
+                    vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
         self._vehicles = vehicles
 
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
@@ -317,10 +322,6 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """
         # With MyBMW, we only have to get the vehicles list.
         self._get_vehicles()
-        # Still calling `update_state` for each vehicle in case we will have
-        # vehicle-specific endpoints again.
-        for car in self.vehicles:
-            car.update_state()
         for listener in self._update_listeners:
             listener()
 

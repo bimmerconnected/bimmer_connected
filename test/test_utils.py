@@ -1,8 +1,11 @@
 """Tests for ConnectedDriveAccount."""
+import datetime
 import logging
 import sys
 import unittest
-from datetime import datetime, timezone
+from unittest.mock import MagicMock
+from _pytest.monkeypatch import MonkeyPatch
+
 
 from bimmer_connected.utils import get_class_property_names, parse_datetime, to_json
 
@@ -12,6 +15,9 @@ from .test_account import get_mocked_account
 
 class TestVehicle(unittest.TestCase):
     """Tests for utils."""
+
+    def setUp(self):
+        self.monkeypatch = MonkeyPatch()
 
     def test_drive_train(self):
         """Tests available attribute."""
@@ -37,6 +43,15 @@ class TestVehicle(unittest.TestCase):
 
     def test_to_json(self):
         """Test serialization to JSON."""
+        # Fake datetime.now() first
+        faked_now = datetime.datetime.now()
+        faked_now = faked_now.replace(hour=21, minute=28, second=59, microsecond=0)
+        if sys.version_info < (3, 7):
+            faked_now = faked_now.replace(tzinfo=None)
+        datetime_mock = MagicMock(wraps=datetime.datetime)
+        datetime_mock.now.return_value = faked_now
+        self.monkeypatch.setattr(datetime, "datetime", datetime_mock)
+
         vehicle = get_mocked_account().get_vehicle(VIN_G21)
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
@@ -47,8 +62,8 @@ class TestVehicle(unittest.TestCase):
     def test_parse_datetime(self):
         """Test datetime parser."""
 
-        dt_with_milliseconds = datetime(2021, 11, 12, 13, 14, 15, 567000, tzinfo=timezone.utc)
-        dt_without_milliseconds = datetime(2021, 11, 12, 13, 14, 15, tzinfo=timezone.utc)
+        dt_with_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, 567000, tzinfo=datetime.timezone.utc)
+        dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, tzinfo=datetime.timezone.utc)
 
         if sys.version_info < (3, 7):
             dt_with_milliseconds = dt_with_milliseconds.replace(tzinfo=None)

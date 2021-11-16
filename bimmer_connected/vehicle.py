@@ -75,19 +75,20 @@ class ConnectedDriveVehicle(SerializableBaseClass):
 
     def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
         self._account = account
+        self.attributes = None
+        self.status = None
+        self.remote_services = RemoteServices(self._account, self)
+        self.observer_latitude = 0.0  # type: float
+        self.observer_longitude = 0.0  # type: float
+
+        self.update_state(vehicle_dict)
+
+    def update_state(self, vehicle_dict) -> None:
+        """Update the state of a vehicle."""
         self.attributes = {k: v for k, v in vehicle_dict.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
         self.status = VehicleStatus(
             {k: v for k, v in vehicle_dict.items() if k in [SERVICE_STATUS, SERVICE_PROPERTIES]}
         )
-        self.remote_services = RemoteServices(account, self)
-        self.observer_latitude = 0.0  # type: float
-        self.observer_longitude = 0.0  # type: float
-
-    @staticmethod
-    def update_state() -> None:
-        """Update the state of a vehicle."""
-        # Updating single vehicle state is currently not needed with MyBMW API.
-        pass  # pylint: disable=unnecessary-pass
 
     @property
     def charging_profile(self) -> ChargingProfile:

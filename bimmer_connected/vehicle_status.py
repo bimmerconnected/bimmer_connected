@@ -398,7 +398,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def charging_time_remaining(self) -> datetime.timedelta:
         """Get the remaining charging time."""
-        return round(self._fuel_indicators.remaining_charging_time / 60.0 / 60.0, 2)
+        return round((self._fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
 
     @property
     @backend_parameter
