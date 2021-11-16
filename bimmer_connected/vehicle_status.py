@@ -77,30 +77,45 @@ class CheckControlMessage(SerializableBaseClass):
         return self._ccm_dict.get("state")
 
 
-class RemainingRange(SerializableBaseClass):  # pylint: disable=too-few-public-methods
+class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-methods
     """Parsed fuel indicators.
 
     This class provides a nicer API than parsing the JSON format directly.
     """
 
     def __init__(self, fuel_indicator_dict: dict):
-        self.fuel = None
-        self.electric = None
-        self.combined = None
+        self.remaining_range_fuel: int = None
+        self.remaining_range_electric: int = None
+        self.remaining_range_combined: int = None
+        self.remaining_charging_time: datetime.timedelta = None
 
         self._map_to_attributes(fuel_indicator_dict)
 
     def _map_to_attributes(self, fuel_indicators):
         """Parse fuel indicators based on Ids."""
         for indicator in fuel_indicators:
-            if indicator.get("rangeIconId", "infoIconId") == 59691:
-                self.combined = self._parse_to_tuple(indicator)
-            elif indicator.get("rangeIconId", "infoIconId") == 59683:
-                self.electric = self._parse_to_tuple(indicator)
-                self.combined = self.combined or self.electric
-            elif (indicator["rangeIconId"] or indicator["infoIconId"]) == 59681:
-                self.fuel = self._parse_to_tuple(indicator)
-                self.combined = self.combined or self.fuel
+            if indicator.get("rangeIconId", "infoIconId") == 59691:  # Combined
+                self.remaining_range_combined = self._parse_to_tuple(indicator)
+            elif indicator.get("rangeIconId", "infoIconId") == 59683:  # Electric
+                self.remaining_range_electric = self._parse_to_tuple(indicator)
+                self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_electric
+
+                if indicator.get("chargingStatusType") == "CHARGING":
+                    end_str = indicator["infoLabel"].split("~")[-1]
+                    try:
+                        end_time = datetime.datetime.strptime(end_str, "%H:%M %p")
+                    except ValueError:
+                        _LOGGER.error(
+                            "Error parsing charging end time '%s' out of '%s'",
+                            end_str,
+                            indicator["infoLabel"]
+                        )
+                    delta = (end_time - datetime.datetime.now())
+                    self.remaining_charging_time = delta.seconds
+
+            elif (indicator["rangeIconId"] or indicator["infoIconId"]) == 59681:  # Fuel
+                self.remaining_range_fuel = self._parse_to_tuple(indicator)
+                self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_fuel
 
     @staticmethod
     def _parse_to_tuple(fuel_indicator):
@@ -136,7 +151,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Constructor."""
         self.status = state["status"]
         self.properties = state["properties"]
-        self._remaining_range = RemainingRange(state["status"]["fuelIndicators"])
+        self._fuel_indicators = FuelIndicator(state["status"]["fuelIndicators"])
 
     @property
     @backend_parameter
@@ -217,7 +232,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return self._remaining_range.fuel
+        return self._fuel_indicators.remaining_range_fuel
 
     @property
     @backend_parameter
@@ -300,7 +315,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def last_charging_end_result(self) -> str:
         """Get the last charging end result"""
-        return None
+        return None  # Not available in My BMW
 
     @property
     @backend_parameter
@@ -354,7 +369,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
         """Remaining range on battery, in kilometers."""
-        return self._remaining_range.electric
+        return self._fuel_indicators.remaining_range_electric
 
     @property
     @backend_parameter
@@ -363,7 +378,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         That is electrical range + fuel range.
         """
-        return self._remaining_range.combined
+        return self._fuel_indicators.remaining_range_combined
 
     @property
     @backend_parameter
@@ -383,7 +398,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def charging_time_remaining(self) -> datetime.timedelta:
         """Get the remaining charging time."""
-        return None  # Not available in My BMW
+        return round(self._fuel_indicators.remaining_charging_time / 60.0 / 60.0, 2)
 
     @property
     @backend_parameter

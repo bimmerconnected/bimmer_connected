@@ -3,7 +3,9 @@
 import datetime
 import logging
 import unittest
+from unittest.mock import MagicMock
 import sys
+from _pytest.monkeypatch import MonkeyPatch
 
 from bimmer_connected.vehicle_status import LidState, LockState, ConditionBasedServiceStatus, ChargingState
 
@@ -13,6 +15,9 @@ from .test_account import get_mocked_account
 
 class TestState(unittest.TestCase):
     """Test for VehicleState."""
+
+    def setUp(self):
+        self.monkeypatch = MonkeyPatch()
 
     # pylint: disable=protected-access
 
@@ -106,6 +111,21 @@ class TestState(unittest.TestCase):
         self.assertTupleEqual((179, "km"), status.remaining_range_electric)
 
         self.assertTupleEqual((179, "km"), status.remaining_range_total)
+
+    def test_remaining_charging_time(self):
+        """Test if the parsing of mileage and range is working"""
+        # Fake datetime.now() first
+        faked_now = datetime.datetime.now()
+        faked_now = faked_now.replace(hour=21, minute=28, second=59, microsecond=0)
+        if sys.version_info < (3, 7):
+            faked_now = faked_now.replace(tzinfo=None)
+        datetime_mock = MagicMock(wraps=datetime.datetime)
+        datetime_mock.now.return_value = faked_now
+        self.monkeypatch.setattr(datetime, "datetime", datetime_mock)
+
+        status = get_mocked_account().get_vehicle(VIN_G08).status
+
+        self.assertEqual(6.53, status.charging_time_remaining)
 
     def test_condition_based_services(self):
         """Test condition based service messages."""
