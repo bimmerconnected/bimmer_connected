@@ -1,5 +1,6 @@
 sudo: false
 language: python
+dist: focal
 install: pip install -U tox coveralls
 matrix:
   fast_finish: true
@@ -12,6 +13,8 @@ matrix:
     env: TOXENV=py38
   - python: '3.9'
     env: TOXENV=py39
+  - python: '3.10.0'
+    env: TOXENV=py310
   - python: '3.9'
     env: TOXENV=flake8
   - python: '3.9'
