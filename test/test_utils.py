@@ -40,6 +40,8 @@ class TestVehicle(unittest.TestCase):
         vehicle = get_mocked_account().get_vehicle(VIN_G21)
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
+        if sys.version_info < (3, 7):
+            expected = expected.replace("+00:00", "")
         self.assertEqual(expected, to_json(vehicle))
 
     def test_parse_datetime(self):
