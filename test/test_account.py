@@ -24,18 +24,10 @@ def authenticate_callback(request, context):  # pylint: disable=inconsistent-ret
     """Returns /oauth/authentication response based on request."""
     # pylint: disable=protected-access,unused-argument,no-self-use
 
-    if (
-        "username" in request.text
-        and "password" in request.text
-        and "grant_type" in request.text
-        and "state" in request.text
-    ):
+    if "username" in request.text and "password" in request.text and "grant_type" in request.text:
         return load_response(RESPONSE_DIR / "auth" / "authorization_response.json")
     context.headers = {
-        "Location": (
-            "com.bmw.connected://oauth#access_token=TOKENtoken_type=Bearer&expires_in=3599"
-            "&client_id=31c357a0-7a1d-4590-aa99-33b97244d048&nonce=login_nonce"
-        ),
+        "Location": "com.mini.connected://oauth?code=CODE&state=STATE&client_id=CLIENT_ID&nonce=login_nonce",
     }
     context.status_code = 302
 
