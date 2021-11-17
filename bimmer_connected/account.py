@@ -100,6 +100,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                         "openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi "
                         "remote_services fupo authenticate_user"
                     ),
+                    "code_challenge": "ycbv7dNBiqH2sgCdyV7JkuA1c4aqNj9wq7jRmwVOh_s",
+                    "code_challenge_method": "S256",
                 }
 
                 authenticate_data = urllib.parse.urlencode(
