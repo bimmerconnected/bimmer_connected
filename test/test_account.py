@@ -52,6 +52,11 @@ def return_vehicles(request, context):  # pylint: disable=inconsistent-return-st
 def get_base_adapter():
     """Returns mocked adapter for auth."""
     adapter = requests_mock.Adapter()
+    adapter.register_uri(
+        "GET",
+        "/eadrax-ucs/v1/presentation/oauth/config",
+        json=load_response(RESPONSE_DIR / "auth" / "oauth_config.json"),
+    )
     adapter.register_uri("POST", "/gcdm/oauth/authenticate", json=authenticate_callback)
     adapter.register_uri("POST", "/gcdm/oauth/token", json=load_response(RESPONSE_DIR / "auth" / "auth_token.json"))
     adapter.register_uri("GET", "/eadrax-vcs/v1/vehicles", json=return_vehicles)
@@ -93,7 +98,7 @@ class TestAccount(unittest.TestCase):
 
     def test_invalid_password(self):
         """Test parsing the results of an invalid password."""
-        with requests_mock.Mocker() as mock:
+        with requests_mock.Mocker(adapter=get_base_adapter()) as mock:
             mock.post(
                 "/gcdm/oauth/authenticate",
                 json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json"),
@@ -104,7 +109,7 @@ class TestAccount(unittest.TestCase):
 
     def test_server_error(self):
         """Test parsing the results of a server error."""
-        with requests_mock.Mocker() as mock:
+        with requests_mock.Mocker(adapter=get_base_adapter()) as mock:
             mock.post(
                 "/gcdm/oauth/authenticate",
                 text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt"),

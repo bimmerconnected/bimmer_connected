@@ -8,25 +8,28 @@ Disclaimer:
 This library is not affiliated with or endorsed by BMW Group.
 """
 
+import base64
 import datetime
+import hashlib
+import json
 import logging
+import os
 import pathlib
 import urllib
-import json
 from threading import Lock
 from typing import Any, Callable, Dict, List
 import requests
+from requests.auth import HTTPBasicAuth
 from requests.exceptions import HTTPError
 from requests.models import Response
 
 from bimmer_connected.country_selector import (
     Regions,
     get_server_url,
-    get_gcdm_oauth_endpoint,
-    get_gcdm_oauth_authorization
+    get_ocp_apim_key,
 )
 from bimmer_connected.vehicle import ConnectedDriveVehicle, CarBrand
-from bimmer_connected.const import AUTH_URL, TOKEN_URL, VEHICLES_URL
+from bimmer_connected.const import AUTH_URL, OAUTH_CONFIG_URL, VEHICLES_URL, X_USER_AGENT
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -78,29 +81,44 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             try:
                 # We need a session for cross-request cookies
                 oauth_session = requests.Session()
-                oauth_settings = get_gcdm_oauth_authorization(self._region)
+                # oauth_settings = get_gcdm_oauth_authorization(self._region)
+                r_oauth_settings = oauth_session.get(
+                    OAUTH_CONFIG_URL.format(server=self.server_url),
+                    headers={
+                        "ocp-apim-subscription-key": get_ocp_apim_key(self._region),
+                        "x-user-agent": X_USER_AGENT.format("bmw"),
+                    }
+                )
+                r_oauth_settings.raise_for_status()
+                oauth_settings = r_oauth_settings.json()
 
                 # My BMW login flow
                 _LOGGER.debug("Authenticating against GCDM with MyBMW flow.")
-                authenticate_url = AUTH_URL.format(
-                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
-                )
+
+                # Setting up PKCS data
+                verifier_bytes = os.urandom(64)
+                code_verifier = base64.urlsafe_b64encode(verifier_bytes).rstrip(b'=')
+
+                challenge_bytes = hashlib.sha256(code_verifier).digest()
+                code_challenge = base64.urlsafe_b64encode(challenge_bytes).rstrip(b'=')
+
+                state_bytes = os.urandom(16)
+                state = base64.urlsafe_b64encode(state_bytes).rstrip(b'=')
+
+                authenticate_url = AUTH_URL.format(gcdm_base_url=oauth_settings["gcdmBaseUrl"])
                 authenticate_headers = {
                     "Content-Type": "application/x-www-form-urlencoded",
                 }
 
                 # we really need all of these parameters
                 oauth_base_values = {
-                    "client_id": oauth_settings["authenticate"]["client_id"],
+                    "client_id": oauth_settings["clientId"],
                     "response_type": "code",
-                    "redirect_uri": "com.bmw.connected://oauth",
-                    "state": oauth_settings["authenticate"]["state"],
+                    "redirect_uri": oauth_settings["returnUrl"],
+                    "state": state,
                     "nonce": "login_nonce",
-                    "scope": (
-                        "openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi "
-                        "remote_services fupo authenticate_user"
-                    ),
-                    "code_challenge": "ycbv7dNBiqH2sgCdyV7JkuA1c4aqNj9wq7jRmwVOh_s",
+                    "scope": " ".join(oauth_settings["scopes"]),
+                    "code_challenge": code_challenge,
                     "code_challenge_method": "S256",
                 }
 
@@ -115,11 +133,12 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                     )
                 )
                 response = oauth_session.post(
-                    authenticate_url, headers=authenticate_headers, data=authenticate_data
+                    authenticate_url,
+                    headers=authenticate_headers,
+                    data=authenticate_data,
                 )
                 response.raise_for_status()
                 authorization = dict(urllib.parse.parse_qsl(response.json()["redirect_to"]))["authorization"]
-                _LOGGER.debug("got authorization challenge %s", authorization)
 
                 code_data = urllib.parse.urlencode(
                     dict(oauth_base_values, **{"authorization": authorization})
@@ -129,22 +148,18 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 )
                 response.raise_for_status()
                 code = dict(urllib.parse.parse_qsl(response.next.path_url.split('?')[1]))["code"]
-                _LOGGER.debug("got login code %s", code)
 
-                _LOGGER.debug("getting new oauth token")
-                token_url = TOKEN_URL.format(
-                    gcdm_oauth_endpoint=get_gcdm_oauth_endpoint(self._region)
-                )
+                token_url = oauth_settings["tokenEndpoint"]
 
                 # My BMW login flow
                 token_headers = {
                     "Content-Type": "application/x-www-form-urlencoded",
-                    "Authorization": oauth_settings["token"]["Authorization"],
+                    # "Authorization": oauth_settings["token"]["Authorization"],
                 }
                 token_values = {
                     "code": code,
-                    "code_verifier": oauth_settings["token"]["code_verifier"],
-                    "redirect_uri": "com.bmw.connected://oauth",
+                    "code_verifier": code_verifier,
+                    "redirect_uri": oauth_settings["returnUrl"],
                     "grant_type": "authorization_code",
                 }
 
@@ -152,7 +167,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 response = oauth_session.post(
                     token_url,
                     headers=token_headers,
-                    data=token_data
+                    data=token_data,
+                    auth=HTTPBasicAuth(oauth_settings["clientId"], oauth_settings["clientSecret"])
                 )
                 response.raise_for_status()
                 response_json = response.json()
@@ -184,7 +200,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         brand = brand or CarBrand.BMW
         headers = {
             "accept": "application/json",
-            "x-user-agent": "android(v1.07_20200330);{};1.7.0(11152)".format(brand.value),
+            "x-user-agent": X_USER_AGENT.format(brand.value),
             "Authorization": "Bearer {}".format(self._oauth_token),
         }
         return headers
@@ -284,7 +300,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Retrieve list of vehicle for the account."""
         _LOGGER.debug('Getting vehicle list')
         self._get_oauth_token()
-        vehicles = []
+
         for brand in CarBrand:
             response = self.send_request(
                 VEHICLES_URL.format(server=self.server_url),
@@ -302,8 +318,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 if existing_vehicle:
                     existing_vehicle.update_state(vehicle_dict)
                 else:
-                    vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
-        self._vehicles = vehicles
+                    self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
 
     def get_vehicle(self, vin: str) -> ConnectedDriveVehicle:
         """Get vehicle with given VIN.
