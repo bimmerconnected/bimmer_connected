@@ -18,8 +18,9 @@ _LOGGER = logging.getLogger(__name__)
 class DriveTrainType(str, Enum):
     """Different types of drive trains."""
     COMBUSTION = 'COMBUSTION'
-    PLUGIN_HYBRID = 'PLUGIN_HYBRID'
+    PLUGIN_HYBRID = 'PLUGIN_HYBRID'  # PHEV
     ELECTRIC = 'ELECTRIC'
+    HYBRID = 'HYBRID'  # mild hybrids
 
 
 class CarBrand(str, Enum):
@@ -63,6 +64,7 @@ class LscType(str, Enum):
     Not really sure, what this value really contains.
     """
     NOT_CAPABLE = 'NOT_CAPABLE'
+    NOT_SUPPORTED = 'NOT_SUPPORTED'
     ACTIVATED = 'ACTIVATED'
 
 
