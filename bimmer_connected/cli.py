@@ -3,7 +3,6 @@
 
 import argparse
 import logging
-import json
 import time
 import sys
 from datetime import datetime
@@ -13,8 +12,9 @@ from pathlib import Path
 import requests
 
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.country_selector import get_region_from_name, valid_regions, get_server_url_eadrax
+from bimmer_connected.country_selector import get_region_from_name, valid_regions, get_server_url
 from bimmer_connected.vehicle import VehicleViewDirection, HV_BATTERY_DRIVE_TRAINS
+from bimmer_connected.utils import to_json
 
 TEXT_VIN = 'Vehicle Identification Number'
 
@@ -28,6 +28,10 @@ def main_parser() -> argparse.ArgumentParser:
     subparsers.required = True
 
     status_parser = subparsers.add_parser('status', description='Get the current status of the vehicle.')
+    status_parser.add_argument('-j', '--json',
+                               help='Output as JSON only. Removes all other output.',
+                               action='store_true'
+                               )
     _add_default_arguments(status_parser)
     _add_position_arguments(status_parser)
 
@@ -89,23 +93,28 @@ def main_parser() -> argparse.ArgumentParser:
 
 def get_status(args) -> None:
     """Get the vehicle status."""
+    if args.json:
+        for handler in logging.root.handlers[:]:
+            logging.root.removeHandler(handler)
+
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     if args.lat and args.lng:
         for vehicle in account.vehicles:
             vehicle.set_observer_position(args.lat, args.lng)
     account.update_vehicle_states()
 
-    print('Found {} vehicles: {}'.format(
-        len(account.vehicles),
-        ','.join([v.name for v in account.vehicles])))
+    if args.json:
+        print(to_json(account.vehicles))
+    else:
+        print('Found {} vehicles: {}'.format(
+            len(account.vehicles),
+            ','.join([v.name for v in account.vehicles])))
 
-    for vehicle in account.vehicles:
-        print('VIN: {}'.format(vehicle.vin))
-        print('Mileage: {}'.format(vehicle.state.vehicle_status.mileage))
-        print('Vehicle properties:')
-        print(json.dumps(vehicle.attributes, indent=4))
-        print('Vehicle status:')
-        print(json.dumps(vehicle.state.vehicle_status.attributes, indent=4))
+        for vehicle in account.vehicles:
+            print('VIN: {}'.format(vehicle.vin))
+            print('Mileage: {}'.format(vehicle.status.mileage))
+            print('Vehicle data:')
+            print(to_json(vehicle, indent=4))
 
 
 def fingerprint(args) -> None:
@@ -123,19 +132,12 @@ def fingerprint(args) -> None:
     # account.update_vehicle_states()
 
     # Patching in new My BMW endpoints for fingerprinting
-    server_url = get_server_url_eadrax(get_region_from_name(args.region))
-    utcdiff = round((datetime.now() - datetime.utcnow()).seconds / 60, 0)
-
-    account.send_request_v2(
-        "https://{}/eadrax-vcs/v1/vehicles".format(server_url),
-        params={"apptimezone": utcdiff, "appDateTime": time.time(), "tireGuardMode": "ENABLED"},
-        logfilename="vehicles_v2"
-    )
+    server_url = get_server_url(get_region_from_name(args.region))
 
     for vehicle in account.vehicles:
         if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
             print(f"Getting 'charging-sessions' for {vehicle.vin}")
-            account.send_request_v2(
+            account.send_request(
                 "https://{}/eadrax-chs/v1/charging-sessions".format(server_url),
                 params={
                     "vin": vehicle.vin,
@@ -146,7 +148,7 @@ def fingerprint(args) -> None:
             )
 
             print(f"Getting 'charging-statistics' for {vehicle.vin}")
-            account.send_request_v2(
+            account.send_request(
                 "https://{}/eadrax-chs/v1/charging-statistics".format(server_url),
                 params={
                     "vin": vehicle.vin,
@@ -187,10 +189,12 @@ def image(args) -> None:
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
     vehicle = account.get_vehicle(args.vin)
 
-    with open('image.png', 'wb') as output_file:
-        image_data = vehicle.get_vehicle_image(400, 400, VehicleViewDirection.FRONT)
-        output_file.write(image_data)
-    print('vehicle image saved to image.png')
+    for viewdirection in VehicleViewDirection:
+        filename = str(viewdirection.name).lower() + '.png'
+        with open(filename, 'wb') as output_file:
+            image_data = vehicle.get_vehicle_image(viewdirection)
+            output_file.write(image_data)
+        print('vehicle image saved to {}'.format(filename))
 
 
 def send_poi(args) -> None:

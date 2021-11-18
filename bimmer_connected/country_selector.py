@@ -9,66 +9,70 @@ _LOGGER = logging.getLogger(__name__)
 class Regions(Enum):
     """Regions of the world with separate servers."""
     NORTH_AMERICA = 0
-    CHINA = 1
+    # CHINA = 1
     REST_OF_WORLD = 2
 
 
-#: Mapping from regions to servers
-_SERVER_URLS_LEGACY = {
-    Regions.NORTH_AMERICA: "b2vapi.bmwgroup.us",
-    Regions.REST_OF_WORLD: "b2vapi.bmwgroup.com",
-    Regions.CHINA: "b2vapi.bmwgroup.cn:8592",
-}
+# #: Mapping from regions to servers
+# _SERVER_URLS_LEGACY = {
+#     Regions.NORTH_AMERICA: "b2vapi.bmwgroup.us",
+#     Regions.REST_OF_WORLD: "b2vapi.bmwgroup.com",
+#     # Regions.CHINA: "b2vapi.bmwgroup.cn:8592",
+# }
 
 _SERVER_URLS_EADRAX = {
     Regions.NORTH_AMERICA: "cocoapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "cocoapi.bmwgroup.com",
-    Regions.CHINA: None,
+    # Regions.CHINA: None,
 }
 
-
-#: Mapping from regions to servers
-_GCDM_OAUTH_ENDPOINTS = {
-    Regions.NORTH_AMERICA: "login.bmwusa.com/gcdm",
-    Regions.REST_OF_WORLD: "customer.bmwgroup.com/gcdm",
-    Regions.CHINA: "customer.bmwgroup.cn/gcdm",
+_OCP_APIM_KEYS = {
+    Regions.NORTH_AMERICA: "31e102f5-6f7e-7ef3-9044-ddce63891362",
+    Regions.REST_OF_WORLD: "4f1c85a3-758f-a37d-bbb6-f8704494acfa",
 }
 
-_GCDM_OAUTH_AUTHORIZATION = {
-    Regions.NORTH_AMERICA: {
-        "token": {
-            "Authorization": ("Basic NTQzOTRhNGItYjZjMS00NWZlLWI3YjItOGZkM2FhOTI1M2F"
-                              "hOmQ5MmYzMWMwLWY1NzktNDRmNS1hNzdkLTk2NmY4ZjAwZTM1MQ=="),
-            "code_verifier": "KDarcVUpgymBDCgHDH0PwwMfzycDxu1joeklioOhwXA",
-        },
-        "authenticate": {
-            "client_id": "54394a4b-b6c1-45fe-b7b2-8fd3aa9253aa",
-            "state": "rgastJbZsMtup49-Lp0FMQ",
-        },
-    },
-    Regions.REST_OF_WORLD: {
-        "token": {
-            "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
-                              "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg=="),
-            "code_verifier": "7PsmfPS5MpaNt0jEcPpi-B7M7u0gs1Nzw6ex0Y9pa-0",
-        },
-        "authenticate": {
-            "client_id": "31c357a0-7a1d-4590-aa99-33b97244d048",
-            "state": "cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw",
-        },
-    },
-    Regions.CHINA: {
-        "token": {
-            "Authorization": ("Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGN"
-                              "EanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg=="),
-            "code_verifier": "",
-        },
-        "authenticate": {
-            "client_id": None,
-            "state": None,
-        },
-    },
-}
+# #: Mapping from regions to servers
+# _GCDM_OAUTH_ENDPOINTS = {
+#     Regions.NORTH_AMERICA: "login.bmwusa.com/gcdm",
+#     Regions.REST_OF_WORLD: "customer.bmwgroup.com/gcdm",
+#     # Regions.CHINA: "customer.bmwgroup.cn/gcdm",
+# }
+
+# _GCDM_OAUTH_AUTHORIZATION = {
+#     Regions.NORTH_AMERICA: {
+#         "token": {
+#             "Authorization": ("Basic NTQzOTRhNGItYjZjMS00NWZlLWI3YjItOGZkM2FhOTI1M2F"
+#                               "hOmQ5MmYzMWMwLWY1NzktNDRmNS1hNzdkLTk2NmY4ZjAwZTM1MQ=="),
+#             "code_verifier": "KDarcVUpgymBDCgHDH0PwwMfzycDxu1joeklioOhwXA",
+#         },
+#         "authenticate": {
+#             "client_id": "54394a4b-b6c1-45fe-b7b2-8fd3aa9253aa",
+#             "state": "rgastJbZsMtup49-Lp0FMQ",
+#         },
+#     },
+#     Regions.REST_OF_WORLD: {
+#         "token": {
+#             "Authorization": ("Basic MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ"
+#                               "4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg=="),
+#             "code_verifier": "7PsmfPS5MpaNt0jEcPpi-B7M7u0gs1Nzw6ex0Y9pa-0",
+#         },
+#         "authenticate": {
+#             "client_id": "31c357a0-7a1d-4590-aa99-33b97244d048",
+#             "state": "cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw",
+#         },
+#     },
+#     Regions.CHINA: {
+#         "token": {
+#             "Authorization": ("Basic blF2NkNxdHhKdVhXUDc0eGYzQ0p3VUVQOjF6REh4NnVuNGN"
+#                               "EanliTEVOTjNreWZ1bVgya0VZaWdXUGNRcGR2RFJwSUJrN3JPSg=="),
+#             "code_verifier": "",
+#         },
+#         "authenticate": {
+#             "client_id": None,
+#             "state": None,
+#         },
+#     },
+# }
 
 
 def valid_regions() -> List[str]:
@@ -81,6 +85,10 @@ def get_region_from_name(name: str) -> Regions:
 
     This function is not case-sensitive.
     """
+    if name.lower() == 'china':
+        raise NotImplementedError(
+            "Support for region 'china' is currently not available. Please use `bimmer_connected<0.8.0"
+        )
     for region in Regions:
         if name.lower() == region.name.lower():
             return region
@@ -91,21 +99,26 @@ def get_region_from_name(name: str) -> Regions:
     )
 
 
-def get_server_url_legacy(region: Regions) -> str:
-    """Get the url of the server for the region."""
-    return _SERVER_URLS_LEGACY[region]
+# def get_server_url_legacy(region: Regions) -> str:
+#     """Get the url of the server for the region."""
+#     return _SERVER_URLS_LEGACY[region]
 
 
-def get_server_url_eadrax(region: Regions) -> str:
+def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return _SERVER_URLS_EADRAX[region]
 
 
-def get_gcdm_oauth_endpoint(region: Regions) -> str:
-    """Get the url of the server for the region."""
-    return _GCDM_OAUTH_ENDPOINTS[region]
+def get_ocp_apim_key(region: Regions) -> str:
+    """Get the authorization for OAuth settings."""
+
+    return _OCP_APIM_KEYS[region]
+
+# def get_gcdm_oauth_endpoint(region: Regions) -> str:
+#     """Get the url of the server for the region."""
+#     return _GCDM_OAUTH_ENDPOINTS[region]
 
 
-def get_gcdm_oauth_authorization(region: Regions) -> str:
-    """Get the url of the server for the region."""
-    return _GCDM_OAUTH_AUTHORIZATION[region]
+# def get_gcdm_oauth_authorization(region: Regions) -> str:
+#     """Get the url of the server for the region."""
+#     return _GCDM_OAUTH_AUTHORIZATION[region]
