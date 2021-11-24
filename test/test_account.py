@@ -60,6 +60,12 @@ def get_base_adapter():
     adapter.register_uri("POST", "/gcdm/oauth/authenticate", json=authenticate_callback)
     adapter.register_uri("POST", "/gcdm/oauth/token", json=load_response(RESPONSE_DIR / "auth" / "auth_token.json"))
     adapter.register_uri("GET", "/eadrax-vcs/v1/vehicles", json=return_vehicles)
+    adapter.register_uri(
+        "GET", "/eadrax-coas/v1/cop/publickey", json=load_response(RESPONSE_DIR / "auth" / "auth_cn_publickey.json")
+    )
+    adapter.register_uri(
+        "POST", "/eadrax-coas/v1/login/pwd", json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
+    )
     return adapter
 
 
@@ -73,17 +79,17 @@ def get_mocked_account():
 class TestAccount(unittest.TestCase):
     """Tests for ConnectedDriveAccount."""
 
-    def test_login(self):
+    def test_login_row_na(self):
         """Test the login flow."""
         with requests_mock.Mocker(adapter=get_base_adapter()):
             account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
         self.assertIsNotNone(account)
 
-    def test_fail_china(self):
+    def test_login_china(self):
         """Test raising an error for region `china`."""
         with requests_mock.Mocker(adapter=get_base_adapter()):
-            with self.assertRaises(NotImplementedError):
-                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+        self.assertIsNotNone(account)
 
     def test_vehicles(self):
         """Test the login flow."""
@@ -106,6 +112,17 @@ class TestAccount(unittest.TestCase):
             )
             with self.assertRaises(HTTPError):
                 ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    def test_invalid_password_china(self):
+        """Test parsing the results of an invalid password."""
+        with requests_mock.Mocker(adapter=get_base_adapter()) as mock:
+            mock.post(
+                "/eadrax-coas/v1/login/pwd",
+                json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json"),
+                status_code=422,
+            )
+            with self.assertRaises(HTTPError):
+                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
 
     def test_server_error(self):
         """Test parsing the results of a server error."""

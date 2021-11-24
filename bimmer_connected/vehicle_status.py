@@ -83,7 +83,7 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
     This class provides a nicer API than parsing the JSON format directly.
     """
 
-    def __init__(self, fuel_indicator_dict: dict):
+    def __init__(self, fuel_indicator_dict: List):
         self.remaining_range_fuel: int = None
         self.remaining_range_electric: int = None
         self.remaining_range_combined: int = None

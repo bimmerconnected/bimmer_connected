@@ -4,6 +4,10 @@ AUTH_URL = '{gcdm_base_url}/gcdm/oauth/authenticate'
 X_USER_AGENT = 'android(v1.07_20200330);{};1.7.0(11152)'
 
 BASE_URL = 'https://{server}'
+
+AUTH_CHINA_PUBLIC_KEY_URL = BASE_URL + '/eadrax-coas/v1/cop/publickey'
+AUTH_CHINA_LOGIN_URL = BASE_URL + '/eadrax-coas/v1/login/pwd'
+
 OAUTH_CONFIG_URL = BASE_URL + '/eadrax-ucs/v1/presentation/oauth/config'
 
 VEHICLES_URL = BASE_URL + '/eadrax-vcs/v1/vehicles'

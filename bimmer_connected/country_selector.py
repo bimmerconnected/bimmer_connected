@@ -9,7 +9,7 @@ _LOGGER = logging.getLogger(__name__)
 class Regions(Enum):
     """Regions of the world with separate servers."""
     NORTH_AMERICA = 0
-    # CHINA = 1
+    CHINA = 1
     REST_OF_WORLD = 2
 
 
@@ -23,7 +23,7 @@ class Regions(Enum):
 _SERVER_URLS_EADRAX = {
     Regions.NORTH_AMERICA: "cocoapi.bmwgroup.us",
     Regions.REST_OF_WORLD: "cocoapi.bmwgroup.com",
-    # Regions.CHINA: None,
+    Regions.CHINA: "myprofile.bmw.com.cn",
 }
 
 _OCP_APIM_KEYS = {
@@ -85,10 +85,6 @@ def get_region_from_name(name: str) -> Regions:
 
     This function is not case-sensitive.
     """
-    if name.lower() == 'china':
-        raise NotImplementedError(
-            "Support for region 'china' is currently not available. Please use `bimmer_connected<0.8.0"
-        )
     for region in Regions:
         if name.lower() == region.name.lower():
             return region
