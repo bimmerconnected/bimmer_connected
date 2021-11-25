@@ -112,7 +112,6 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         try:
             # We need a session for cross-request cookies
             oauth_session = requests.Session()
-            # oauth_settings = get_gcdm_oauth_authorization(self._region)
             r_oauth_settings = oauth_session.get(
                 OAUTH_CONFIG_URL.format(server=self.server_url),
                 headers={
@@ -260,7 +259,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         except HTTPError as ex:
             try:
                 err = response.json()
-                _LOGGER.error("Authentication failed (%s): %s", err["error"], err["error_description"])
+                _LOGGER.error("Authentication failed (%s): %s", err["error"], err["description"])
             except Exception:  # pylint: disable=broad-except
                 _LOGGER.error("Authentication failed: %s", response.text)
             raise ex
