@@ -272,6 +272,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             "accept": "application/json",
             "x-user-agent": X_USER_AGENT.format(brand.value),
             "Authorization": "Bearer {}".format(self._oauth_token),
+            "accept-language": "en",
         }
         return headers
 
