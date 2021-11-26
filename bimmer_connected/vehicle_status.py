@@ -103,14 +103,18 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
                 if indicator.get("chargingStatusType") == "CHARGING":
                     end_str = indicator["infoLabel"].split("~")[-1]
                     try:
-                        end_time = datetime.datetime.strptime(end_str, "%H:%M %p")
+                        end_time = datetime.datetime.strptime(end_str, "%I:%M %p")
                     except ValueError:
                         _LOGGER.error(
                             "Error parsing charging end time '%s' out of '%s'",
                             end_str,
                             indicator["infoLabel"]
                         )
-                    delta = (end_time - datetime.datetime.now())
+                    current = datetime.datetime.now().replace(year=1900, month=1, day=1)
+                    if end_time > current:
+                        delta = (end_time - current)
+                    else:
+                        delta = end_time + datetime.timedelta(days=1) - current
                     self.remaining_charging_time = delta.seconds
 
             elif (indicator["rangeIconId"] or indicator["infoIconId"]) == 59681:  # Fuel
