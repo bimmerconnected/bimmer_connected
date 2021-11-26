@@ -162,11 +162,12 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Store remote service position returned from vehicle finder service."""
         if position_dict.get('errorDetails'):
             _LOGGER.error("Error retrieving vehicle position: %s", position_dict["errorDetails"])
-            return {}
+            return None
         pos = position_dict["positionData"]["position"]
         pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
 
         self._remote_service_position = pos
+        return None
 
     @property
     @backend_parameter
@@ -191,7 +192,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         if not self._remote_service_position and "vehicleLocation" not in self.properties:
             _LOGGER.info("No vehicle location data available.")
             return None
-        
+
         t_remote = self._remote_service_position.get(
             "timestamp",
             datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
@@ -213,7 +214,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
-        
+
         if not self._remote_service_position and "vehicleLocation" not in self.properties:
             _LOGGER.info("No vehicle location data available.")
             return None
@@ -226,7 +227,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
             pos = self._remote_service_position
         else:
             pos = self.properties['vehicleLocation']
-        
+
         return int(pos['heading'])
 
     @property

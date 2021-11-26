@@ -3,7 +3,6 @@ import datetime
 import logging
 import sys
 import unittest
-from unittest.mock import MagicMock
 from _pytest.monkeypatch import MonkeyPatch
 
 import time_machine
@@ -43,8 +42,11 @@ class TestVehicle(unittest.TestCase):
             get_class_property_names(vehicle),
         )
 
-
-    @time_machine.travel(datetime.datetime.now().replace(hour=21, minute=28, second=59, microsecond=0, tzinfo=ConnectedDriveAccount.timezone()))
+    @time_machine.travel(
+        datetime.datetime.now().replace(
+            hour=21, minute=28, second=59, microsecond=0, tzinfo=ConnectedDriveAccount.timezone()
+        )
+    )
     def test_to_json(self):
         """Test serialization to JSON."""
         vehicle = get_mocked_account().get_vehicle(VIN_G21)
