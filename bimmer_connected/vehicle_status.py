@@ -151,12 +151,21 @@ def backend_parameter(func):
 class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
-    def __init__(self, state: Dict):
+    def __init__(self, status_dict: Dict = None):
         """Constructor."""
-        self.status: Dict = state["status"]
-        self.properties: Dict = state["properties"]
-        self._fuel_indicators = FuelIndicator(state["status"]["fuelIndicators"])
+        self.status: Dict = {}
+        self.properties: Dict = {}
+        self._fuel_indicators: FuelIndicator = {}
         self._remote_service_position: Dict = {}
+
+        if status_dict:
+            self.update_state(status_dict)
+
+    def update_state(self, status_dict: Dict):
+        """Updates the vehicle status."""
+        self.status: Dict = status_dict["status"]
+        self.properties: Dict = status_dict["properties"]
+        self._fuel_indicators = FuelIndicator(status_dict["status"]["fuelIndicators"])
 
     def set_remote_service_position(self, position_dict: Dict):
         """Store remote service position returned from vehicle finder service."""

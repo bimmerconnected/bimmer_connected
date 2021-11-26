@@ -1,5 +1,6 @@
 """Test for remote_services."""
 import datetime
+import logging
 import re
 
 from unittest import TestCase, mock
@@ -138,16 +139,33 @@ class TestRemoteServices(TestCase):
         """Test getting position from remote service."""
         with requests_mock.Mocker(adapter=get_remote_services_adapter()):
             account = get_mocked_account()
+            account.set_observer_position(0.0, 0.0)
             vehicle = account.get_vehicle(VIN_F45)
             status = vehicle.status
 
+            # Check original position
             self.assertTupleEqual((12.3456, 34.5678), status.gps_position)
             self.assertAlmostEqual(123, status.gps_heading)
 
+            # Check updated position
             vehicle.remote_services.trigger_remote_vehicle_finder()
-
             self.assertTupleEqual((123.456, 34.5678), status.gps_position)
             self.assertAlmostEqual(121, status.gps_heading)
+
+            # Position should still be from vehicle finder after status update
+            account._get_vehicles()
+            self.assertTupleEqual((123.456, 34.5678), status.gps_position)
+            self.assertAlmostEqual(121, status.gps_heading)
+
+
+    def test_get_remote_position_fail_without_observer(self):
+        """Test getting position from remote service."""
+        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
+            account = get_mocked_account()
+            vehicle = account.get_vehicle(VIN_F45)
+
+            with self.assertLogs(level=logging.ERROR):
+                vehicle.remote_services.trigger_remote_vehicle_finder()
 
     @time_machine.travel(datetime.date(2020, 1, 1))
     def test_get_remote_position_too_old(self):
