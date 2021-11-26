@@ -76,7 +76,15 @@ class RemoteServices:
         url = REMOTE_SERVICE_POSITION_URL.format(
             server=self._account.server_url,
             event_id=event_id)
-        response = self._account.send_request(url, post=True, brand=self._vehicle.brand)
+        response = self._account.send_request(
+            url,
+            post=True,
+            brand=self._vehicle.brand,
+            headers={
+                "latitude": str(self._vehicle.observer_latitude),
+                "longitude": str(self._vehicle.observer_longitude)
+            }
+        )
         return response.json()
 
     def trigger_remote_light_flash(self) -> RemoteServiceStatus:
