@@ -3,9 +3,7 @@
 import datetime
 import logging
 import unittest
-from unittest.mock import MagicMock
 import sys
-from _pytest.monkeypatch import MonkeyPatch
 import time_machine
 
 from bimmer_connected.account import ConnectedDriveAccount
@@ -17,9 +15,6 @@ from .test_account import get_mocked_account
 
 class TestState(unittest.TestCase):
     """Test for VehicleState."""
-
-    def setUp(self):
-        self.monkeypatch = MonkeyPatch()
 
     # pylint: disable=protected-access
 
@@ -113,7 +108,11 @@ class TestState(unittest.TestCase):
 
         self.assertTupleEqual((179, "km"), status.remaining_range_total)
 
-    @time_machine.travel(datetime.datetime.now().replace(hour=21, minute=28, second=59, microsecond=0, tzinfo=ConnectedDriveAccount.timezone()))
+    @time_machine.travel(
+        datetime.datetime.now().replace(
+            hour=21, minute=28, second=59, microsecond=0, tzinfo=ConnectedDriveAccount.timezone()
+        )
+    )
     def test_remaining_charging_time(self):
         """Test if the parsing of mileage and range is working"""
         account = get_mocked_account()
