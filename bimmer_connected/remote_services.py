@@ -76,6 +76,13 @@ class RemoteServices:
         url = REMOTE_SERVICE_POSITION_URL.format(
             server=self._account.server_url,
             event_id=event_id)
+        if not self._vehicle.observer_latitude or not self._vehicle.observer_longitude:
+            return {
+                "errorDetails": {
+                    "title": "Unkown position",
+                    "description": "Set observer position to retrieve vehicle coordinates!"
+                }
+            }
         response = self._account.send_request(
             url,
             post=True,

@@ -161,7 +161,8 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     def set_remote_service_position(self, position_dict: Dict):
         """Store remote service position returned from vehicle finder service."""
         if position_dict.get('errorDetails'):
-            _LOGGER.error("Error retrieving vehicle position: %s", position_dict["errorDetails"])
+            error = position_dict["errorDetails"]
+            _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
             return None
         pos = position_dict["positionData"]["position"]
         pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
