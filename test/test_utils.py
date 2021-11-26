@@ -6,7 +6,9 @@ import unittest
 from unittest.mock import MagicMock
 from _pytest.monkeypatch import MonkeyPatch
 
+import time_machine
 
+from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.utils import get_class_property_names, parse_datetime, to_json
 
 from . import RESPONSE_DIR, VIN_G21
@@ -41,17 +43,10 @@ class TestVehicle(unittest.TestCase):
             get_class_property_names(vehicle),
         )
 
+
+    @time_machine.travel(datetime.datetime.now().replace(hour=21, minute=28, second=59, microsecond=0, tzinfo=ConnectedDriveAccount.timezone()))
     def test_to_json(self):
         """Test serialization to JSON."""
-        # Fake datetime.now() first
-        faked_now = datetime.datetime.now()
-        faked_now = faked_now.replace(hour=21, minute=28, second=59, microsecond=0)
-        if sys.version_info < (3, 7):
-            faked_now = faked_now.replace(tzinfo=None)
-        datetime_mock = MagicMock(wraps=datetime.datetime)
-        datetime_mock.now.return_value = faked_now
-        self.monkeypatch.setattr(datetime, "datetime", datetime_mock)
-
         vehicle = get_mocked_account().get_vehicle(VIN_G21)
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
