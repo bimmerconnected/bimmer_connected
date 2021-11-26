@@ -1,10 +1,8 @@
 """Test for remote_services."""
 import datetime
 import re
-import sys
 
 from unittest import TestCase, mock
-from unittest.mock import MagicMock
 
 import time_machine
 import requests_mock

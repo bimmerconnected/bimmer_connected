@@ -8,7 +8,7 @@ import time
 from typing import TYPE_CHECKING, Dict
 from enum import Enum
 
-from bimmer_connected.const import (REMOTE_SERVICE_POSITION_URL, 
+from bimmer_connected.const import (REMOTE_SERVICE_POSITION_URL,
                                     REMOTE_SERVICE_STATUS_URL,
                                     REMOTE_SERVICE_URL,
                                     VEHICLE_POI_URL)
