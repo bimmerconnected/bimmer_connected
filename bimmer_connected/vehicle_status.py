@@ -149,9 +149,20 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     def __init__(self, state: Dict):
         """Constructor."""
-        self.status = state["status"]
-        self.properties = state["properties"]
+        self.status: Dict = state["status"]
+        self.properties: Dict = state["properties"]
         self._fuel_indicators = FuelIndicator(state["status"]["fuelIndicators"])
+        self._remote_service_position: Dict = {}
+
+    def set_remote_service_position(self, position_dict: Dict):
+        """Store remote service position returned from vehicle finder service."""
+        if position_dict.get('errorDetails'):
+            _LOGGER.error("Error retrieving vehicle position: %s", position_dict["errorDetails"])
+            return {}
+        pos = position_dict["positionData"]["position"]
+        pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+
+        self._remote_service_position = pos
 
     @property
     @backend_parameter
@@ -170,13 +181,22 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         Returns a tuple of (latitude, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
-        if not self.is_vehicle_tracking_enabled:
-            _LOGGER.warning('Vehicle tracking is disabled')
-            return None
         if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
-        pos = self.properties['vehicleLocation']["coordinates"]
+        if not self._remote_service_position and "vehicleLocation" not in self.properties:
+            _LOGGER.info("No vehicle location data available.")
+            return None
+        
+        t_remote = self._remote_service_position.get(
+            "timestamp",
+            datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
+        )
+        if t_remote > self.timestamp:
+            pos = self._remote_service_position
+        else:
+            pos = self.properties['vehicleLocation']["coordinates"]
+
         return float(pos['latitude']), float(pos['longitude'])
 
     @property
@@ -186,13 +206,23 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         This only provides data, if the vehicle tracking is enabled!
         """
-        if not self.is_vehicle_tracking_enabled:
-            _LOGGER.warning('Vehicle tracking is disabled')
-            return None
         if self.is_vehicle_active:
             _LOGGER.warning('Vehicle was moving at last update, no position available')
             return None
-        pos = self.properties['vehicleLocation']
+        
+        if not self._remote_service_position and "vehicleLocation" not in self.properties:
+            _LOGGER.info("No vehicle location data available.")
+            return None
+
+        t_remote = self._remote_service_position.get(
+            "timestamp",
+            datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
+        )
+        if t_remote > self.timestamp:
+            pos = self._remote_service_position
+        else:
+            pos = self.properties['vehicleLocation']
+        
         return int(pos['heading'])
 
     @property
@@ -203,15 +233,6 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         If the vehicle was active/moving at the time of the last status update, current position is not available.
         """
         return self.properties['inMotion']
-
-    @property
-    @backend_parameter
-    def is_vehicle_tracking_enabled(self) -> bool:
-        """Check if the position tracking of the vehicle is enabled.
-
-        The server return "OK" if tracking is enabled and "DRIVER_DISABLED" if it is disabled in the vehicle.
-        """
-        return 'vehicleLocation' in self.properties
 
     @property
     @backend_parameter

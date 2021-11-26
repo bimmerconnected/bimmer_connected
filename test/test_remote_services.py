@@ -1,7 +1,12 @@
 """Test for remote_services."""
+import datetime
 import re
-from unittest import TestCase, mock
+import sys
 
+from unittest import TestCase, mock
+from unittest.mock import MagicMock
+
+import time_machine
 import requests_mock
 from requests.exceptions import HTTPError
 
@@ -16,6 +21,7 @@ _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiat
 _RESPONSE_PENDING = RESPONSE_DIR / "remote_services" / "eadrax_service_pending.json"
 _RESPONSE_DELIVERED = RESPONSE_DIR / "remote_services" / "eadrax_service_delivered.json"
 _RESPONSE_EXECUTED = RESPONSE_DIR / "remote_services" / "eadrax_service_executed.json"
+_RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
 
 POI_DATA = {
@@ -50,6 +56,11 @@ def get_remote_services_adapter():
         ],
     )
     adapter.register_uri("POST", "/eadrax-dcs/v1/send-to-car/send-to-car", status_code=201)
+    adapter.register_uri(
+        "POST",
+        re.compile(r"/eadrax-vrccs/v2/presentation/remote-commands/eventPosition\?eventId=.+$"),
+        json=load_response(_RESPONSE_EVENTPOSITION),
+    )
     return adapter
 
 
@@ -80,7 +91,7 @@ class TestRemoteServices(TestCase):
             ("DOOR_UNLOCK", "trigger_remote_door_unlock", True),
             ("CLIMATE_NOW", "trigger_remote_air_conditioning", True),
             ("CLIMATE_STOP", "trigger_remote_air_conditioning_stop", True),
-            ("VEHICLE_FINDER", "trigger_remote_vehicle_finder", True),
+            ("VEHICLE_FINDER", "trigger_remote_vehicle_finder", False),
             ("HORN_BLOW", "trigger_remote_horn", False),
             ("SEND_POI", "trigger_send_poi", False),
         ]
@@ -121,6 +132,34 @@ class TestRemoteServices(TestCase):
                 vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
             with self.assertRaises(ValueError):
                 vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
+
+    def test_get_remote_position(self):
+        """Test getting position from remote service."""
+        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
+            account = get_mocked_account()
+            vehicle = account.get_vehicle(VIN_F45)
+            status = vehicle.status
+
+            self.assertTupleEqual((12.3456, 34.5678), status.gps_position)
+            self.assertAlmostEqual(123, status.gps_heading)
+
+            vehicle.remote_services.trigger_remote_vehicle_finder()
+
+            self.assertTupleEqual((123.456, 34.5678), status.gps_position)
+            self.assertAlmostEqual(121, status.gps_heading)
+
+    @time_machine.travel(datetime.date(2020, 1, 1))
+    def test_get_remote_position_too_old(self):
+        """Test remote service position being ignored as vehicle status is newer."""
+        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
+            account = get_mocked_account()
+            vehicle = account.get_vehicle(VIN_F45)
+            status = vehicle.status
+
+            vehicle.remote_services.trigger_remote_vehicle_finder()
+
+            self.assertTupleEqual((12.3456, 34.5678), status.gps_position)
+            self.assertAlmostEqual(123, status.gps_heading)
 
     def test_poi(self):
         """Test get_remove_service_status method."""
