@@ -35,7 +35,6 @@ class TestState(unittest.TestCase):
         self.assertEqual(7991, status.mileage[0])
         self.assertEqual("km", status.mileage[1])
 
-        self.assertTrue(status.is_vehicle_tracking_enabled)
         self.assertTupleEqual((12.3456, 34.5678), status.gps_position)
         self.assertAlmostEqual(123, status.gps_heading)
 
@@ -160,7 +159,6 @@ class TestState(unittest.TestCase):
         """Test parsing of F31 data with position tracking disabled in the vehicle."""
         status = get_mocked_account().get_vehicle(VIN_F31).status
 
-        self.assertFalse(status.is_vehicle_tracking_enabled)
         self.assertIsNone(status.gps_position)
         self.assertIsNone(status.gps_heading)
 
@@ -181,7 +179,6 @@ class TestState(unittest.TestCase):
         self.assertTupleEqual((179, "km"), status.remaining_range_electric)
         self.assertTupleEqual((179, "km"), status.remaining_range_total)
         self.assertEqual(ChargingState.CHARGING, status.charging_status)
-        # self.assertEqual(datetime.timedelta(minutes=332), status.charging_time_remaining)
         self.assertEqual(50, status.charging_level_hv)
 
     # def test_missing_attribute(self):

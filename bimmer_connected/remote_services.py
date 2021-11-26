@@ -5,10 +5,11 @@ import json
 from json.decoder import JSONDecodeError
 import logging
 import time
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 from enum import Enum
 
-from bimmer_connected.const import (REMOTE_SERVICE_STATUS_URL,
+from bimmer_connected.const import (REMOTE_SERVICE_POSITION_URL, 
+                                    REMOTE_SERVICE_STATUS_URL,
                                     REMOTE_SERVICE_URL,
                                     VEHICLE_POI_URL)
 
@@ -70,6 +71,13 @@ class RemoteServices:
         """Constructor."""
         self._account = account
         self._vehicle = vehicle
+
+    def _get_event_position(self, event_id) -> Dict:
+        url = REMOTE_SERVICE_POSITION_URL.format(
+            server=self._account.server_url,
+            event_id=event_id)
+        response = self._account.send_request(url, post=True, brand=self._vehicle.brand)
+        return response.json()
 
     def trigger_remote_light_flash(self) -> RemoteServiceStatus:
         """Trigger the vehicle to flash its headlights.
@@ -248,6 +256,7 @@ class RemoteServices:
         _LOGGER.debug('Triggering remote vehicle finder')
         # needs to be called via POST, GET is not working
         event_id = self._trigger_remote_service(_Services.REMOTE_VEHICLE_FINDER)
-        result = self._block_until_done(_Services.REMOTE_VEHICLE_FINDER, event_id)
-        self._trigger_state_update()
-        return result
+        status = self._block_until_done(_Services.REMOTE_VEHICLE_FINDER, event_id)
+        result = self._get_event_position(event_id)
+        self._vehicle.status.set_remote_service_position(result)
+        return status

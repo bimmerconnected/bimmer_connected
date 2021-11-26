@@ -15,6 +15,7 @@ VEHICLES_URL = BASE_URL + '/eadrax-vcs/v1/vehicles'
 REMOTE_SERVICE_BASE_URL = BASE_URL + '/eadrax-vrccs/v2/presentation/remote-commands'
 REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + '/{vin}/{service_type}'
 REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_BASE_URL + '/eventStatus?eventId={event_id}'
+REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + '/eventPosition?eventId={event_id}'
 
 VEHICLE_IMAGE_URL = BASE_URL + "/eadrax-ics/v3/presentation/vehicles/{vin}/images?carView={view}"
 VEHICLE_POI_URL = BASE_URL + '/eadrax-dcs/v1/send-to-car/send-to-car'

@@ -377,7 +377,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 VEHICLES_URL.format(server=self.server_url),
                 headers=self.request_header(brand),
                 params={
-                    "apptimezone": self._utcdiff,
+                    "apptimezone": self.utcdiff,
                     "appDateTime": datetime.datetime.utcnow().timestamp(),
                     "tireGuardMode": "ENABLED"},
                 logfilename="vehicles_v2_{}".format(brand.value),
@@ -437,6 +437,12 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             for vehicle in self._vehicles:
                 vehicle.set_observer_position(latitude, longitude)
 
+    @staticmethod
+    def timezone():
+        """Returns the current tzinfo."""
+        return datetime.datetime.now().astimezone().tzinfo
+
     @property
-    def _utcdiff(self):
-        return round((datetime.datetime.now() - datetime.datetime.utcnow()).seconds / 60, 0)
+    def utcdiff(self):
+        """Returns the difference to UTC in minutes."""
+        return round(self.timezone().utcoffset(datetime.datetime.now()).seconds / 60, 0)
