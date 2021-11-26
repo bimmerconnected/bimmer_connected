@@ -76,7 +76,7 @@ class RemoteServices:
         url = REMOTE_SERVICE_POSITION_URL.format(
             server=self._account.server_url,
             event_id=event_id)
-        if not self._vehicle.observer_latitude or not self._vehicle.observer_longitude:
+        if self._vehicle.observer_latitude is None or self._vehicle.observer_longitude is None:
             return {
                 "errorDetails": {
                     "title": "Unkown position",
