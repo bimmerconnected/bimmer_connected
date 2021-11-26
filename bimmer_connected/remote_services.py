@@ -257,6 +257,8 @@ class RemoteServices:
         # needs to be called via POST, GET is not working
         event_id = self._trigger_remote_service(_Services.REMOTE_VEHICLE_FINDER)
         status = self._block_until_done(_Services.REMOTE_VEHICLE_FINDER, event_id)
+        # Sleep another cycle to make sure the results are available
+        time.sleep(_POLLING_CYCLE)
         result = self._get_event_position(event_id)
         self._vehicle.status.set_remote_service_position(result)
         return status
