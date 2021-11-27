@@ -25,29 +25,21 @@ jobs:
         run: |
           pytest --cov=bimmer_connected --timeout=10 test
       - name: Upload coverage data to coveralls.io
-        run: |
-          pip install coveralls
-          export COVERALLS_SERVICE_JOB_ID=$GITHUB_RUN_ID
-          coveralls --service=github-actions
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          COVERALLS_FLAG_NAME: ${{ matrix.python-version }}
-          COVERALLS_PARALLEL: true
-          # COVERALLS_SERVICE_NAME: github
+        uses: AndreMiras/coveralls-python-action@develop
+        with:
+          parallel: true
+          flag-name: "pytest-${{ matrix.python-version }}"
 
   coveralls:
     name: Indicate completion to coveralls.io
     needs: pytest
     runs-on: ubuntu-latest
-    container: python:3-slim
     steps:
     - name: Finished
-      run: |
-        pip install coveralls
-        coveralls --service=github --finish
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        COVERALLS_SERVICE_NAME: github
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel-finished: true
+
 
 
   flake8:
