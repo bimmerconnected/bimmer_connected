@@ -136,7 +136,7 @@ def fingerprint(args) -> None:
 
     for vehicle in account.vehicles:
         if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
-            print(f"Getting 'charging-sessions' for {vehicle.vin}")
+            print("Getting 'charging-sessions' for {}".format(vehicle.vin))
             account.send_request(
                 "https://{}/eadrax-chs/v1/charging-sessions".format(server_url),
                 params={
@@ -147,7 +147,7 @@ def fingerprint(args) -> None:
                 logfilename="charging-sessions"
             )
 
-            print(f"Getting 'charging-statistics' for {vehicle.vin}")
+            print("Getting 'charging-statistics' for {}".format(vehicle.vin))
             account.send_request(
                 "https://{}/eadrax-chs/v1/charging-statistics".format(server_url),
                 params={
