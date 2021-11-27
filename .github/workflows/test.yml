@@ -23,25 +23,18 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest --cov=bimmer_connected --timeout=10 test
-      - name: Upload coverage data to coveralls.io
-        uses: AndreMiras/coveralls-python-action@develop
+          pytest --cov=bimmer_connected --timeout=10 --cov-report=xml test
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v2
+        if: matrix.python-version == '3.9'
         with:
-          parallel: true
-          flag-name: "pytest-${{ matrix.python-version }}"
-          debug: true
-
-  coveralls:
-    name: Indicate completion to coveralls.io
-    needs: pytest
-    runs-on: ubuntu-latest
-    steps:
-    - name: Finished
-      uses: AndreMiras/coveralls-python-action@develop
-      with:
-        parallel-finished: true
-
-
+          env_vars: OS,PYTHON
+          fail_ci_if_error: true
+          files: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          path_to_write_report: ./codecov_report.txt
+          verbose: true
 
   flake8:
     runs-on: ubuntu-latest
