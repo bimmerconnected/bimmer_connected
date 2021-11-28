@@ -5,4 +5,3 @@ pylint
 requests-mock
 flake8
 pbr
-coveralls
