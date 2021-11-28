@@ -137,9 +137,12 @@ class TestRemoteServices(TestCase):
 
     def test_get_remote_position(self):
         """Test getting position from remote service."""
+        remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+
         with requests_mock.Mocker(adapter=get_remote_services_adapter()):
             account = get_mocked_account()
-            account.set_observer_position(0.0, 0.0)
+            account.set_observer_position(1.0, 0.0)
             vehicle = account.get_vehicle(VIN_F45)
             status = vehicle.status
 
@@ -157,9 +160,11 @@ class TestRemoteServices(TestCase):
             self.assertTupleEqual((123.456, 34.5678), status.gps_position)
             self.assertAlmostEqual(121, status.gps_heading)
 
-
     def test_get_remote_position_fail_without_observer(self):
         """Test getting position from remote service."""
+        remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+
         with requests_mock.Mocker(adapter=get_remote_services_adapter()):
             account = get_mocked_account()
             vehicle = account.get_vehicle(VIN_F45)
@@ -170,6 +175,9 @@ class TestRemoteServices(TestCase):
     @time_machine.travel(datetime.date(2020, 1, 1))
     def test_get_remote_position_too_old(self):
         """Test remote service position being ignored as vehicle status is newer."""
+        remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+
         with requests_mock.Mocker(adapter=get_remote_services_adapter()):
             account = get_mocked_account()
             vehicle = account.get_vehicle(VIN_F45)

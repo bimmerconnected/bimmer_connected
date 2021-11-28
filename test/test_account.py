@@ -185,14 +185,14 @@ class TestAccount(unittest.TestCase):
         account = get_mocked_account()
 
         for vehicle in account.vehicles:
-            self.assertEqual(vehicle.observer_latitude, 0.0)
-            self.assertEqual(vehicle.observer_longitude, 0.0)
+            self.assertIsNone(vehicle.observer_latitude)
+            self.assertIsNone(vehicle.observer_longitude)
 
-        account.set_observer_position(None, None)
+        account.set_observer_position(17.99, 179.9)
 
         for vehicle in account.vehicles:
-            self.assertEqual(vehicle.observer_latitude, 0.0)
-            self.assertEqual(vehicle.observer_longitude, 0.0)
+            self.assertEqual(vehicle.observer_latitude, 17.99)
+            self.assertEqual(vehicle.observer_longitude, 179.9)
 
     def test_set_observer_some_none(self):
         """Test set_observer_position with invalid arguments."""
