@@ -80,8 +80,8 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         self.attributes = None
         self.status = VehicleStatus()
         self.remote_services = RemoteServices(self._account, self)
-        self.observer_latitude = 0.0  # type: float
-        self.observer_longitude = 0.0  # type: float
+        self.observer_latitude = None  # type: float
+        self.observer_longitude = None  # type: float
 
         self.update_state(vehicle_dict)
 
@@ -226,7 +226,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         Some vehicle require you to send your position to the server before you get the vehicle state.
         Your position must be within some range (2km?) of the vehicle to get you a proper answer.
         """
-        if bool(latitude) != bool(longitude):
+        if latitude is None or longitude is None:
             raise ValueError('Either latitude and longitude are both not None or both are None.')
         self.observer_latitude = latitude
         self.observer_longitude = longitude

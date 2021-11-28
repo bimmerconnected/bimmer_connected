@@ -431,11 +431,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
         see VehicleViewDirection.set_observer_position() for more details.
         """
-        if bool(latitude) != bool(longitude):
+        if latitude is None or longitude is None:
             raise ValueError('Either latitude and longitude are both not None or both are None.')
-        if latitude and longitude:
-            for vehicle in self._vehicles:
-                vehicle.set_observer_position(latitude, longitude)
+        for vehicle in self._vehicles:
+            vehicle.set_observer_position(latitude, longitude)
 
     @staticmethod
     def timezone():
