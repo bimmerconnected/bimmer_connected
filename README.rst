@@ -9,12 +9,13 @@ bimmer_connected
     :target: https://pepy.tech/project/bimmer-connected/month
 .. image:: https://pepy.tech/badge/bimmer-connected
     :target: https://pepy.tech/project/bimmer-connected
-.. image:: https://travis-ci.com/bimmerconnected/bimmer_connected.svg?branch=dev
-    :target: https://travis-ci.com/github/bimmerconnected/bimmer_connected
+.. image:: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml/badge.svg?branch=dev
+    :target: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml?query=branch%3Adev
 .. image:: https://readthedocs.org/projects/bimmer-connected/badge/?version=latest
     :target: https://bimmer-connected.readthedocs.io/en/latest/?badge=latest
-.. image:: https://coveralls.io/repos/github/bimmerconnected/bimmer_connected/badge.svg?branch=master
-    :target: https://coveralls.io/github/bimmerconnected/bimmer_connected?branch=master
+.. image:: https://codecov.io/gh/bimmerconnected/bimmer_connected/branch/master/graph/badge.svg?token=qNT50j82f6
+    :target: https://codecov.io/gh/bimmerconnected/bimmer_connected
+    
 
 This is a simple library to query and control the status of your BMW or Mini vehicle from
 the ConnectedDrive portal.
@@ -99,7 +100,7 @@ let us know in advance.
 
 Code Contributions
 ==================
-Contributions are welcome! Please make sure that your code passed the :code:`tox` checks. 
+Contributions are welcome! Please make sure that your code passe the checks in :code:`.github/workflows/test.yml`. 
 We currently test against :code:`flake8`, :code:`pylint` and our own :code:`pytest` suite.
 And please add tests where it makes sense. The more the better.
 

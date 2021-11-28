@@ -105,6 +105,9 @@ class TestRemoteServices(TestCase):
 
     def test_get_remote_service_status(self):
         """Test get_remove_service_status method."""
+        remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+
         account = get_mocked_account()
         vehicle = account.get_vehicle(VIN_F45)
 
@@ -124,6 +127,9 @@ class TestRemoteServices(TestCase):
 
     def test_poi(self):
         """Test get_remove_service_status method."""
+        remote_services._POLLING_CYCLE = 0
+        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+
         account = get_mocked_account()
         vehicle = account.get_vehicle(VIN_F45)
 
