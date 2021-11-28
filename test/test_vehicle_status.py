@@ -3,7 +3,6 @@
 import datetime
 import logging
 import unittest
-import sys
 import time_machine
 
 from bimmer_connected.account import ConnectedDriveAccount
@@ -25,8 +24,6 @@ class TestState(unittest.TestCase):
         expected = datetime.datetime(
             year=2021, month=11, day=11, hour=8, minute=58, second=53, tzinfo=datetime.timezone.utc
         )
-        if sys.version_info < (3, 7):
-            expected = expected.replace(tzinfo=None)
         self.assertEqual(expected, status.timestamp)
 
         self.assertEqual(7991, status.mileage[0])
@@ -145,22 +142,16 @@ class TestState(unittest.TestCase):
         self.assertEqual(3, len(cbs))
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[0].state)
         expected_cbs0 = datetime.datetime(year=2022, month=8, day=1, tzinfo=datetime.timezone.utc)
-        if sys.version_info < (3, 7):
-            expected_cbs0 = expected_cbs0.replace(tzinfo=None)
         self.assertEqual(expected_cbs0, cbs[0].due_date)
         self.assertTupleEqual((25000, "KILOMETERS"), cbs[0].due_distance)
 
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[1].state)
         expected_cbs1 = datetime.datetime(year=2023, month=8, day=1, tzinfo=datetime.timezone.utc)
-        if sys.version_info < (3, 7):
-            expected_cbs1 = expected_cbs1.replace(tzinfo=None)
         self.assertEqual(expected_cbs1, cbs[1].due_date)
         self.assertIsNone(cbs[1].due_distance)
 
         self.assertEqual(ConditionBasedServiceStatus.OK, cbs[2].state)
         expected_cbs2 = datetime.datetime(year=2024, month=8, day=1, tzinfo=datetime.timezone.utc)
-        if sys.version_info < (3, 7):
-            expected_cbs2 = expected_cbs2.replace(tzinfo=None)
         self.assertEqual(expected_cbs2, cbs[2].due_date)
         self.assertTupleEqual((60000, "KILOMETERS"), cbs[2].due_distance)
 
