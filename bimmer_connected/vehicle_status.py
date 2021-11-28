@@ -88,6 +88,7 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
         self.remaining_range_electric: int = None
         self.remaining_range_combined: int = None
         self.remaining_charging_time: datetime.timedelta = None
+        self.charging_end_time: datetime.datetime = None
 
         self._map_to_attributes(fuel_indicator_dict)
 
@@ -110,12 +111,13 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
                             end_str,
                             indicator["infoLabel"]
                         )
-                    current = datetime.datetime.now().replace(year=1900, month=1, day=1)
-                    if end_time > current:
-                        delta = (end_time - current)
-                    else:
-                        delta = end_time + datetime.timedelta(days=1) - current
-                    self.remaining_charging_time = delta.seconds
+                    current = datetime.datetime.now()
+                    end_datetime = end_time.replace(year=current.year, month=current.month, day=current.day)
+                    if end_time < current:
+                        end_datetime = end_datetime + datetime.timedelta(days=1)
+
+                    self.charging_end_time = end_datetime
+                    self.remaining_charging_time = (end_datetime - current).seconds
 
             elif (indicator["rangeIconId"] or indicator["infoIconId"]) == 59681:  # Fuel
                 self.remaining_range_fuel = self._parse_to_tuple(indicator)
@@ -433,8 +435,14 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def charging_time_remaining(self) -> datetime.timedelta:
-        """Get the remaining charging time."""
+        """Get the remaining charging duration."""
         return round((self._fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
+
+    @property
+    @backend_parameter
+    def charging_end_time(self) -> datetime.timedelta:
+        """Get the remaining charging finish time."""
+        return self._fuel_indicators.charging_end_time
 
     @property
     @backend_parameter

@@ -44,7 +44,14 @@ class TestVehicle(unittest.TestCase):
 
     @time_machine.travel(
         datetime.datetime.now().replace(
-            hour=21, minute=28, second=59, microsecond=0, tzinfo=ConnectedDriveAccount.timezone()
+            year=2011,
+            month=11,
+            day=28,
+            hour=21,
+            minute=28,
+            second=59,
+            microsecond=0,
+            tzinfo=ConnectedDriveAccount.timezone(),
         )
     )
     def test_to_json(self):
