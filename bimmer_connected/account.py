@@ -194,6 +194,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             }
 
             token_data = urllib.parse.urlencode(token_values)
+            current_utc_time = datetime.datetime.utcnow()
             response = oauth_session.post(
                 token_url,
                 headers=token_headers,
@@ -204,9 +205,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             response_json = response.json()
 
             expiration_time = int(response_json["expires_in"])
-            expires_at = datetime.datetime.utcnow() + datetime.timedelta(
-                seconds=expiration_time
-            )
+            expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
             return {
                 "access_token": response_json["access_token"],
