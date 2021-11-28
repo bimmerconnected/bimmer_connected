@@ -12,6 +12,7 @@ docs/build/
 .cache/
 image.png
 venv/
+venv*/
 dist/
 AUTHORS
 ChangeLog
