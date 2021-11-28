@@ -9,8 +9,8 @@ bimmer_connected
     :target: https://pepy.tech/project/bimmer-connected/month
 .. image:: https://pepy.tech/badge/bimmer-connected
     :target: https://pepy.tech/project/bimmer-connected
-.. image:: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml/badge.svg?branch=dev
-    :target: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml?query=branch%3Adev
+.. image:: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml/badge.svg?branch=master
+    :target: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml?query=branch%3Amaster
 .. image:: https://readthedocs.org/projects/bimmer-connected/badge/?version=latest
     :target: https://bimmer-connected.readthedocs.io/en/latest/?badge=latest
 .. image:: https://codecov.io/gh/bimmerconnected/bimmer_connected/branch/master/graph/badge.svg?token=qNT50j82f6
