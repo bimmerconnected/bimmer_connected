@@ -1,10 +1,11 @@
 """General utils and base classes used in the library."""
 
 from abc import ABC
-from datetime import datetime
+import datetime
 import inspect
 import json
 import logging
+import sys
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -41,14 +42,18 @@ def to_json(obj: object, *args, **kwargs):
     return json.dumps(obj, default=serialize, *args, **kwargs)
 
 
-def parse_datetime(date_str: str) -> datetime:
+def parse_datetime(date_str: str) -> datetime.datetime:
     """Convert a time string into datetime."""
     if not date_str:
         return None
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ"]
     for date_format in date_formats:
         try:
-            return datetime.strptime(date_str, date_format)
+            parsed = datetime.datetime.strptime(date_str, date_format)
+            # Assume implicit UTC for Python 3.6
+            if sys.version_info < (3, 7):
+                parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+            return parsed
         except ValueError:
             pass
     _LOGGER.error("unable to parse '%s' using %s", date_str, date_formats)

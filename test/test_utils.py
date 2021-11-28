@@ -1,7 +1,6 @@
 """Tests for ConnectedDriveAccount."""
 import datetime
 import logging
-import sys
 import unittest
 from _pytest.monkeypatch import MonkeyPatch
 
@@ -59,8 +58,6 @@ class TestVehicle(unittest.TestCase):
         vehicle = get_mocked_account().get_vehicle(VIN_G21)
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
-        if sys.version_info < (3, 7):
-            expected = expected.replace("+00:00", "")
         self.assertEqual(expected, to_json(vehicle))
 
     def test_parse_datetime(self):
@@ -68,10 +65,6 @@ class TestVehicle(unittest.TestCase):
 
         dt_with_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, 567000, tzinfo=datetime.timezone.utc)
         dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, tzinfo=datetime.timezone.utc)
-
-        if sys.version_info < (3, 7):
-            dt_with_milliseconds = dt_with_milliseconds.replace(tzinfo=None)
-            dt_without_milliseconds = dt_without_milliseconds.replace(tzinfo=None)
 
         self.assertEqual(dt_with_milliseconds, parse_datetime("2021-11-12T13:14:15.567Z"))
 
