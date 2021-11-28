@@ -100,7 +100,7 @@ let us know in advance.
 
 Code Contributions
 ==================
-Contributions are welcome! Please make sure that your code passe the checks in :code:`.github/workflows/test.yml`. 
+Contributions are welcome! Please make sure that your code passes the checks in :code:`.github/workflows/test.yml`. 
 We currently test against :code:`flake8`, :code:`pylint` and our own :code:`pytest` suite.
 And please add tests where it makes sense. The more the better.
 
