@@ -139,7 +139,11 @@ class ConnectedDriveVehicle(SerializableBaseClass):
 
     @property
     def is_vehicle_tracking_enabled(self) -> bool:
+<<<<<<< HEAD
         """Return True if vehicle finder is enabled in vehicle."""
+=======
+        """Return True if charging control (weekly planner) is available."""
+>>>>>>> Add is_vehicle_tracking_enabled on Vehicle
         return self.attributes["capabilities"]["vehicleFinder"]["isEnabled"]
 
     @property
