@@ -166,11 +166,12 @@ class TestState(unittest.TestCase):
 
     def test_parse_f11_no_position_vehicle_active(self):
         """Test parsing of F11 data with vehicle beeing active."""
-        status = get_mocked_account().get_vehicle(VIN_F48).status
+        vehicle = get_mocked_account().get_vehicle(VIN_F48)
+        status = vehicle.status
 
-        # self.assertTrue(status.is_vehicle_tracking_enabled)
-        with self.assertLogs(level=logging.WARNING):
-            self.assertTrue(status.is_vehicle_active)
+        self.assertTrue(vehicle.is_vehicle_tracking_enabled)
+        self.assertTrue(status.is_vehicle_active)
+        with self.assertLogs(level=logging.INFO):
             self.assertIsNone(status.gps_position)
             self.assertIsNone(status.gps_heading)
 

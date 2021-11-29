@@ -199,7 +199,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         This only provides data, if the vehicle tracking is enabled!
         """
         if self.is_vehicle_active:
-            _LOGGER.warning('Vehicle was moving at last update, no position available')
+            _LOGGER.info('Vehicle was moving at last update, no position available')
             return None
         if not self._remote_service_position and "vehicleLocation" not in self.properties:
             _LOGGER.info("No vehicle location data available.")
@@ -224,7 +224,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         This only provides data, if the vehicle tracking is enabled!
         """
         if self.is_vehicle_active:
-            _LOGGER.warning('Vehicle was moving at last update, no position available')
+            _LOGGER.info('Vehicle was moving at last update, no position available')
             return None
 
         if not self._remote_service_position and "vehicleLocation" not in self.properties:
