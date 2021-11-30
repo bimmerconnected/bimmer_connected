@@ -117,6 +117,14 @@ class TestVehicle(unittest.TestCase):
         with self.assertRaises(ValueError):
             vehicle.set_observer_position(12.1, None)
 
+    def test_get_is_tracking_enabled(self):
+        """Test setting observer position"""
+        vehicle = get_mocked_account().get_vehicle(VIN_F11)
+        self.assertEqual(False, vehicle.is_vehicle_tracking_enabled)
+
+        vehicle = get_mocked_account().get_vehicle(VIN_F31)
+        self.assertEqual(True, vehicle.is_vehicle_tracking_enabled)
+
     def test_available_attributes(self):
         """Check that available_attributes returns exactly the arguments we have in our test data."""
         account = get_mocked_account()

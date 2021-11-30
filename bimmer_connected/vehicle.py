@@ -138,6 +138,11 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return self.attributes["capabilities"]["isChargingPlanSupported"]
 
     @property
+    def is_vehicle_tracking_enabled(self) -> bool:
+        """Return True if vehicle finder is enabled in vehicle."""
+        return self.attributes["capabilities"]["vehicleFinder"]["isEnabled"]
+
+    @property
     def drive_train_attributes(self) -> List[str]:
         """Get list of attributes available for the drive train of the vehicle.
 

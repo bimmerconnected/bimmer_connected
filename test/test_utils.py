@@ -34,6 +34,7 @@ class TestVehicle(unittest.TestCase):
                 "has_internal_combustion_engine",
                 "has_range_extender",
                 "has_weekly_planner_service",
+                "is_vehicle_tracking_enabled",
                 "lsc_type",
                 "name",
                 "to_json",

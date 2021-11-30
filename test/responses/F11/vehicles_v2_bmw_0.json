@@ -86,7 +86,7 @@
       },
       "vehicleFinder": {
         "executionMessage": "Find your vehicle now? Remote functions may take a few seconds.",
-        "isEnabled": true,
+        "isEnabled": false,
         "isPinAuthenticationRequired": false
       }
     },
