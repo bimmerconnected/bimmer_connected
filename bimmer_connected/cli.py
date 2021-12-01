@@ -125,7 +125,7 @@ def fingerprint(args) -> None:
 
     account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region),
                                     log_responses=time_dir)
-    account.set_observer_position(args.lat, args.lng)
+
     if args.lat and args.lng:
         for vehicle in account.vehicles:
             vehicle.set_observer_position(args.lat, args.lng)
