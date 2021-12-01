@@ -78,7 +78,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
         self._account = account
         self.attributes = None
-        self.status = VehicleStatus()
+        self.status = VehicleStatus(self._account)
         self.remote_services = RemoteServices(self._account, self)
         self.observer_latitude = None  # type: float
         self.observer_longitude = None  # type: float
@@ -157,7 +157,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """
         result = ['remaining_range_total', 'mileage']
         if self.has_hv_battery:
-            result += ['charging_time_remaining', 'charging_status', 'charging_level_hv',
+            result += ['charging_time_remaining', 'charging_end_time', 'charging_status', 'charging_level_hv',
                        'connection_status', 'remaining_range_electric', 'last_charging_end_result']
         if self.has_internal_combustion_engine or self.has_range_extender:
             result += ['remaining_fuel', 'remaining_range_fuel', 'fuel_percent']

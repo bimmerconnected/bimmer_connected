@@ -3,9 +3,12 @@
 import datetime
 import logging
 from enum import Enum
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, TYPE_CHECKING
 
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
+
+if TYPE_CHECKING:
+    from bimmer_connected.account import ConnectedDriveAccount
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +92,7 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
         self.remaining_range_combined: int = None
         self.remaining_charging_time: datetime.timedelta = None
         self.charging_end_time: datetime.datetime = None
+        self.charging_end_time_original: str = None
 
         self._map_to_attributes(fuel_indicator_dict)
 
@@ -102,6 +106,7 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
                 self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_electric
 
                 if indicator.get("chargingStatusType") == "CHARGING":
+                    self.charging_end_time_original = indicator["infoLabel"]
                     end_str = indicator["infoLabel"].split("~")[-1]
                     try:
                         end_time = datetime.datetime.strptime(end_str, "%I:%M %p")
@@ -153,8 +158,9 @@ def backend_parameter(func):
 class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
-    def __init__(self, status_dict: Dict = None):
+    def __init__(self, account: "ConnectedDriveAccount", status_dict: Dict = None):
         """Constructor."""
+        self._account = account
         self.status: Dict = {}
         self.properties: Dict = {}
         self._fuel_indicators: FuelIndicator = {}
@@ -434,15 +440,23 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     @backend_parameter
-    def charging_time_remaining(self) -> datetime.timedelta:
+    def charging_time_remaining(self) -> float:
         """Get the remaining charging duration."""
         return round((self._fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
 
     @property
     @backend_parameter
-    def charging_end_time(self) -> datetime.timedelta:
-        """Get the remaining charging finish time."""
-        return self._fuel_indicators.charging_end_time
+    def charging_end_time(self) -> datetime.datetime:
+        """Get the charging finish time."""
+        if self._fuel_indicators.charging_end_time:
+            return self._fuel_indicators.charging_end_time.replace(tzinfo=self._account.timezone())
+        return None
+
+    @property
+    @backend_parameter
+    def charging_end_time_original(self) -> datetime.datetime:
+        """Get the remaining charging time as provided by the API."""
+        return self._fuel_indicators.charging_end_time_original
 
     @property
     @backend_parameter
