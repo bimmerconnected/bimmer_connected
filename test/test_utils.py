@@ -2,12 +2,11 @@
 import datetime
 import logging
 import unittest
+from unittest.mock import Mock
 from _pytest.monkeypatch import MonkeyPatch
-import zoneinfo
 
 import time_machine
 
-from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.utils import get_class_property_names, parse_datetime, to_json
 
 from . import RESPONSE_DIR, VIN_G21
@@ -44,7 +43,7 @@ class TestVehicle(unittest.TestCase):
         )
 
     @time_machine.travel(
-        datetime.datetime.now().replace(
+        datetime.datetime(
             year=2011,
             month=11,
             day=28,
@@ -52,12 +51,14 @@ class TestVehicle(unittest.TestCase):
             minute=28,
             second=59,
             microsecond=0,
-            tzinfo=zoneinfo.ZoneInfo("UTC"),
+            tzinfo=datetime.timezone.utc,
         )
     )
     def test_to_json(self):
         """Test serialization to JSON."""
-        vehicle = get_mocked_account().get_vehicle(VIN_G21)
+        account = get_mocked_account()
+        account.timezone = Mock(return_value=datetime.timezone.utc)
+        vehicle = account.get_vehicle(VIN_G21)
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
         self.assertEqual(expected, to_json(vehicle, indent=4))
