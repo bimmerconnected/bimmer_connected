@@ -298,7 +298,11 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         try:
             response.raise_for_status()
         except HTTPError as ex:
-            _LOGGER.exception(ex)
+            try:
+                err = response.json()
+                _LOGGER.error("MyBMW API error '%s' (%s): %s", ex, err["error"], err["description"])
+            except Exception:  # pylint: disable=broad-except
+                _LOGGER.error("MyBMW API error '%s': %s", ex, response.text)
             raise ex
 
         self._log_response_to_file(response, logfilename)
