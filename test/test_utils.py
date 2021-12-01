@@ -3,6 +3,7 @@ import datetime
 import logging
 import unittest
 from _pytest.monkeypatch import MonkeyPatch
+import zoneinfo
 
 import time_machine
 
@@ -51,7 +52,7 @@ class TestVehicle(unittest.TestCase):
             minute=28,
             second=59,
             microsecond=0,
-            tzinfo=ConnectedDriveAccount.timezone(),
+            tzinfo=zoneinfo.ZoneInfo("UTC"),
         )
     )
     def test_to_json(self):
