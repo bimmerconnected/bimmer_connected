@@ -544,7 +544,7 @@
         "all_windows_closed": true,
         "are_all_cbs_ok": true,
         "are_parking_lights_on": null,
-        "charging_end_time": "2011-11-29 00:43:00+01:00",
+        "charging_end_time": "2011-11-29 00:43:00+00:00",
         "charging_end_time_original": "100% at ~12:43 AM",
         "charging_level_hv": 83,
         "charging_status": "CHARGING",
