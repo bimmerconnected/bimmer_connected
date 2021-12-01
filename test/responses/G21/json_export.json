@@ -548,7 +548,7 @@
         "charging_end_time_original": "100% at ~12:43 AM",
         "charging_level_hv": 83,
         "charging_status": "CHARGING",
-        "charging_time_remaining": 2.23,
+        "charging_time_remaining": 3.23,
         "check_control_messages": [],
         "condition_based_services": [
             {
