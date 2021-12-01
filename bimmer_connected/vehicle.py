@@ -87,8 +87,18 @@ class ConnectedDriveVehicle(SerializableBaseClass):
 
     def update_state(self, vehicle_dict) -> None:
         """Update the state of a vehicle."""
-        self.attributes = {k: v for k, v in vehicle_dict.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
-        self.status.update_state({k: v for k, v in vehicle_dict.items() if k in [SERVICE_STATUS, SERVICE_PROPERTIES]})
+        if SERVICE_STATUS in vehicle_dict and SERVICE_PROPERTIES in vehicle_dict:
+            self.attributes = {k: v for k, v in vehicle_dict.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
+            self.status.update_state(
+                {
+                    k: v
+                    for k, v
+                    in vehicle_dict.items()
+                    if k in [SERVICE_STATUS, SERVICE_PROPERTIES]
+                }
+            )
+        else:
+            _LOGGER.warning("Incomplete vehicle status data: %s", vehicle_dict)
 
     @property
     def charging_profile(self) -> ChargingProfile:
