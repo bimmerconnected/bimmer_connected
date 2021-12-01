@@ -132,7 +132,13 @@ class TestState(unittest.TestCase):
         """Test if the parsing of mileage and range is working"""
         account = get_mocked_account()
         status = account.get_vehicle(VIN_G08).status
-        self.assertEqual(datetime.datetime(2011, 11, 29, 4, 1), status.charging_end_time)
+        self.assertEqual(datetime.datetime(2011, 11, 29, 4, 1, tzinfo=account.timezone()), status.charging_end_time)
+
+    def test_charging_end_time_original(self):
+        """Test if the parsing of mileage and range is working"""
+        account = get_mocked_account()
+        status = account.get_vehicle(VIN_G08).status
+        self.assertEqual("100% at ~04:01 AM", status.charging_end_time_original)
 
     def test_condition_based_services(self):
         """Test condition based service messages."""
