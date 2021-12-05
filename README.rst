@@ -119,6 +119,7 @@ to be used in Home Assistant and is available on pypi.
 * https://github.com/jupe76/bmwcdapi
 * https://github.com/frankjoke/iobroker.bmw
 * https://github.com/TA2k/ioBroker.bmw
+* https://gitee.com/ichuixue/bmw_shortcuts / https://www.icloud.com/shortcuts/eb064e89e6b647d2828a404227b91c4a
 
 Thank you for your great software!
 
