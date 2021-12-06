@@ -123,23 +123,14 @@ class TestState(unittest.TestCase):
         status = account.get_vehicle(VIN_G08).status
         self.assertEqual(6.53, status.charging_time_remaining)
 
-    @time_machine.travel(
-        datetime.datetime.now().replace(
-            year=2011,
-            month=11,
-            day=28,
-            hour=21,
-            minute=28,
-            second=59,
-            microsecond=0,
-            tzinfo=ConnectedDriveAccount.timezone(),
-        )
-    )
+    @time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
     def test_charging_end_time(self):
         """Test if the parsing of mileage and range is working"""
         account = get_mocked_account()
         status = account.get_vehicle(VIN_G08).status
-        self.assertEqual(datetime.datetime(2011, 11, 29, 4, 1, tzinfo=account.timezone()), status.charging_end_time)
+        self.assertEqual(
+            datetime.datetime(2011, 11, 29, 4, 1, tzinfo=ConnectedDriveAccount.timezone()), status.charging_end_time
+        )
 
     def test_charging_end_time_original(self):
         """Test if the parsing of mileage and range is working"""
