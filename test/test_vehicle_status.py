@@ -6,7 +6,14 @@ import unittest
 import time_machine
 
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.vehicle_status import LidState, LockState, ConditionBasedServiceStatus, ChargingState
+from bimmer_connected.country_selector import get_region_from_name
+from bimmer_connected.vehicle_status import (
+    LidState,
+    LockState,
+    ConditionBasedServiceStatus,
+    ChargingState,
+    VehicleStatus,
+)
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G08, VIN_G30, VIN_I01_REX
 from .test_account import get_mocked_account
@@ -169,6 +176,30 @@ class TestState(unittest.TestCase):
 
         self.assertIsNone(status.gps_position)
         self.assertIsNone(status.gps_heading)
+
+    def test_parse_gcj02_position(self):
+        """Test conversion of GCJ02 to WGS84 for china."""
+        account = get_mocked_account(get_region_from_name("china"))
+        status = VehicleStatus(
+            account,
+            {
+                "properties": {
+                    "vehicleLocation": {
+                        "address": {"formatted": "some_formatted_address"},
+                        "coordinates": {"latitude": 116.23221, "longitude": 39.83492},
+                        "heading": 123,
+                    },
+                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
+                },
+                "status": {
+                    "fuelIndicators": [],
+                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
+                },
+            },
+        )
+        self.assertTupleEqual(
+            (116.22617, 39.83247), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
+        )
 
     def test_parse_f11_no_position_vehicle_active(self):
         """Test parsing of F11 data with vehicle beeing active."""

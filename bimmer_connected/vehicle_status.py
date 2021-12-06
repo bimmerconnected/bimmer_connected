@@ -5,6 +5,9 @@ import logging
 from enum import Enum
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
+from coord_convert.transform import gcj2wgs
+
+from bimmer_connected.country_selector import Regions
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 
 if TYPE_CHECKING:
@@ -219,6 +222,10 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
             pos = self._remote_service_position
         else:
             pos = self.properties['vehicleLocation']["coordinates"]
+
+        # Convert GCJ02 to WGS84 for positions in China
+        if self._account.region == Regions.CHINA:
+            pos['latitude'], pos['longitude'] = gcj2wgs(pos['latitude'], pos['longitude'])
 
         return float(pos['latitude']), float(pos['longitude'])
 
