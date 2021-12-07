@@ -1,6 +1,8 @@
 [run]
 relative_files = True
-omit = bimmer_connected/cli.py
+omit = 
+    bimmer_connected/cli.py
+    bimmer_connected/coord_convert.py
 
 [report]
 exclude_lines =

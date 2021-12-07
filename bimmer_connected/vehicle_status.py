@@ -5,7 +5,7 @@ import logging
 from enum import Enum
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
-from coord_convert.transform import gcj2wgs
+from bimmer_connected.coord_convert import gcj2wgs
 
 from bimmer_connected.country_selector import Regions
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
