@@ -1,5 +1,4 @@
 """Test for remote_services."""
-import datetime
 import logging
 import re
 
@@ -172,7 +171,7 @@ class TestRemoteServices(TestCase):
             with self.assertLogs(level=logging.ERROR):
                 vehicle.remote_services.trigger_remote_vehicle_finder()
 
-    @time_machine.travel(datetime.date(2020, 1, 1))
+    @time_machine.travel("2020-01-01", tick=False)
     def test_get_remote_position_too_old(self):
         """Test remote service position being ignored as vehicle status is newer."""
         remote_services._POLLING_CYCLE = 0

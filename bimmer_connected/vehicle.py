@@ -163,8 +163,8 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """
         result = ['remaining_range_total', 'mileage']
         if self.has_hv_battery:
-            result += ['charging_time_remaining', 'charging_end_time', 'charging_status', 'charging_level_hv',
-                       'connection_status', 'remaining_range_electric', 'last_charging_end_result']
+            result += ['charging_time_remaining', 'charging_end_time', 'charging_end_time_original', 'charging_status',
+                       'charging_level_hv', 'connection_status', 'remaining_range_electric', 'last_charging_end_result']
         if self.has_internal_combustion_engine or self.has_range_extender:
             result += ['remaining_fuel', 'remaining_range_fuel', 'fuel_percent']
         return result

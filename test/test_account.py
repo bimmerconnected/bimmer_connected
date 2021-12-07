@@ -69,10 +69,10 @@ def get_base_adapter():
     return adapter
 
 
-def get_mocked_account():
+def get_mocked_account(region=None):
     """Returns pre-mocked account."""
     with requests_mock.Mocker(adapter=get_base_adapter()):
-        account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+        account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
     return account
 
 

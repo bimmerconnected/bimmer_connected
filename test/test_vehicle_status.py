@@ -6,7 +6,14 @@ import unittest
 import time_machine
 
 from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.vehicle_status import LidState, LockState, ConditionBasedServiceStatus, ChargingState
+from bimmer_connected.country_selector import get_region_from_name
+from bimmer_connected.vehicle_status import (
+    LidState,
+    LockState,
+    ConditionBasedServiceStatus,
+    ChargingState,
+    VehicleStatus,
+)
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G08, VIN_G30, VIN_I01_REX
 from .test_account import get_mocked_account
@@ -116,23 +123,14 @@ class TestState(unittest.TestCase):
         status = account.get_vehicle(VIN_G08).status
         self.assertEqual(6.53, status.charging_time_remaining)
 
-    @time_machine.travel(
-        datetime.datetime.now().replace(
-            year=2011,
-            month=11,
-            day=28,
-            hour=21,
-            minute=28,
-            second=59,
-            microsecond=0,
-            tzinfo=ConnectedDriveAccount.timezone(),
-        )
-    )
+    @time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
     def test_charging_end_time(self):
         """Test if the parsing of mileage and range is working"""
         account = get_mocked_account()
         status = account.get_vehicle(VIN_G08).status
-        self.assertEqual(datetime.datetime(2011, 11, 29, 4, 1, tzinfo=account.timezone()), status.charging_end_time)
+        self.assertEqual(
+            datetime.datetime(2011, 11, 29, 4, 1, tzinfo=ConnectedDriveAccount.timezone()), status.charging_end_time
+        )
 
     def test_charging_end_time_original(self):
         """Test if the parsing of mileage and range is working"""
@@ -169,6 +167,30 @@ class TestState(unittest.TestCase):
 
         self.assertIsNone(status.gps_position)
         self.assertIsNone(status.gps_heading)
+
+    def test_parse_gcj02_position(self):
+        """Test conversion of GCJ02 to WGS84 for china."""
+        account = get_mocked_account(get_region_from_name("china"))
+        status = VehicleStatus(
+            account,
+            {
+                "properties": {
+                    "vehicleLocation": {
+                        "address": {"formatted": "some_formatted_address"},
+                        "coordinates": {"latitude": 116.23221, "longitude": 39.83492},
+                        "heading": 123,
+                    },
+                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
+                },
+                "status": {
+                    "fuelIndicators": [],
+                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
+                },
+            },
+        )
+        self.assertTupleEqual(
+            (116.22617, 39.83247), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
+        )
 
     def test_parse_f11_no_position_vehicle_active(self):
         """Test parsing of F11 data with vehicle beeing active."""
