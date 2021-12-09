@@ -177,7 +177,7 @@ class TestState(unittest.TestCase):
                 "properties": {
                     "vehicleLocation": {
                         "address": {"formatted": "some_formatted_address"},
-                        "coordinates": {"latitude": 116.23221, "longitude": 39.83492},
+                        "coordinates": {"latitude": 39.83492, "longitude": 116.23221},
                         "heading": 123,
                     },
                     "lastUpdatedAt": "2021-11-14T20:20:21Z",
@@ -189,7 +189,7 @@ class TestState(unittest.TestCase):
             },
         )
         self.assertTupleEqual(
-            (116.22617, 39.83247), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
+            (39.8337, 116.22012), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
         )
 
     def test_parse_f11_no_position_vehicle_active(self):

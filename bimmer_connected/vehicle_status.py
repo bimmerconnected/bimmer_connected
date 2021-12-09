@@ -225,7 +225,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         # Convert GCJ02 to WGS84 for positions in China
         if self._account.region == Regions.CHINA:
-            pos['latitude'], pos['longitude'] = gcj2wgs(pos['latitude'], pos['longitude'])
+            pos['longitude'], pos['latitude'] = gcj2wgs(gcjLon=pos['longitude'], gcjLat=pos['latitude'])
 
         return float(pos['latitude']), float(pos['longitude'])
 
