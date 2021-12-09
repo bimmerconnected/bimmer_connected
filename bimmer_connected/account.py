@@ -381,7 +381,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 headers=self.request_header(brand),
                 params={
                     "apptimezone": self.utcdiff,
-                    "appDateTime": datetime.datetime.utcnow().timestamp(),
+                    "appDateTime": int(datetime.datetime.now().timestamp()*1000),
                     "tireGuardMode": "ENABLED"},
                 logfilename="vehicles_v2_{}".format(brand.value),
             )
