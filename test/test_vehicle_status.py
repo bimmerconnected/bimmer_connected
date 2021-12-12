@@ -138,6 +138,32 @@ class TestState(unittest.TestCase):
         status = account.get_vehicle(VIN_G08).status
         self.assertEqual("100% at ~04:01 AM", status.charging_end_time_original)
 
+    def test_charging_end_time_parsing_failure(self):
+        """Test if the parsing of mileage and range is working"""
+        account = get_mocked_account()
+        vehicle = account.get_vehicle(VIN_G08)
+        with self.assertLogs(level=logging.ERROR):
+            vehicle.update_state(
+                {
+                    "status": {
+                        "fuelIndicators": [
+                            {
+                                "chargingStatusIndicatorType": "CHARGING",
+                                "chargingStatusType": "CHARGING",
+                                "infoLabel": "100% at later today...",
+                                "rangeIconId": 59683,
+                                "rangeUnits": "km",
+                                "rangeValue": "179",
+                            }
+                        ]
+                    },
+                    "properties": {},
+                }
+            )
+        self.assertIsNone(vehicle.status.charging_end_time)
+        self.assertEqual("100% at later today...", vehicle.status.charging_end_time_original)
+        self.assertEqual(0, vehicle.status.charging_time_remaining)
+
     def test_condition_based_services(self):
         """Test condition based service messages."""
         status = get_mocked_account().get_vehicle(VIN_G30).status
