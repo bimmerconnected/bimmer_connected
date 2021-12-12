@@ -93,43 +93,50 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
         self.remaining_range_fuel: int = None
         self.remaining_range_electric: int = None
         self.remaining_range_combined: int = None
-        self.remaining_charging_time: datetime.timedelta = None
+        self.remaining_charging_time: int = None
         self.charging_end_time: datetime.datetime = None
         self.charging_end_time_original: str = None
 
         self._map_to_attributes(fuel_indicator_dict)
 
-    def _map_to_attributes(self, fuel_indicators):
+    def _map_to_attributes(self, fuel_indicators: List[Dict]) -> None:
         """Parse fuel indicators based on Ids."""
         for indicator in fuel_indicators:
-            if indicator.get("rangeIconId", "infoIconId") == 59691:  # Combined
+            if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
                 self.remaining_range_combined = self._parse_to_tuple(indicator)
-            elif indicator.get("rangeIconId", "infoIconId") == 59683:  # Electric
+            elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59683:  # Electric
                 self.remaining_range_electric = self._parse_to_tuple(indicator)
                 self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_electric
 
                 if indicator.get("chargingStatusType") == "CHARGING":
                     self.charging_end_time_original = indicator["infoLabel"]
-                    end_str = indicator["infoLabel"].split("~")[-1]
-                    try:
-                        end_time = datetime.datetime.strptime(end_str, "%I:%M %p")
-                    except ValueError:
-                        _LOGGER.error(
-                            "Error parsing charging end time '%s' out of '%s'",
-                            end_str,
-                            indicator["infoLabel"]
-                        )
-                    current = datetime.datetime.now()
-                    end_datetime = end_time.replace(year=current.year, month=current.month, day=current.day)
-                    if end_time < current:
-                        end_datetime = end_datetime + datetime.timedelta(days=1)
+                    self._parse_charging_end_time(indicator)
 
-                    self.charging_end_time = end_datetime
-                    self.remaining_charging_time = (end_datetime - current).seconds
-
-            elif (indicator["rangeIconId"] or indicator["infoIconId"]) == 59681:  # Fuel
+            elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
                 self.remaining_range_fuel = self._parse_to_tuple(indicator)
                 self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_fuel
+
+    def _parse_charging_end_time(self, indicator: Dict) -> None:
+        """Parse charging end time string to timestamp."""
+        end_str = indicator["infoLabel"].split("~")[-1]
+        try:
+            end_time = datetime.datetime.strptime(end_str, "%I:%M %p")
+        except ValueError:
+            _LOGGER.error(
+                "Error parsing charging end time '%s' out of '%s'",
+                end_str,
+                indicator["infoLabel"]
+            )
+            self.charging_end_time = None
+            self.remaining_charging_time = None
+            return
+        current = datetime.datetime.now()
+        end_datetime = end_time.replace(year=current.year, month=current.month, day=current.day)
+        if end_time < current:
+            end_datetime = end_datetime + datetime.timedelta(days=1)
+
+        self.charging_end_time = end_datetime
+        self.remaining_charging_time = (end_datetime - current).seconds
 
     @staticmethod
     def _parse_to_tuple(fuel_indicator):
