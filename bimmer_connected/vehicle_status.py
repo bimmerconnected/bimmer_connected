@@ -43,6 +43,7 @@ class ConditionBasedServiceStatus(str, Enum):
 
 class ChargingState(str, Enum):
     """Charging state of electric vehicle."""
+    DEFAULT = 'DEFAULT'
     CHARGING = 'CHARGING'
     ERROR = 'ERROR'
     COMPLETE = 'COMPLETE'
@@ -50,6 +51,7 @@ class ChargingState(str, Enum):
     FINISHED_NOT_FULL = 'FINISHED_NOT_FULL'
     INVALID = 'INVALID'
     NOT_CHARGING = 'NOT_CHARGING'
+    PLUGGED_IN = 'PLUGGED_IN'
     WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
 
 
@@ -83,17 +85,21 @@ class CheckControlMessage(SerializableBaseClass):
         return self._ccm_dict.get("state")
 
 
-class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-methods
+class FuelIndicator(SerializableBaseClass):
     """Parsed fuel indicators.
 
     This class provides a nicer API than parsing the JSON format directly.
     """
+
+    # pylint: disable=too-few-public-methods, too-many-instance-attributes
 
     def __init__(self, fuel_indicator_dict: List):
         self.remaining_range_fuel: int = None
         self.remaining_range_electric: int = None
         self.remaining_range_combined: int = None
         self.remaining_charging_time: int = None
+        self.charging_status: str = None
+        self.charging_start_time: datetime.datetime = None
         self.charging_end_time: datetime.datetime = None
         self.charging_end_time_original: str = None
 
@@ -108,35 +114,53 @@ class FuelIndicator(SerializableBaseClass):  # pylint: disable=too-few-public-me
                 self.remaining_range_electric = self._parse_to_tuple(indicator)
                 self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_electric
 
-                if indicator.get("chargingStatusType") == "CHARGING":
-                    self.charging_end_time_original = indicator["infoLabel"]
-                    self._parse_charging_end_time(indicator)
+                self.charging_time_label = indicator["infoLabel"]
+                self.charging_status = indicator["chargingStatusType"]
+
+                if indicator.get("chargingStatusType") in ["CHARGING", "PLUGGED_IN"]:
+                    self._parse_charging_timestamp(indicator)
 
             elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
                 self.remaining_range_fuel = self._parse_to_tuple(indicator)
                 self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_fuel
 
-    def _parse_charging_end_time(self, indicator: Dict) -> None:
+    def _parse_charging_timestamp(self, indicator: Dict) -> None:
         """Parse charging end time string to timestamp."""
-        end_str = indicator["infoLabel"].split("~")[-1]
+        charging_start_time: datetime.datetime = None
+        charging_end_time: datetime.datetime = None
+        remaining_charging_time: int = None
+
+        # Only calculate charging end time if infolabel is like '100% at ~11:04am'
+        # Other options: 'Charging', 'Starts at ~09:00am' (but not handled here)
+
+        time_str = indicator["infoLabel"].split("~")[-1]
         try:
-            end_time = datetime.datetime.strptime(end_str, "%I:%M %p")
+            time_parsed = datetime.datetime.strptime(time_str, "%I:%M %p")
+
+            current_time = datetime.datetime.now()
+            datetime_parsed = time_parsed.replace(
+                year=current_time.year,
+                month=current_time.month,
+                day=current_time.day
+            )
+            if datetime_parsed < current_time:
+                datetime_parsed = datetime_parsed + datetime.timedelta(days=1)
+
+            if indicator["chargingStatusType"] == "CHARGING":
+                charging_end_time = datetime_parsed
+                remaining_charging_time = (charging_end_time - current_time).seconds
+            elif indicator["chargingStatusType"] == "PLUGGED_IN":
+                charging_start_time = datetime_parsed
         except ValueError:
             _LOGGER.error(
                 "Error parsing charging end time '%s' out of '%s'",
-                end_str,
+                time_str,
                 indicator["infoLabel"]
             )
-            self.charging_end_time = None
-            self.remaining_charging_time = None
-            return
-        current = datetime.datetime.now()
-        end_datetime = end_time.replace(year=current.year, month=current.month, day=current.day)
-        if end_time < current:
-            end_datetime = end_datetime + datetime.timedelta(days=1)
 
-        self.charging_end_time = end_datetime
-        self.remaining_charging_time = (end_datetime - current).seconds
+        self.charging_end_time = charging_end_time
+        self.charging_start_time = charging_start_time
+        self.remaining_charging_time = remaining_charging_time
 
     @staticmethod
     def _parse_to_tuple(fuel_indicator):
@@ -450,13 +474,21 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Charging state of the vehicle."""
         if "chargingState" not in self.properties:
             return None
-        return ChargingState(self.properties['chargingState']["state"])
+        return ChargingState(self._fuel_indicators.charging_status)
 
     @property
     @backend_parameter
     def charging_time_remaining(self) -> float:
         """Get the remaining charging duration."""
         return round((self._fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
+
+    @property
+    @backend_parameter
+    def charging_start_time(self) -> datetime.datetime:
+        """Get the charging finish time."""
+        if self._fuel_indicators.charging_start_time:
+            return self._fuel_indicators.charging_start_time.replace(tzinfo=self._account.timezone())
+        return None
 
     @property
     @backend_parameter
@@ -468,9 +500,9 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     @backend_parameter
-    def charging_end_time_original(self) -> datetime.datetime:
+    def charging_time_label(self) -> datetime.datetime:
         """Get the remaining charging time as provided by the API."""
-        return self._fuel_indicators.charging_end_time_original
+        return self._fuel_indicators.charging_time_label
 
     @property
     @backend_parameter
