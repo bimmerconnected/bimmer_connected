@@ -15,14 +15,14 @@ from bimmer_connected.vehicle_status import (
     VehicleStatus,
 )
 
-from . import VIN_F11, VIN_F31, VIN_F48, VIN_G08, VIN_G30, VIN_I01_REX
+from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX
 from .test_account import get_mocked_account
 
 
 class TestState(unittest.TestCase):
     """Test for VehicleState."""
 
-    # pylint: disable=protected-access
+    # pylint: disable=protected-access,too-many-public-methods
 
     def test_generic(self):
         """Test generic attributes."""
@@ -136,7 +136,7 @@ class TestState(unittest.TestCase):
         """Test if the parsing of mileage and range is working"""
         account = get_mocked_account()
         status = account.get_vehicle(VIN_G08).status
-        self.assertEqual("100% at ~04:01 AM", status.charging_end_time_original)
+        self.assertEqual("100% at ~04:01 AM", status.charging_time_label)
 
     def test_charging_end_time_parsing_failure(self):
         """Test if the parsing of mileage and range is working"""
@@ -161,8 +161,20 @@ class TestState(unittest.TestCase):
                 }
             )
         self.assertIsNone(vehicle.status.charging_end_time)
-        self.assertEqual("100% at later today...", vehicle.status.charging_end_time_original)
+        self.assertEqual("100% at later today...", vehicle.status.charging_time_label)
         self.assertEqual(0, vehicle.status.charging_time_remaining)
+
+    def test_plugged_in_waiting_for_charge_window(self):
+        """G01 is plugged in but not charging, as its waiting for charging window."""
+        # Should be None on G01 as it is only "charging"
+        account = get_mocked_account()
+        vehicle = account.get_vehicle(VIN_G01)
+
+        self.assertIsNone(vehicle.status.charging_end_time)
+        self.assertEqual("Starts at ~ 09:00 AM", vehicle.status.charging_time_label)
+        self.assertEqual(0, vehicle.status.charging_time_remaining)
+        self.assertEqual(ChargingState.PLUGGED_IN, vehicle.status.charging_status)
+        self.assertEqual("CONNECTED", vehicle.status.connection_status)
 
     def test_condition_based_services(self):
         """Test condition based service messages."""
