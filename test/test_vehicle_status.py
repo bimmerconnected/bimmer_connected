@@ -132,7 +132,7 @@ class TestState(unittest.TestCase):
             datetime.datetime(2011, 11, 29, 4, 1, tzinfo=ConnectedDriveAccount.timezone()), status.charging_end_time
         )
 
-    def test_charging_end_time_original(self):
+    def test_charging_time_label(self):
         """Test if the parsing of mileage and range is working"""
         account = get_mocked_account()
         status = account.get_vehicle(VIN_G08).status
