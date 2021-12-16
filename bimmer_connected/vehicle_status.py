@@ -47,6 +47,7 @@ class ChargingState(str, Enum):
     CHARGING = 'CHARGING'
     ERROR = 'ERROR'
     COMPLETE = 'COMPLETE'
+    FULLY_CHARGED = 'FULLY_CHARGED'
     FINISHED_FULLY_CHARGED = 'FINISHED_FULLY_CHARGED'
     FINISHED_NOT_FULL = 'FINISHED_NOT_FULL'
     INVALID = 'INVALID'
@@ -133,7 +134,7 @@ class FuelIndicator(SerializableBaseClass):
         # Only calculate charging end time if infolabel is like '100% at ~11:04am'
         # Other options: 'Charging', 'Starts at ~09:00am' (but not handled here)
 
-        time_str = indicator["infoLabel"].split("~")[-1]
+        time_str = indicator["infoLabel"].split("~")[-1].strip()
         try:
             time_parsed = datetime.datetime.strptime(time_str, "%I:%M %p")
 
