@@ -7,6 +7,15 @@
 
 
 .. toctree::
+   :caption: Development
+   :name: development
+   :maxdepth: 2
+   :glob:
+
+   development/*
+
+
+.. toctree::
    :caption: CLI documentation
    :name: cli
    :maxdepth: 2
