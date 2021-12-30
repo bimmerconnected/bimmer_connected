@@ -1,6 +1,6 @@
 Using fingerprints in Home Assistant
 ====================================
-Sometimes it can be useful to load the **fingerprints** used for out **pytest suite** in the development of the Home Assistant component. 
+Sometimes it can be useful to load the **fingerprints** used for our **pytest suite** in the development of the Home Assistant component. 
 
 Set up bimmer_connected
 -----------------------
