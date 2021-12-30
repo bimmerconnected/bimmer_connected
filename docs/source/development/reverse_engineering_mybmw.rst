@@ -101,7 +101,7 @@ If needed, **replace the search pattern** and **disable adding** ``0x01`` **on A
   function disablePinning()
   {
   var m = Process.findModuleByName("libflutter.so"); 
-  var pattern = "2d e9 f0 4f a3 b0 81 46 50 20 10 70" // MyBMW CN 1.5.1 & CN1.6.6
+  var pattern = "2d e9 f0 4f a3 b0 81 46 50 20 10 70" // MyBMW 1.5.1 to 1.7.0 (all regions)
   
 
   var res = Memory.scan(m.base, m.size, pattern, {
