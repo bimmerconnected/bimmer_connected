@@ -42,6 +42,8 @@ from bimmer_connected.country_selector import (
 )
 from bimmer_connected.vehicle import CarBrand, ConnectedDriveVehicle
 
+VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -205,7 +207,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             response_json = response.json()
 
             expiration_time = int(response_json["expires_in"])
-            expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
+            expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time) - VALID_UNTIL_OFFSET
 
             return {
                 "access_token": response_json["access_token"],
@@ -253,7 +255,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
             return {
                 "access_token": response_json["access_token"],
-                "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"])
+                "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]) - VALID_UNTIL_OFFSET
             }
         except HTTPError as ex:
             try:
