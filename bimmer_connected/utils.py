@@ -10,7 +10,7 @@ import random
 import string
 import sys
 from abc import ABC
-from typing import OrderedDict
+from collections import OrderedDict
 
 import requests
 from requests.adapters import HTTPAdapter
