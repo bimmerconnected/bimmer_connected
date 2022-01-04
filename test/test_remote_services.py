@@ -91,6 +91,7 @@ class TestRemoteServices(TestCase):
             ("CLIMATE_STOP", "trigger_remote_air_conditioning_stop", True),
             ("VEHICLE_FINDER", "trigger_remote_vehicle_finder", False),
             ("HORN_BLOW", "trigger_remote_horn", False),
+            ("CHARGE_NOW", "trigger_charge_now", True),
             ("SEND_POI", "trigger_send_poi", False),
         ]
 

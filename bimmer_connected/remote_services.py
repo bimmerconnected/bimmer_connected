@@ -48,6 +48,7 @@ class _Services(str, Enum):
     REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
     REMOTE_HORN = 'HORN_BLOW'
     REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
+    REMOTE_CHARGE_NOW = 'CHARGE_NOW'
 
 
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
@@ -133,6 +134,17 @@ class RemoteServices:
         _LOGGER.debug('Triggering remote horn sound')
         event_id = self._trigger_remote_service(_Services.REMOTE_HORN)
         return self._block_until_done(_Services.REMOTE_HORN, event_id)
+
+    def trigger_charge_now(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to sound its horn.
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
+        _LOGGER.debug('Triggering remote horn sound')
+        event_id = self._trigger_remote_service(_Services.REMOTE_CHARGE_NOW)
+        result = self._block_until_done(_Services.REMOTE_CHARGE_NOW, event_id)
+        self._trigger_state_update()
+        return result
 
     def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
         """Trigger the air conditioning to start.
