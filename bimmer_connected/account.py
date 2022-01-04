@@ -10,10 +10,8 @@ This library is not affiliated with or endorsed by BMW Group.
 
 import base64
 import datetime
-import hashlib
 import json
 import logging
-import os
 import pathlib
 import urllib
 from threading import Lock
@@ -39,6 +37,10 @@ from bimmer_connected.country_selector import (
     Regions,
     get_ocp_apim_key,
     get_server_url
+)
+from bimmer_connected.utils import (
+    create_s256_code_challenge,
+    generate_token
 )
 from bimmer_connected.vehicle import CarBrand, ConnectedDriveVehicle
 
@@ -127,15 +129,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             # My BMW login flow
             _LOGGER.debug("Authenticating against GCDM with MyBMW flow.")
 
-            # Setting up PKCS data
-            verifier_bytes = os.urandom(64)
-            code_verifier = base64.urlsafe_b64encode(verifier_bytes).rstrip(b'=')
+            code_verifier = generate_token(86)
+            code_challenge = create_s256_code_challenge(code_verifier)
 
-            challenge_bytes = hashlib.sha256(code_verifier).digest()
-            code_challenge = base64.urlsafe_b64encode(challenge_bytes).rstrip(b'=')
-
-            state_bytes = os.urandom(16)
-            state = base64.urlsafe_b64encode(state_bytes).rstrip(b'=')
+            state = generate_token(22)
 
             authenticate_url = AUTH_URL.format(gcdm_base_url=oauth_settings["gcdmBaseUrl"])
             authenticate_headers = {
@@ -154,15 +151,13 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "code_challenge_method": "S256",
             }
 
-            authenticate_data = urllib.parse.urlencode(
-                dict(
-                    oauth_base_values,
-                    **{
-                        "grant_type": "authorization_code",
-                        "username": self._username,
-                        "password": self._password,
-                    }
-                )
+            authenticate_data = dict(
+                oauth_base_values,
+                **{
+                    "grant_type": "authorization_code",
+                    "username": self._username,
+                    "password": self._password,
+                }
             )
             response = oauth_session.post(
                 authenticate_url,
@@ -267,7 +262,6 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
     def request_header(self, brand: CarBrand = None) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
-        self._get_oauth_token()
         brand = brand or CarBrand.BMW
         headers = {
             "accept": "application/json",
