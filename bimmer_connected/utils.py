@@ -1,13 +1,31 @@
 """General utils and base classes used in the library."""
 
-from abc import ABC
+import base64
 import datetime
+import hashlib
 import inspect
 import json
 import logging
+import random
+import string
 import sys
+from abc import ABC
 
 _LOGGER = logging.getLogger(__name__)
+
+UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + '-._~'
+
+
+def generate_token(length=30, chars=UNICODE_CHARACTER_SET):
+    """Generate a random token with given length and characters."""
+    rand = random.SystemRandom()
+    return ''.join(rand.choice(chars) for _ in range(length))
+
+
+def create_s256_code_challenge(code_verifier):
+    """Create S256 code_challenge with the given code_verifier."""
+    data = hashlib.sha256(code_verifier.encode('ascii')).digest()
+    return base64.urlsafe_b64encode(data).rstrip(b'=').decode('UTF-8')
 
 
 def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool = True) -> dict:
