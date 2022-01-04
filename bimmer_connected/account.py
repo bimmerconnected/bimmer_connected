@@ -39,6 +39,7 @@ from bimmer_connected.country_selector import (
     get_server_url
 )
 from bimmer_connected.utils import (
+    RetrySession,
     create_s256_code_challenge,
     generate_token
 )
@@ -115,7 +116,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Login to Rest of World and North America."""
         try:
             # We need a session for cross-request cookies
-            oauth_session = requests.Session()
+            oauth_session = RetrySession(status_forcelist=[401], allowed_methods=frozenset(["GET", "POST"]))
             r_oauth_settings = oauth_session.get(
                 OAUTH_CONFIG_URL.format(server=self.server_url),
                 headers={
@@ -137,6 +138,11 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             authenticate_url = AUTH_URL.format(gcdm_base_url=oauth_settings["gcdmBaseUrl"])
             authenticate_headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
+                "Referer": "https://customer.bmwgroup.com/oneid/",
+                "User-Agent": (
+                    "Mozilla/5.0 (Linux; Android 7.1.2; One) AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/95.0.4638.74 Mobile Safari/537.36"
+                ),
             }
 
             # we really need all of these parameters
