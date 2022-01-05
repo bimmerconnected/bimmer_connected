@@ -6,3 +6,4 @@ requests-mock
 flake8
 pbr
 time_machine
+typing_extensions>=3.10.0.2,<5.0

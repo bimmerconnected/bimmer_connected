@@ -11,7 +11,15 @@ from bimmer_connected.country_selector import Regions
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 
 if TYPE_CHECKING:
+    from typing import Callable, TypeVar
+
     from bimmer_connected.account import ConnectedDriveAccount
+
+    from typing_extensions import Concatenate, ParamSpec
+
+    _T = TypeVar("_T", bound="VehicleStatus")
+    _R = TypeVar("_R")
+    _P = ParamSpec("_P")
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -173,12 +181,14 @@ class FuelIndicator(SerializableBaseClass):
         return (range_val, fuel_indicator["rangeUnits"])
 
 
-def backend_parameter(func):
+def backend_parameter(
+    func: "Callable[Concatenate[_T, _P], _R]"
+) -> "Callable[Concatenate[_T, _P], _R | None]":
     """Decorator for parameters reading data from the backend.
 
     Errors are handled in a default way.
     """
-    def _func_wrapper(self: 'VehicleStatus', *args, **kwargs):
+    def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
         # pylint: disable=protected-access
         if self.properties is None and self.status is None:
             raise ValueError('No data available for vehicle status!')

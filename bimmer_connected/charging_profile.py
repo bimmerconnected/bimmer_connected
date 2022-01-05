@@ -7,7 +7,15 @@ from enum import Enum
 from bimmer_connected.utils import SerializableBaseClass
 
 if TYPE_CHECKING:
+    from typing import Callable, TypeVar
+
+    from typing_extensions import Concatenate, ParamSpec
+
     from bimmer_connected.vehicle_status import VehicleStatus
+
+    _T = TypeVar("_T", bound="ChargingProfile")
+    _R = TypeVar("_R")
+    _P = ParamSpec("_P")
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -92,12 +100,14 @@ class DepartureTimer(SerializableBaseClass):
         return self._timer_dict.get("timerWeekDays")
 
 
-def backend_parameter(func):
+def backend_parameter(
+    func: "Callable[Concatenate[_T, _P], _R]"
+) -> "Callable[Concatenate[_T, _P], _R | None]":
     """Decorator for parameters reading data from the backend.
 
     Errors are handled in a default way.
     """
-    def _func_wrapper(self: 'ChargingProfile', *args, **kwargs):
+    def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
         # pylint: disable=protected-access
         if self.charging_profile is None:
             raise ValueError('No data available for vehicles charging profile!')
