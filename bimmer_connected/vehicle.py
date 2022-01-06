@@ -4,9 +4,10 @@ import logging
 from typing import TYPE_CHECKING, List
 
 from bimmer_connected.charging_profile import ChargingProfile
+from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.vehicle_status import VehicleStatus
 from bimmer_connected.remote_services import RemoteServices
-from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL
+from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
 
 if TYPE_CHECKING:
@@ -21,19 +22,6 @@ class DriveTrainType(str, Enum):
     PLUGIN_HYBRID = 'PLUGIN_HYBRID'  # PHEV
     ELECTRIC = 'ELECTRIC'
     HYBRID = 'HYBRID'  # mild hybrids
-
-
-class CarBrand(str, Enum):
-    """Car brands supported by the My BMW API."""
-    @classmethod
-    def _missing_(cls, value):
-        for member in cls:
-            if member.value == value.lower():
-                return member
-        raise ValueError("'{}' is not a valid {}".format(value, cls.__name__))
-
-    BMW = "bmw"
-    MINI = "mini"
 
 
 #: Set of drive trains that have a combustion engine
@@ -78,10 +66,8 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
         self._account = account
         self.attributes = None
-        self.status = VehicleStatus(self._account)
-        self.remote_services = RemoteServices(self._account, self)
-        self.observer_latitude = None  # type: float
-        self.observer_longitude = None  # type: float
+        self.status = VehicleStatus(account)
+        self.remote_services = RemoteServices(self)
 
         self.update_state(vehicle_dict)
 
@@ -116,9 +102,9 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return self.attributes['model']
 
     @property
-    def brand(self) -> CarBrand:
+    def brand(self) -> CarBrands:
         """Get the car brand."""
-        return CarBrand(self.attributes["brand"])
+        return CarBrands(self.attributes["brand"])
 
     @property
     def has_hv_battery(self) -> bool:
@@ -200,20 +186,18 @@ class ConnectedDriveVehicle(SerializableBaseClass):
 
         return result
 
-    def get_vehicle_image(self, direction: VehicleViewDirection) -> bytes:
+    async def get_vehicle_image(self, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.
 
         :returns bytes containing the image in PNG format.
         """
         url = VEHICLE_IMAGE_URL.format(
             vin=self.vin,
-            server=self._account.server_url,
             view=direction.value,
         )
-        header = self._account.request_header()
         # the accept field of the header needs to be updated as we want a png not the usual JSON
-        header['accept'] = 'image/png'
-        response = self._account.send_request(url, headers=header)
+        async with MyBMWClient(self._account.mybmw_client_config, brand=self.brand) as client:
+            response = await client.get(url, headers={"accept": "image/png"})
         return response.content
 
     def __getattr__(self, item):
@@ -228,21 +212,6 @@ class ConnectedDriveVehicle(SerializableBaseClass):
             return getattr(self.status, item)
         return self.attributes.get(item)
 
-    def __str__(self) -> str:
-        """Use the name as identifier for the vehicle."""
-        return '{}: {}'.format(self.__class__, self.name)
-
     def as_dict(self) -> dict:
         """Return all attributes and parameters, without `self.remote_services`."""
         return serialize_for_json(self, ["remote_services"])
-
-    def set_observer_position(self, latitude: float, longitude: float) -> None:
-        """Set the position of the observer, who requests the vehicle state.
-
-        Some vehicle require you to send your position to the server before you get the vehicle state.
-        Your position must be within some range (2km?) of the vehicle to get you a proper answer.
-        """
-        if latitude is None or longitude is None:
-            raise ValueError('Either latitude and longitude are both not None or both are None.')
-        self.observer_latitude = latitude
-        self.observer_longitude = longitude

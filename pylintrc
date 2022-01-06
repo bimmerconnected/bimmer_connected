@@ -1,5 +1,5 @@
 [MASTER]
-py-version=3.5
+py-version=3.7
 
 [FORMAT]
 max-line-length=120

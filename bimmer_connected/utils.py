@@ -6,15 +6,6 @@ import hashlib
 import inspect
 import json
 import logging
-import random
-import string
-import sys
-from abc import ABC
-from collections import OrderedDict
-
-import requests
-from requests.adapters import HTTPAdapter
-from urllib3.util.retry import Retry
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -103,9 +94,6 @@ def parse_datetime(date_str: str) -> datetime.datetime:
     for date_format in date_formats:
         try:
             parsed = datetime.datetime.strptime(date_str, date_format)
-            # Assume implicit UTC for Python 3.6
-            if sys.version_info < (3, 7):
-                parsed = parsed.replace(tzinfo=datetime.timezone.utc)
             return parsed
         except ValueError:
             pass

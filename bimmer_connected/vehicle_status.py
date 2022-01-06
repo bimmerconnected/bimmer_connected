@@ -7,7 +7,7 @@ from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from bimmer_connected.coord_convert import gcj2wgs
 
-from bimmer_connected.country_selector import Regions
+from bimmer_connected.api.regions import Regions
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 
 if TYPE_CHECKING:
@@ -488,7 +488,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     def charging_start_time(self) -> datetime.datetime:
         """Get the charging finish time."""
         if self._fuel_indicators.charging_start_time:
-            return self._fuel_indicators.charging_start_time.replace(tzinfo=self._account.timezone())
+            return self._fuel_indicators.charging_start_time.replace(tzinfo=self._account.timezone)
         return None
 
     @property
@@ -496,7 +496,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     def charging_end_time(self) -> datetime.datetime:
         """Get the charging finish time."""
         if self._fuel_indicators.charging_end_time:
-            return self._fuel_indicators.charging_end_time.replace(tzinfo=self._account.timezone())
+            return self._fuel_indicators.charging_end_time.replace(tzinfo=self._account.timezone)
         return None
 
     @property
