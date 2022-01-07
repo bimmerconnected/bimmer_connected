@@ -3,7 +3,16 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List
-from unittest import mock
+
+try:
+    from unittest import mock
+
+    if not hasattr(mock, "AsyncMock"):
+        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
+        raise ImportError()
+except ImportError:
+    import mock  # type: ignore[import,no-redef]
+
 from uuid import uuid4
 
 import httpx

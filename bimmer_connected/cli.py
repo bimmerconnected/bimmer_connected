@@ -75,7 +75,7 @@ def main_parser() -> argparse.ArgumentParser:
     sendpoi_parser.set_defaults(func=send_poi)
 
     sendpoi_from_address_parser = subparsers.add_parser(
-        "sendpoi_from_address", description=("Send a point of interest parsed from a" " street address to the vehicle.")
+        "sendpoi_from_address", description=("Send a point of interest parsed from a street address to the vehicle.")
     )
     _add_default_arguments(sendpoi_from_address_parser)
     sendpoi_from_address_parser.add_argument("vin", help=TEXT_VIN)

@@ -30,7 +30,7 @@
    :maxdepth: 2
    :glob:
 
-   api/*
+   module/*
 
 
 Indices and tables

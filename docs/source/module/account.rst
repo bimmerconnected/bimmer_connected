@@ -1,4 +1,4 @@
-.. _bimmer_connected_module:
+.. _account_module:
 
 :mod:`bimmer_connected.account`
 ===============================
