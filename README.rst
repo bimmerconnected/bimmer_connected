@@ -23,7 +23,7 @@ the ConnectedDrive portal.
 
 Installation
 ============
-:code:`bimmer_connected` requires **Python 3.6 or above** but should also run with Python 3.5. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
+:code:`bimmer_connected` requires **Python 3.6 or above**. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
 using :code:`pip3 install --upgrade bimmer_connected`. 
 
 Alteratively, clone the project and execute :code:`pip install -e .` to install the current 
@@ -31,13 +31,52 @@ Alteratively, clone the project and execute :code:`pip install -e .` to install 
 
 Usage
 =====
+While this library is mainly written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_, it can be use on its own.
+
 After installation, execute :code:`bimmerconnected` from command line for usage instruction
 or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/latest/#cli>`_.
 
+Please be aware that :code:`bimmer_connected` is an :code:`async` library when using it in Python code.
 The description of the :code:`modules` can be found in the `module documentation 
 <http://bimmer-connected.readthedocs.io/en/latest/#module>`_.
 
-This library is written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_.
+Example in an :code:`asyncio` event loop
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    import asyncio
+    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.api.regions import Regions
+
+    async def main():
+        account = ConnectedDriveAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+        await account.get_vehicles()
+        vehicle = account.get_vehicle(VIN)
+        print(vehicle.brand, vehicle.name, vehicle.vin)
+        
+        result = await vehicle.remote_services.trigger_remote_light_flash()
+        print(result.state)
+
+    asyncio.run(main())
+
+    
+Example in non-async code
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    import asyncio
+    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.api.regions import Regions
+
+
+    account = ConnectedDriveAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+    asyncio.run(account.get_vehicles())
+    vehicle = account.get_vehicle(VIN)
+    print(vehicle.brand, vehicle.name, vehicle.vin)
+        
+    result = asyncio.run(vehicle.remote_services.trigger_remote_light_flash())
+    print(result.state)
 
 
 Compatibility
