@@ -4,7 +4,7 @@ import asyncio
 import base64
 import datetime
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Optional
 
 import httpx
@@ -59,11 +59,18 @@ class Authentication:
 class MyBMWAuthentication(Authentication):
     """Authentication for MyBMW API."""
 
-    lock: asyncio.Lock = asyncio.Lock()
+    _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+
+    def _create_or_update_lock(self):
+        """Makes sure that there is a lock in the current event loop."""
+        loop: asyncio.BaseEventLoop = self._lock._loop  # pylint: disable=protected-access
+        if loop is None or not loop.is_running() or loop.is_closed():
+            self._lock = asyncio.Lock()
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
-        async with self.lock:
+        self._create_or_update_lock()
+        async with self._lock:
             if self.is_token_valid:
                 return
 

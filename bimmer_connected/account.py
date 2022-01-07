@@ -27,6 +27,7 @@ from bimmer_connected.vehicle import ConnectedDriveVehicle
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
+# lock = asyncio.Lock()
 
 
 @dataclass
@@ -54,7 +55,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     def __post_init__(self, password, log_responses):
         if self.mybmw_client_config is None:
             self.mybmw_client_config = MyBMWClientConfiguration(
-                MyBMWAuthentication(self.username, password, self.region, lock=asyncio.Lock()),
+                MyBMWAuthentication(self.username, password, self.region),
                 log_response_path=log_responses,
             )
 
