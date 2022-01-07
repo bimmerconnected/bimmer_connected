@@ -682,8 +682,6 @@
             }
         ]
     },
-    "observer_latitude": null,
-    "observer_longitude": null,
     "available_attributes": [
         "gps_position",
         "vin",

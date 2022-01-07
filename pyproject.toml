@@ -4,3 +4,16 @@ line-length = 120
 [tool.isort]
 line_length = 120
 profile = "black"
+
+[tool.pylint.MASTER]
+py-version=3.7
+
+[tool.pylint.FORMAT]
+max-line-length=120
+
+[tool.pylint.'MESSAGES CONTROL']
+disable="""
+    duplicate-code,
+    consider-using-f-string,
+    not-context-manager,
+"""

@@ -1,8 +1,10 @@
 pytest
 pytest-cov
 pytest-timeout
+pytest-asyncio
+asyncmock;python_version<"3.8"
 pylint
-requests-mock
+respx
 flake8
 pbr
 time_machine

@@ -2,11 +2,9 @@
 
 import json
 from pathlib import Path
-from typing import Union
+from typing import Any, Dict, List, Union
 
-# from requests.exceptions import HTTPError
-
-from bimmer_connected.country_selector import Regions
+from bimmer_connected.api.regions import Regions
 
 RESPONSE_DIR = Path(__file__).parent / "responses"
 
@@ -29,7 +27,7 @@ VIN_G30 = "some_vin_G30"
 VIN_I01_NOREX = "some_vin_I01_NOREX"
 VIN_I01_REX = "some_vin_I01_REX"
 
-ALL_FINGERPRINTS = []
+ALL_FINGERPRINTS: List[Dict] = []
 
 
 def get_fingerprint_count() -> int:
@@ -37,7 +35,7 @@ def get_fingerprint_count() -> int:
     return len(ALL_FINGERPRINTS)
 
 
-def load_response(path: Union[Path, str]) -> object:
+def load_response(path: Union[Path, str]) -> Any:
     """Load a stored response."""
     with open(path, "rb") as file:
         if Path(path).suffix == ".json":
@@ -237,16 +235,6 @@ for fingerprint in RESPONSE_DIR.rglob("vehicles_v2_*_0.json"):
 #     def json(self) -> dict:
 #         """Parse the text of the response as a jsons string."""
 #         return json.loads(self.text)
-
-#     def raise_for_status(self) -> bool:
-#         """Simulate requests' raise_for_status and raise HTTPError if non-ok status code."""
-#         http_error_msg = ''
-#         if 400 <= self.status_code < 500:
-#             http_error_msg = '%s Client Error' % (self.status_code)
-#         elif 500 <= self.status_code < 600:
-#             http_error_msg = '%s Server Error' % (self.status_code)
-#         if http_error_msg:
-#             raise HTTPError(http_error_msg, response=self)
 
 #     @property
 #     def text(self) -> str:
