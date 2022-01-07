@@ -43,7 +43,8 @@ class MyBMWClient(httpx.AsyncClient):
         # Event hook for logging content to file
         async def log_response(response: httpx.Response):
             content = await response.aread()
-            base_file_name = response.url.path.split("/")[-1]
+            brand = [x for x in [b.value for b in CarBrands] if x in response.request.headers.get("x-user-agent", "")]
+            base_file_name = "_".join([response.url.path.split("/")[-1]] + brand)
             log_to_to_file(content, config.log_response_path, base_file_name)  # type: ignore[arg-type]
 
         if config.log_response_path:
