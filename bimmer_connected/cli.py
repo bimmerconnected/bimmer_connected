@@ -104,11 +104,11 @@ async def get_status(args) -> None:
     if args.json:
         print(to_json(account.vehicles))
     else:
-        print("Found {} vehicles: {}".format(len(account.vehicles), ",".join([v.name for v in account.vehicles])))
+        print(f"Found {len(account.vehicles)} vehicles: {','.join([v.name for v in account.vehicles])}")
 
         for vehicle in account.vehicles:
-            print("VIN: {}".format(vehicle.vin))
-            print("Mileage: {}".format(vehicle.status.mileage))
+            print(f"VIN: {vehicle.vin}")
+            print(f"Mileage: {vehicle.status.mileage}")
             print("Vehicle data:")
             print(to_json(vehicle, indent=4))
 
@@ -118,7 +118,7 @@ def get_vehicle_or_return(account: ConnectedDriveAccount, vin: str) -> Connected
     vehicle = account.get_vehicle(vin)
     if not vehicle:
         valid_vins = ", ".join(v.vin for v in account.vehicles)
-        raise KeyError('Error: Could not find vehicle for VIN "{}". Valid VINs are: {}'.format(vin, valid_vins))
+        raise KeyError(f"Error: Could not find vehicle for VIN {vin}. Valid VINs are: {valid_vins}")
     return vehicle
 
 
@@ -137,20 +137,20 @@ async def fingerprint(args) -> None:
     # Patching in new My BMW endpoints for fingerprinting
     for vehicle in account.vehicles:
         if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
-            print("Getting 'charging-sessions' for {}".format(vehicle.vin))
+            print(f"Getting 'charging-sessions' for {vehicle.vin}")
             async with MyBMWClient(account.mybmw_client_config, brand=vehicle.brand) as client:
                 client.post(
                     "/eadrax-chs/v1/charging-sessions",
                     params={"vin": vehicle.vin, "maxResults": 40, "include_date_picker": "true"},
                 )
 
-                print("Getting 'charging-statistics' for {}".format(vehicle.vin))
+                print(f"Getting 'charging-statistics' for {vehicle.vin}")
                 client.post(
                     "/eadrax-chs/v1/charging-statistics",
                     params={"vin": vehicle.vin, "currentDate": datetime.utcnow().isoformat()},
                 )
 
-    print("fingerprint of the vehicles written to {}".format(time_dir))
+    print(f"fingerprint of the vehicles written to {time_dir}")
 
 
 async def light_flash(args) -> None:
@@ -184,7 +184,7 @@ async def image(args) -> None:
         with open(filename, "wb") as output_file:
             image_data = await vehicle.get_vehicle_image(viewdirection)
             output_file.write(image_data)
-        print("vehicle image saved to {}".format(filename))
+        print(f"vehicle image saved to {filename}")
 
 
 async def send_poi(args) -> None:

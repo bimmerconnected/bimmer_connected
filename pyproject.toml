@@ -14,6 +14,5 @@ max-line-length=120
 [tool.pylint.'MESSAGES CONTROL']
 disable="""
     duplicate-code,
-    consider-using-f-string,
     not-context-manager,
 """

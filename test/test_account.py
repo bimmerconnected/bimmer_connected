@@ -46,7 +46,7 @@ def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
         raise ValueError("x-user-agent not configured correctly!")
 
     response_vehicles: List[Dict] = []
-    files = RESPONSE_DIR.rglob("vehicles_v2_{}_0.json".format(brand))
+    files = RESPONSE_DIR.rglob(f"vehicles_v2_{brand}_0.json")
     for file in files:
         response_vehicles.extend(load_response(file))
     return httpx.Response(200, json=response_vehicles)

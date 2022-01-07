@@ -43,18 +43,16 @@ class ChargingWindow(SerializableBaseClass):
     def start_time(self) -> str:
         """Start of the charging window."""
         # end of reductionOfChargeCurrent == start of charging window
-        return "{}:{}".format(
-            str(self._window_dict["end"]["hour"]).zfill(2),
-            str(self._window_dict["end"]["minute"]).zfill(2),
+        return (
+            f"{str(self._window_dict['end']['hour']).zfill(2)}:{str(self._window_dict['end']['minute']).zfill(2)}"
         )
 
     @property
     def end_time(self) -> str:
         """End of the charging window."""
         # start of reductionOfChargeCurrent == end of charging window
-        return "{}:{}".format(
-            str(self._window_dict["start"]["hour"]).zfill(2),
-            str(self._window_dict["start"]["minute"]).zfill(2),
+        return (
+            f"{str(self._window_dict['start']['hour']).zfill(2)}:{str(self._window_dict['start']['minute']).zfill(2)}"
         )
 
 
@@ -76,9 +74,9 @@ class DepartureTimer(SerializableBaseClass):
         """Deperture time for this timer."""
         if "timeStamp" not in self._timer_dict:
             return None
-        return "{}:{}".format(
-            str(self._timer_dict["timeStamp"]["hour"]).zfill(2),
-            str(self._timer_dict["timeStamp"]["minute"]).zfill(2),
+        return (
+            f"{str(self._timer_dict['timeStamp']['hour']).zfill(2)}"
+            f":{str(self._timer_dict['timeStamp']['minute']).zfill(2)}"
         )
 
     @property

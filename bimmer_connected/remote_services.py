@@ -172,9 +172,8 @@ class RemoteServices:
                     )
                 )
         raise TimeoutError(
-            "Did not receive remote service result for '{}' in {} seconds. Current state: {}".format(
-                event_id, _POLLING_TIMEOUT, status.state.value
-            )
+            f"Did not receive remote service result for '{event_id}' in {_POLLING_TIMEOUT} seconds. "
+            f"Current state: {status.state.value}"
         )
 
     async def _get_remote_service_status(self, event_id: str = None) -> RemoteServiceStatus:

@@ -9,7 +9,7 @@ class CarBrands(str, Enum):
         for member in cls:
             if member.value == value.lower():
                 return member
-        raise ValueError("'{}' is not a valid {}".format(value, cls.__name__))
+        raise ValueError(f"'{value}' is not a valid {cls.__name__}")
 
     BMW = "bmw"
     MINI = "mini"

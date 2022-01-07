@@ -99,7 +99,7 @@ def log_to_to_file(content: Union[str, bytes, List, Dict], logfile_path: pathlib
     count = 0
 
     while output_path is None or output_path.exists():
-        output_path = logfile_path / "{}_{}.{}".format(logfile_name, count, file_extension)
+        output_path = logfile_path / f"{logfile_name}_{count}.{file_extension}"
         count += 1
 
     with open(output_path, "w", encoding="UTF-8") as logfile:
