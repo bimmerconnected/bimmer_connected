@@ -1,6 +1,5 @@
 """Generals models used for bimmer_connected."""
 
-import typing
 from dataclasses import InitVar, dataclass, field
 from typing import Optional
 
@@ -57,15 +56,18 @@ class PointOfInterest:
 
     def __post_init__(self, lat, lon, street, postal_code, city, country):  # pylint: disable=too-many-arguments
         self.coordinates = PointOfInterestCoordinates(lat, lon)
+        # pylint: disable=invalid-name
         self.locationAddress = PointOfInterestAddress(street, postal_code, city, country)
 
 
 def check_strict_types(cls):
     """Checks a dataclass for strict typing. Use in __post_init__."""
     for field_name, field_def in cls.__dataclass_fields__.items():  # pylint: disable=no-member
-        if isinstance(field_def.type, typing._GenericAlias):  # pylint: disable=protected-access
-            field_type = field_def.type.__args__
-        else:
+        try:
+            original_type = field_def.type.__args__
+            field_type = original_type or field_def.type  # pylint: disable=protected-access
+        except AttributeError:
             field_type = field_def.type
+
         if not isinstance(getattr(cls, field_name), field_type):
             raise TypeError(f"'{field_name}' not of type '{field_def.type}'")

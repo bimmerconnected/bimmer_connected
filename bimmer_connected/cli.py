@@ -258,7 +258,9 @@ def main():
     """Main function."""
     parser = main_parser()
     args = parser.parse_args()
-    asyncio.run(args.func(args))
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(args.func(args))
 
 
 if __name__ == "__main__":

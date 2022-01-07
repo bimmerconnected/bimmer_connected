@@ -72,7 +72,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             vehicles_tasks: List[asyncio.Task] = []
             for brand in CarBrands:
                 vehicles_tasks.append(
-                    asyncio.create_task(
+                    asyncio.ensure_future(
                         client.get(
                             VEHICLES_URL,
                             params=vehicles_request_params,
