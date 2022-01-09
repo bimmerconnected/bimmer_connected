@@ -232,9 +232,9 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """Use the name as identifier for the vehicle."""
         return '{}: {}'.format(self.__class__, self.name)
 
-    @property
-    def to_json(self) -> dict:
-        return serialize_for_json(self, ["_account", "remote_services"])
+    def as_dict(self) -> dict:
+        """Return all attributes and parameters, without `self.remote_services`."""
+        return serialize_for_json(self, ["remote_services"])
 
     def set_observer_position(self, latitude: float, longitude: float) -> None:
         """Set the position of the observer, who requests the vehicle state.

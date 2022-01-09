@@ -102,7 +102,7 @@ class FuelIndicator(SerializableBaseClass):
         self.charging_status: str = None
         self.charging_start_time: datetime.datetime = None
         self.charging_end_time: datetime.datetime = None
-        self.charging_end_time_original: str = None
+        self.charging_time_label: str = None
 
         self._map_to_attributes(fuel_indicator_dict)
 
