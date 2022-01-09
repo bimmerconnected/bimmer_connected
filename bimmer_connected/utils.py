@@ -86,7 +86,12 @@ def get_class_property_names(obj: object):
 def to_json(obj: object, *args, **kwargs):
     """Serialize a nested object to json. Tries to call `to_json` attribute on object first."""
     def serialize(obj: object):
-        return getattr(obj, 'to_json',  getattr(obj, '__dict__') if hasattr(obj, '__dict__') else str(obj))
+        if hasattr(obj, 'as_dict'):
+            return getattr(obj, "as_dict")()
+        if hasattr(obj, '__dict__'):
+            return {k: v for k, v in getattr(obj, "__dict__").items() if not k.startswith("_")}
+        return str(obj)
+
     return json.dumps(obj, default=serialize, *args, **kwargs)
 
 
@@ -111,7 +116,6 @@ def parse_datetime(date_str: str) -> datetime.datetime:
 class SerializableBaseClass(ABC):  # pylint: disable=too-few-public-methods
     """Base class to enable json-compatible serialization."""
 
-    @property
-    def to_json(self) -> dict:
+    def as_dict(self) -> dict:
         """Return all attributes and parameters."""
         return serialize_for_json(self)
