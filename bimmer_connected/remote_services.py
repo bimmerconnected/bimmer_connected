@@ -37,6 +37,7 @@ class ExecutionState(str, Enum):
     PENDING = 'PENDING'
     DELIVERED = 'DELIVERED'
     EXECUTED = 'EXECUTED'
+    ERROR = 'ERROR'
     UNKNOWN = 'UNKNOWN'
 
 
@@ -62,6 +63,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
             status = response.get("eventStatus")
 
         self.state = ExecutionState(status or 'UNKNOWN')
+        self.details = response
 
 
 class RemoteServices:
@@ -192,6 +194,12 @@ class RemoteServices:
                         _POLLING_TIMEOUT,
                         status.state.value
                     ))
+            if status.state == ExecutionState.ERROR:
+                raise Exception(
+                    "Remote service failed with state '{}'. Response: {}".format(
+                        status.state, status.details
+                    )
+                )
             time.sleep(_POLLING_CYCLE)
 
     def _get_remote_service_status(self, service: _Services = None, event_id: str = None) -> RemoteServiceStatus:
