@@ -3,7 +3,7 @@
 import datetime
 import logging
 from enum import Enum
-from typing import Dict, List, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from bimmer_connected.coord_convert import gcj2wgs
 
@@ -95,10 +95,10 @@ class FuelIndicator(SerializableBaseClass):
     # pylint: disable=too-few-public-methods, too-many-instance-attributes
 
     def __init__(self, fuel_indicator_dict: List):
-        self.remaining_range_fuel: int = None
-        self.remaining_range_electric: int = None
-        self.remaining_range_combined: int = None
-        self.remaining_charging_time: int = None
+        self.remaining_range_fuel: Optional[Tuple[int, str]] = None
+        self.remaining_range_electric: Optional[Tuple[int, str]] = None
+        self.remaining_range_combined: Optional[Tuple[int, str]] = None
+        self.remaining_charging_time: float = None
         self.charging_status: str = None
         self.charging_start_time: datetime.datetime = None
         self.charging_end_time: datetime.datetime = None
@@ -241,10 +241,10 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """
         if self.is_vehicle_active:
             _LOGGER.info('Vehicle was moving at last update, no position available')
-            return None
+            return (None, None)
         if not self._remote_service_position and "vehicleLocation" not in self.properties:
             _LOGGER.info("No vehicle location data available.")
-            return None
+            return (None, None)
 
         t_remote = self._remote_service_position.get(
             "timestamp",
@@ -298,7 +298,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     @backend_parameter
-    def mileage(self) -> int:
+    def mileage(self) -> Tuple[int, str]:
         """Get the mileage of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
@@ -315,11 +315,11 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return self._fuel_indicators.remaining_range_fuel
+        return self._fuel_indicators.remaining_range_fuel or (None, None)
 
     @property
     @backend_parameter
-    def remaining_fuel(self) -> int:
+    def remaining_fuel(self) -> Tuple[int, str]:
         """Get the remaining fuel of the vehicle.
 
         Returns a tuple of (value, unit_of_measurement)
@@ -452,16 +452,16 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
         """Remaining range on battery, in kilometers."""
-        return self._fuel_indicators.remaining_range_electric
+        return self._fuel_indicators.remaining_range_electric or (None, None)
 
     @property
     @backend_parameter
-    def remaining_range_total(self) -> int:
+    def remaining_range_total(self) -> Tuple[int, str]:
         """Get the total remaining range of the vehicle in kilometers.
 
         That is electrical range + fuel range.
         """
-        return self._fuel_indicators.remaining_range_combined
+        return self._fuel_indicators.remaining_range_combined or (None, None)
 
     @property
     @backend_parameter
