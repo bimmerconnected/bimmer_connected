@@ -44,13 +44,13 @@ class TestState(unittest.TestCase):
         status = get_mocked_account().get_vehicle(VIN_F31).status
 
         self.assertTupleEqual((32, "LITERS"), status.remaining_fuel)
-        self.assertIsNone(status.remaining_range_fuel)
+        self.assertTupleEqual((None, None), status.remaining_range_fuel)
         self.assertIsNone(status.fuel_percent)
 
         self.assertIsNone(status.charging_level_hv)
-        self.assertIsNone(status.remaining_range_electric)
+        self.assertTupleEqual((None, None), status.remaining_range_electric)
 
-        self.assertIsNone(status.remaining_range_total)
+        self.assertTupleEqual((None, None), status.remaining_range_total)
 
     def test_range_combustion(self):
         """Test if the parsing of mileage and range is working"""
@@ -61,7 +61,7 @@ class TestState(unittest.TestCase):
         self.assertIsNone(status.fuel_percent)
 
         self.assertIsNone(status.charging_level_hv)
-        self.assertIsNone(status.remaining_range_electric)
+        self.assertTupleEqual((None, None), status.remaining_range_electric)
 
         self.assertTupleEqual((308, "km"), status.remaining_range_total)
 
@@ -104,7 +104,7 @@ class TestState(unittest.TestCase):
         status = get_mocked_account().get_vehicle(VIN_G08).status
 
         self.assertTupleEqual((0, "LITERS"), status.remaining_fuel)
-        self.assertIsNone(status.remaining_range_fuel)
+        self.assertTupleEqual((None, None), status.remaining_range_fuel)
         self.assertEqual(0, status.fuel_percent)
 
         self.assertAlmostEqual(50, status.charging_level_hv)
@@ -203,7 +203,7 @@ class TestState(unittest.TestCase):
         """Test parsing of F31 data with position tracking disabled in the vehicle."""
         status = get_mocked_account().get_vehicle(VIN_F31).status
 
-        self.assertIsNone(status.gps_position)
+        self.assertTupleEqual((None, None), status.gps_position)
         self.assertIsNone(status.gps_heading)
 
     def test_parse_gcj02_position(self):
@@ -238,7 +238,7 @@ class TestState(unittest.TestCase):
         self.assertTrue(vehicle.is_vehicle_tracking_enabled)
         self.assertTrue(status.is_vehicle_active)
         with self.assertLogs(level=logging.INFO):
-            self.assertIsNone(status.gps_position)
+            self.assertTupleEqual((None, None), status.gps_position)
             self.assertIsNone(status.gps_heading)
 
     def test_parse_g08(self):
