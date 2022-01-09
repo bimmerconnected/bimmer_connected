@@ -136,11 +136,11 @@ class RemoteServices:
         return self._block_until_done(_Services.REMOTE_HORN, event_id)
 
     def trigger_charge_now(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to sound its horn.
+        """Trigger the vehicle to start charging.
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-        _LOGGER.debug('Triggering remote horn sound')
+        _LOGGER.debug('Triggering charge now')
         event_id = self._trigger_remote_service(_Services.REMOTE_CHARGE_NOW)
         result = self._block_until_done(_Services.REMOTE_CHARGE_NOW, event_id)
         self._trigger_state_update()
