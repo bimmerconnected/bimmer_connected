@@ -32,12 +32,13 @@ _POLLING_TIMEOUT = 240
 
 class ExecutionState(str, Enum):
     """Enumeration of possible states of the execution of a remote service."""
-    INITIATED = 'INITIATED'
-    PENDING = 'PENDING'
-    DELIVERED = 'DELIVERED'
-    EXECUTED = 'EXECUTED'
-    ERROR = 'ERROR'
-    UNKNOWN = 'UNKNOWN'
+
+    INITIATED = "INITIATED"
+    PENDING = "PENDING"
+    DELIVERED = "DELIVERED"
+    EXECUTED = "EXECUTED"
+    ERROR = "ERROR"
+    UNKNOWN = "UNKNOWN"
 
 
 class Services(str, Enum):
@@ -49,7 +50,7 @@ class Services(str, Enum):
     DOOR_UNLOCK = "door-unlock"
     HORN = "horn-blow"
     AIR_CONDITIONING = "climate-now"
-    CHARGE_NOW = 'CHARGE_NOW'
+    CHARGE_NOW = "CHARGE_NOW"
 
 
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
@@ -61,7 +62,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
         if "eventStatus" in response:
             status = response.get("eventStatus")
 
-        self.state = ExecutionState(status or 'UNKNOWN')
+        self.state = ExecutionState(status or "UNKNOWN")
         self.details = response
 
 
@@ -114,8 +115,8 @@ class RemoteServices:
 
         A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-        _LOGGER.debug('Triggering charge now')
-        result = await self.trigger_remote_service(Services.CHARGE_NOW,)
+        _LOGGER.debug("Triggering charge now")
+        result = await self.trigger_remote_service(Services.CHARGE_NOW)
         await self._trigger_state_update()
         return result
 
@@ -163,14 +164,10 @@ class RemoteServices:
             await asyncio.sleep(_POLLING_CYCLE)
             status = await self._get_remote_service_status(event_id)
             _LOGGER.debug("current state of '%s' is: %s", event_id, status.state.value)
+            if status.state == ExecutionState.ERROR:
+                raise Exception(f"Remote service failed with state '{status.state}'. Response: {status.details}")
             if status.state not in [ExecutionState.UNKNOWN, ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
-            if status.state == ExecutionState.ERROR:
-                raise Exception(
-                    "Remote service failed with state '{}'. Response: {}".format(
-                        status.state, status.details
-                    )
-                )
         raise TimeoutError(
             f"Did not receive remote service result for '{event_id}' in {_POLLING_TIMEOUT} seconds. "
             f"Current state: {status.state.value}"

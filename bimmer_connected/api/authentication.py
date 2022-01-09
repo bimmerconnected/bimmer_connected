@@ -81,7 +81,7 @@ class MyBMWAuthentication(Authentication):
                 token_data = await self._login_china()
 
             self.token = token_data["access_token"]
-            self.expires_at = token_data["expires_at"]
+            self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
     # pylint: disable=too-many-locals
     async def _login_row_na(self):
@@ -158,7 +158,7 @@ class MyBMWAuthentication(Authentication):
                 response_json = response.json()
 
                 expiration_time = int(response_json["expires_in"])
-                expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time) - EXPIRES_AT_OFFSET
+                expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
         except httpx.HTTPStatusError as ex:
             handle_http_status_error(ex, "Authentication", _LOGGER)
@@ -202,5 +202,5 @@ class MyBMWAuthentication(Authentication):
 
         return {
             "access_token": response_json["access_token"],
-            "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]) - EXPIRES_AT_OFFSET,
+            "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]),
         }

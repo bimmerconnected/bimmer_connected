@@ -145,16 +145,16 @@ async def test_get_remote_service_status():
             side_effect=[
                 httpx.Response(500),
                 httpx.Response(200, text="You can't parse this..."),
-                httpx.Response(200, json=load_response(_RESPONSE_ERROR))
+                httpx.Response(200, json=load_response(_RESPONSE_ERROR)),
             ],
         )
 
         with pytest.raises(httpx.HTTPStatusError):
-            await vehicle.remote_services._get_remote_service_status(remote_services.Services.LIGHT_FLASH)
+            await vehicle.remote_services._block_until_done(uuid4())
         with pytest.raises(ValueError):
-            await vehicle.remote_services._get_remote_service_status(remote_services.Services.LIGHT_FLASH)
+            await vehicle.remote_services._block_until_done(uuid4())
         with pytest.raises(Exception):
-            await vehicle.remote_services._block_until_done(remote_services.Services.LIGHT_FLASH)
+            await vehicle.remote_services._block_until_done(uuid4())
 
 
 @remote_services_mock()

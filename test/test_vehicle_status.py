@@ -218,7 +218,7 @@ async def test_parse_f31_no_position():
     """Test parsing of F31 data with position tracking disabled in the vehicle."""
     status = (await get_mocked_account()).get_vehicle(VIN_F31).status
 
-    assert status.gps_position is None
+    assert status.gps_position == (None, None)
     assert status.gps_heading is None
 
 
