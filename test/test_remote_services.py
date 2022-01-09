@@ -19,6 +19,7 @@ _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiat
 _RESPONSE_PENDING = RESPONSE_DIR / "remote_services" / "eadrax_service_pending.json"
 _RESPONSE_DELIVERED = RESPONSE_DIR / "remote_services" / "eadrax_service_delivered.json"
 _RESPONSE_EXECUTED = RESPONSE_DIR / "remote_services" / "eadrax_service_executed.json"
+_RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_service_error.json"
 _RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
 
@@ -127,6 +128,7 @@ class TestRemoteServices(TestCase):
                 [
                     dict(status_code=500, json=[]),
                     dict(status_code=200, text="You can't parse this..."),
+                    dict(status_code=200, json=load_response(_RESPONSE_ERROR)),
                 ],
             )
 
@@ -134,6 +136,8 @@ class TestRemoteServices(TestCase):
                 vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
             with self.assertRaises(ValueError):
                 vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
+            with self.assertRaises(Exception):
+                vehicle.remote_services._block_until_done(event_id=remote_services._Services.REMOTE_LIGHT_FLASH)
 
     def test_get_remote_position(self):
         """Test getting position from remote service."""
