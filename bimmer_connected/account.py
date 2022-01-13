@@ -121,6 +121,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 OAUTH_CONFIG_URL.format(server=self.server_url),
                 headers={
                     "ocp-apim-subscription-key": get_ocp_apim_key(self._region),
+                    'user-agent': "Dart/2.13 (dart:io)",
                     "x-user-agent": X_USER_AGENT.format("bmw"),
                 }
             )
@@ -224,7 +225,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
     def _login_china(self):
         try:
-            login_header = {'x-user-agent': X_USER_AGENT.format("bmw")}
+            login_header = {
+                'user-agent': "Dart/2.13 (dart:io)",
+                'x-user-agent': X_USER_AGENT.format("bmw")
+            }
 
             response = requests.request(
                 "GET",
@@ -271,6 +275,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         brand = brand or CarBrand.BMW
         headers = {
             "accept": "application/json",
+            "user-agent": "Dart/2.13 (dart:io)",
             "x-user-agent": X_USER_AGENT.format(brand.value),
             "Authorization": "Bearer {}".format(self._oauth_token),
             "accept-language": "en",
