@@ -7,7 +7,7 @@ import pytest
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.vehicle_status import (
+from bimmer_connected.vehicle.vehicle_status import (
     ChargingState,
     ConditionBasedServiceStatus,
     LidState,

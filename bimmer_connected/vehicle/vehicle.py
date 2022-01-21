@@ -3,10 +3,10 @@ from enum import Enum
 import logging
 from typing import TYPE_CHECKING, List
 
-from bimmer_connected.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.vehicle_status import VehicleStatus
-from bimmer_connected.remote_services import RemoteServices
+from bimmer_connected.vehicle.vehicle_status import VehicleStatus
+from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
 

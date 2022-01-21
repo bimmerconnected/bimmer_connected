@@ -7,7 +7,7 @@ from enum import Enum
 from bimmer_connected.utils import SerializableBaseClass
 
 if TYPE_CHECKING:
-    from bimmer_connected.vehicle_status import VehicleStatus
+    from bimmer_connected.vehicle.vehicle_status import VehicleStatus
 
 _LOGGER = logging.getLogger(__name__)
 

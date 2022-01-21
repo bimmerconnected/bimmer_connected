@@ -15,7 +15,8 @@ from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.utils import to_json
-from bimmer_connected.vehicle import HV_BATTERY_DRIVE_TRAINS, ConnectedDriveVehicle, VehicleViewDirection
+from bimmer_connected.vehicle import ConnectedDriveVehicle, VehicleViewDirection
+from bimmer_connected.vehicle.vehicle import HV_BATTERY_DRIVE_TRAINS
 
 TEXT_VIN = "Vehicle Identification Number"
 

@@ -19,8 +19,8 @@ import httpx
 import pytest
 import time_machine
 
-from bimmer_connected import remote_services
-from bimmer_connected.remote_services import ExecutionState, RemoteServiceStatus
+from bimmer_connected.vehicle import remote_services
+from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
 from . import RESPONSE_DIR, VIN_F45, load_response
 from .test_account import account_mock, get_mocked_account

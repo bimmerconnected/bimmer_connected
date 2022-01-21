@@ -10,7 +10,7 @@ from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.api.authentication import Authentication
 from bimmer_connected.api.client import MyBMWClientConfiguration
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.models import GPSPosition
+from bimmer_connected.vehicle.models import GPSPosition
 
 from . import (
     RESPONSE_DIR,

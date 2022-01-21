@@ -14,7 +14,7 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_URL,
     VEHICLE_POI_URL,
 )
-from bimmer_connected.models import PointOfInterest
+from bimmer_connected.vehicle.models import PointOfInterest
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import ConnectedDriveVehicle
