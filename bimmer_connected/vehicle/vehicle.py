@@ -10,6 +10,9 @@ from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
 
+from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
+from bimmer_connected.vehicle.position import VehiclePosition
+
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
 
@@ -64,27 +67,28 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     """
 
     def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
-        self._account = account
+        self.account = account
         self.attributes = None
-        self.status = VehicleStatus(account)
+        self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
+        self.fuel_indicators: FuelIndicators = FuelIndicators()
+        self.vehicle_position: VehiclePosition = VehiclePosition(vehicle_region=account.region)
 
         self.update_state(vehicle_dict)
 
-    def update_state(self, vehicle_dict) -> None:
+    def update_state(self, vehicle_data) -> None:
         """Update the state of a vehicle."""
-        if SERVICE_STATUS in vehicle_dict and SERVICE_PROPERTIES in vehicle_dict:
-            self.attributes = {k: v for k, v in vehicle_dict.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
-            self.status.update_state(
-                {
-                    k: v
-                    for k, v
-                    in vehicle_dict.items()
-                    if k in [SERVICE_STATUS, SERVICE_PROPERTIES]
-                }
-            )
-        else:
-            _LOGGER.warning("Incomplete vehicle status data: %s", vehicle_dict)
+        self.attributes = {k: v for k, v in vehicle_data.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
+        self.status.update_state(
+            {
+                k: v
+                for k, v
+                in vehicle_data.items()
+                if k in [SERVICE_STATUS, SERVICE_PROPERTIES]
+            }
+        )
+        self.fuel_indicators.update_from_vehicle_data(vehicle_data)
+        self.vehicle_position.update_from_vehicle_data(vehicle_data)
 
     @property
     def charging_profile(self) -> ChargingProfile:
@@ -196,7 +200,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
             view=direction.value,
         )
         # the accept field of the header needs to be updated as we want a png not the usual JSON
-        async with MyBMWClient(self._account.mybmw_client_config, brand=self.brand) as client:
+        async with MyBMWClient(self.account.mybmw_client_config, brand=self.brand) as client:
             response = await client.get(url, headers={"accept": "image/png"})
         return response.content
 

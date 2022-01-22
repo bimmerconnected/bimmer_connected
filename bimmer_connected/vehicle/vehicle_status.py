@@ -3,15 +3,12 @@
 import datetime
 import logging
 from enum import Enum
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Tuple, TYPE_CHECKING
 
-from bimmer_connected.coord_convert import gcj2wgs
-
-from bimmer_connected.api.regions import Regions
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 
 if TYPE_CHECKING:
-    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.vehicle import ConnectedDriveVehicle
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -86,93 +83,6 @@ class CheckControlMessage(SerializableBaseClass):
         return self._ccm_dict.get("state")
 
 
-class FuelIndicator(SerializableBaseClass):
-    """Parsed fuel indicators.
-
-    This class provides a nicer API than parsing the JSON format directly.
-    """
-
-    # pylint: disable=too-few-public-methods, too-many-instance-attributes
-
-    def __init__(self, fuel_indicator_dict: List):
-        self.remaining_range_fuel: Optional[Tuple[int, str]] = None
-        self.remaining_range_electric: Optional[Tuple[int, str]] = None
-        self.remaining_range_combined: Optional[Tuple[int, str]] = None
-        self.remaining_charging_time: float = None
-        self.charging_status: str = None
-        self.charging_start_time: datetime.datetime = None
-        self.charging_end_time: datetime.datetime = None
-        self.charging_time_label: str = None
-
-        self._map_to_attributes(fuel_indicator_dict)
-
-    def _map_to_attributes(self, fuel_indicators: List[Dict]) -> None:
-        """Parse fuel indicators based on Ids."""
-        for indicator in fuel_indicators:
-            if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
-                self.remaining_range_combined = self._parse_to_tuple(indicator)
-            elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59683:  # Electric
-                self.remaining_range_electric = self._parse_to_tuple(indicator)
-                self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_electric
-
-                self.charging_time_label = indicator["infoLabel"]
-                self.charging_status = indicator["chargingStatusType"]
-
-                if indicator.get("chargingStatusType") in ["CHARGING", "PLUGGED_IN"]:
-                    self._parse_charging_timestamp(indicator)
-
-            elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
-                self.remaining_range_fuel = self._parse_to_tuple(indicator)
-                self.remaining_range_combined = self.remaining_range_combined or self.remaining_range_fuel
-
-    def _parse_charging_timestamp(self, indicator: Dict) -> None:
-        """Parse charging end time string to timestamp."""
-        charging_start_time: datetime.datetime = None
-        charging_end_time: datetime.datetime = None
-        remaining_charging_time: int = None
-
-        # Only calculate charging end time if infolabel is like '100% at ~11:04am'
-        # Other options: 'Charging', 'Starts at ~09:00am' (but not handled here)
-
-        time_str = indicator["infoLabel"].split("~")[-1].strip()
-        try:
-            time_parsed = datetime.datetime.strptime(time_str, "%I:%M %p")
-
-            current_time = datetime.datetime.now()
-            datetime_parsed = time_parsed.replace(
-                year=current_time.year,
-                month=current_time.month,
-                day=current_time.day
-            )
-            if datetime_parsed < current_time:
-                datetime_parsed = datetime_parsed + datetime.timedelta(days=1)
-
-            if indicator["chargingStatusType"] == "CHARGING":
-                charging_end_time = datetime_parsed
-                remaining_charging_time = (charging_end_time - current_time).seconds
-            elif indicator["chargingStatusType"] == "PLUGGED_IN":
-                charging_start_time = datetime_parsed
-        except ValueError:
-            _LOGGER.error(
-                "Error parsing charging end time '%s' out of '%s'",
-                time_str,
-                indicator["infoLabel"]
-            )
-
-        self.charging_end_time = charging_end_time
-        self.charging_start_time = charging_start_time
-        self.remaining_charging_time = remaining_charging_time
-
-    @staticmethod
-    def _parse_to_tuple(fuel_indicator):
-        """Parse fuel indicator to standard range tuple."""
-        try:
-            range_val = int(fuel_indicator["rangeValue"])
-        except ValueError:
-            return None
-        return (range_val, fuel_indicator["rangeUnits"])
-
-
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -193,13 +103,11 @@ def backend_parameter(func):
 class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
-    def __init__(self, account: "ConnectedDriveAccount", status_dict: Dict = None):
+    def __init__(self, vehicle: "ConnectedDriveVehicle", status_dict: Dict = None):
         """Constructor."""
-        self._account = account
+        self.vehicle = vehicle
         self.status: Dict = {}
         self.properties: Dict = {}
-        self._fuel_indicators: FuelIndicator = {}
-        self._remote_service_position: Dict = {}
 
         if status_dict:
             self.update_state(status_dict)
@@ -208,19 +116,20 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Updates the vehicle status."""
         self.status: Dict = status_dict["status"]
         self.properties: Dict = status_dict["properties"]
-        self._fuel_indicators = FuelIndicator(status_dict["status"]["fuelIndicators"])
 
-    def set_remote_service_position(self, position_dict: Dict):
-        """Store remote service position returned from vehicle finder service."""
-        if position_dict.get('errorDetails'):
-            error = position_dict["errorDetails"]
-            _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
-            return None
-        pos = position_dict["positionData"]["position"]
-        pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        print()
 
-        self._remote_service_position = pos
-        return None
+    # def set_remote_service_position(self, position_dict: Dict):
+    #     """Store remote service position returned from vehicle finder service."""
+    #     if position_dict.get('errorDetails'):
+    #         error = position_dict["errorDetails"]
+    #         _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
+    #         return None
+    #     pos = position_dict["positionData"]["position"]
+    #     pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+
+    #     self._remote_service_position = pos
+    #     return None
 
     @property
     @backend_parameter
@@ -232,60 +141,25 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         )
 
     @property
-    @backend_parameter
     def gps_position(self) -> Tuple[float, float]:
         """Get the last known position of the vehicle.
 
         Returns a tuple of (latitude, longitude).
         This only provides data, if the vehicle tracking is enabled!
         """
-        if self.is_vehicle_active:
-            _LOGGER.info('Vehicle was moving at last update, no position available')
-            return (None, None)
-        if not self._remote_service_position and "vehicleLocation" not in self.properties:
-            _LOGGER.info("No vehicle location data available.")
-            return (None, None)
-
-        t_remote = self._remote_service_position.get(
-            "timestamp",
-            datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
-        )
-        if t_remote > self.timestamp:
-            pos = self._remote_service_position
-        else:
-            pos = self.properties['vehicleLocation']["coordinates"]
-
-        # Convert GCJ02 to WGS84 for positions in China
-        if self._account.region == Regions.CHINA:
-            pos['longitude'], pos['latitude'] = gcj2wgs(gcjLon=pos['longitude'], gcjLat=pos['latitude'])
-
-        return float(pos['latitude']), float(pos['longitude'])
+        if not self.vehicle.vehicle_position:
+            return None, None
+        return self.vehicle.vehicle_position.latitude, self.vehicle.vehicle_position.longitude
 
     @property
-    @backend_parameter
     def gps_heading(self) -> int:
         """Get the last known heading of the vehicle.
 
         This only provides data, if the vehicle tracking is enabled!
         """
-        if self.is_vehicle_active:
-            _LOGGER.info('Vehicle was moving at last update, no position available')
+        if not self.vehicle.vehicle_position:
             return None
-
-        if not self._remote_service_position and "vehicleLocation" not in self.properties:
-            _LOGGER.info("No vehicle location data available.")
-            return None
-
-        t_remote = self._remote_service_position.get(
-            "timestamp",
-            datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
-        )
-        if t_remote > self.timestamp:
-            pos = self._remote_service_position
-        else:
-            pos = self.properties['vehicleLocation']
-
-        return int(pos['heading'])
+        return self.vehicle.vehicle_position.heading
 
     @property
     @backend_parameter
@@ -315,7 +189,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         Returns a tuple of (value, unit_of_measurement)
         """
-        return self._fuel_indicators.remaining_range_fuel or (None, None)
+        return self.vehicle.fuel_indicators.remaining_range_fuel or (None, None)
 
     @property
     @backend_parameter
@@ -452,7 +326,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
         """Remaining range on battery, in kilometers."""
-        return self._fuel_indicators.remaining_range_electric or (None, None)
+        return self.vehicle.fuel_indicators.remaining_range_electric or (None, None)
 
     @property
     @backend_parameter
@@ -461,7 +335,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
         That is electrical range + fuel range.
         """
-        return self._fuel_indicators.remaining_range_combined or (None, None)
+        return self.vehicle.fuel_indicators.remaining_range_combined or (None, None)
 
     @property
     @backend_parameter
@@ -475,35 +349,35 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Charging state of the vehicle."""
         if "chargingState" not in self.properties:
             return None
-        return ChargingState(self._fuel_indicators.charging_status)
+        return ChargingState(self.vehicle.fuel_indicators.charging_status)
 
     @property
     @backend_parameter
     def charging_time_remaining(self) -> float:
         """Get the remaining charging duration."""
-        return round((self._fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
+        return round((self.vehicle.fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
 
     @property
     @backend_parameter
     def charging_start_time(self) -> datetime.datetime:
         """Get the charging finish time."""
-        if self._fuel_indicators.charging_start_time:
-            return self._fuel_indicators.charging_start_time.replace(tzinfo=self._account.timezone)
+        if self.vehicle.fuel_indicators.charging_start_time:
+            return self.vehicle.fuel_indicators.charging_start_time.replace(tzinfo=self.vehicle.account.timezone)
         return None
 
     @property
     @backend_parameter
     def charging_end_time(self) -> datetime.datetime:
         """Get the charging finish time."""
-        if self._fuel_indicators.charging_end_time:
-            return self._fuel_indicators.charging_end_time.replace(tzinfo=self._account.timezone)
+        if self.vehicle.fuel_indicators.charging_end_time:
+            return self.vehicle.fuel_indicators.charging_end_time.replace(tzinfo=self.vehicle.account.timezone)
         return None
 
     @property
     @backend_parameter
     def charging_time_label(self) -> datetime.datetime:
         """Get the remaining charging time as provided by the API."""
-        return self._fuel_indicators.charging_time_label
+        return self.vehicle.fuel_indicators.charging_time_label
 
     @property
     @backend_parameter

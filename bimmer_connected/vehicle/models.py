@@ -1,25 +1,45 @@
 """Generals models used for bimmer_connected."""
 
+import logging
 from dataclasses import InitVar, dataclass, field
-from typing import Optional
+from typing import Dict, Optional
+
+_LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class VehicleDataBase:
+    """A base class for parsing and storing complex vehicle data."""
+
+    @classmethod
+    def from_vehicle_data(cls, vehicle_data: Dict):
+        """Creates the class based on vehicle data from API."""
+        parsed = cls._parse_vehicle_data(vehicle_data) or {}
+        if len(parsed) > 0:
+            return cls(**parsed)
+        return None
+
+    def update_from_vehicle_data(self, vehicle_data: Dict):
+        """Updates the attributes based on vehicle data from API."""
+        parsed = self._parse_vehicle_data(vehicle_data) or {}
+        parsed.update(self._update_after_parse(parsed))
+        if len(parsed) > 0:
+            self.__dict__.update(parsed)
+
+    @classmethod
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
+        """Parses desired attributes out of vehicle data from API."""
+        raise NotImplementedError()
+
+    def _update_after_parse(self, parsed: Dict) -> Dict:
+        """Updates parsed vehicle data with attributes stored in class if needed."""
+        # pylint:disable=no-self-use
+        return parsed
 
 
 @dataclass
 class GPSPosition:
-    """A GPS Position."""
-
-    latitude: float
-    longitude: float
-    altitude: Optional[float] = None
-    direction: Optional[float] = None
-
-    def __post_init__(self):
-        check_strict_types(self)
-
-
-@dataclass
-class PointOfInterestCoordinates:
-    """Coordinates of a PointOfInterest."""
+    """GPS coordinates."""
 
     latitude: float
     longitude: float
@@ -50,12 +70,12 @@ class PointOfInterest:
     city: InitVar[str] = None
     country: InitVar[str] = None
 
-    coordinates: PointOfInterestCoordinates = field(init=False)
+    coordinates: GPSPosition = field(init=False)
     locationAddress: Optional[PointOfInterestAddress] = field(init=False)  # pylint: disable=invalid-name
     type: str = field(default="SHARED_DESTINATION_FROM_EXTERNAL_APP", init=False)
 
     def __post_init__(self, lat, lon, street, postal_code, city, country):  # pylint: disable=too-many-arguments
-        self.coordinates = PointOfInterestCoordinates(lat, lon)
+        self.coordinates = GPSPosition(lat, lon)
         # pylint: disable=invalid-name
         self.locationAddress = PointOfInterestAddress(street, postal_code, city, country)
 

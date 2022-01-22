@@ -1,0 +1,85 @@
+"""Generals models used for bimmer_connected."""
+
+import datetime
+import logging
+from dataclasses import dataclass
+from typing import Dict, Optional
+
+from bimmer_connected.const import Regions
+from bimmer_connected.coord_convert import gcj2wgs
+from bimmer_connected.utils import parse_datetime
+from bimmer_connected.vehicle.models import VehicleDataBase
+
+_LOGGER = logging.getLogger(__name__)
+
+
+@dataclass
+class VehiclePosition(VehicleDataBase):
+    """The current position of a vehicle."""
+
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    heading: Optional[int] = None
+    vehicle_update_timestamp: Optional[datetime.datetime] = None
+    vehicle_region: Optional[Regions] = None
+    remote_service_position: Optional[Dict] = None
+
+    # pylint:disable=arguments-differ
+    @classmethod
+    def from_vehicle_data(cls, vehicle_data: Dict, region: Regions):
+        """Creates the class based on vehicle data from API."""
+        parsed = cls._parse_vehicle_data(vehicle_data) or {}
+        if len(parsed) > 0:
+            parsed["vehicle_region"] = region
+            return cls(**parsed)
+        return None
+
+    @classmethod
+    def _parse_vehicle_data(cls, vehicle_data: Dict):
+        date_dummy = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+
+        retval = {}
+        retval["vehicle_update_timestamp"] = max(
+            parse_datetime(vehicle_data.get("properties", {}).get("lastUpdatedAt")) or date_dummy,
+            parse_datetime(vehicle_data.get("status", {}).get("lastUpdatedAt")) or date_dummy,
+        )
+        if "properties" in vehicle_data and "vehicleLocation" in vehicle_data["properties"]:
+            location = vehicle_data["properties"]["vehicleLocation"]
+            retval.update(location["coordinates"])
+            retval["heading"] = location["heading"]
+        else:
+            _LOGGER.info("Unable to read data from `properties.vehicleLocation`.")
+            return None
+        return retval
+
+    def _update_after_parse(self, parsed: Dict) -> Dict:
+        """Updates parsed vehicle data with attributes stored in class if needed."""
+        retval = parsed
+        # Overwrite vehicle data with remote service position if available & newer
+        if self.remote_service_position is not None:
+            t_remote = self.remote_service_position.get(
+                "timestamp", datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
+            )
+            if t_remote > self.vehicle_update_timestamp:
+                retval.update(
+                    {k: v for k, v in self.remote_service_position.items() if k in ["latitude", "longitude", "heading"]}
+                )
+
+        # Convert GCJ02 to WGS84 for positions in China
+        if self.vehicle_region == Regions.CHINA and "longitude" in parsed and "latitude" in parsed:
+            retval["longitude"], retval["latitude"] = gcj2wgs(gcjLon=retval["longitude"], gcjLat=retval["latitude"])
+
+        return retval
+
+    def set_remote_service_position(self, remote_service_dict: Dict):
+        """Store remote service position returned from vehicle finder service."""
+        if remote_service_dict.get("errorDetails"):
+            error = remote_service_dict["errorDetails"]
+            _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
+        else:
+            pos = remote_service_dict["positionData"]["position"]
+            pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+
+            self.remote_service_position = pos
+
+            self.__dict__.update(self._update_after_parse({}))

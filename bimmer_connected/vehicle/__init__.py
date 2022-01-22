@@ -1,1 +1,3 @@
-from .vehicle import DriveTrainType, VehicleViewDirection, ConnectedDriveVehicle
+"""Methods and classes around the vehicle."""
+
+from .vehicle import DriveTrainType, VehicleViewDirection, ConnectedDriveVehicle  # noqa

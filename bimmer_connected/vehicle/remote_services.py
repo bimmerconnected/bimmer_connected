@@ -71,7 +71,7 @@ class RemoteServices:
 
     def __init__(self, vehicle: "ConnectedDriveVehicle"):
         """Constructor."""
-        self._account = vehicle._account
+        self._account = vehicle.account
         self._vehicle = vehicle
 
     async def trigger_remote_light_flash(self) -> RemoteServiceStatus:
@@ -220,7 +220,7 @@ class RemoteServices:
         event_id = await self._start_remote_service(Services.VEHICLE_FINDER)
         status = await self._block_until_done(event_id)
         result = await self._get_event_position(event_id)
-        self._vehicle.status.set_remote_service_position(result)
+        self._vehicle.vehicle_position.set_remote_service_position(result)
         return status
 
     async def _get_event_position(self, event_id) -> Dict:

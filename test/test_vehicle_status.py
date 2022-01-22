@@ -12,7 +12,6 @@ from bimmer_connected.vehicle.vehicle_status import (
     ConditionBasedServiceStatus,
     LidState,
     LockState,
-    VehicleStatus,
 )
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX
@@ -226,8 +225,8 @@ async def test_parse_f31_no_position():
 async def test_parse_gcj02_position():
     """Test conversion of GCJ02 to WGS84 for china."""
     account = await get_mocked_account(get_region_from_name("china"))
-    status = VehicleStatus(
-        account,
+    vehicle = account.get_vehicle(VIN_F48)
+    vehicle.update_state(
         {
             "properties": {
                 "vehicleLocation": {
@@ -243,23 +242,7 @@ async def test_parse_gcj02_position():
             },
         },
     )
-    assert (39.8337, 116.22012) == (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
-
-
-@pytest.mark.asyncio
-async def test_parse_f11_no_position_vehicle_active(caplog):
-    """Test parsing of F11 data with vehicle beeing active."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F48)
-    status = vehicle.status
-
-    assert vehicle.is_vehicle_tracking_enabled is True
-    assert status.is_vehicle_active is True
-
-    caplog.set_level(logging.INFO)
-    assert status.gps_position == (None, None)
-    assert status.gps_heading is None
-    infos = [r for r in caplog.records if r.levelname == "INFO" and "Vehicle was moving" in r.message]
-    assert len(infos) == 2
+    assert (39.8337, 116.22617) == (round(vehicle.status.gps_position[0], 5), round(vehicle.status.gps_position[1], 5))
 
 
 @pytest.mark.asyncio
@@ -339,22 +322,6 @@ async def test_empty_status(caplog):
 
     with pytest.raises(ValueError):
         assert status.is_vehicle_active is None
-
-
-@pytest.mark.asyncio
-async def test_incomplete_vehicle_dict(caplog):
-    """Test if the parsing of mileage and range is working"""
-    account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G08)
-
-    vehicle.update_state(
-        {
-            "properties": {},
-        }
-    )
-
-    warnings = [r for r in caplog.records if r.levelname == "WARNING" and "Incomplete vehicle status data" in r.message]
-    assert len(warnings) == 1
 
 
 @pytest.mark.asyncio
