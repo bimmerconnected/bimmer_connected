@@ -46,9 +46,7 @@ class ChargingWindow(SerializableBaseClass):
     def start_time(self) -> str:
         """Start of the charging window."""
         # end of reductionOfChargeCurrent == start of charging window
-        return (
-            f"{str(self._window_dict['end']['hour']).zfill(2)}:{str(self._window_dict['end']['minute']).zfill(2)}"
-        )
+        return f"{str(self._window_dict['end']['hour']).zfill(2)}:{str(self._window_dict['end']['minute']).zfill(2)}"
 
     @property
     def end_time(self) -> str:
@@ -98,15 +96,17 @@ def backend_parameter(func):
 
     Errors are handled in a default way.
     """
-    def _func_wrapper(self: 'ChargingProfile', *args, **kwargs):
+
+    def _func_wrapper(self: "ChargingProfile", *args, **kwargs):
         # pylint: disable=protected-access
         if self.charging_profile is None:
-            raise ValueError('No data available for vehicles charging profile!')
+            raise ValueError("No data available for vehicles charging profile!")
         try:
             return func(self, *args, **kwargs)
         except KeyError:
-            _LOGGER.debug('No data available for attribute %s!', str(func))
+            _LOGGER.debug("No data available for attribute %s!", str(func))
             return None
+
     return _func_wrapper
 
 
@@ -125,7 +125,7 @@ class ChargingProfile(SerializableBaseClass):  # pylint: disable=too-many-public
     @backend_parameter
     def is_pre_entry_climatization_enabled(self) -> bool:
         """Get status of pre-entry climatization."""
-        return bool(self.charging_profile['climatisationOn'])
+        return bool(self.charging_profile["climatisationOn"])
 
     @property
     @backend_parameter
@@ -141,16 +141,16 @@ class ChargingProfile(SerializableBaseClass):  # pylint: disable=too-many-public
     @backend_parameter
     def preferred_charging_window(self) -> ChargingWindow:
         """Returns the preferred charging window."""
-        return ChargingWindow(self.charging_profile['reductionOfChargeCurrent'])
+        return ChargingWindow(self.charging_profile["reductionOfChargeCurrent"])
 
     @property
     @backend_parameter
     def charging_preferences(self) -> str:
         """Returns the prefered charging preferences."""
-        return ChargingPreferences(self.charging_profile['chargingPreference'])
+        return ChargingPreferences(self.charging_profile["chargingPreference"])
 
     @property
     @backend_parameter
     def charging_mode(self) -> str:
         """Returns the prefered charging mode."""
-        return ChargingMode(self.charging_profile['chargingMode'])
+        return ChargingMode(self.charging_profile["chargingMode"])

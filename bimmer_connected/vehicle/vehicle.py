@@ -63,6 +63,7 @@ class LscType(StrEnum):
     NOT_SUPPORTED = 'NOT_SUPPORTED'
     ACTIVATED = 'ACTIVATED'
 
+
 # pylint: disable=too-many-public-methods,too-many-instance-attributes
 class ConnectedDriveVehicle(SerializableBaseClass):
     """Models state and remote services of one vehicle.

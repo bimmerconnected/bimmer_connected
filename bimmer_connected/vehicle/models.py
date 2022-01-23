@@ -65,7 +65,7 @@ class GPSPosition(Coordinates):
     def __new__(cls, *args, **kwargs):
         if len([a for a in args + tuple(kwargs.values()) if a is None]) not in [0, len(cls._fields)]:
             raise TypeError("Either none or all arguments must be 'None'.")
-        annotations = cls.__annotations__    # pylint: disable=no-member
+        annotations = cls.__annotations__  # pylint: disable=no-member
         for i, field_name in enumerate(annotations, 1):
             value = args[i] if (len(args) - 1) == i else kwargs.get(field_name)
             if value is not None and not isinstance(value, (float, int)):
