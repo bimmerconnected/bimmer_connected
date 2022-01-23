@@ -12,11 +12,14 @@ from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
 from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit, StrEnum
 from bimmer_connected.vehicle.position import VehiclePosition
 from bimmer_connected.vehicle.remote_services import RemoteServices
+from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
 from bimmer_connected.vehicle.vehicle_status import ChargingState, VehicleStatus
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
     from bimmer_connected.vehicle.doors_windows import Lid, LockState, Window
+    from bimmer_connected.vehicle.reports import CheckControlMessage, ConditionBasedService
+
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -77,6 +80,8 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         self.fuel_indicators: FuelIndicators = FuelIndicators()
         self.vehicle_position: VehiclePosition = VehiclePosition(vehicle_region=account.region)
         self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
+        self.condition_based_service_report: ConditionBasedServiceReport = ConditionBasedServiceReport()
+        self.check_control_message_report: CheckControlMessageReport = CheckControlMessageReport()
 
         self.update_state(vehicle_data)
 
@@ -94,6 +99,8 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         self.fuel_indicators.update_from_vehicle_data(vehicle_data)
         self.vehicle_position.update_from_vehicle_data(vehicle_data)
         self.doors_and_windows.update_from_vehicle_data(vehicle_data)
+        self.condition_based_service_report.update_from_vehicle_data(vehicle_data)
+        self.check_control_message_report.update_from_vehicle_data(vehicle_data)
 
     @property
     def _status(self) -> Dict:
@@ -365,6 +372,30 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def door_lock_state(self) -> "LockState":
         """Get state of the door locks."""
         return self.doors_and_windows.door_lock_state
+
+    # # # # # # # # # # # # # # #
+    # Condition Based & Service reports
+    # # # # # # # # # # # # # # #
+
+    @property
+    def condition_based_services(self) -> List["ConditionBasedService"]:
+        """Get status of the condition based services."""
+        return self.condition_based_service_report.reports
+
+    @property
+    def are_all_cbs_ok(self) -> bool:
+        """Check if the status of all condition based services are "OK"."""
+        return not self.condition_based_service_report.is_service_required
+
+    @property
+    def check_control_messages(self) -> List["CheckControlMessage"]:
+        """List of check control messages."""
+        return self.check_control_message_report.reports
+
+    @property
+    def has_check_control_messages(self) -> bool:
+        """Return true if any check control message is present."""
+        return self.check_control_message_report.has_check_control_messages
 
     # # # # # # # # # # # # # # #
     # Generic functions

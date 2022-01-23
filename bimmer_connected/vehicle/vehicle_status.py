@@ -30,36 +30,6 @@ class ChargingState(StrEnum):
     WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
 
 
-class CheckControlMessage(SerializableBaseClass):
-    """Check control message sent from the server.
-
-    This class provides a nicer API than parsing the JSON format directly.
-    """
-
-    def __init__(self, ccm_dict: dict):
-        self._ccm_dict = ccm_dict
-
-    @property
-    def description_long(self) -> str:
-        """Long description of the check control message."""
-        return self._ccm_dict.get("longDescription")
-
-    @property
-    def description_short(self) -> str:
-        """Short description of the check control message."""
-        return self._ccm_dict.get("title")
-
-    @property
-    def ccm_id(self) -> int:
-        """id of the check control message."""
-        return self._ccm_dict.get("id")
-
-    @property
-    def state(self) -> int:
-        """state of the check control message."""
-        return self._ccm_dict.get("state")
-
-
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -93,20 +63,6 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         """Updates the vehicle status."""
         self.status: Dict = status_dict["status"]
         self.properties: Dict = status_dict["properties"]
-
-        print()
-
-    # def set_remote_service_position(self, position_dict: Dict):
-    #     """Store remote service position returned from vehicle finder service."""
-    #     if position_dict.get('errorDetails'):
-    #         error = position_dict["errorDetails"]
-    #         _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
-    #         return None
-    #     pos = position_dict["positionData"]["position"]
-    #     pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
-
-    #     self._remote_service_position = pos
-    #     return None
 
     @property
     @backend_parameter
@@ -218,17 +174,14 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     @backend_parameter
-    def condition_based_services(self) -> List['ConditionBasedServiceReport']:
-        """Get status of the condition based services."""
-        return [ConditionBasedServiceReport(s) for s in self.properties['serviceRequired']]
+    def condition_based_services(self) -> List['ConditionBasedService']:
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.condition_based_services
 
     @property
     def are_all_cbs_ok(self) -> bool:
-        """Check if the status of all condition based services is "OK"."""
-        for cbs in self.condition_based_services:
-            if cbs.state != ConditionBasedServiceStatus.OK:
-                return False
-        return True
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.are_all_cbs_ok
 
     @property
     @backend_parameter
@@ -308,36 +261,12 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     @backend_parameter
-    def check_control_messages(self) -> List[CheckControlMessage]:
-        """List of check control messages."""
-        messages = self.status.get('checkControlMessages', [])
-        return [CheckControlMessage(m) for m in messages if m["state"] != "OK"]
+    def check_control_messages(self) -> List["CheckControlMessage"]:
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.check_control_messages
 
     @property
     @backend_parameter
     def has_check_control_messages(self) -> bool:
-        """Return true if any check control message is present."""
-        return len(self.check_control_messages) > 0
-
-
-class ConditionBasedServiceReport:  # pylint: disable=too-few-public-methods
-    """Entry in the list of condition based services."""
-
-    def __init__(self, cbs_data: dict):
-
-        #: date when the service is due
-        self.due_date = parse_datetime(cbs_data.get('dateTime'))
-
-        #: status of the service
-        self.state = ConditionBasedServiceStatus(cbs_data['status'])
-
-        #: service type
-        self.service_type = cbs_data['type']
-
-        #: distance when the service is due
-        self.due_distance = None
-        if 'distance' in cbs_data:
-            self.due_distance = (cbs_data["distance"]['value'], cbs_data["distance"]['units'])
-
-        #: description of the required service
-        self.description = None  # Could be retrieved from status.requiredServices if needed
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.has_check_control_messages

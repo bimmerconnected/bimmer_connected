@@ -8,9 +8,9 @@ import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.vehicle_status import (
-    ChargingState,
-    ConditionBasedServiceStatus,
+    ChargingState
 )
+from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX
@@ -188,7 +188,7 @@ async def test_condition_based_services():
     assert ConditionBasedServiceStatus.OK == cbs[1].state
     expected_cbs1 = datetime.datetime(year=2023, month=8, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs1 == cbs[1].due_date
-    assert cbs[1].due_distance is None
+    assert (None, None) == cbs[1].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[2].state
     expected_cbs2 = datetime.datetime(year=2024, month=8, day=1, tzinfo=datetime.timezone.utc)
@@ -314,7 +314,7 @@ async def test_empty_status(caplog):
 async def test_check_control_messages():
     """Test handling of check control messages.
 
-    G21 is the only vehicle with active Check Control Messages, so we only expect to get something there.
+    F11 is the only vehicle with active Check Control Messages, so we only expect to get something there.
     However we have no vehicle with issues in check control.
     """
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F11)
@@ -323,8 +323,7 @@ async def test_check_control_messages():
     ccms = vehicle.status.check_control_messages
     assert 2 == len(ccms)
 
-    assert "Medium" == ccms[0].state
-    assert "229" == ccms[0].ccm_id
+    assert CheckControlStatus.MEDIUM == ccms[0].state
     assert (
         "Charge by driving for longer periods or use external charger. "
         "Functions requiring battery will be switched off."
@@ -332,8 +331,7 @@ async def test_check_control_messages():
 
     assert "Battery discharged: Start engine" == ccms[0].description_short
 
-    assert "Low" == ccms[1].state
-    assert "50" == ccms[1].ccm_id
+    assert CheckControlStatus.LOW == ccms[1].state
     assert (
         "System unable to monitor tire pressure. Check tire pressures manually. "
         "Continued driving possible. Consult service center."
