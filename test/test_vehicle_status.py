@@ -1,15 +1,12 @@
 """Test for VehicleState."""
 
 import datetime
-import logging
 
 import pytest
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.vehicle.vehicle_status import (
-    ChargingState
-)
+from bimmer_connected.vehicle.const import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 
@@ -290,24 +287,6 @@ async def test_door_locks():
     status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).status
 
     assert LockState.UNLOCKED == status.door_lock_state
-
-
-@pytest.mark.asyncio
-async def test_empty_status(caplog):
-    """Test an empy status."""
-    status = (await get_mocked_account()).get_vehicle(VIN_F31).status
-    status.properties.pop("inMotion")
-
-    caplog.set_level(logging.DEBUG)
-    assert status.is_vehicle_active is None
-    debug = [r for r in caplog.records if r.levelname == "DEBUG" and "No data available" in r.message]
-    assert len(debug) == 1
-
-    status.properties = None
-    status.status = None
-
-    with pytest.raises(ValueError):
-        assert status.is_vehicle_active is None
 
 
 @pytest.mark.asyncio

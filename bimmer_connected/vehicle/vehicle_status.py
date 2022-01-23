@@ -4,8 +4,8 @@ import datetime
 import logging
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
-from bimmer_connected.utils import SerializableBaseClass, parse_datetime
-from bimmer_connected.vehicle.models import StrEnum
+from bimmer_connected.utils import SerializableBaseClass
+from bimmer_connected.vehicle.const import ChargingState
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import ConnectedDriveVehicle
@@ -15,21 +15,6 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class ChargingState(StrEnum):
-    """Charging state of electric vehicle."""
-    DEFAULT = 'DEFAULT'
-    CHARGING = 'CHARGING'
-    ERROR = 'ERROR'
-    COMPLETE = 'COMPLETE'
-    FULLY_CHARGED = 'FULLY_CHARGED'
-    FINISHED_FULLY_CHARGED = 'FINISHED_FULLY_CHARGED'
-    FINISHED_NOT_FULL = 'FINISHED_NOT_FULL'
-    INVALID = 'INVALID'
-    NOT_CHARGING = 'NOT_CHARGING'
-    PLUGGED_IN = 'PLUGGED_IN'
-    WAITING_FOR_CHARGING = 'WAITING_FOR_CHARGING'
-
-
 def backend_parameter(func):
     """Decorator for parameters reading data from the backend.
 
@@ -37,8 +22,6 @@ def backend_parameter(func):
     """
     def _func_wrapper(self: 'VehicleStatus', *args, **kwargs):
         # pylint: disable=protected-access
-        if self.properties is None and self.status is None:
-            raise ValueError('No data available for vehicle status!')
         try:
             return func(self, *args, **kwargs)
         except KeyError:
@@ -50,28 +33,16 @@ def backend_parameter(func):
 class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
+    # pylint: disable=unused-argument
     def __init__(self, vehicle: "ConnectedDriveVehicle", status_dict: Dict = None):
         """Constructor."""
         self.vehicle = vehicle
-        self.status: Dict = {}
-        self.properties: Dict = {}
-
-        if status_dict:
-            self.update_state(status_dict)
-
-    def update_state(self, status_dict: Dict):
-        """Updates the vehicle status."""
-        self.status: Dict = status_dict["status"]
-        self.properties: Dict = status_dict["properties"]
 
     @property
     @backend_parameter
     def timestamp(self) -> datetime.datetime:
-        """Get the timestamp when the data was recorded."""
-        return max(
-            parse_datetime(self.properties['lastUpdatedAt']),
-            parse_datetime(self.status['lastUpdatedAt'])
-        )
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.timestamp
 
     @property
     def gps_position(self) -> Tuple[float, float]:
@@ -86,11 +57,8 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def is_vehicle_active(self) -> bool:
-        """Check if the vehicle is active/moving.
-
-        If the vehicle was active/moving at the time of the last status update, current position is not available.
-        """
-        return self.properties['inMotion']
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.is_vehicle_active
 
     @property
     @backend_parameter
@@ -157,8 +125,8 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def last_update_reason(self) -> str:
-        """The reason for the last state update"""
-        return self.status['timestampMessage']
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.last_update_reason
 
     @property
     @backend_parameter

@@ -12,8 +12,10 @@ from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
 from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit, StrEnum
 from bimmer_connected.vehicle.position import VehiclePosition
 from bimmer_connected.vehicle.remote_services import RemoteServices
+from bimmer_connected.utils import parse_datetime
 from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
-from bimmer_connected.vehicle.vehicle_status import ChargingState, VehicleStatus
+from bimmer_connected.vehicle.vehicle_status import VehicleStatus
+from bimmer_connected.vehicle.const import ChargingState
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
@@ -89,14 +91,6 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def update_state(self, vehicle_data) -> None:
         """Update the state of a vehicle."""
         self.attributes = {k: v for k, v in vehicle_data.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
-        self.status.update_state(
-            {
-                k: v
-                for k, v
-                in vehicle_data.items()
-                if k in [SERVICE_STATUS, SERVICE_PROPERTIES]
-            }
-        )
         self.fuel_indicators.update_from_vehicle_data(vehicle_data)
         self.vehicle_position.update_from_vehicle_data(vehicle_data)
         self.doors_and_windows.update_from_vehicle_data(vehicle_data)
@@ -222,8 +216,37 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return result
 
     # # # # # # # # # # # # # # #
+    # Generic attributes
+    # # # # # # # # # # # # # # #
+
+    @property
+    def timestamp(self) -> datetime.datetime:
+        """Get the timestamp when the data was recorded."""
+        timestamps = [ts for ts in [
+            parse_datetime(self._properties.get('lastUpdatedAt')),
+            parse_datetime(self._status.get('lastUpdatedAt')),
+        ] if ts]
+        if len(timestamps) == 0:
+            return None
+        return max(timestamps)
+
+    @property
+    def last_update_reason(self) -> str:
+        """The reason for the last state update"""
+        return self._status['timestampMessage']
+
+    @property
+    def is_vehicle_active(self) -> bool:
+        """Check if the vehicle is active/moving.
+
+        If the vehicle was active/moving at the time of the last status update, current position is not available.
+        """
+        return self._properties['inMotion']
+
+    # # # # # # # # # # # # # # #
     # Vehicle position
     # # # # # # # # # # # # # # #
+
     @property
     def gps_position(self) -> GPSPosition:
         """Get the last known position of the vehicle.
