@@ -5,17 +5,16 @@ from typing import TYPE_CHECKING, Dict, List
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
-from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
+from bimmer_connected.utils import SerializableBaseClass, parse_datetime, serialize_for_json
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.const import ChargingState
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
-from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit, StrEnum
+from bimmer_connected.vehicle.models import GPSPosition, StrEnum, ValueWithUnit
 from bimmer_connected.vehicle.position import VehiclePosition
 from bimmer_connected.vehicle.remote_services import RemoteServices
-from bimmer_connected.utils import parse_datetime
 from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
 from bimmer_connected.vehicle.vehicle_status import VehicleStatus
-from bimmer_connected.vehicle.const import ChargingState
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
@@ -28,10 +27,11 @@ _LOGGER = logging.getLogger(__name__)
 
 class DriveTrainType(StrEnum):
     """Different types of drive trains."""
-    COMBUSTION = 'COMBUSTION'
-    PLUGIN_HYBRID = 'PLUGIN_HYBRID'  # PHEV
-    ELECTRIC = 'ELECTRIC'
-    HYBRID = 'HYBRID'  # mild hybrids
+
+    COMBUSTION = "COMBUSTION"
+    PLUGIN_HYBRID = "PLUGIN_HYBRID"  # PHEV
+    ELECTRIC = "ELECTRIC"
+    HYBRID = "HYBRID"  # mild hybrids
 
 
 #: Set of drive trains that have a combustion engine
@@ -46,11 +46,12 @@ class VehicleViewDirection(StrEnum):
 
     This is used to get a rendered image of the vehicle.
     """
-    FRONTSIDE = 'VehicleStatus'
-    FRONT = 'VehicleInfo'
+
+    FRONTSIDE = "VehicleStatus"
+    FRONT = "VehicleInfo"
     # REARSIDE = 'REARSIDE'
     # REAR = 'REAR'
-    SIDE = 'ChargingHistory'
+    SIDE = "ChargingHistory"
     # DASHBOARD = 'DASHBOARD'
     # DRIVERDOOR = 'DRIVERDOOR'
     # REARBIRDSEYE = 'REARBIRDSEYE'
@@ -61,9 +62,10 @@ class LscType(StrEnum):
 
     Not really sure, what this value really contains.
     """
-    NOT_CAPABLE = 'NOT_CAPABLE'
-    NOT_SUPPORTED = 'NOT_SUPPORTED'
-    ACTIVATED = 'ACTIVATED'
+
+    NOT_CAPABLE = "NOT_CAPABLE"
+    NOT_SUPPORTED = "NOT_SUPPORTED"
+    ACTIVATED = "ACTIVATED"
 
 
 # pylint: disable=too-many-public-methods,too-many-instance-attributes
@@ -77,7 +79,6 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def __init__(self, account: "ConnectedDriveAccount", vehicle_data: dict) -> None:
         self.account = account
         self.data = vehicle_data
-        self.attributes = None
         self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
         self.fuel_indicators: FuelIndicators = FuelIndicators()
@@ -90,12 +91,16 @@ class ConnectedDriveVehicle(SerializableBaseClass):
 
     def update_state(self, vehicle_data) -> None:
         """Update the state of a vehicle."""
-        self.attributes = {k: v for k, v in vehicle_data.items() if k not in [SERVICE_STATUS, SERVICE_PROPERTIES]}
+        self.data = vehicle_data
         self.fuel_indicators.update_from_vehicle_data(vehicle_data)
         self.vehicle_position.update_from_vehicle_data(vehicle_data)
         self.doors_and_windows.update_from_vehicle_data(vehicle_data)
         self.condition_based_service_report.update_from_vehicle_data(vehicle_data)
         self.check_control_message_report.update_from_vehicle_data(vehicle_data)
+
+    # # # # # # # # # # # # # # #
+    # Generic attributes
+    # # # # # # # # # # # # # # #
 
     @property
     def _status(self) -> Dict:
@@ -108,35 +113,56 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return self.data[SERVICE_PROPERTIES]
 
     @property
-    def charging_profile(self) -> ChargingProfile:
-        """Return the charging profile if available."""
-        return ChargingProfile(self.status) if self.has_weekly_planner_service else None
-
-    @property
-    def drive_train(self) -> DriveTrainType:
-        """Get the type of drive train of the vehicle."""
-        return DriveTrainType(self.attributes['driveTrain'])
+    def brand(self) -> CarBrands:
+        """Get the car brand."""
+        return CarBrands(self.data["brand"])
 
     @property
     def name(self) -> str:
         """Get the name of the vehicle."""
-        return self.attributes['model']
+        return self.data["model"]
 
     @property
-    def brand(self) -> CarBrands:
-        """Get the car brand."""
-        return CarBrands(self.attributes["brand"])
+    def vin(self) -> str:
+        """Get the VIN (vehicle identification number) of the vehicle."""
+        return self.data["vin"]
+
+    @property
+    def drive_train(self) -> DriveTrainType:
+        """Get the type of drive train of the vehicle."""
+        return DriveTrainType(self.data["driveTrain"])
 
     @property
     def mileage(self) -> ValueWithUnit:
         """Get the mileage of the vehicle."""
-        return ValueWithUnit(
-            self._status['currentMileage']['mileage'],
-            self._status['currentMileage']['units']
-        )
+        return ValueWithUnit(self._status["currentMileage"]["mileage"], self._status["currentMileage"]["units"])
 
     @property
-    def has_hv_battery(self) -> bool:
+    def timestamp(self) -> datetime.datetime:
+        """Get the timestamp when the data was recorded."""
+        timestamps = [
+            ts
+            for ts in [
+                parse_datetime(self._properties.get("lastUpdatedAt")),
+                parse_datetime(self._status.get("lastUpdatedAt")),
+            ]
+            if ts
+        ]
+        if len(timestamps) == 0:
+            return None
+        return max(timestamps)
+
+    @property
+    def last_update_reason(self) -> str:
+        """The reason for the last state update"""
+        return self._status["timestampMessage"]
+
+    # # # # # # # # # # # # # # #
+    # Capabilities & properties
+    # # # # # # # # # # # # # # #
+
+    @property
+    def is_electric(self) -> bool:
         """Return True if vehicle is equipped with a high voltage battery.
 
         In this case we can get the state of the battery in the state attributes.
@@ -144,28 +170,41 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return self.drive_train in HV_BATTERY_DRIVE_TRAINS
 
     @property
-    def has_range_extender(self) -> bool:
+    def is_range_extender(self) -> bool:
         """Return True if vehicle is equipped with a range extender.
 
         In this case we can get the state of the gas tank."""
         return self.drive_train == DriveTrainType.ELECTRIC and self.status.fuel_indicator_count == 3
 
     @property
-    def has_internal_combustion_engine(self) -> bool:
+    def is_combustion(self) -> bool:
         """Return True if vehicle is equipped with an internal combustion engine.
 
         In this case we can get the state of the gas tank."""
         return self.drive_train in COMBUSTION_ENGINE_DRIVE_TRAINS
 
     @property
-    def has_weekly_planner_service(self) -> bool:
+    def is_charging_plan_supported(self) -> bool:
         """Return True if charging control (weekly planner) is available."""
-        return self.attributes["capabilities"]["isChargingPlanSupported"]
+        return self.data["capabilities"]["isChargingPlanSupported"]
 
     @property
     def is_vehicle_tracking_enabled(self) -> bool:
         """Return True if vehicle finder is enabled in vehicle."""
-        return self.attributes["capabilities"]["vehicleFinder"]["isEnabled"]
+        return self.data["capabilities"]["vehicleFinder"]["isEnabled"]
+
+    @property
+    def is_vehicle_active(self) -> bool:
+        """Check if the vehicle is active/moving.
+
+        If the vehicle was active/moving at the time of the last status update, current position is not available.
+        """
+        return self._properties["inMotion"]
+
+    @property
+    def is_lsc_enabled(self) -> bool:
+        """Return True if LastStateCall is enabled (vehicle automatically updates API)."""
+        return self.data["capabilities"]["lastStateCall"]["lscState"] == "ACTIVATED"
 
     @property
     def drive_train_attributes(self) -> List[str]:
@@ -176,13 +215,21 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         have a combustion engine. Depending on the state of the vehicle, some of
         the attributes might still be None.
         """
-        result = ['remaining_range_total', 'mileage']
+        result = ["remaining_range_total", "mileage"]
         if self.has_hv_battery:
-            result += ['charging_time_remaining', 'charging_start_time', 'charging_end_time', 'charging_time_label',
-                       'charging_status', 'charging_level_hv', 'connection_status', 'remaining_range_electric',
-                       'last_charging_end_result']
+            result += [
+                "charging_time_remaining",
+                "charging_start_time",
+                "charging_end_time",
+                "charging_time_label",
+                "charging_status",
+                "charging_level_hv",
+                "connection_status",
+                "remaining_range_electric",
+                "last_charging_end_result",
+            ]
         if self.has_internal_combustion_engine or self.has_range_extender:
-            result += ['remaining_fuel', 'remaining_range_fuel', 'fuel_percent']
+            result += ["remaining_fuel", "remaining_range_fuel", "fuel_percent"]
         return result
 
     @property
@@ -192,20 +239,25 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         Not really sure what that value really means. If it is NOT_CAPABLE, that probably means that the
         vehicle state will not contain much data.
         """
-        return LscType(self.attributes["capabilities"]["lastStateCall"].get('lscState'))
+        return LscType(self.data["capabilities"]["lastStateCall"].get("lscState"))
 
     @property
     def available_attributes(self) -> List[str]:
         """Get the list of non-drivetrain attributes available for this vehicle."""
         # attributes available in all vehicles
-        result = ['gps_position', 'vin']
+        result = ["gps_position", "vin"]
         if self.lsc_type == LscType.ACTIVATED:
             # generic attributes if lsc_type =! NOT_SUPPORTED
             result += self.drive_train_attributes
-            result += ['condition_based_services', 'check_control_messages', 'door_lock_state', 'timestamp',
-                       'last_update_reason']
+            result += [
+                "condition_based_services",
+                "check_control_messages",
+                "door_lock_state",
+                "timestamp",
+                "last_update_reason",
+            ]
             # required for existing Home Assistant binary sensors
-            result += ['lids', 'windows']
+            result += ["lids", "windows"]
         return result
 
     @property
@@ -214,34 +266,6 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         result = [SERVICE_STATUS]
 
         return result
-
-    # # # # # # # # # # # # # # #
-    # Generic attributes
-    # # # # # # # # # # # # # # #
-
-    @property
-    def timestamp(self) -> datetime.datetime:
-        """Get the timestamp when the data was recorded."""
-        timestamps = [ts for ts in [
-            parse_datetime(self._properties.get('lastUpdatedAt')),
-            parse_datetime(self._status.get('lastUpdatedAt')),
-        ] if ts]
-        if len(timestamps) == 0:
-            return None
-        return max(timestamps)
-
-    @property
-    def last_update_reason(self) -> str:
-        """The reason for the last state update"""
-        return self._status['timestampMessage']
-
-    @property
-    def is_vehicle_active(self) -> bool:
-        """Check if the vehicle is active/moving.
-
-        If the vehicle was active/moving at the time of the last status update, current position is not available.
-        """
-        return self._properties['inMotion']
 
     # # # # # # # # # # # # # # #
     # Vehicle position
@@ -255,10 +279,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """
         if not self.vehicle_position:
             return GPSPosition(None, None)
-        return GPSPosition(
-            self.vehicle_position.latitude,
-            self.vehicle_position.longitude
-        )
+        return GPSPosition(self.vehicle_position.latitude, self.vehicle_position.longitude)
 
     @property
     def gps_heading(self) -> int:
@@ -273,6 +294,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     # # # # # # # # # # # # # # #
     # Fuel indicators & similar
     # # # # # # # # # # # # # # #
+
     @property
     def fuel_indicator_count(self) -> int:
         """Gets the number of fuel indicators.
@@ -307,20 +329,17 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     @property
     def remaining_battery_percent(self) -> int:
         """State of charge of the high voltage battery in percent."""
-        return int(
-            self._properties["electricRangeAndStatus"]["chargePercentage"]
-        )
+        return int(self._properties["electricRangeAndStatus"]["chargePercentage"])
 
     @property
     def remaining_fuel_percent(self) -> int:
         """State of charge of the high voltage battery in percent."""
-        return int(
-            self._properties["fuelPercentage"]["value"]
-        )
+        return int(self._properties["fuelPercentage"]["value"])
 
     # # # # # # # # # # # # # # #
     # Charging information
     # # # # # # # # # # # # # # #
+
     @property
     def charging_status(self) -> ChargingState:
         """Charging state of the vehicle."""
@@ -352,23 +371,24 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """Get status of the connection"""
         if "chargingState" not in self._properties:
             return None
-        return (
-            "CONNECTED"
-            if self._properties["chargingState"]["isChargerConnected"]
-            else "DISCONNECTED"
-        )
+        return "CONNECTED" if self._properties["chargingState"]["isChargerConnected"] else "DISCONNECTED"
+
+    @property
+    def charging_profile(self) -> ChargingProfile:
+        """Return the charging profile if available."""
+        return ChargingProfile(self.status) if self.is_charging_plan_supported else None
 
     # # # # # # # # # # # # # # #
     # Doors and windows
     # # # # # # # # # # # # # # #
 
     @property
-    def lids(self) -> List['Lid']:
+    def lids(self) -> List["Lid"]:
         """Get all lids (doors+hatch+trunk) of the car."""
         return self.doors_and_windows.lids
 
     @property
-    def open_lids(self) -> List['Lid']:
+    def open_lids(self) -> List["Lid"]:
         """Get all open lids of the car."""
         return [lid for lid in self.lids if not lid.is_closed]
 
@@ -378,12 +398,12 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return len(self.open_lids) == 0
 
     @property
-    def windows(self) -> List['Window']:
+    def windows(self) -> List["Window"]:
         """Get all windows (doors+sunroof) of the car."""
         return self.doors_and_windows.windows
 
     @property
-    def open_windows(self) -> List['Window']:
+    def open_windows(self) -> List["Window"]:
         """Get all open windows of the car."""
         return [lid for lid in self.windows if not lid.is_closed]
 
@@ -439,18 +459,30 @@ class ConnectedDriveVehicle(SerializableBaseClass):
             response = await client.get(url, headers={"accept": "image/png"})
         return response.content
 
-    def __getattr__(self, item):
-        """In the first version: just get the attributes from the dict.
-
-        In a later version we might parse the attributes to provide a more advanced API.
-        :param item: item to get, as defined in VEHICLE attributes
-        """
-        if item in get_class_property_names(self):
-            return getattr(self, item)
-        if item in get_class_property_names(self.status):
-            return getattr(self.status, item)
-        return self.attributes.get(item)
-
     def as_dict(self) -> dict:
         """Return all attributes and parameters, without `self.remote_services`."""
         return serialize_for_json(self, ["remote_services"])
+
+    # # # # # # # # # # # # # # #
+    # Deprecated
+    # # # # # # # # # # # # # # #
+
+    @property
+    def has_hv_battery(self) -> bool:
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.is_electric
+
+    @property
+    def has_range_extender(self) -> bool:
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.is_range_extender
+
+    @property
+    def has_internal_combustion_engine(self) -> bool:
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.is_combustion
+
+    @property
+    def has_weekly_planner_service(self) -> bool:
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.is_charging_plan_supported
