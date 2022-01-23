@@ -2,26 +2,20 @@
 
 import datetime
 import logging
-from enum import Enum
 from typing import Dict, List, Tuple, TYPE_CHECKING
 
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime
+from bimmer_connected.vehicle.models import StrEnum
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import ConnectedDriveVehicle
     from bimmer_connected.vehicle.doors_windows import Lid, Window, LockState
+    from bimmer_connected.vehicle.reports import ConditionBasedService, CheckControlMessage
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class ConditionBasedServiceStatus(str, Enum):
-    """Status of the condition based services."""
-    OK = 'OK'
-    OVERDUE = 'OVERDUE'
-    PENDING = 'PENDING'
-
-
-class ChargingState(str, Enum):
+class ChargingState(StrEnum):
     """Charging state of electric vehicle."""
     DEFAULT = 'DEFAULT'
     CHARGING = 'CHARGING'

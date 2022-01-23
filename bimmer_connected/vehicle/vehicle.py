@@ -1,7 +1,6 @@
 """Models state and remote services of one vehicle."""
 import datetime
 import logging
-from enum import Enum
 from typing import TYPE_CHECKING, Dict, List
 
 from bimmer_connected.api.client import MyBMWClient
@@ -10,7 +9,7 @@ from bimmer_connected.utils import SerializableBaseClass, get_class_property_nam
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
-from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit
+from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit, StrEnum
 from bimmer_connected.vehicle.position import VehiclePosition
 from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.vehicle.vehicle_status import ChargingState, VehicleStatus
@@ -22,7 +21,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class DriveTrainType(str, Enum):
+class DriveTrainType(StrEnum):
     """Different types of drive trains."""
     COMBUSTION = 'COMBUSTION'
     PLUGIN_HYBRID = 'PLUGIN_HYBRID'  # PHEV
@@ -37,7 +36,7 @@ COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.COMBUSTION, DriveTrainType.PLUG
 HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PLUGIN_HYBRID, DriveTrainType.ELECTRIC}
 
 
-class VehicleViewDirection(str, Enum):
+class VehicleViewDirection(StrEnum):
     """Viewing angles for the vehicle.
 
     This is used to get a rendered image of the vehicle.
@@ -52,7 +51,7 @@ class VehicleViewDirection(str, Enum):
     # REARBIRDSEYE = 'REARBIRDSEYE'
 
 
-class LscType(str, Enum):
+class LscType(StrEnum):
     """Known Values for lsc_type field.
 
     Not really sure, what this value really contains.

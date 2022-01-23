@@ -1,11 +1,22 @@
 """Generals models used for bimmer_connected."""
 
-from __future__ import annotations
 import logging
 from dataclasses import InitVar, dataclass, field
+from enum import Enum
 from typing import Dict, NamedTuple, Optional, Union
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class StrEnum(str, Enum):
+    """A string enumeration of type `(str, Enum)`. All members are compared via `upper()`."""
+
+    @classmethod
+    def _missing_(cls, value):
+        for member in cls:
+            if member.value.upper() == value.upper():
+                return member
+        raise ValueError(f"'{value}' is not a valid {cls.__name__}")
 
 
 @dataclass

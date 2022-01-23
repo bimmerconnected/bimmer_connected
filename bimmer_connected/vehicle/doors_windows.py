@@ -2,15 +2,14 @@
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
 from typing import Dict, List
 
-from bimmer_connected.vehicle.models import VehicleDataBase
+from bimmer_connected.vehicle.models import StrEnum, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
-class LidState(str, Enum):
+class LidState(StrEnum):
     """Possible states of the hatch, trunk, doors, windows, sun roof."""
 
     CLOSED = "CLOSED"
@@ -20,7 +19,7 @@ class LidState(str, Enum):
     INVALID = "INVALID"
 
 
-class LockState(str, Enum):
+class LockState(StrEnum):
     """Possible states of the door locks."""
 
     LOCKED = "LOCKED"

@@ -4,7 +4,6 @@ import asyncio
 import datetime
 import logging
 from dataclasses import asdict as dataclasses_asdict
-from enum import Enum
 from typing import TYPE_CHECKING, Dict, Union
 
 from bimmer_connected.api.client import MyBMWClient
@@ -14,7 +13,7 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_URL,
     VEHICLE_POI_URL,
 )
-from bimmer_connected.vehicle.models import PointOfInterest
+from bimmer_connected.vehicle.models import PointOfInterest, StrEnum
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import ConnectedDriveVehicle
@@ -30,7 +29,7 @@ _POLLING_CYCLE = 3
 _POLLING_TIMEOUT = 240
 
 
-class ExecutionState(str, Enum):
+class ExecutionState(StrEnum):
     """Enumeration of possible states of the execution of a remote service."""
 
     INITIATED = "INITIATED"
@@ -41,7 +40,7 @@ class ExecutionState(str, Enum):
     UNKNOWN = "UNKNOWN"
 
 
-class Services(str, Enum):
+class Services(StrEnum):
     """Enumeration of possible services to be executed."""
 
     LIGHT_FLASH = "light-flash"

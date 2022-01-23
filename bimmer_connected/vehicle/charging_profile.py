@@ -2,9 +2,9 @@
 
 import logging
 from typing import TYPE_CHECKING, List
-from enum import Enum
 
 from bimmer_connected.utils import SerializableBaseClass
+from bimmer_connected.vehicle.models import StrEnum
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle.vehicle_status import VehicleStatus
@@ -12,23 +12,26 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class ChargingMode(str, Enum):
+class ChargingMode(StrEnum):
     """Charging mode of electric vehicle."""
-    IMMEDIATE_CHARGING = 'immediateCharging'
-    DELAYED_CHARGING = 'delayedCharging'
+
+    IMMEDIATE_CHARGING = "immediateCharging"
+    DELAYED_CHARGING = "delayedCharging"
 
 
-class ChargingPreferences(str, Enum):
+class ChargingPreferences(StrEnum):
     """Charging preferences of electric vehicle."""
-    NO_PRESELECTION = 'noPreSelection'
-    CHARGING_WINDOW = 'chargingWindow'
+
+    NO_PRESELECTION = "noPreSelection"
+    CHARGING_WINDOW = "chargingWindow"
 
 
-class TimerTypes(str, Enum):
+class TimerTypes(StrEnum):
     """Different Timer-Types."""
-    TWO_WEEKS = 'twoWeeksTimer'
-    ONE_WEEK = 'weeklyPlanner'
-    OVERRIDE_TIMER = 'overrideTimer'
+
+    TWO_WEEKS = "twoWeeksTimer"
+    ONE_WEEK = "weeklyPlanner"
+    OVERRIDE_TIMER = "overrideTimer"
 
 
 class ChargingWindow(SerializableBaseClass):
