@@ -1,8 +1,9 @@
 """Generals models used for bimmer_connected."""
 
+from __future__ import annotations
 import logging
 from dataclasses import InitVar, dataclass, field
-from typing import Dict, Optional
+from typing import Dict, NamedTuple, Optional, Union
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,15 +38,28 @@ class VehicleDataBase:
         return parsed
 
 
-@dataclass
-class GPSPosition:
+class Coordinates(NamedTuple):
+    """Storage for GPS coordinates."""
+
+    latitude: Optional[float]
+    longitude: Optional[float]
+
+
+class GPSPosition(Coordinates):
     """GPS coordinates."""
 
-    latitude: float
-    longitude: float
+    __slots__ = ()  # Prevent creation of a __dict__.
 
-    def __post_init__(self):
-        check_strict_types(self)
+    @classmethod
+    def __new__(cls, *args, **kwargs):
+        if len([a for a in args + tuple(kwargs.values()) if a is None]) not in [0, len(cls._fields)]:
+            raise TypeError("Either none or all arguments must be 'None'.")
+        annotations = cls.__annotations__    # pylint: disable=no-member
+        for i, field_name in enumerate(annotations, 1):
+            value = args[i] if (len(args) - 1) == i else kwargs.get(field_name)
+            if value is not None and not isinstance(value, (float, int)):
+                raise TypeError(f"'{field_name}' not of type '{Optional[Union[float, int]]}'")
+        return super().__new__(*args, **kwargs)
 
 
 @dataclass
@@ -85,9 +99,16 @@ def check_strict_types(cls):
     for field_name, field_def in cls.__dataclass_fields__.items():  # pylint: disable=no-member
         try:
             original_type = field_def.type.__args__
-            field_type = original_type or field_def.type  # pylint: disable=protected-access
+            field_type = original_type or field_def.type
         except AttributeError:
             field_type = field_def.type
 
         if not isinstance(getattr(cls, field_name), field_type):
             raise TypeError(f"'{field_name}' not of type '{field_def.type}'")
+
+
+class ValueWithUnit(NamedTuple):
+    """A value with a corresponding unit."""
+
+    value: Union[int, float]
+    unit: str

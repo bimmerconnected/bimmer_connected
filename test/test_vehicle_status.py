@@ -15,7 +15,7 @@ from bimmer_connected.vehicle.vehicle_status import (
 )
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX
-from .test_account import get_account, get_mocked_account
+from .test_account import get_mocked_account
 
 
 @pytest.mark.asyncio
@@ -114,17 +114,6 @@ async def test_range_electric():
     assert (179, "km") == status.remaining_range_total
 
 
-@time_machine.travel(
-    datetime.datetime.now().replace(hour=21, minute=28, second=59, microsecond=0, tzinfo=get_account().timezone)
-)
-@pytest.mark.asyncio
-async def test_remaining_charging_time():
-    """Test if the parsing of mileage and range is working"""
-    account = await get_mocked_account()
-    status = account.get_vehicle(VIN_G08).status
-    assert 6.53 == status.charging_time_remaining
-
-
 @time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time():
@@ -167,7 +156,6 @@ async def test_charging_end_time_parsing_failure(caplog):
     )
     assert vehicle.status.charging_end_time is None
     assert "100% at later today..." == vehicle.status.charging_time_label
-    assert 0 == vehicle.status.charging_time_remaining
 
     errors = [r for r in caplog.records if r.levelname == "ERROR" and "Error parsing charging end time" in r.message]
     assert len(errors) == 1
@@ -182,7 +170,6 @@ async def test_plugged_in_waiting_for_charge_window():
 
     assert vehicle.status.charging_end_time is None
     assert "Starts at ~ 09:00 AM" == vehicle.status.charging_time_label
-    assert 0 == vehicle.status.charging_time_remaining
     assert ChargingState.PLUGGED_IN == vehicle.status.charging_status
     assert "CONNECTED" == vehicle.status.connection_status
 

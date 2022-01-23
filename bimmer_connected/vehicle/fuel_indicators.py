@@ -4,21 +4,20 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
-from bimmer_connected.vehicle.models import VehicleDataBase
+from bimmer_connected.vehicle.models import ValueWithUnit, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class FuelIndicators(VehicleDataBase):
+class FuelIndicators(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
     """Provides an accessible version of `status.fuelIndicators`."""
-    # pylint:disable=too-many-instance-attributes
 
-    remaining_range_fuel: Tuple[int, str] = (None, None)
-    remaining_range_electric: Tuple[int, str] = (None, None)
-    remaining_range_combined: Tuple[int, str] = (None, None)
+    remaining_range_fuel: ValueWithUnit = ValueWithUnit(None, None)
+    remaining_range_electric: ValueWithUnit = ValueWithUnit(None, None)
+    remaining_range_combined: ValueWithUnit = ValueWithUnit(None, None)
     remaining_charging_time: float = None
     charging_status: str = None
     charging_start_time: datetime.datetime = None
@@ -97,5 +96,5 @@ class FuelIndicators(VehicleDataBase):
         try:
             range_val = int(fuel_indicator["rangeValue"])
         except ValueError:
-            return None
-        return (range_val, fuel_indicator["rangeUnits"])
+            return ValueWithUnit(None, None)
+        return ValueWithUnit(range_val, fuel_indicator["rangeUnits"])

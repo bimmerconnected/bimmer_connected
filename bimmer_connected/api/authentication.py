@@ -83,8 +83,7 @@ class MyBMWAuthentication(Authentication):
             self.token = token_data["access_token"]
             self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
-    # pylint: disable=too-many-locals
-    async def _login_row_na(self):
+    async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
         try:
             async with httpx.AsyncClient(base_url=get_server_url(self.region)) as client:

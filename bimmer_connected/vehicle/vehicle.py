@@ -1,16 +1,18 @@
 """Models state and remote services of one vehicle."""
+import datetime
 from enum import Enum
 import logging
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Dict
 
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.vehicle.vehicle_status import VehicleStatus
+from bimmer_connected.vehicle.vehicle_status import ChargingState, VehicleStatus
 from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
 
 from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
+from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit
 from bimmer_connected.vehicle.position import VehiclePosition
 
 if TYPE_CHECKING:
@@ -59,22 +61,23 @@ class LscType(str, Enum):
     ACTIVATED = 'ACTIVATED'
 
 
-class ConnectedDriveVehicle(SerializableBaseClass):
+class ConnectedDriveVehicle(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models state and remote services of one vehicle.
 
     :param account: ConnectedDrive account this vehicle belongs to
     :param attributes: attributes of the vehicle as provided by the server
     """
 
-    def __init__(self, account: "ConnectedDriveAccount", vehicle_dict: dict) -> None:
+    def __init__(self, account: "ConnectedDriveAccount", vehicle_data: dict) -> None:
         self.account = account
+        self.data = vehicle_data
         self.attributes = None
         self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
         self.fuel_indicators: FuelIndicators = FuelIndicators()
         self.vehicle_position: VehiclePosition = VehiclePosition(vehicle_region=account.region)
 
-        self.update_state(vehicle_dict)
+        self.update_state(vehicle_data)
 
     def update_state(self, vehicle_data) -> None:
         """Update the state of a vehicle."""
@@ -89,6 +92,16 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         )
         self.fuel_indicators.update_from_vehicle_data(vehicle_data)
         self.vehicle_position.update_from_vehicle_data(vehicle_data)
+
+    @property
+    def _status(self) -> Dict:
+        """A shortcut to `data.status`."""
+        return self.data[SERVICE_STATUS]
+
+    @property
+    def _properties(self) -> Dict:
+        """A shortcut to `data.properties`."""
+        return self.data[SERVICE_PROPERTIES]
 
     @property
     def charging_profile(self) -> ChargingProfile:
@@ -109,6 +122,14 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     def brand(self) -> CarBrands:
         """Get the car brand."""
         return CarBrands(self.attributes["brand"])
+
+    @property
+    def mileage(self) -> ValueWithUnit:
+        """Get the mileage of the vehicle."""
+        return ValueWithUnit(
+            self._status['currentMileage']['mileage'],
+            self._status['currentMileage']['units']
+        )
 
     @property
     def has_hv_battery(self) -> bool:
@@ -189,6 +210,120 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         result = [SERVICE_STATUS]
 
         return result
+
+    # # # # # # # # # # # # # # #
+    # Vehicle position
+    # # # # # # # # # # # # # # #
+    @property
+    def gps_position(self) -> GPSPosition:
+        """Get the last known position of the vehicle.
+
+        Only provides data if vehicle tracking is enabled!
+        """
+        if not self.vehicle_position:
+            return GPSPosition(None, None)
+        return GPSPosition(
+            self.vehicle_position.latitude,
+            self.vehicle_position.longitude
+        )
+
+    @property
+    def gps_heading(self) -> int:
+        """Get the last known heading/direction of the vehicle.
+
+        Only provides data if vehicle tracking is enabled!
+        """
+        if not self.vehicle_position:
+            return None
+        return self.vehicle_position.heading
+
+    # # # # # # # # # # # # # # #
+    # Fuel indicators & similar
+    # # # # # # # # # # # # # # #
+    @property
+    def fuel_indicator_count(self) -> int:
+        """Gets the number of fuel indicators.
+
+        Can be used to identify REX vehicles if driveTrain == ELECTRIC.
+        """
+        return len(self._status["fuelIndicators"])
+
+    @property
+    def remaining_range_fuel(self) -> ValueWithUnit:
+        """Get the remaining range of the vehicle on fuel."""
+        return self.fuel_indicators.remaining_range_fuel
+
+    @property
+    def remaining_range_electric(self) -> ValueWithUnit:
+        """Get the remaining range of the vehicle on electricity."""
+        return self.fuel_indicators.remaining_range_electric
+
+    @property
+    def remaining_range_total(self) -> ValueWithUnit:
+        """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
+        return self.fuel_indicators.remaining_range_combined
+
+    @property
+    def remaining_fuel(self) -> ValueWithUnit:
+        """Get the remaining fuel of the vehicle."""
+        return ValueWithUnit(
+            self._properties["fuelLevel"]["value"],
+            self._properties["fuelLevel"]["units"],
+        )
+
+    @property
+    def remaining_battery_percent(self) -> int:
+        """State of charge of the high voltage battery in percent."""
+        return int(
+            self._properties["electricRangeAndStatus"]["chargePercentage"]
+        )
+
+    @property
+    def remaining_fuel_percent(self) -> int:
+        """State of charge of the high voltage battery in percent."""
+        return int(
+            self._properties["fuelPercentage"]["value"]
+        )
+
+    # # # # # # # # # # # # # # #
+    # Charging information
+    # # # # # # # # # # # # # # #
+    @property
+    def charging_status(self) -> ChargingState:
+        """Charging state of the vehicle."""
+        if "chargingState" not in self._properties:
+            return None
+        return ChargingState(self.fuel_indicators.charging_status)
+
+    @property
+    def charging_time_start(self) -> datetime.datetime:
+        """The planned time the vehicle will start charging."""
+        if self.fuel_indicators.charging_start_time:
+            return self.fuel_indicators.charging_start_time.replace(tzinfo=self.account.timezone)
+        return None
+
+    @property
+    def charging_time_end(self) -> datetime.datetime:
+        """The estimated time the vehicle will have finished charging."""
+        if self.fuel_indicators.charging_end_time:
+            return self.fuel_indicators.charging_end_time.replace(tzinfo=self.account.timezone)
+        return None
+
+    @property
+    def charging_time_label(self) -> str:
+        """The planned start/estimated end time as provided by the API."""
+        return self.fuel_indicators.charging_time_label
+
+    @property
+    def connection_status(self) -> str:
+        """Get status of the connection"""
+        if "chargingState" not in self._properties:
+            return None
+        return (
+            "CONNECTED"
+            if self._properties["chargingState"]["isChargerConnected"]
+            else "DISCONNECTED"
+        )
 
     async def get_vehicle_image(self, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.

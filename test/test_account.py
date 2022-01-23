@@ -226,9 +226,6 @@ async def test_set_observer_invalid_values():
         account.set_observer_position(1.0, None)
 
     with pytest.raises(TypeError):
-        account.set_observer_position(1, 2)
-
-    with pytest.raises(TypeError):
         account.set_observer_position(1.0, "16.0")
 
 

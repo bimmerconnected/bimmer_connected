@@ -142,24 +142,13 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     def gps_position(self) -> Tuple[float, float]:
-        """Get the last known position of the vehicle.
-
-        Returns a tuple of (latitude, longitude).
-        This only provides data, if the vehicle tracking is enabled!
-        """
-        if not self.vehicle.vehicle_position:
-            return None, None
-        return self.vehicle.vehicle_position.latitude, self.vehicle.vehicle_position.longitude
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.gps_position
 
     @property
     def gps_heading(self) -> int:
-        """Get the last known heading of the vehicle.
-
-        This only provides data, if the vehicle tracking is enabled!
-        """
-        if not self.vehicle.vehicle_position:
-            return None
-        return self.vehicle.vehicle_position.heading
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.gps_heading
 
     @property
     @backend_parameter
@@ -173,44 +162,26 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def mileage(self) -> Tuple[int, str]:
-        """Get the mileage of the vehicle.
-
-        Returns a tuple of (value, unit_of_measurement)
-        """
-        return (
-            self.status['currentMileage']['mileage'],
-            self.status['currentMileage']['units']
-        )
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.mileage
 
     @property
     @backend_parameter
     def remaining_range_fuel(self) -> Tuple[int, str]:
-        """Get the remaining range of the vehicle on fuel.
-
-        Returns a tuple of (value, unit_of_measurement)
-        """
-        return self.vehicle.fuel_indicators.remaining_range_fuel or (None, None)
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.remaining_range_fuel
 
     @property
     @backend_parameter
     def remaining_fuel(self) -> Tuple[int, str]:
-        """Get the remaining fuel of the vehicle.
-
-        Returns a tuple of (value, unit_of_measurement)
-        """
-        return (
-            self.properties['fuelLevel']['value'],
-            self.properties['fuelLevel']['units'],
-        )
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.remaining_fuel
 
     @property
     @backend_parameter
     def fuel_indicator_count(self) -> int:
-        """Gets the number of fuel indicators.
-
-        Can be used to identify REX vehicles if driveTrain == ELECTRIC.
-        """
-        return len(self.status["fuelIndicators"])
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.fuel_indicator_count
 
     @property
     @backend_parameter
@@ -277,14 +248,8 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def connection_status(self) -> str:
-        """Get status of the connection"""
-        if "chargingState" not in self.properties:
-            return None
-        return (
-            "CONNECTED"
-            if self.properties["chargingState"]["isChargerConnected"]
-            else "DISCONNECTED"
-        )
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.connection_status
 
     @property
     @backend_parameter
@@ -303,93 +268,78 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def parking_lights(self) -> None:
-        """Get status of parking lights.
-
-        :returns None if status is unknown.
-        """
+        # TODO: deprecation  pylint:disable=missing-function-docstring
         return None  # Not available in My BMW
 
     @property
     def has_parking_light_state(self) -> bool:
-        """Return True if parking light is available."""
+        # TODO: deprecation  pylint:disable=missing-function-docstring
         return False  # Not available in My BMW
 
     @property
     def are_parking_lights_on(self) -> bool:
-        """Get status of parking lights.
-
-        :returns None if status is unknown.
-        """
+        # TODO: deprecation  pylint:disable=missing-function-docstring
         return None  # Not available in My BMW
 
     @property
     @backend_parameter
     def remaining_range_electric(self) -> Tuple[int, str]:
-        """Remaining range on battery, in kilometers."""
-        return self.vehicle.fuel_indicators.remaining_range_electric or (None, None)
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.remaining_range_electric
 
     @property
     @backend_parameter
     def remaining_range_total(self) -> Tuple[int, str]:
-        """Get the total remaining range of the vehicle in kilometers.
-
-        That is electrical range + fuel range.
-        """
-        return self.vehicle.fuel_indicators.remaining_range_combined or (None, None)
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.remaining_range_total
 
     @property
     @backend_parameter
     def max_range_electric(self) -> int:
-        """ This can change with driving style and temperature in kilometers."""
+        # TODO: deprecation  pylint:disable=missing-function-docstring
         return None  # Not available in My BMW
 
     @property
     @backend_parameter
     def charging_status(self) -> ChargingState:
-        """Charging state of the vehicle."""
-        if "chargingState" not in self.properties:
-            return None
-        return ChargingState(self.vehicle.fuel_indicators.charging_status)
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.charging_status
 
     @property
     @backend_parameter
     def charging_time_remaining(self) -> float:
-        """Get the remaining charging duration."""
-        return round((self.vehicle.fuel_indicators.remaining_charging_time or 0) / 60.0 / 60.0, 2)
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return None
 
     @property
     @backend_parameter
     def charging_start_time(self) -> datetime.datetime:
-        """Get the charging finish time."""
-        if self.vehicle.fuel_indicators.charging_start_time:
-            return self.vehicle.fuel_indicators.charging_start_time.replace(tzinfo=self.vehicle.account.timezone)
-        return None
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.charging_time_start
 
     @property
     @backend_parameter
     def charging_end_time(self) -> datetime.datetime:
-        """Get the charging finish time."""
-        if self.vehicle.fuel_indicators.charging_end_time:
-            return self.vehicle.fuel_indicators.charging_end_time.replace(tzinfo=self.vehicle.account.timezone)
-        return None
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.charging_time_end
 
     @property
     @backend_parameter
     def charging_time_label(self) -> datetime.datetime:
-        """Get the remaining charging time as provided by the API."""
-        return self.vehicle.fuel_indicators.charging_time_label
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.charging_time_label
 
     @property
     @backend_parameter
     def charging_level_hv(self) -> int:
-        """State of charge of the high voltage battery in percent."""
-        return int(self.properties["electricRangeAndStatus"]["chargePercentage"])
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.remaining_battery_percent
 
     @property
     @backend_parameter
     def fuel_percent(self) -> int:
-        """State of fuel in percent."""
-        return int(self.properties['fuelPercentage']["value"])
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.remaining_fuel_percent
 
     @property
     @backend_parameter
