@@ -10,9 +10,8 @@ from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.vehicle_status import (
     ChargingState,
     ConditionBasedServiceStatus,
-    LidState,
-    LockState,
 )
+from bimmer_connected.vehicle.doors_windows import LidState, LockState
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX
 from .test_account import get_mocked_account

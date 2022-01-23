@@ -9,26 +9,9 @@ from bimmer_connected.utils import SerializableBaseClass, parse_datetime
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import ConnectedDriveVehicle
+    from bimmer_connected.vehicle.doors_windows import Lid, Window, LockState
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class LidState(str, Enum):
-    """Possible states of the hatch, trunk, doors, windows, sun roof."""
-    CLOSED = 'CLOSED'
-    OPEN = 'OPEN'
-    OPEN_TILT = 'OPEN_TILT'
-    INTERMEDIATE = 'INTERMEDIATE'
-    INVALID = 'INVALID'
-
-
-class LockState(str, Enum):
-    """Possible states of the door locks."""
-    LOCKED = 'LOCKED'
-    SECURED = 'SECURED'
-    SELECTIVE_LOCKED = 'SELECTIVE_LOCKED'
-    UNLOCKED = 'UNLOCKED'
-    UNKNOWN = 'UNKNOWN'
 
 
 class ConditionBasedServiceStatus(str, Enum):
@@ -186,52 +169,40 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def lids(self) -> List['Lid']:
-        """Get all lids (doors+hatch+trunk) of the car."""
-        result = []
-        lids = self.properties["doorsAndWindows"]
-        result.extend([Lid(k, v) for k, v in lids.items() if k in ["hood", "trunk"] and v != LidState.INVALID.value])
-        result.extend([Lid(k, v) for k, v in lids["doors"].items() if v != LidState.INVALID.value])
-
-        return result
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.lids
 
     @property
     def open_lids(self) -> List['Lid']:
-        """Get all open lids of the car."""
-        return [lid for lid in self.lids if not lid.is_closed]
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.open_lids
 
     @property
     def all_lids_closed(self) -> bool:
-        """Check if all lids are closed."""
-        return len(list(self.open_lids)) == 0
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.all_lids_closed
 
     @property
     @backend_parameter
     def windows(self) -> List['Window']:
-        """Get all windows (doors+sun roof) of the car."""
-        result = [
-            Window(k, v)
-            for k, v in self.properties["doorsAndWindows"].get("windows").items()
-            if v != LidState.INVALID.value
-        ]
-        if "moonroof" in self.properties["doorsAndWindows"]:
-            result.append(Window("moonroof", self.properties["doorsAndWindows"]["moonroof"]))
-        return result
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.windows
 
     @property
     def open_windows(self) -> List['Window']:
-        """Get all open windows of the car."""
-        return [lid for lid in self.windows if not lid.is_closed]
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.open_windows
 
     @property
     def all_windows_closed(self) -> bool:
-        """Check if all windows are closed."""
-        return len(self.open_windows) == 0
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.all_lids_closed
 
     @property
     @backend_parameter
-    def door_lock_state(self) -> LockState:
-        """Get state of the door locks."""
-        return LockState(self.status['doorsGeneralState'].upper())
+    def door_lock_state(self) -> "LockState":
+        # TODO: deprecation  pylint:disable=missing-function-docstring
+        return self.vehicle.door_lock_state
 
     @property
     @backend_parameter
@@ -242,7 +213,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     @property
     @backend_parameter
     def last_charging_end_result(self) -> str:
-        """Get the last charging end result"""
+        # TODO: deprecation  pylint:disable=missing-function-docstring
         return None  # Not available in My BMW
 
     @property
@@ -353,30 +324,6 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
     def has_check_control_messages(self) -> bool:
         """Return true if any check control message is present."""
         return len(self.check_control_messages) > 0
-
-
-class Lid:  # pylint: disable=too-few-public-methods
-    """A lid of the vehicle.
-
-    Lids are: Doors + Trunk + Hatch
-    """
-
-    def __init__(self, name: str, state: str):
-        #: name of the lid
-        self.name = name
-        self.state = LidState(state)
-
-    @property
-    def is_closed(self) -> bool:
-        """Check if the lid is closed."""
-        return self.state == LidState.CLOSED
-
-
-class Window(Lid):  # pylint: disable=too-few-public-methods,no-member
-    """A window of the vehicle.
-
-    A window can be a normal window of the car or the sun roof.
-    """
 
 
 class ConditionBasedServiceReport:  # pylint: disable=too-few-public-methods

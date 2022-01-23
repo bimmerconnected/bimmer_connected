@@ -1,22 +1,23 @@
 """Models state and remote services of one vehicle."""
 import datetime
-from enum import Enum
 import logging
-from typing import TYPE_CHECKING, List, Dict
+from enum import Enum
+from typing import TYPE_CHECKING, Dict, List
 
-from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.vehicle.vehicle_status import ChargingState, VehicleStatus
-from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.utils import SerializableBaseClass, get_class_property_names, serialize_for_json
-
+from bimmer_connected.vehicle.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
 from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit
 from bimmer_connected.vehicle.position import VehiclePosition
+from bimmer_connected.vehicle.remote_services import RemoteServices
+from bimmer_connected.vehicle.vehicle_status import ChargingState, VehicleStatus
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.vehicle.doors_windows import Lid, LockState, Window
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -60,8 +61,8 @@ class LscType(str, Enum):
     NOT_SUPPORTED = 'NOT_SUPPORTED'
     ACTIVATED = 'ACTIVATED'
 
-
-class ConnectedDriveVehicle(SerializableBaseClass):  # pylint: disable=too-many-public-methods
+# pylint: disable=too-many-public-methods,too-many-instance-attributes
+class ConnectedDriveVehicle(SerializableBaseClass):
     """Models state and remote services of one vehicle.
 
     :param account: ConnectedDrive account this vehicle belongs to
@@ -76,6 +77,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):  # pylint: disable=too-many-
         self.remote_services = RemoteServices(self)
         self.fuel_indicators: FuelIndicators = FuelIndicators()
         self.vehicle_position: VehiclePosition = VehiclePosition(vehicle_region=account.region)
+        self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
 
         self.update_state(vehicle_data)
 
@@ -92,6 +94,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):  # pylint: disable=too-many-
         )
         self.fuel_indicators.update_from_vehicle_data(vehicle_data)
         self.vehicle_position.update_from_vehicle_data(vehicle_data)
+        self.doors_and_windows.update_from_vehicle_data(vehicle_data)
 
     @property
     def _status(self) -> Dict:
@@ -324,6 +327,49 @@ class ConnectedDriveVehicle(SerializableBaseClass):  # pylint: disable=too-many-
             if self._properties["chargingState"]["isChargerConnected"]
             else "DISCONNECTED"
         )
+
+    # # # # # # # # # # # # # # #
+    # Doors and windows
+    # # # # # # # # # # # # # # #
+
+    @property
+    def lids(self) -> List['Lid']:
+        """Get all lids (doors+hatch+trunk) of the car."""
+        return self.doors_and_windows.lids
+
+    @property
+    def open_lids(self) -> List['Lid']:
+        """Get all open lids of the car."""
+        return [lid for lid in self.lids if not lid.is_closed]
+
+    @property
+    def all_lids_closed(self) -> bool:
+        """Check if all lids are closed."""
+        return len(self.open_lids) == 0
+
+    @property
+    def windows(self) -> List['Window']:
+        """Get all windows (doors+sunroof) of the car."""
+        return self.doors_and_windows.windows
+
+    @property
+    def open_windows(self) -> List['Window']:
+        """Get all open windows of the car."""
+        return [lid for lid in self.windows if not lid.is_closed]
+
+    @property
+    def all_windows_closed(self) -> bool:
+        """Check if all windows are closed."""
+        return len(self.open_windows) == 0
+
+    @property
+    def door_lock_state(self) -> "LockState":
+        """Get state of the door locks."""
+        return self.doors_and_windows.door_lock_state
+
+    # # # # # # # # # # # # # # #
+    # Generic functions
+    # # # # # # # # # # # # # # #
 
     async def get_vehicle_image(self, direction: VehicleViewDirection) -> bytes:
         """Get a rendered image of the vehicle.
