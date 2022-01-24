@@ -107,16 +107,6 @@ def test_car_brand():
 
 
 @pytest.mark.asyncio
-async def test_vehicle_attribute_getter():
-    """Test generic getter."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G21)
-
-    assert vehicle.has_internal_combustion_engine is True
-
-    assert "CONNECTED" == vehicle.connection_status
-
-
-@pytest.mark.asyncio
 async def test_get_is_tracking_enabled():
     """Test setting observer position"""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F11)
@@ -184,14 +174,6 @@ async def test_available_attributes():
         "lids",
         "windows",
     ] == vehicle.available_attributes
-
-
-@pytest.mark.asyncio
-async def test_available_state_services():
-    """Check that available_attributes returns exactly the arguments we have in our test data."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
-
-    assert ["status"] == vehicle.available_state_services
 
 
 @pytest.mark.asyncio

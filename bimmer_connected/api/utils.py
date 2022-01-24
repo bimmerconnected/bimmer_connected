@@ -83,7 +83,7 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
 
 
 def log_to_to_file(content: Union[str, bytes, List, Dict], logfile_path: pathlib.Path, logfile_name: str) -> None:
-    """If a log path is set, log all resonses to a file."""
+    """If a log path is set, log all responses to a file."""
     if logfile_path is None or logfile_name is None:
         return
 

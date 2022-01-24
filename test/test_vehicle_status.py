@@ -7,8 +7,8 @@ import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.const import ChargingState
-from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
+from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX
 from .test_account import get_mocked_account
@@ -102,7 +102,7 @@ async def test_range_electric():
 
     assert (0, "LITERS") == status.remaining_fuel
     assert status.remaining_range_fuel == (None, None)
-    assert 0 == status.fuel_percent
+    assert status.fuel_percent is None
 
     assert 50 == status.charging_level_hv
     assert (179, "km") == status.remaining_range_electric
@@ -220,7 +220,7 @@ async def test_parse_gcj02_position():
                 "lastUpdatedAt": "2021-11-14T20:20:21Z",
             },
             "status": {
-                "fuelIndicators": [],
+                "FuelAndBattery": [],
                 "lastUpdatedAt": "2021-11-14T20:20:21Z",
             },
         },

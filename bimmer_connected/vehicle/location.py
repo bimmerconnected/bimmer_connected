@@ -8,29 +8,31 @@ from typing import Dict, Optional
 from bimmer_connected.const import Regions
 from bimmer_connected.coord_convert import gcj2wgs
 from bimmer_connected.utils import parse_datetime
-from bimmer_connected.vehicle.models import VehicleDataBase
+from bimmer_connected.vehicle.models import GPSPosition, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class VehiclePosition(VehicleDataBase):
+class VehicleLocation(VehicleDataBase):
     """The current position of a vehicle."""
 
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    location: GPSPosition = GPSPosition(None, None)
+    """The last known position of the vehicle."""
+
     heading: Optional[int] = None
+    """The last known heading/direction of the vehicle."""
+
     vehicle_update_timestamp: Optional[datetime.datetime] = None
-    vehicle_region: Optional[Regions] = None
+    account_region: Optional[Regions] = None
     remote_service_position: Optional[Dict] = None
 
     # pylint:disable=arguments-differ
     @classmethod
-    def from_vehicle_data(cls, vehicle_data: Dict, region: Regions):
+    def from_vehicle_data(cls, vehicle_data: Dict):
         """Creates the class based on vehicle data from API."""
         parsed = cls._parse_vehicle_data(vehicle_data) or {}
         if len(parsed) > 0:
-            parsed["vehicle_region"] = region
             return cls(**parsed)
         return None
 
@@ -45,11 +47,8 @@ class VehiclePosition(VehicleDataBase):
         )
         if "properties" in vehicle_data and "vehicleLocation" in vehicle_data["properties"]:
             location = vehicle_data["properties"]["vehicleLocation"]
-            retval.update(location["coordinates"])
+            retval["location"] = GPSPosition(location["coordinates"]["latitude"], location["coordinates"]["longitude"])
             retval["heading"] = location["heading"]
-        else:
-            _LOGGER.info("Unable to read data from `properties.vehicleLocation`.")
-            return None
         return retval
 
     def _update_after_parse(self, parsed: Dict) -> Dict:
@@ -61,14 +60,15 @@ class VehiclePosition(VehicleDataBase):
                 "timestamp", datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
             )
             if t_remote > self.vehicle_update_timestamp:
-                retval.update(
-                    {k: v for k, v in self.remote_service_position.items() if k in ["latitude", "longitude", "heading"]}
+                retval["location"] = GPSPosition(
+                    self.remote_service_position["latitude"], self.remote_service_position["longitude"]
                 )
+                retval["heading"] = self.remote_service_position["heading"]
 
         # Convert GCJ02 to WGS84 for positions in China
-        if self.vehicle_region == Regions.CHINA and "longitude" in parsed and "latitude" in parsed:
-            retval["longitude"], retval["latitude"] = gcj2wgs(gcjLon=retval["longitude"], gcjLat=retval["latitude"])
-
+        if self.account_region == Regions.CHINA and "location" in retval and retval["location"].latitude is not None:
+            gcj_lon, gcj_lat = gcj2wgs(gcjLon=retval["location"].longitude, gcjLat=retval["location"].latitude)
+            retval["location"] = GPSPosition(gcj_lat, gcj_lon)
         return retval
 
     def set_remote_service_position(self, remote_service_dict: Dict):

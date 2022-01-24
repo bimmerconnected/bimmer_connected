@@ -20,7 +20,8 @@ def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool 
     excluded = excluded if excluded else []
     return dict(
         {
-            k: v for k, v in obj.__dict__.items()
+            k: v
+            for k, v in obj.__dict__.items()
             if k not in excluded and ((exclude_hidden and not str(k).startswith("_")) or not exclude_hidden)
         },
         **{a: getattr(obj, a) for a in get_class_property_names(obj) if a not in excluded + ["to_json"]}
@@ -29,18 +30,16 @@ def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool 
 
 def get_class_property_names(obj: object):
     """Returns the names of all properties of a class."""
-    return [
-        p[0] for p in inspect.getmembers(type(obj), inspect.isdatadescriptor)
-        if not p[0].startswith("_")
-    ]
+    return [p[0] for p in inspect.getmembers(type(obj), inspect.isdatadescriptor) if not p[0].startswith("_")]
 
 
 def to_json(obj: object, *args, **kwargs):
     """Serialize a nested object to json. Tries to call `to_json` attribute on object first."""
+
     def serialize(obj: object):
-        if hasattr(obj, 'as_dict'):
+        if hasattr(obj, "as_dict"):
             return getattr(obj, "as_dict")()
-        if hasattr(obj, '__dict__'):
+        if hasattr(obj, "__dict__"):
             return {k: v for k, v in getattr(obj, "__dict__").items() if not k.startswith("_")}
         return str(obj)
 

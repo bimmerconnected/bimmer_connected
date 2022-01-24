@@ -13,9 +13,9 @@ def test_valid_regions():
 
 
 def test_unknown_region():
-    """Test unkown region."""
+    """Test unknown region."""
     with pytest.raises(ValueError):
-        get_region_from_name("unkown")
+        get_region_from_name("unknown")
 
 
 def test_anonymize_data():

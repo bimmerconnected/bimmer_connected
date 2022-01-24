@@ -4,35 +4,86 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Dict, List, Optional
 
+from bimmer_connected.vehicle.const import ChargingState
 from bimmer_connected.vehicle.models import ValueWithUnit, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class FuelIndicators(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
-    """Provides an accessible version of `status.fuelIndicators`."""
+class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
+    """Provides an accessible version of `status.FuelAndBattery`."""
 
     remaining_range_fuel: ValueWithUnit = ValueWithUnit(None, None)
+    """Get the remaining range of the vehicle on fuel."""
+
     remaining_range_electric: ValueWithUnit = ValueWithUnit(None, None)
+    """Get the remaining range of the vehicle on electricity."""
+
     remaining_range_combined: ValueWithUnit = ValueWithUnit(None, None)
-    remaining_charging_time: float = None
-    charging_status: str = None
+    """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
+
+    remaining_fuel: ValueWithUnit = ValueWithUnit(None, None)
+    """Get the remaining fuel of the vehicle."""
+
+    remaining_fuel_percent: int = None
+    """State of charge of the high voltage battery in percent."""
+
+    remaining_battery_percent: int = None
+    """State of charge of the high voltage battery in percent."""
+
+    charging_status: Optional[ChargingState] = None
+    """Charging state of the vehicle."""
+
     charging_start_time: datetime.datetime = None
+    """The planned time the vehicle will start charging."""
+
     charging_end_time: datetime.datetime = None
+    """The estimated time the vehicle will have finished charging."""
+
     charging_time_label: str = None
+    """The planned start/estimated end time as provided by the API."""
+
+    is_charger_connected: bool = False
+    """Get status of the connection"""
+
+    account_timezone: datetime.timezone = datetime.timezone.utc
+
+    # pylint:disable=arguments-differ
+    @classmethod
+    def from_vehicle_data(cls, vehicle_data: Dict):
+        """Creates the class based on vehicle data from API."""
+        parsed = cls._parse_vehicle_data(vehicle_data) or {}
+        if len(parsed) > 0:
+            return cls(**parsed)
+        return None
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
         """Parse fuel indicators based on Ids."""
-        if "status" not in vehicle_data or "fuelIndicators" not in vehicle_data["status"]:
-            _LOGGER.error("Unable to read data from `status.fuelIndicators`.")
-            return None
-
         retval = {}
-        fuel_indicators = vehicle_data["status"]["fuelIndicators"]
+
+        properties = vehicle_data.get("properties", {})
+
+        fuel_level = properties.get("fuelLevel", {})
+        retval["remaining_fuel"] = ValueWithUnit(
+            fuel_level.get("value"),
+            fuel_level.get("units"),
+        )
+
+        if properties.get("fuelPercentage", {}).get("value"):
+            retval["remaining_fuel_percent"] = int(properties.get("fuelPercentage", {}).get("value"))
+
+        if properties.get("electricRangeAndStatus", {}).get("chargePercentage"):
+            retval["remaining_battery_percent"] = int(
+                properties.get("electricRangeAndStatus", {}).get("chargePercentage")
+            )
+
+        retval["is_charger_connected"] = properties.get("chargingState", {}).get("isChargerConnected", False)
+
+        fuel_indicators = vehicle_data.get("status", {}).get("fuelIndicators", [])
         for indicator in fuel_indicators:
             if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
                 retval["remaining_range_combined"] = cls._parse_to_tuple(indicator)
@@ -40,7 +91,7 @@ class FuelIndicators(VehicleDataBase):  # pylint:disable=too-many-instance-attri
                 retval["remaining_range_electric"] = cls._parse_to_tuple(indicator)
 
                 retval["charging_time_label"] = indicator["infoLabel"]
-                retval["charging_status"] = indicator["chargingStatusType"]
+                retval["charging_status"] = ChargingState(indicator["chargingStatusType"])
 
                 if indicator.get("chargingStatusType") in ["CHARGING", "PLUGGED_IN"]:
                     retval.update(cls._parse_charging_timestamp(indicator))
@@ -56,12 +107,19 @@ class FuelIndicators(VehicleDataBase):  # pylint:disable=too-many-instance-attri
 
         return retval
 
+    def _update_after_parse(self, parsed: Dict) -> Dict:
+        """Updates parsed vehicle data with attributes stored in class if needed."""
+        if parsed.get("charging_end_time"):
+            parsed["charging_end_time"] = parsed["charging_end_time"].replace(tzinfo=self.account_timezone)
+        if parsed.get("charging_start_time"):
+            parsed["charging_start_time"] = parsed["charging_start_time"].replace(tzinfo=self.account_timezone)
+        return parsed
+
     @staticmethod
     def _parse_charging_timestamp(indicator: Dict) -> None:
         """Parse charging end time string to timestamp."""
         charging_start_time: datetime.datetime = None
         charging_end_time: datetime.datetime = None
-        remaining_charging_time: int = None
 
         # Only calculate charging end time if infolabel is like '100% at ~11:04am'
         # Other options: 'Charging', 'Starts at ~09:00am' (but not handled here)
@@ -79,7 +137,6 @@ class FuelIndicators(VehicleDataBase):  # pylint:disable=too-many-instance-attri
 
             if indicator["chargingStatusType"] == "CHARGING":
                 charging_end_time = datetime_parsed
-                remaining_charging_time = (charging_end_time - current_time).seconds
             elif indicator["chargingStatusType"] == "PLUGGED_IN":
                 charging_start_time = datetime_parsed
         except ValueError:
@@ -87,7 +144,6 @@ class FuelIndicators(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         return {
             "charging_end_time": charging_end_time,
             "charging_start_time": charging_start_time,
-            "remaining_charging_time": remaining_charging_time,
         }
 
     @staticmethod

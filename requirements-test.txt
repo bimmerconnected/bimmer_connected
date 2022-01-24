@@ -10,3 +10,4 @@ flake8
 mypy
 pbr
 time_machine
+pre-commit

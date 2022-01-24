@@ -194,15 +194,15 @@ async def send_poi(args) -> None:
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
-    poi_data = dict(
-        lat=args.latitude,
-        lon=args.longitude,
-        name=args.name,
-        street=args.street,
-        city=args.city,
-        postal_code=args.postalcode,
-        country=args.country,
-    )
+    poi_data = {
+        "lat": args.latitude,
+        "lon": args.longitude,
+        "name": args.name,
+        "street": args.street,
+        "city": args.city,
+        "postal_code": args.postalcode,
+        "country": args.country,
+    }
     await vehicle.remote_services.trigger_send_poi(poi_data)
 
 
@@ -227,15 +227,15 @@ async def send_poi_from_address(args) -> None:
     city = address.get("city")
     town = address.get("town")
 
-    poi_data = dict(
-        lat=response_json["lat"],
-        lon=response_json["lon"],
-        name=args.name,
-        street=address.get("road"),
-        city=town if city is None and town is not None else None,
-        postal_code=address.get("postcode"),
-        country=address.get("country"),
-    )
+    poi_data = {
+        "lat": response_json["lat"],
+        "lon": response_json["lon"],
+        "name": args.name,
+        "street": address.get("road"),
+        "city": town if city is None and town is not None else None,
+        "postal_code": address.get("postcode"),
+        "country": address.get("country"),
+    }
     await vehicle.remote_services.trigger_send_poi(poi_data)
 
 

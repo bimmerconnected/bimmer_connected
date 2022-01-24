@@ -31,7 +31,7 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
     # pylint:disable=invalid-name,unused-argument,redefined-builtin
     @classmethod
     def from_api_entry(cls, type: str, status: str, dateTime: str = None, distance: Dict = None, **kwargs):
-        """Parses a condition based service entry from the API format to `ConditionBasedService`."""
+        """Parse a condition based service entry from the API format to `ConditionBasedService`."""
         due_distance = ValueWithUnit(distance["value"], distance["units"]) if distance else ValueWithUnit(None, None)
         due_date = parse_datetime(dateTime) if dateTime else None
         return cls(type, ConditionBasedServiceStatus(status), due_date, due_distance)
@@ -41,8 +41,11 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
 class ConditionBasedServiceReport(VehicleDataBase):
     """Parses and summarizes condition based services (e.g. next oil service)."""
 
-    reports: List[ConditionBasedService] = field(default_factory=list)
+    messages: List[ConditionBasedService] = field(default_factory=list)
+    """List of the condition based services."""
+
     is_service_required: bool = False
+    """Indicates if a service is required."""
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
@@ -53,7 +56,7 @@ class ConditionBasedServiceReport(VehicleDataBase):
 
         retval = {}
         messages = vehicle_data["properties"]["serviceRequired"]
-        retval["reports"] = [ConditionBasedService.from_api_entry(**m) for m in messages]
+        retval["messages"] = [ConditionBasedService.from_api_entry(**m) for m in messages]
         retval["is_service_required"] = vehicle_data["properties"]["isServiceRequired"]
 
         return retval
@@ -87,8 +90,11 @@ class CheckControlMessage:
 class CheckControlMessageReport(VehicleDataBase):
     """Parses and summarizes check control messages (e.g. low tire pressure)."""
 
-    reports: List[CheckControlMessage] = field(default_factory=list)
+    messages: List[CheckControlMessage] = field(default_factory=list)
+    """List of check control messages."""
+
     has_check_control_messages: bool = False
+    """Indicates if check control messages are present."""
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
@@ -99,7 +105,7 @@ class CheckControlMessageReport(VehicleDataBase):
 
         retval = {}
         messages = vehicle_data["status"]["checkControlMessages"]
-        retval["reports"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["state"] != "OK"]
+        retval["messages"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["state"] != "OK"]
         retval["has_check_control_messages"] = vehicle_data["status"]["checkControlMessagesGeneralState"] != "No Issues"
 
         return retval

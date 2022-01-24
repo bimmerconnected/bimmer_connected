@@ -4,6 +4,7 @@ from enum import Enum
 
 class CarBrands(str, Enum):
     """Car brands supported by the My BMW API."""
+
     @classmethod
     def _missing_(cls, value):
         for member in cls:
@@ -34,28 +35,28 @@ OCP_APIM_KEYS = {
     Regions.REST_OF_WORLD: "4f1c85a3-758f-a37d-bbb6-f8704494acfa",
 }
 
-X_USER_AGENT = 'android(v1.07_20200330);{};1.7.0(11152)'
+X_USER_AGENT = "android(v1.07_20200330);{};1.7.0(11152)"
 
-AUTH_CHINA_PUBLIC_KEY_URL = '/eadrax-coas/v1/cop/publickey'
-AUTH_CHINA_LOGIN_URL = '/eadrax-coas/v1/login/pwd'
+AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
+AUTH_CHINA_LOGIN_URL = "/eadrax-coas/v1/login/pwd"
 
-OAUTH_CONFIG_URL = '/eadrax-ucs/v1/presentation/oauth/config'
+OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 
-VEHICLES_URL = '/eadrax-vcs/v1/vehicles'
+VEHICLES_URL = "/eadrax-vcs/v1/vehicles"
 
-REMOTE_SERVICE_BASE_URL = '/eadrax-vrccs/v2/presentation/remote-commands'
-REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + '/{vin}/{service_type}'
-REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_BASE_URL + '/eventStatus?eventId={event_id}'
-REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + '/eventPosition?eventId={event_id}'
+REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v2/presentation/remote-commands"
+REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + "/{vin}/{service_type}"
+REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_BASE_URL + "/eventStatus?eventId={event_id}"
+REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + "/eventPosition?eventId={event_id}"
 
 VEHICLE_IMAGE_URL = "/eadrax-ics/v3/presentation/vehicles/{vin}/images?carView={view}"
-VEHICLE_POI_URL = '/eadrax-dcs/v1/send-to-car/send-to-car'
+VEHICLE_POI_URL = "/eadrax-dcs/v1/send-to-car/send-to-car"
 
-VEHICLE_CHARGING_STATISTICS_URL = '/eadrax-chs/v1/charging-statistics'
-VEHICLE_CHARGING_SESSIONS_URL = '/eadrax-chs/v1/charging-sessions'
+VEHICLE_CHARGING_STATISTICS_URL = "/eadrax-chs/v1/charging-statistics"
+VEHICLE_CHARGING_SESSIONS_URL = "/eadrax-chs/v1/charging-sessions"
 
-SERVICE_PROPERTIES = 'properties'
-SERVICE_STATUS = 'status'
-SERVICE_CHARGING_STATISTICS_URL = 'CHARGING_STATISTICS'
-SERVICE_CHARGING_SESSIONS_URL = 'CHARGING_SESSIONS'
-SERVICE_CHARGING_PROFILE = 'CHARGING_PROFILE'
+SERVICE_PROPERTIES = "properties"
+SERVICE_STATUS = "status"
+SERVICE_CHARGING_STATISTICS_URL = "CHARGING_STATISTICS"
+SERVICE_CHARGING_SESSIONS_URL = "CHARGING_SESSIONS"
+SERVICE_CHARGING_PROFILE = "CHARGING_PROFILE"

@@ -219,7 +219,7 @@ class RemoteServices:
         event_id = await self._start_remote_service(Services.VEHICLE_FINDER)
         status = await self._block_until_done(event_id)
         result = await self._get_event_position(event_id)
-        self._vehicle.vehicle_position.set_remote_service_position(result)
+        self._vehicle.vehicle_location.set_remote_service_position(result)
         return status
 
     async def _get_event_position(self, event_id) -> Dict:
@@ -227,7 +227,7 @@ class RemoteServices:
         if not self._account.observer_position:
             return {
                 "errorDetails": {
-                    "title": "Unkown position",
+                    "title": "Unknown position",
                     "description": "Set observer position to retrieve vehicle coordinates!",
                 }
             }

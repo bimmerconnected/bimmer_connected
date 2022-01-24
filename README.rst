@@ -92,7 +92,7 @@ some money. In addition to that you need to enable the Remote Services in your i
 system in the vehicle.
 
 Different models of vehicles and infotainment systems result in different types of attributes
-provided by the server. So the experience with the library will certaily vary across the different 
+provided by the server. So the experience with the library will certainly vary across the different 
 vehicle models.
 
 Data Contributions

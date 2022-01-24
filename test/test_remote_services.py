@@ -197,7 +197,7 @@ async def test_get_remote_position_fail_without_observer(caplog):
         r
         for r in caplog.records
         if r.levelname == "ERROR"
-        and "Unkown position: Set observer position to retrieve vehicle coordinates" in r.message
+        and "Unknown position: Set observer position to retrieve vehicle coordinates" in r.message
     ]
     assert len(errors) == 1
 

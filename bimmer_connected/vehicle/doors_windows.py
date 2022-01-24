@@ -58,6 +58,7 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     """Provides an accessible version of `properties.doorsAndWindows`."""
 
     door_lock_state: LockState = LockState.UNKNOWN
+    """Get state of the door locks."""
 
     lids: List[Lid] = field(default_factory=list)
     """All lids (doors+hood+trunk) of the car."""
@@ -86,3 +87,23 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         retval["door_lock_state"] = LockState(vehicle_data["status"]["doorsGeneralState"].upper())
 
         return retval
+
+    @property
+    def open_lids(self) -> List[Lid]:
+        """Get all open lids of the car."""
+        return [lid for lid in self.lids if not lid.is_closed]
+
+    @property
+    def all_lids_closed(self) -> bool:
+        """Check if all lids are closed."""
+        return len(self.open_lids) == 0
+
+    @property
+    def open_windows(self) -> List[Window]:
+        """Get all open windows of the car."""
+        return [lid for lid in self.windows if not lid.is_closed]
+
+    @property
+    def all_windows_closed(self) -> bool:
+        """Check if all windows are closed."""
+        return len(self.open_windows) == 0

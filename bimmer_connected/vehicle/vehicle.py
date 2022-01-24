@@ -1,25 +1,23 @@
 """Models state and remote services of one vehicle."""
 import datetime
 import logging
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.utils import SerializableBaseClass, parse_datetime, serialize_for_json
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
-from bimmer_connected.vehicle.const import ChargingState
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
-from bimmer_connected.vehicle.fuel_indicators import FuelIndicators
-from bimmer_connected.vehicle.models import GPSPosition, StrEnum, ValueWithUnit
-from bimmer_connected.vehicle.position import VehiclePosition
+from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
+from bimmer_connected.vehicle.location import VehicleLocation
+from bimmer_connected.vehicle.models import StrEnum, ValueWithUnit
 from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
 from bimmer_connected.vehicle.vehicle_status import VehicleStatus
 
 if TYPE_CHECKING:
     from bimmer_connected.account import ConnectedDriveAccount
-    from bimmer_connected.vehicle.doors_windows import Lid, LockState, Window
-    from bimmer_connected.vehicle.reports import CheckControlMessage, ConditionBasedService
+    from bimmer_connected.vehicle.models import VehicleDataBase
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -77,26 +75,38 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     """
 
     def __init__(self, account: "ConnectedDriveAccount", vehicle_data: dict) -> None:
+        """Initializes a ConnectedDriveVehicle."""
         self.account = account
         self.data = vehicle_data
         self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
-        self.fuel_indicators: FuelIndicators = FuelIndicators()
-        self.vehicle_position: VehiclePosition = VehiclePosition(vehicle_region=account.region)
-        self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
-        self.condition_based_service_report: ConditionBasedServiceReport = ConditionBasedServiceReport()
-        self.check_control_message_report: CheckControlMessageReport = CheckControlMessageReport()
+        self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
+        self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
+        self.doors_and_windows: DoorsAndWindows = None
+        self.condition_based_services: ConditionBasedServiceReport = None
+        self.check_control_messages: CheckControlMessageReport = None
+        self.charging_profile: ChargingProfile = None
 
         self.update_state(vehicle_data)
 
     def update_state(self, vehicle_data) -> None:
         """Update the state of a vehicle."""
         self.data = vehicle_data
-        self.fuel_indicators.update_from_vehicle_data(vehicle_data)
-        self.vehicle_position.update_from_vehicle_data(vehicle_data)
-        self.doors_and_windows.update_from_vehicle_data(vehicle_data)
-        self.condition_based_service_report.update_from_vehicle_data(vehicle_data)
-        self.check_control_message_report.update_from_vehicle_data(vehicle_data)
+
+        update_entities: List[Tuple["VehicleDataBase", str]] = [
+            (FuelAndBattery, "fuel_and_battery"),
+            (VehicleLocation, "vehicle_location"),
+            (DoorsAndWindows, "doors_and_windows"),
+            (ConditionBasedServiceReport, "condition_based_services"),
+            (CheckControlMessageReport, "check_control_messages"),
+            (ChargingProfile, "charging_profile"),
+        ]
+        for cls, vehicle_attribute in update_entities:
+            if getattr(self, vehicle_attribute) is None:
+                setattr(self, vehicle_attribute, cls.from_vehicle_data(vehicle_data))
+            else:
+                curr_attr: "VehicleDataBase" = getattr(self, vehicle_attribute)
+                curr_attr.update_from_vehicle_data(vehicle_data)
 
     # # # # # # # # # # # # # # #
     # Generic attributes
@@ -154,7 +164,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
 
     @property
     def last_update_reason(self) -> str:
-        """The reason for the last state update"""
+        """The reason for the last state update."""
         return self._status["timestampMessage"]
 
     # # # # # # # # # # # # # # #
@@ -261,185 +271,12 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return result
 
     @property
-    def available_state_services(self) -> List[str]:
-        """Get the list of all available state services for this vehicle."""
-        result = [SERVICE_STATUS]
-
-        return result
-
-    # # # # # # # # # # # # # # #
-    # Vehicle position
-    # # # # # # # # # # # # # # #
-
-    @property
-    def gps_position(self) -> GPSPosition:
-        """Get the last known position of the vehicle.
-
-        Only provides data if vehicle tracking is enabled!
-        """
-        if not self.vehicle_position:
-            return GPSPosition(None, None)
-        return GPSPosition(self.vehicle_position.latitude, self.vehicle_position.longitude)
-
-    @property
-    def gps_heading(self) -> int:
-        """Get the last known heading/direction of the vehicle.
-
-        Only provides data if vehicle tracking is enabled!
-        """
-        if not self.vehicle_position:
-            return None
-        return self.vehicle_position.heading
-
-    # # # # # # # # # # # # # # #
-    # Fuel indicators & similar
-    # # # # # # # # # # # # # # #
-
-    @property
     def fuel_indicator_count(self) -> int:
         """Gets the number of fuel indicators.
 
         Can be used to identify REX vehicles if driveTrain == ELECTRIC.
         """
         return len(self._status["fuelIndicators"])
-
-    @property
-    def remaining_range_fuel(self) -> ValueWithUnit:
-        """Get the remaining range of the vehicle on fuel."""
-        return self.fuel_indicators.remaining_range_fuel
-
-    @property
-    def remaining_range_electric(self) -> ValueWithUnit:
-        """Get the remaining range of the vehicle on electricity."""
-        return self.fuel_indicators.remaining_range_electric
-
-    @property
-    def remaining_range_total(self) -> ValueWithUnit:
-        """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
-        return self.fuel_indicators.remaining_range_combined
-
-    @property
-    def remaining_fuel(self) -> ValueWithUnit:
-        """Get the remaining fuel of the vehicle."""
-        return ValueWithUnit(
-            self._properties["fuelLevel"]["value"],
-            self._properties["fuelLevel"]["units"],
-        )
-
-    @property
-    def remaining_battery_percent(self) -> int:
-        """State of charge of the high voltage battery in percent."""
-        return int(self._properties["electricRangeAndStatus"]["chargePercentage"])
-
-    @property
-    def remaining_fuel_percent(self) -> int:
-        """State of charge of the high voltage battery in percent."""
-        return int(self._properties["fuelPercentage"]["value"])
-
-    # # # # # # # # # # # # # # #
-    # Charging information
-    # # # # # # # # # # # # # # #
-
-    @property
-    def charging_status(self) -> ChargingState:
-        """Charging state of the vehicle."""
-        if "chargingState" not in self._properties:
-            return None
-        return ChargingState(self.fuel_indicators.charging_status)
-
-    @property
-    def charging_time_start(self) -> datetime.datetime:
-        """The planned time the vehicle will start charging."""
-        if self.fuel_indicators.charging_start_time:
-            return self.fuel_indicators.charging_start_time.replace(tzinfo=self.account.timezone)
-        return None
-
-    @property
-    def charging_time_end(self) -> datetime.datetime:
-        """The estimated time the vehicle will have finished charging."""
-        if self.fuel_indicators.charging_end_time:
-            return self.fuel_indicators.charging_end_time.replace(tzinfo=self.account.timezone)
-        return None
-
-    @property
-    def charging_time_label(self) -> str:
-        """The planned start/estimated end time as provided by the API."""
-        return self.fuel_indicators.charging_time_label
-
-    @property
-    def connection_status(self) -> str:
-        """Get status of the connection"""
-        if "chargingState" not in self._properties:
-            return None
-        return "CONNECTED" if self._properties["chargingState"]["isChargerConnected"] else "DISCONNECTED"
-
-    @property
-    def charging_profile(self) -> ChargingProfile:
-        """Return the charging profile if available."""
-        return ChargingProfile(self.status) if self.is_charging_plan_supported else None
-
-    # # # # # # # # # # # # # # #
-    # Doors and windows
-    # # # # # # # # # # # # # # #
-
-    @property
-    def lids(self) -> List["Lid"]:
-        """Get all lids (doors+hatch+trunk) of the car."""
-        return self.doors_and_windows.lids
-
-    @property
-    def open_lids(self) -> List["Lid"]:
-        """Get all open lids of the car."""
-        return [lid for lid in self.lids if not lid.is_closed]
-
-    @property
-    def all_lids_closed(self) -> bool:
-        """Check if all lids are closed."""
-        return len(self.open_lids) == 0
-
-    @property
-    def windows(self) -> List["Window"]:
-        """Get all windows (doors+sunroof) of the car."""
-        return self.doors_and_windows.windows
-
-    @property
-    def open_windows(self) -> List["Window"]:
-        """Get all open windows of the car."""
-        return [lid for lid in self.windows if not lid.is_closed]
-
-    @property
-    def all_windows_closed(self) -> bool:
-        """Check if all windows are closed."""
-        return len(self.open_windows) == 0
-
-    @property
-    def door_lock_state(self) -> "LockState":
-        """Get state of the door locks."""
-        return self.doors_and_windows.door_lock_state
-
-    # # # # # # # # # # # # # # #
-    # Condition Based & Service reports
-    # # # # # # # # # # # # # # #
-
-    @property
-    def condition_based_services(self) -> List["ConditionBasedService"]:
-        """Get status of the condition based services."""
-        return self.condition_based_service_report.reports
-
-    @property
-    def are_all_cbs_ok(self) -> bool:
-        """Check if the status of all condition based services are "OK"."""
-        return not self.condition_based_service_report.is_service_required
-
-    @property
-    def check_control_messages(self) -> List["CheckControlMessage"]:
-        """List of check control messages."""
-        return self.check_control_message_report.reports
-
-    @property
-    def has_check_control_messages(self) -> bool:
-        """Return true if any check control message is present."""
-        return self.check_control_message_report.has_check_control_messages
 
     # # # # # # # # # # # # # # #
     # Generic functions

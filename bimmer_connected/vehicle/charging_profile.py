@@ -1,13 +1,12 @@
 """Models the charging profiles of a vehicle."""
 
+import datetime
 import logging
-from typing import TYPE_CHECKING, List
+from dataclasses import dataclass
+from typing import Dict, List
 
 from bimmer_connected.utils import SerializableBaseClass
-from bimmer_connected.vehicle.models import StrEnum
-
-if TYPE_CHECKING:
-    from bimmer_connected.vehicle.vehicle_status import VehicleStatus
+from bimmer_connected.vehicle.models import StrEnum, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -43,18 +42,16 @@ class ChargingWindow(SerializableBaseClass):
         self._window_dict = window_dict
 
     @property
-    def start_time(self) -> str:
+    def start_time(self) -> datetime.time:
         """Start of the charging window."""
         # end of reductionOfChargeCurrent == start of charging window
-        return f"{str(self._window_dict['end']['hour']).zfill(2)}:{str(self._window_dict['end']['minute']).zfill(2)}"
+        return datetime.time(int(self._window_dict["end"]["hour"]), int(self._window_dict["end"]["minute"]))
 
     @property
-    def end_time(self) -> str:
+    def end_time(self) -> datetime.time:
         """End of the charging window."""
         # start of reductionOfChargeCurrent == end of charging window
-        return (
-            f"{str(self._window_dict['start']['hour']).zfill(2)}:{str(self._window_dict['start']['minute']).zfill(2)}"
-        )
+        return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
 
 
 class DepartureTimer(SerializableBaseClass):
@@ -71,14 +68,11 @@ class DepartureTimer(SerializableBaseClass):
         return self._timer_dict.get("id")
 
     @property
-    def start_time(self) -> str:
+    def start_time(self) -> datetime.time:
         """Deperture time for this timer."""
         if "timeStamp" not in self._timer_dict:
             return None
-        return (
-            f"{str(self._timer_dict['timeStamp']['hour']).zfill(2)}"
-            f":{str(self._timer_dict['timeStamp']['minute']).zfill(2)}"
-        )
+        return datetime.time(int(self._timer_dict["timeStamp"]["hour"]), int(self._timer_dict["timeStamp"]["minute"]))
 
     @property
     def action(self) -> bool:
@@ -91,66 +85,43 @@ class DepartureTimer(SerializableBaseClass):
         return self._timer_dict.get("timerWeekDays")
 
 
-def backend_parameter(func):
-    """Decorator for parameters reading data from the backend.
-
-    Errors are handled in a default way.
-    """
-
-    def _func_wrapper(self: "ChargingProfile", *args, **kwargs):
-        # pylint: disable=protected-access
-        if self.charging_profile is None:
-            raise ValueError("No data available for vehicles charging profile!")
-        try:
-            return func(self, *args, **kwargs)
-        except KeyError:
-            _LOGGER.debug("No data available for attribute %s!", str(func))
-            return None
-
-    return _func_wrapper
-
-
-class ChargingProfile(SerializableBaseClass):  # pylint: disable=too-many-public-methods
+@dataclass
+class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
     """Models the charging profile of a vehicle."""
 
-    def __init__(self, status: "VehicleStatus"):
-        """Constructor."""
-        self.charging_profile = status.status["chargingProfile"]
+    is_pre_entry_climatization_enabled: bool
+    """Get status of pre-entry climatization."""
 
-    def __getattr__(self, item):
-        """Generic get function for all backend attributes."""
-        return self.charging_profile[item]
+    timer_type: TimerTypes
+    """Returns the current timer plan type."""
 
-    @property
-    @backend_parameter
-    def is_pre_entry_climatization_enabled(self) -> bool:
-        """Get status of pre-entry climatization."""
-        return bool(self.charging_profile["climatisationOn"])
+    departure_times: List[DepartureTimer]
+    """List of timer messages."""
 
-    @property
-    @backend_parameter
-    def timer(self) -> dict:
-        """List of timer messages."""
-        timer_list = {}
-        for timer_dict in self.charging_profile["departureTimes"]:
-            curr_timer = DepartureTimer(timer_dict)
-            timer_list[curr_timer.timer_id] = curr_timer
-        return timer_list
+    preferred_charging_window: ChargingWindow
+    """Returns the preferred charging window."""
 
-    @property
-    @backend_parameter
-    def preferred_charging_window(self) -> ChargingWindow:
-        """Returns the preferred charging window."""
-        return ChargingWindow(self.charging_profile["reductionOfChargeCurrent"])
+    charging_preferences: ChargingPreferences
+    """Returns the preferred charging preferences."""
 
-    @property
-    @backend_parameter
-    def charging_preferences(self) -> str:
-        """Returns the prefered charging preferences."""
-        return ChargingPreferences(self.charging_profile["chargingPreference"])
+    charging_mode: ChargingMode
+    """Returns the preferred charging mode."""
 
-    @property
-    @backend_parameter
-    def charging_mode(self) -> str:
-        """Returns the prefered charging mode."""
-        return ChargingMode(self.charging_profile["chargingMode"])
+    @classmethod
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
+        """Parse doors and windows."""
+        if "status" not in vehicle_data or "chargingProfile" not in vehicle_data["status"]:
+            _LOGGER.error("Unable to read data from `status.chargingProfile`.")
+            return None
+
+        retval = {}
+        charging_profile = vehicle_data["status"]["chargingProfile"]
+
+        retval["is_pre_entry_climatization_enabled"] = bool(charging_profile["climatisationOn"])
+        retval["departure_times"] = [DepartureTimer(t) for t in charging_profile["departureTimes"]]
+        retval["preferred_charging_window"] = ChargingWindow(charging_profile["reductionOfChargeCurrent"])
+        retval["timer_type"] = TimerTypes(charging_profile["chargingControlType"])
+        retval["charging_preferences"] = ChargingWindow(charging_profile["chargingPreference"])
+        retval["charging_mode"] = ChargingWindow(charging_profile["chargingMode"])
+
+        return retval
