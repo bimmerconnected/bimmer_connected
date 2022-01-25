@@ -6,8 +6,8 @@ import pytest
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.vehicle.const import ChargingState
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
+from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX

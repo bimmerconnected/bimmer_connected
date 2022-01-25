@@ -6,10 +6,25 @@ import logging
 from dataclasses import dataclass
 from typing import Dict, List, Optional
 
-from bimmer_connected.vehicle.const import ChargingState
-from bimmer_connected.vehicle.models import ValueWithUnit, VehicleDataBase
+from bimmer_connected.vehicle.models import StrEnum, ValueWithUnit, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
+
+
+class ChargingState(StrEnum):
+    """Charging state of electric vehicle."""
+
+    DEFAULT = "DEFAULT"
+    CHARGING = "CHARGING"
+    ERROR = "ERROR"
+    COMPLETE = "COMPLETE"
+    FULLY_CHARGED = "FULLY_CHARGED"
+    FINISHED_FULLY_CHARGED = "FINISHED_FULLY_CHARGED"
+    FINISHED_NOT_FULL = "FINISHED_NOT_FULL"
+    INVALID = "INVALID"
+    NOT_CHARGING = "NOT_CHARGING"
+    PLUGGED_IN = "PLUGGED_IN"
+    WAITING_FOR_CHARGING = "WAITING_FOR_CHARGING"
 
 
 @dataclass

@@ -5,11 +5,11 @@ import logging
 from typing import TYPE_CHECKING, Dict, List, Tuple
 
 from bimmer_connected.utils import SerializableBaseClass
-from bimmer_connected.vehicle.const import ChargingState
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import ConnectedDriveVehicle
     from bimmer_connected.vehicle.doors_windows import Lid, LockState, Window
+    from bimmer_connected.vehicle.fuel_and_battery import ChargingState
     from bimmer_connected.vehicle.reports import CheckControlMessage, ConditionBasedService
 
 _LOGGER = logging.getLogger(__name__)
@@ -189,7 +189,7 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
 
     @property
     @backend_parameter
-    def charging_status(self) -> ChargingState:
+    def charging_status(self) -> "ChargingState":
         # TODO: deprecation  pylint:disable=missing-function-docstring
         return self.vehicle.fuel_and_battery.charging_status
 
