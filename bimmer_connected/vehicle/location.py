@@ -3,7 +3,7 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Any, Dict, Optional
 
 from bimmer_connected.const import Regions
 from bimmer_connected.coord_convert import gcj2wgs
@@ -40,7 +40,7 @@ class VehicleLocation(VehicleDataBase):
     def _parse_vehicle_data(cls, vehicle_data: Dict):
         date_dummy = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
 
-        retval = {}
+        retval: Dict[str, Any] = {}
         retval["vehicle_update_timestamp"] = max(
             parse_datetime(vehicle_data.get("properties", {}).get("lastUpdatedAt")) or date_dummy,
             parse_datetime(vehicle_data.get("status", {}).get("lastUpdatedAt")) or date_dummy,

@@ -49,3 +49,10 @@ repos:
             "-sn", # Don't display the score
           ]
         files: ^(bimmer_connected|test)/.+\.py$
+      - id: mypy
+        name: mypy
+        entry: mypy
+        language: system
+        types: [python]
+        require_serial: true
+        files: ^(bimmer_connected|test)/.+\.py$

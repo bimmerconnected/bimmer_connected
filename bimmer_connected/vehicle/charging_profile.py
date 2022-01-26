@@ -3,7 +3,7 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 from bimmer_connected.utils import SerializableBaseClass
 from bimmer_connected.vehicle.models import StrEnum, VehicleDataBase
@@ -60,29 +60,29 @@ class DepartureTimer(SerializableBaseClass):
     """
 
     def __init__(self, timer_dict: dict):
-        self._timer_dict = timer_dict
+        self._timer_dict: Dict = timer_dict
 
     @property
-    def timer_id(self) -> int:
+    def timer_id(self) -> Optional[int]:
         """ID of this timer."""
         return self._timer_dict.get("id")
 
     @property
-    def start_time(self) -> datetime.time:
+    def start_time(self) -> Optional[datetime.time]:
         """Deperture time for this timer."""
         if "timeStamp" not in self._timer_dict:
             return None
         return datetime.time(int(self._timer_dict["timeStamp"]["hour"]), int(self._timer_dict["timeStamp"]["minute"]))
 
     @property
-    def action(self) -> bool:
+    def action(self) -> Optional[str]:
         """What does the timer do."""
         return self._timer_dict.get("action")
 
     @property
     def weekdays(self) -> List[str]:
         """Active weekdays for this timer."""
-        return self._timer_dict.get("timerWeekDays")
+        return self._timer_dict.get("timerWeekDays")  # type: ignore
 
 
 @dataclass
@@ -110,11 +110,12 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
         """Parse doors and windows."""
+        retval: Dict[str, Any] = {}
+
         if "status" not in vehicle_data or "chargingProfile" not in vehicle_data["status"]:
             _LOGGER.error("Unable to read data from `status.chargingProfile`.")
-            return None
+            return retval
 
-        retval = {}
         charging_profile = vehicle_data["status"]["chargingProfile"]
 
         retval["is_pre_entry_climatization_enabled"] = bool(charging_profile["climatisationOn"])

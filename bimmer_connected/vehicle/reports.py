@@ -3,7 +3,7 @@
 import datetime
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from bimmer_connected.utils import parse_datetime
 from bimmer_connected.vehicle.models import StrEnum, ValueWithUnit, VehicleDataBase
@@ -48,13 +48,14 @@ class ConditionBasedServiceReport(VehicleDataBase):
     """Indicates if a service is required."""
 
     @classmethod
-    def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:
         """Parse doors and windows."""
+        retval: Dict[str, Any] = {}
+
         if "properties" not in vehicle_data or "serviceRequired" not in vehicle_data["properties"]:
             _LOGGER.error("Unable to read data from `properties.serviceRequired`.")
-            return None
+            return retval
 
-        retval = {}
         messages = vehicle_data["properties"]["serviceRequired"]
         retval["messages"] = [ConditionBasedService.from_api_entry(**m) for m in messages]
         retval["is_service_required"] = vehicle_data["properties"]["isServiceRequired"]
@@ -97,13 +98,14 @@ class CheckControlMessageReport(VehicleDataBase):
     """Indicates if check control messages are present."""
 
     @classmethod
-    def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:
         """Parse doors and windows."""
+        retval: Dict[str, Any] = {}
+
         if "status" not in vehicle_data or "checkControlMessages" not in vehicle_data["status"]:
             _LOGGER.error("Unable to read data from `status.checkControlMessages`.")
-            return None
+            return retval
 
-        retval = {}
         messages = vehicle_data["status"]["checkControlMessages"]
         retval["messages"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["state"] != "OK"]
         retval["has_check_control_messages"] = vehicle_data["status"]["checkControlMessagesGeneralState"] != "No Issues"

@@ -1,7 +1,7 @@
 """Models state and remote services of one vehicle."""
 import datetime
 import logging
-from typing import TYPE_CHECKING, Dict, List, Tuple
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
@@ -82,10 +82,10 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         self.remote_services = RemoteServices(self)
         self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
         self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
-        self.doors_and_windows: DoorsAndWindows = None
-        self.condition_based_services: ConditionBasedServiceReport = None
-        self.check_control_messages: CheckControlMessageReport = None
-        self.charging_profile: ChargingProfile = None
+        self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
+        self.condition_based_services: ConditionBasedServiceReport = ConditionBasedServiceReport()
+        self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
+        self.charging_profile: Optional[ChargingProfile] = None
 
         self.update_state(vehicle_data)
 
@@ -93,7 +93,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """Update the state of a vehicle."""
         self.data = vehicle_data
 
-        update_entities: List[Tuple["VehicleDataBase", str]] = [
+        update_entities: List[Tuple[Type["VehicleDataBase"], str]] = [
             (FuelAndBattery, "fuel_and_battery"),
             (VehicleLocation, "vehicle_location"),
             (DoorsAndWindows, "doors_and_windows"),
@@ -148,13 +148,13 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return ValueWithUnit(self._status["currentMileage"]["mileage"], self._status["currentMileage"]["units"])
 
     @property
-    def timestamp(self) -> datetime.datetime:
+    def timestamp(self) -> Optional[datetime.datetime]:
         """Get the timestamp when the data was recorded."""
         timestamps = [
             ts
             for ts in [
-                parse_datetime(self._properties.get("lastUpdatedAt")),
-                parse_datetime(self._status.get("lastUpdatedAt")),
+                parse_datetime(self._properties.get("lastUpdatedAt")),  # type: ignore
+                parse_datetime(self._status.get("lastUpdatedAt")),  # type: ignore
             ]
             if ts
         ]

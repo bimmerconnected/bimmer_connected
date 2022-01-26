@@ -4,7 +4,7 @@
 import datetime
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from bimmer_connected.vehicle.models import StrEnum, ValueWithUnit, VehicleDataBase
 
@@ -31,34 +31,34 @@ class ChargingState(StrEnum):
 class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
     """Provides an accessible version of `status.FuelAndBattery`."""
 
-    remaining_range_fuel: ValueWithUnit = ValueWithUnit(None, None)
+    remaining_range_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the remaining range of the vehicle on fuel."""
 
-    remaining_range_electric: ValueWithUnit = ValueWithUnit(None, None)
+    remaining_range_electric: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the remaining range of the vehicle on electricity."""
 
-    remaining_range_combined: ValueWithUnit = ValueWithUnit(None, None)
+    remaining_range_combined: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
 
-    remaining_fuel: ValueWithUnit = ValueWithUnit(None, None)
+    remaining_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the remaining fuel of the vehicle."""
 
-    remaining_fuel_percent: int = None
+    remaining_fuel_percent: Optional[int] = None
     """State of charge of the high voltage battery in percent."""
 
-    remaining_battery_percent: int = None
+    remaining_battery_percent: Optional[int] = None
     """State of charge of the high voltage battery in percent."""
 
     charging_status: Optional[ChargingState] = None
     """Charging state of the vehicle."""
 
-    charging_start_time: datetime.datetime = None
+    charging_start_time: Optional[datetime.datetime] = None
     """The planned time the vehicle will start charging."""
 
-    charging_end_time: datetime.datetime = None
+    charging_end_time: Optional[datetime.datetime] = None
     """The estimated time the vehicle will have finished charging."""
 
-    charging_time_label: str = None
+    charging_time_label: Optional[str] = None
     """The planned start/estimated end time as provided by the API."""
 
     is_charger_connected: bool = False
@@ -76,9 +76,9 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         return None
 
     @classmethod
-    def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:
         """Parse fuel indicators based on Ids."""
-        retval = {}
+        retval: Dict[str, Any] = {}
 
         properties = vehicle_data.get("properties", {})
 
@@ -131,10 +131,10 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         return parsed
 
     @staticmethod
-    def _parse_charging_timestamp(indicator: Dict) -> None:
+    def _parse_charging_timestamp(indicator: Dict) -> Dict:
         """Parse charging end time string to timestamp."""
-        charging_start_time: datetime.datetime = None
-        charging_end_time: datetime.datetime = None
+        charging_start_time: Optional[datetime.datetime] = None
+        charging_end_time: Optional[datetime.datetime] = None
 
         # Only calculate charging end time if infolabel is like '100% at ~11:04am'
         # Other options: 'Charging', 'Starts at ~09:00am' (but not handled here)

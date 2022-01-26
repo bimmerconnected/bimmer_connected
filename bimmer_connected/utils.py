@@ -6,6 +6,7 @@ import json
 import logging
 import sys
 from abc import ABC
+from typing import Optional
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -46,7 +47,7 @@ def to_json(obj: object, *args, **kwargs):
     return json.dumps(obj, default=serialize, *args, **kwargs)
 
 
-def parse_datetime(date_str: str) -> datetime.datetime:
+def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
     """Convert a time string into datetime."""
     if not date_str:
         return None

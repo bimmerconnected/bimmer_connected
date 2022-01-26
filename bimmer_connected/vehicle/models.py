@@ -39,7 +39,7 @@ class VehicleDataBase:
             self.__dict__.update(parsed)
 
     @classmethod
-    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:
         """Parses desired attributes out of vehicle data from API."""
         raise NotImplementedError()
 
@@ -121,5 +121,5 @@ def check_strict_types(cls):
 class ValueWithUnit(NamedTuple):
     """A value with a corresponding unit."""
 
-    value: Union[int, float]
-    unit: str
+    value: Optional[Union[int, float]]
+    unit: Optional[str]

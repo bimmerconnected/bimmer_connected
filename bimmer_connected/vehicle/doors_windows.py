@@ -2,7 +2,7 @@
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from bimmer_connected.vehicle.models import StrEnum, VehicleDataBase
 
@@ -67,13 +67,14 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     """All windows (doors+sunroof) of the car."""
 
     @classmethod
-    def _parse_vehicle_data(cls, vehicle_data: List[Dict]) -> Dict:
+    def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
         """Parse doors and windows."""
+        retval: Dict[str, Any] = {}
+
         if "properties" not in vehicle_data or "doorsAndWindows" not in vehicle_data["status"]:
             _LOGGER.error("Unable to read data from `properties.doorsAndWindows`.")
-            return None
+            return retval
 
-        retval = {}
         doors_and_windows = vehicle_data["properties"]["doorsAndWindows"]
 
         retval["lids"] = [
