@@ -5,9 +5,18 @@ import inspect
 import json
 import logging
 import sys
+import traceback
 from abc import ABC
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
+if TYPE_CHECKING:
+    from typing import Callable, TypeVar
+
+    from typing_extensions import Concatenate, ParamSpec
+
+    _T = TypeVar("_T")
+    _R = TypeVar("_R")
+    _P = ParamSpec("_P")
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -25,7 +34,7 @@ def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool 
             for k, v in obj.__dict__.items()
             if k not in excluded and ((exclude_hidden and not str(k).startswith("_")) or not exclude_hidden)
         },
-        **{a: getattr(obj, a) for a in get_class_property_names(obj) if a not in excluded + ["to_json"]}
+        **{a: getattr(obj, a) for a in get_class_property_names(obj) if a not in excluded + ["to_json"]},
     )
 
 
@@ -71,3 +80,29 @@ class SerializableBaseClass(ABC):  # pylint: disable=too-few-public-methods
     def as_dict(self) -> dict:
         """Return all attributes and parameters."""
         return serialize_for_json(self)
+
+
+def deprecated(replacement: str = None):
+    """Mark a function or property as deprecated."""
+
+    def decorator(func: "Callable[Concatenate[_T, _P], _R]") -> "Callable[Concatenate[_T, _P], _R | None]":
+        def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
+            # warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+            replacement_text = f" Please change to '{replacement}'." if replacement else ""
+            # warnings.warn(f"{func.__qualname__} is deprecated.{replacement_text}",
+            # category=DeprecationWarning,
+            # stacklevel=2)
+            # warnings.simplefilter('default', DeprecationWarning)  # reset filter
+            stack = traceback.extract_stack()[-2]
+            _LOGGER.warning(
+                "DeprecationWarning:%s:%s: '%s' is deprecated.%s",
+                stack.filename,
+                stack.lineno,
+                func.__qualname__,
+                replacement_text,
+            )
+            return func(self, *args, **kwargs)
+
+        return _func_wrapper
+
+    return decorator

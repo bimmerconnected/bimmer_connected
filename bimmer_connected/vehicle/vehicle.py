@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
-from bimmer_connected.utils import SerializableBaseClass, parse_datetime, serialize_for_json
+from bimmer_connected.utils import SerializableBaseClass, deprecated, parse_datetime, serialize_for_json
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
@@ -172,7 +172,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     # # # # # # # # # # # # # # #
 
     @property
-    def is_electric(self) -> bool:
+    def has_electric_drivetrain(self) -> bool:
         """Return True if vehicle is equipped with a high voltage battery.
 
         In this case we can get the state of the battery in the state attributes.
@@ -180,14 +180,14 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         return self.drive_train in HV_BATTERY_DRIVE_TRAINS
 
     @property
-    def is_range_extender(self) -> bool:
+    def has_range_extender_drivetrain(self) -> bool:
         """Return True if vehicle is equipped with a range extender.
 
         In this case we can get the state of the gas tank."""
         return self.drive_train == DriveTrainType.ELECTRIC and self.status.fuel_indicator_count == 3
 
     @property
-    def is_combustion(self) -> bool:
+    def has_combustion_drivetrain(self) -> bool:
         """Return True if vehicle is equipped with an internal combustion engine.
 
         In this case we can get the state of the gas tank."""
@@ -226,7 +226,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         the attributes might still be None.
         """
         result = ["remaining_range_total", "mileage"]
-        if self.has_hv_battery:
+        if self.has_electric_drivetrain:
             result += [
                 "charging_time_remaining",
                 "charging_start_time",
@@ -238,7 +238,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
                 "remaining_range_electric",
                 "last_charging_end_result",
             ]
-        if self.has_internal_combustion_engine or self.has_range_extender:
+        if self.has_combustion_drivetrain or self.has_range_extender_drivetrain:
             result += ["remaining_fuel", "remaining_range_fuel", "fuel_percent"]
         return result
 
@@ -305,21 +305,25 @@ class ConnectedDriveVehicle(SerializableBaseClass):
     # # # # # # # # # # # # # # #
 
     @property
+    @deprecated("vehicle.has_electric_drivetrain")
     def has_hv_battery(self) -> bool:
-        # TODO: deprecation  pylint:disable=missing-function-docstring
-        return self.is_electric
+        # pylint:disable=missing-function-docstring
+        return self.has_electric_drivetrain
 
     @property
+    @deprecated("vehicle.has_range_extender_drivetrain")
     def has_range_extender(self) -> bool:
-        # TODO: deprecation  pylint:disable=missing-function-docstring
-        return self.is_range_extender
+        # pylint:disable=missing-function-docstring
+        return self.has_range_extender_drivetrain
 
     @property
+    @deprecated("vehicle.has_combustion_drivetrain")
     def has_internal_combustion_engine(self) -> bool:
-        # TODO: deprecation  pylint:disable=missing-function-docstring
-        return self.is_combustion
+        # pylint:disable=missing-function-docstring
+        return self.has_combustion_drivetrain
 
     @property
+    @deprecated("vehicle.is_charging_plan_supported")
     def has_weekly_planner_service(self) -> bool:
-        # TODO: deprecation  pylint:disable=missing-function-docstring
+        # pylint:disable=missing-function-docstring
         return self.is_charging_plan_supported
