@@ -113,7 +113,8 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         retval: Dict[str, Any] = {}
 
         if "status" not in vehicle_data or "chargingProfile" not in vehicle_data["status"]:
-            _LOGGER.error("Unable to read data from `status.chargingProfile`.")
+            if vehicle_data["capabilities"]["isChargingPlanSupported"]:
+                _LOGGER.error("Unable to read data from `status.chargingProfile`.")
             return retval
 
         charging_profile = vehicle_data["status"]["chargingProfile"]

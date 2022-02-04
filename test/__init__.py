@@ -47,6 +47,11 @@ for fingerprint in RESPONSE_DIR.rglob("vehicles_v2_*_0.json"):
     ALL_FINGERPRINTS.extend(load_response(fingerprint))
 
 
+def get_deprecation_warning_count(caplog):
+    """Return all logged DeprecationWarnings."""
+    return [r for r in caplog.records if r.levelname == "WARNING" and "DeprecationWarning" in r.message]
+
+
 # # VehicleState has different names than the json file. So we need to map some of the
 # # parameters.
 # ATTRIBUTE_MAPPING = {

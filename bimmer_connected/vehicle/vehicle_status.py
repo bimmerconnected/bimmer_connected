@@ -16,23 +16,6 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def backend_parameter(func):
-    """Decorator for parameters reading data from the backend.
-
-    Errors are handled in a default way.
-    """
-
-    def _func_wrapper(self: "VehicleStatus", *args, **kwargs):
-        # pylint: disable=protected-access
-        try:
-            return func(self, *args, **kwargs)
-        except KeyError:
-            _LOGGER.debug("No data available for attribute %s!", str(func))
-            return None
-
-    return _func_wrapper
-
-
 class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 

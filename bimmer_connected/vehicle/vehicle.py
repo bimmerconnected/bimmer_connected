@@ -184,7 +184,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         """Return True if vehicle is equipped with a range extender.
 
         In this case we can get the state of the gas tank."""
-        return self.drive_train == DriveTrainType.ELECTRIC and self.status.fuel_indicator_count == 3
+        return self.drive_train == DriveTrainType.ELECTRIC and self.fuel_indicator_count == 3
 
     @property
     def has_combustion_drivetrain(self) -> bool:

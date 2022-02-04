@@ -18,6 +18,7 @@ from . import (
     VIN_G30,
     VIN_I01_NOREX,
     VIN_I01_REX,
+    get_deprecation_warning_count,
 )
 from .test_account import account_mock, get_mocked_account
 
@@ -40,14 +41,16 @@ ATTRIBUTE_MAPPING = {
 
 
 @pytest.mark.asyncio
-async def test_drive_train():
+async def test_drive_train(caplog):
     """Tests around drive_train attribute."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G21)
     assert DriveTrainType.PLUGIN_HYBRID == vehicle.drive_train
 
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
 
 @pytest.mark.asyncio
-async def test_parsing_attributes():
+async def test_parsing_attributes(caplog):
     """Test parsing different attributes of the vehicle."""
     account = await get_mocked_account()
 
@@ -56,14 +59,16 @@ async def test_parsing_attributes():
         assert vehicle.drive_train is not None
         assert vehicle.name is not None
         assert isinstance(vehicle.brand, CarBrands)
-        assert vehicle.has_internal_combustion_engine is not None
-        assert vehicle.has_hv_battery is not None
+        assert vehicle.has_combustion_drivetrain is not None
+        assert vehicle.has_electric_drivetrain is not None
         assert vehicle.drive_train_attributes is not None
-        assert vehicle.has_weekly_planner_service is not None
+        assert vehicle.is_charging_plan_supported is not None
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
-async def test_drive_train_attributes():
+async def test_drive_train_attributes(caplog):
     """Test parsing different attributes of the vehicle."""
     account = await get_mocked_account()
 
@@ -84,30 +89,36 @@ async def test_drive_train_attributes():
     }
 
     for vehicle in account.vehicles:
-        assert vehicle_drivetrains[vehicle.vin][0] == vehicle.has_internal_combustion_engine
-        assert vehicle_drivetrains[vehicle.vin][1] == vehicle.has_hv_battery
-        assert vehicle_drivetrains[vehicle.vin][2] == vehicle.has_range_extender
+        assert vehicle_drivetrains[vehicle.vin][0] == vehicle.has_combustion_drivetrain
+        assert vehicle_drivetrains[vehicle.vin][1] == vehicle.has_electric_drivetrain
+        assert vehicle_drivetrains[vehicle.vin][2] == vehicle.has_range_extender_drivetrain
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
-async def test_parsing_of_lsc_type():
+async def test_parsing_of_lsc_type(caplog):
     """Test parsing the lsc type field."""
     account = await get_mocked_account()
 
     for vehicle in account.vehicles:
         assert vehicle.lsc_type is not None
 
+    assert len(get_deprecation_warning_count(caplog)) == 0
 
-def test_car_brand():
+
+def test_car_brand(caplog):
     """Test CarBrand enum"""
     assert CarBrands("BMW") == CarBrands("bmw")
 
     with pytest.raises(ValueError):
         CarBrands("Audi")
 
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
 
 @pytest.mark.asyncio
-async def test_get_is_tracking_enabled():
+async def test_get_is_tracking_enabled(caplog):
     """Test setting observer position"""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F11)
     assert vehicle.is_vehicle_tracking_enabled is False
@@ -115,9 +126,11 @@ async def test_get_is_tracking_enabled():
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
     assert vehicle.is_vehicle_tracking_enabled is True
 
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
 
 @pytest.mark.asyncio
-async def test_available_attributes():
+async def test_available_attributes(caplog):
     """Check that available_attributes returns exactly the arguments we have in our test data."""
     account = await get_mocked_account()
 
@@ -175,9 +188,11 @@ async def test_available_attributes():
         "windows",
     ] == vehicle.available_attributes
 
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
 
 @pytest.mark.asyncio
-async def test_vehicle_image():
+async def test_vehicle_image(caplog):
     """Test vehicle image request."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G05)
 
@@ -188,3 +203,5 @@ async def test_vehicle_image():
             headers={"accept": "image/png"},
         ).respond(200, content="png_image")
         assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
