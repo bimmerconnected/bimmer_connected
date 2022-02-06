@@ -1,5 +1,7 @@
 """Generals models used for bimmer_connected."""
 
+from __future__ import annotations
+
 import logging
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
@@ -63,9 +65,13 @@ class GPSPosition(Coordinates):
 
     @classmethod
     def __new__(cls, *args, **kwargs):
+        print()
         if len([a for a in args + tuple(kwargs.values()) if a is None]) not in [0, len(cls._fields)]:
             raise TypeError("Either none or all arguments must be 'None'.")
-        annotations = cls.__annotations__  # pylint: disable=no-member
+        # pylint: disable=no-member
+        annotations_list = [c.__annotations__ for c in cls.mro() if hasattr(c, "__annotations__")]
+        annotations = {k: v for x in annotations_list for k, v in x.items()}
+
         for i, field_name in enumerate(annotations, 1):
             value = args[i] if (len(args) - 1) == i else kwargs.get(field_name)
             if value is not None and not isinstance(value, (float, int)):
