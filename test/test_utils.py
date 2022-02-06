@@ -1,5 +1,6 @@
 """Tests for utils."""
 import datetime
+import json
 import os
 import time
 from unittest import mock
@@ -7,9 +8,9 @@ from unittest import mock
 import pytest
 import time_machine
 
-from bimmer_connected.utils import get_class_property_names, parse_datetime, to_json
+from bimmer_connected.utils import ConnectedDriveJSONEncoder, get_class_property_names, parse_datetime
 
-from . import RESPONSE_DIR, VIN_G21
+from . import RESPONSE_DIR, VIN_G21, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
@@ -19,24 +20,33 @@ async def test_drive_train():
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G21)
     assert [
         "available_attributes",
-        "available_state_services",
         "brand",
-        "charging_profile",
         "drive_train",
         "drive_train_attributes",
+        "fuel_indicator_count",
+        "has_combustion_drivetrain",
+        "has_electric_drivetrain",
         "has_hv_battery",
         "has_internal_combustion_engine",
         "has_range_extender",
+        "has_range_extender_drivetrain",
         "has_weekly_planner_service",
+        "is_charging_plan_supported",
+        "is_lsc_enabled",
+        "is_vehicle_active",
         "is_vehicle_tracking_enabled",
+        "last_update_reason",
         "lsc_type",
+        "mileage",
         "name",
+        "timestamp",
+        "vin",
     ] == get_class_property_names(vehicle)
 
 
 @time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
-async def test_to_json():
+async def test_to_json(caplog):
     """Test serialization to JSON."""
     with mock.patch(
         "bimmer_connected.account.ConnectedDriveAccount.timezone", new_callable=mock.PropertyMock
@@ -57,12 +67,12 @@ async def test_to_json():
             expected = file.read().decode("UTF-8")
 
         expected_lines = expected.split("\n")
-        actual_lines = to_json(vehicle, indent=4).split("\n")
+        actual_lines = json.dumps(vehicle, cls=ConnectedDriveJSONEncoder, indent=4).split("\n")
 
         for i in range(max(len(expected_lines), len(actual_lines))):
             assert expected_lines[i] == actual_lines[i], f"line {i+1}"
 
-        # assert expected == to_json(vehicle, indent=4)
+        assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 def test_parse_datetime(caplog):

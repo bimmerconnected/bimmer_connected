@@ -5,7 +5,6 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from bimmer_connected.utils import SerializableBaseClass
 from bimmer_connected.vehicle.models import StrEnum, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -33,7 +32,7 @@ class TimerTypes(StrEnum):
     OVERRIDE_TIMER = "overrideTimer"
 
 
-class ChargingWindow(SerializableBaseClass):
+class ChargingWindow:
     """
     This class provides a nicer API than parsing the JSON format directly.
     """
@@ -54,7 +53,7 @@ class ChargingWindow(SerializableBaseClass):
         return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
 
 
-class DepartureTimer(SerializableBaseClass):
+class DepartureTimer:
     """
     This class provides a nicer API than parsing the JSON format directly.
     """

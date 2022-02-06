@@ -3,6 +3,7 @@
 
 import argparse
 import asyncio
+import json
 import logging
 import sys
 import time
@@ -14,7 +15,7 @@ import httpx
 from bimmer_connected.account import ConnectedDriveAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
-from bimmer_connected.utils import to_json
+from bimmer_connected.utils import ConnectedDriveJSONEncoder
 from bimmer_connected.vehicle import ConnectedDriveVehicle, VehicleViewDirection
 from bimmer_connected.vehicle.vehicle import HV_BATTERY_DRIVE_TRAINS
 
@@ -103,7 +104,7 @@ async def get_status(args) -> None:
     await account.get_vehicles()
 
     if args.json:
-        print(to_json(account.vehicles))
+        print(json.dumps(account.vehicles, cls=ConnectedDriveJSONEncoder))
     else:
         print(f"Found {len(account.vehicles)} vehicles: {','.join([v.name for v in account.vehicles])}")
 
@@ -111,7 +112,7 @@ async def get_status(args) -> None:
             print(f"VIN: {vehicle.vin}")
             print(f"Mileage: {vehicle.status.mileage}")
             print("Vehicle data:")
-            print(to_json(vehicle, indent=4))
+            print(json.dumps(account.vehicles, cls=ConnectedDriveJSONEncoder, indent=4))
 
 
 def get_vehicle_or_return(account: ConnectedDriveAccount, vin: str) -> ConnectedDriveVehicle:

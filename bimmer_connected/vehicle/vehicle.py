@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
-from bimmer_connected.utils import SerializableBaseClass, deprecated, parse_datetime, serialize_for_json
+from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
@@ -67,7 +67,7 @@ class LscType(StrEnum):
 
 
 # pylint: disable=too-many-public-methods,too-many-instance-attributes
-class ConnectedDriveVehicle(SerializableBaseClass):
+class ConnectedDriveVehicle:
     """Models state and remote services of one vehicle.
 
     :param account: ConnectedDrive account this vehicle belongs to
@@ -295,10 +295,6 @@ class ConnectedDriveVehicle(SerializableBaseClass):
         async with MyBMWClient(self.account.mybmw_client_config, brand=self.brand) as client:
             response = await client.get(url, headers={"accept": "image/png"})
         return response.content
-
-    def as_dict(self) -> dict:
-        """Return all attributes and parameters, without `self.remote_services`."""
-        return serialize_for_json(self, ["remote_services"])
 
     # # # # # # # # # # # # # # #
     # Deprecated

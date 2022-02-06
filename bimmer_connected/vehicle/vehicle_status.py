@@ -4,7 +4,7 @@ import datetime
 import logging
 from typing import TYPE_CHECKING, Dict, List, Optional
 
-from bimmer_connected.utils import SerializableBaseClass, deprecated
+from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit
 
 if TYPE_CHECKING:
@@ -16,7 +16,7 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-methods
+class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
     # pylint: disable=unused-argument

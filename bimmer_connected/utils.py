@@ -6,8 +6,8 @@ import json
 import logging
 import sys
 import traceback
-from abc import ABC
-from typing import TYPE_CHECKING, Optional
+from enum import Enum
+from typing import TYPE_CHECKING, Dict, Optional
 
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
@@ -20,40 +20,18 @@ if TYPE_CHECKING:
 _LOGGER = logging.getLogger(__name__)
 
 
-def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool = True) -> dict:
-    """
-    Returns all object attributes and properties as dictionary.
-
-    :param excluded list: attributes and parameters NOT to export
-    :param exclude_hidden bool: if true, do not export attributes or parameters starting with '_'
-    """
-    excluded = excluded if excluded else []
-    return dict(
-        {
-            k: v
-            for k, v in obj.__dict__.items()
-            if k not in excluded and ((exclude_hidden and not str(k).startswith("_")) or not exclude_hidden)
-        },
-        **{a: getattr(obj, a) for a in get_class_property_names(obj) if a not in excluded + ["to_json"]},
-    )
+JSON_IGNORED_KEYS = ["account", "_account", "vehicle", "_vehicle", "status", "remote_services"]
+JSON_DEPRECATED_KEYS = [
+    "has_hv_battery",
+    "has_range_extender",
+    "has_internal_combustion_engine",
+    "has_weekly_planner_service",
+]
 
 
 def get_class_property_names(obj: object):
     """Returns the names of all properties of a class."""
     return [p[0] for p in inspect.getmembers(type(obj), inspect.isdatadescriptor) if not p[0].startswith("_")]
-
-
-def to_json(obj: object, *args, **kwargs):
-    """Serialize a nested object to json. Tries to call `to_json` attribute on object first."""
-
-    def serialize(obj: object):
-        if hasattr(obj, "as_dict"):
-            return getattr(obj, "as_dict")()
-        if hasattr(obj, "__dict__"):
-            return {k: v for k, v in getattr(obj, "__dict__").items() if not k.startswith("_")}
-        return str(obj)
-
-    return json.dumps(obj, default=serialize, *args, **kwargs)
 
 
 def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
@@ -74,12 +52,19 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
     return None
 
 
-class SerializableBaseClass(ABC):  # pylint: disable=too-few-public-methods
-    """Base class to enable json-compatible serialization."""
+class ConnectedDriveJSONEncoder(json.JSONEncoder):
+    """JSON Encoder that handles data classes, properties and additional data types."""
 
-    def as_dict(self) -> dict:
-        """Return all attributes and parameters."""
-        return serialize_for_json(self)
+    def default(self, o):
+        if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
+            return o.isoformat()
+        if isinstance(o, (datetime.timezone, Enum)):
+            return str(o)
+        if hasattr(o, "__dict__"):
+            retval: Dict = o.__dict__
+            retval.update({p: getattr(o, p) for p in get_class_property_names(o) if p not in JSON_DEPRECATED_KEYS})
+            return {k: v for k, v in retval.items() if k not in JSON_IGNORED_KEYS}
+        return super().default(o)
 
 
 def deprecated(replacement: str = None):
