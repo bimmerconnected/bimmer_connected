@@ -86,7 +86,9 @@ class MyBMWAuthentication(Authentication):
     async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
         try:
-            async with httpx.AsyncClient(base_url=get_server_url(self.region)) as client:
+            async with httpx.AsyncClient(
+                base_url=get_server_url(self.region), headers={"user-agent": "Dart/2.13 (dart:io)"}
+            ) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
 
                 # Attach raise_for_status event hook
@@ -166,7 +168,9 @@ class MyBMWAuthentication(Authentication):
 
     async def _login_china(self):
         try:
-            async with httpx.AsyncClient(base_url=get_server_url(self.region)) as client:
+            async with httpx.AsyncClient(
+                base_url=get_server_url(self.region), headers={"user-agent": "Dart/2.13 (dart:io)"}
+            ) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for China.")
 
                 # Attach raise_for_status event hook

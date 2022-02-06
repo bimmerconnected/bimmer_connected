@@ -61,5 +61,6 @@ class MyBMWClient(httpx.AsyncClient):
         return {
             "accept": "application/json",
             "accept-language": "en",
+            "user-agent": "Dart/2.13 (dart:io)",
             "x-user-agent": X_USER_AGENT.format(brand or CarBrands.BMW),
         }
