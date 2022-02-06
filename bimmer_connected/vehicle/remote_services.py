@@ -2,8 +2,8 @@
 
 import asyncio
 import datetime
+import json
 import logging
-from dataclasses import asdict as dataclasses_asdict
 from typing import TYPE_CHECKING, Dict, Union
 
 from bimmer_connected.api.client import MyBMWClient
@@ -13,6 +13,7 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_URL,
     VEHICLE_POI_URL,
 )
+from bimmer_connected.utils import ConnectedDriveJSONEncoder
 from bimmer_connected.vehicle.models import PointOfInterest, StrEnum
 
 if TYPE_CHECKING:
@@ -201,10 +202,14 @@ class RemoteServices:
         async with MyBMWClient(self._account.mybmw_client_config, brand=self._vehicle.brand) as client:
             await client.post(
                 VEHICLE_POI_URL,
-                json={
-                    "location": dataclasses_asdict(poi),
-                    "vin": self._vehicle.vin,
-                },
+                headers={"content-type": "application/json"},
+                data=json.dumps(
+                    {
+                        "location": poi.__dict__,
+                        "vin": self._vehicle.vin,
+                    },
+                    cls=ConnectedDriveJSONEncoder,
+                ),
             )
 
         # send-to-car has no separate ExecutionStates

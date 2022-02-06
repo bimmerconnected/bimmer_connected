@@ -566,10 +566,10 @@
         "account_timezone": "UTC"
     },
     "vehicle_location": {
-        "location": [
-            12.3456,
-            34.5678
-        ],
+        "location": {
+            "latitude": 12.3456,
+            "longitude": 34.5678
+        },
         "heading": 123,
         "vehicle_update_timestamp": "2021-11-14T20:20:21+00:00",
         "account_region": "Regions.REST_OF_WORLD",

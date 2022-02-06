@@ -58,13 +58,11 @@ class ConnectedDriveJSONEncoder(json.JSONEncoder):
     def default(self, o):
         if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
             return o.isoformat()
-        if isinstance(o, (datetime.timezone, Enum)):
-            return str(o)
-        if hasattr(o, "__dict__"):
+        if not isinstance(o, Enum) and hasattr(o, "__dict__") and isinstance(o.__dict__, Dict):
             retval: Dict = o.__dict__
             retval.update({p: getattr(o, p) for p in get_class_property_names(o) if p not in JSON_DEPRECATED_KEYS})
             return {k: v for k, v in retval.items() if k not in JSON_IGNORED_KEYS}
-        return super().default(o)
+        return str(o)
 
 
 def deprecated(replacement: str = None):

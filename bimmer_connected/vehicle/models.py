@@ -1,11 +1,9 @@
 """Generals models used for bimmer_connected."""
 
-from __future__ import annotations
-
 import logging
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
-from typing import Dict, NamedTuple, Optional, Union
+from typing import Dict, NamedTuple, Optional, Tuple, Union
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -51,32 +49,36 @@ class VehicleDataBase:
         return parsed
 
 
-class Coordinates(NamedTuple):
-    """Storage for GPS coordinates."""
+@dataclass
+class GPSPosition:
+    """GPS coordinates."""
 
     latitude: Optional[float]
     longitude: Optional[float]
 
-
-class GPSPosition(Coordinates):
-    """GPS coordinates."""
-
-    __slots__ = ()  # Prevent creation of a __dict__.
-
-    @classmethod
-    def __new__(cls, *args, **kwargs):
-        print()
-        if len([a for a in args + tuple(kwargs.values()) if a is None]) not in [0, len(cls._fields)]:
-            raise TypeError("Either none or all arguments must be 'None'.")
+    def __post_init__(self):
         # pylint: disable=no-member
-        annotations_list = [c.__annotations__ for c in cls.mro() if hasattr(c, "__annotations__")]
-        annotations = {k: v for x in annotations_list for k, v in x.items()}
+        if len([v for v in self.__dict__.values() if v is None]) not in [0, len(self.__dataclass_fields__)]:
+            raise TypeError("Either none or all arguments must be 'None'.")
 
-        for i, field_name in enumerate(annotations, 1):
-            value = args[i] if (len(args) - 1) == i else kwargs.get(field_name)
+        # pylint: disable=no-member
+        for field_name in self.__dataclass_fields__:
+            value = getattr(self, field_name)
             if value is not None and not isinstance(value, (float, int)):
                 raise TypeError(f"'{field_name}' not of type '{Optional[Union[float, int]]}'")
-        return super().__new__(*args, **kwargs)
+
+    def __iter__(self):
+        yield from self.__dict__.values()
+
+    def __getitem__(self, key):
+        return tuple(self.__dict__.values())[key]
+
+    def __eq__(self, other):
+        if isinstance(other, Tuple):
+            return tuple(self.__iter__()) == other
+        if hasattr(self, "__dict__") and hasattr(other, "__dict__"):
+            return self.__dict__ == other.__dict__
+        return False
 
 
 @dataclass
