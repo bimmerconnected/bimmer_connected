@@ -123,7 +123,7 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         retval["departure_times"] = [DepartureTimer(t) for t in charging_profile["departureTimes"]]
         retval["preferred_charging_window"] = ChargingWindow(charging_profile["reductionOfChargeCurrent"])
         retval["timer_type"] = TimerTypes(charging_profile["chargingControlType"])
-        retval["charging_preferences"] = ChargingWindow(charging_profile["chargingPreference"])
-        retval["charging_mode"] = ChargingWindow(charging_profile["chargingMode"])
+        retval["charging_preferences"] = ChargingPreferences(charging_profile["chargingPreference"])
+        retval["charging_mode"] = ChargingMode(charging_profile["chargingMode"])
 
         return retval
