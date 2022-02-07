@@ -3,7 +3,7 @@ from enum import Enum
 
 
 class CarBrands(str, Enum):
-    """Car brands supported by the My BMW API."""
+    """Car brands supported by the MyBMW API."""
 
     @classmethod
     def _missing_(cls, value):

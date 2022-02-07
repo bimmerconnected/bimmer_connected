@@ -1,12 +1,4 @@
-"""Library to read data from the BMW Connected Drive portal.
-
-The library bimmer_connected provides a Python interface to interact
-with the BMW Connected Drive web service. It allows you to read
-the current state of the vehicle and also trigger remote services.
-
-Disclaimer:
-This library is not affiliated with or endorsed by BMW Group.
-"""
+"""Access to a MyBMW account and all vehicles therein."""
 
 import asyncio
 import datetime
@@ -33,25 +25,27 @@ _LOGGER = logging.getLogger(__name__)
 
 @dataclass
 class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
-    """Create a new connection to the BMW Connected Drive web service.
-
-    :param username: Connected drive user name
-    :param password: Connected drive password
-    :param region: Region for which the account was created. See `const.Regions`.
-    :param mybmw_client: Optional. If given, username/password/region are ignored.
-    :param log_responses: Optional. If set, all responses from the server will be logged to this directory.
-    :param observer_position: Optional. Required for getting a position on older cars.
-    """
+    """Create a new connection to the MyBMW web service."""
 
     username: str
+    """MyBMW user name (email) or 86-prefixed phone number (China only)."""
+
     password: InitVar[str]
+    """MyBMW password."""
+
     region: Regions
+    """Region of the account. See `api.Regions`."""
 
     mybmw_client_config: MyBMWClientConfiguration = None  # type: ignore[assignment]
+    """Optional. If provided, username/password/region are ignored."""
+
     log_responses: InitVar[pathlib.Path] = None
-    vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
+    """Optional. If set, all responses from the server will be logged to this directory."""
 
     observer_position: Optional[GPSPosition] = None
+    """Optional. Required for getting a position on older cars."""
+
+    vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
     def __post_init__(self, password, log_responses):
         if self.mybmw_client_config is None:
@@ -97,7 +91,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
 
         The search is NOT case sensitive.
         :param vin: VIN of the vehicle you want to get.
-        :return: Returns None if no such vehicle is found.
+        :return: Returns None if no vehicle is found.
         """
         for car in self.vehicles:
             if car.vin.upper() == vin.upper():

@@ -25,7 +25,7 @@ class ChargingPreferences(StrEnum):
 
 
 class TimerTypes(StrEnum):
-    """Different Timer-Types."""
+    """Different timer types."""
 
     TWO_WEEKS = "twoWeeksTimer"
     ONE_WEEK = "weeklyPlanner"
@@ -33,9 +33,7 @@ class TimerTypes(StrEnum):
 
 
 class ChargingWindow:
-    """
-    This class provides a nicer API than parsing the JSON format directly.
-    """
+    """A charging window."""
 
     def __init__(self, window_dict: dict):
         self._window_dict = window_dict
@@ -54,9 +52,7 @@ class ChargingWindow:
 
 
 class DepartureTimer:
-    """
-    This class provides a nicer API than parsing the JSON format directly.
-    """
+    """A departure timer."""
 
     def __init__(self, timer_dict: dict):
         self._timer_dict: Dict = timer_dict
@@ -95,7 +91,7 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     """Returns the current timer plan type."""
 
     departure_times: List[DepartureTimer]
-    """List of timer messages."""
+    """List of timers."""
 
     preferred_charging_window: ChargingWindow
     """Returns the preferred charging window."""
