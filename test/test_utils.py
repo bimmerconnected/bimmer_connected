@@ -8,7 +8,7 @@ from unittest import mock
 import pytest
 import time_machine
 
-from bimmer_connected.utils import ConnectedDriveJSONEncoder, get_class_property_names, parse_datetime
+from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
 from . import RESPONSE_DIR, VIN_G21, get_deprecation_warning_count
 from .test_account import get_mocked_account
@@ -48,9 +48,7 @@ async def test_drive_train():
 @pytest.mark.asyncio
 async def test_to_json(caplog):
     """Test serialization to JSON."""
-    with mock.patch(
-        "bimmer_connected.account.ConnectedDriveAccount.timezone", new_callable=mock.PropertyMock
-    ) as mock_timezone:
+    with mock.patch("bimmer_connected.account.MyBMWAccount.timezone", new_callable=mock.PropertyMock) as mock_timezone:
         # Force UTC
         os.environ["TZ"] = "UTC"
         time.tzset()
@@ -67,7 +65,7 @@ async def test_to_json(caplog):
             expected = file.read().decode("UTF-8")
 
         expected_lines = expected.split("\n")
-        actual_lines = json.dumps(vehicle, cls=ConnectedDriveJSONEncoder, indent=4).split("\n")
+        actual_lines = json.dumps(vehicle, cls=MyBMWJSONEncoder, indent=4).split("\n")
 
         for i in range(max(len(expected_lines), len(actual_lines))):
             assert expected_lines[i] == actual_lines[i], f"line {i+1}"

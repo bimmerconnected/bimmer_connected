@@ -12,11 +12,11 @@ from pathlib import Path
 
 import httpx
 
-from bimmer_connected.account import ConnectedDriveAccount
+from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
-from bimmer_connected.utils import ConnectedDriveJSONEncoder
-from bimmer_connected.vehicle import ConnectedDriveVehicle, VehicleViewDirection
+from bimmer_connected.utils import MyBMWJSONEncoder
+from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
 from bimmer_connected.vehicle.vehicle import HV_BATTERY_DRIVE_TRAINS
 
 TEXT_VIN = "Vehicle Identification Number"
@@ -98,13 +98,13 @@ async def get_status(args) -> None:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
 
-    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
 
     if args.json:
-        print(json.dumps(account.vehicles, cls=ConnectedDriveJSONEncoder))
+        print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder))
     else:
         print(f"Found {len(account.vehicles)} vehicles: {','.join([v.name for v in account.vehicles])}")
 
@@ -112,10 +112,10 @@ async def get_status(args) -> None:
             print(f"VIN: {vehicle.vin}")
             print(f"Mileage: {vehicle.status.mileage}")
             print("Vehicle data:")
-            print(json.dumps(account.vehicles, cls=ConnectedDriveJSONEncoder, indent=4))
+            print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder, indent=4))
 
 
-def get_vehicle_or_return(account: ConnectedDriveAccount, vin: str) -> ConnectedDriveVehicle:
+def get_vehicle_or_return(account: MyBMWAccount, vin: str) -> MyBMWVehicle:
     """Get a vehicle by VIN or raise if not in account's vehicle list."""
     vehicle = account.get_vehicle(vin)
     if not vehicle:
@@ -129,9 +129,7 @@ async def fingerprint(args) -> None:
     time_dir = Path.home() / "vehicle_fingerprint" / time.strftime("%Y-%m-%d_%H-%M-%S")
     time_dir.mkdir(parents=True)
 
-    account = ConnectedDriveAccount(
-        args.username, args.password, get_region_from_name(args.region), log_responses=time_dir
-    )
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region), log_responses=time_dir)
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
@@ -157,7 +155,7 @@ async def fingerprint(args) -> None:
 
 async def light_flash(args) -> None:
     """Trigger the vehicle to flash its lights."""
-    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_light_flash()
@@ -166,7 +164,7 @@ async def light_flash(args) -> None:
 
 async def vehicle_finder(args) -> None:
     """Trigger the vehicle finder to locate it."""
-    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
@@ -177,7 +175,7 @@ async def vehicle_finder(args) -> None:
 
 async def image(args) -> None:
     """Download a rendered image of the vehicle."""
-    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -191,7 +189,7 @@ async def image(args) -> None:
 
 async def send_poi(args) -> None:
     """Send Point Of Interest to car."""
-    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -209,7 +207,7 @@ async def send_poi(args) -> None:
 
 async def send_poi_from_address(args) -> None:
     """Create Point of Interest from OSM Nominatim and send to car."""
-    account = ConnectedDriveAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 

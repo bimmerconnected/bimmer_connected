@@ -115,7 +115,7 @@ async def test_trigger_remote_services():
 
     for service, call, triggers_update in services:
         with mock.patch(
-            "bimmer_connected.account.ConnectedDriveAccount.get_vehicles", new_callable=mock.AsyncMock
+            "bimmer_connected.account.MyBMWAccount.get_vehicles", new_callable=mock.AsyncMock
         ) as mock_listener:
             mock_listener.reset_mock()
 

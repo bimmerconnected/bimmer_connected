@@ -28,7 +28,7 @@ and add the following code between ``self._get_oauth_token()`` and ``for brand i
        if existing_vehicle:
          existing_vehicle.update_state(vehicle_dict)
        else:
-         self._vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+         self._vehicles.append(MyBMWVehicle(self, vehicle_dict))
 
 Set up Home Assistant
 ---------------------

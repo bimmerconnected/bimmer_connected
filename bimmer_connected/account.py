@@ -21,7 +21,8 @@ from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import VEHICLES_URL, CarBrands
-from bimmer_connected.vehicle import ConnectedDriveVehicle
+from bimmer_connected.utils import deprecated
+from bimmer_connected.vehicle import MyBMWVehicle
 from bimmer_connected.vehicle.models import GPSPosition
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
@@ -31,7 +32,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
+class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
     """Create a new connection to the BMW Connected Drive web service.
 
     :param username: Connected drive user name
@@ -48,7 +49,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
     mybmw_client_config: MyBMWClientConfiguration = None  # type: ignore[assignment]
     log_responses: InitVar[pathlib.Path] = None
-    vehicles: List[ConnectedDriveVehicle] = field(default_factory=list, init=False)
+    vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
     observer_position: Optional[GPSPosition] = None
 
@@ -89,9 +90,9 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                     if existing_vehicle:
                         existing_vehicle.update_state(vehicle_dict)
                     else:
-                        self.vehicles.append(ConnectedDriveVehicle(self, vehicle_dict))
+                        self.vehicles.append(MyBMWVehicle(self, vehicle_dict))
 
-    def get_vehicle(self, vin: str) -> Optional[ConnectedDriveVehicle]:
+    def get_vehicle(self, vin: str) -> Optional[MyBMWVehicle]:
         """Get vehicle with given VIN.
 
         The search is NOT case sensitive.
@@ -116,3 +117,8 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
     def utcdiff(self):
         """Returns the difference to UTC in minutes."""
         return round(self.timezone.utcoffset(datetime.datetime.now()).seconds / 60, 0)
+
+
+@deprecated("MyBMWAccount")
+class ConnectedDriveAccount(MyBMWAccount):
+    """Deprecated class name for compatibility."""

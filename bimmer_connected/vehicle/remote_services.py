@@ -13,11 +13,11 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_URL,
     VEHICLE_POI_URL,
 )
-from bimmer_connected.utils import ConnectedDriveJSONEncoder
+from bimmer_connected.utils import MyBMWJSONEncoder
 from bimmer_connected.vehicle.models import PointOfInterest, StrEnum
 
 if TYPE_CHECKING:
-    from bimmer_connected.vehicle import ConnectedDriveVehicle
+    from bimmer_connected.vehicle import MyBMWVehicle
 
 TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 
@@ -69,7 +69,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
 class RemoteServices:
     """Trigger remote services on a vehicle."""
 
-    def __init__(self, vehicle: "ConnectedDriveVehicle"):
+    def __init__(self, vehicle: "MyBMWVehicle"):
         """Constructor."""
         self._account = vehicle.account
         self._vehicle = vehicle
@@ -208,7 +208,7 @@ class RemoteServices:
                         "location": poi.__dict__,
                         "vin": self._vehicle.vin,
                     },
-                    cls=ConnectedDriveJSONEncoder,
+                    cls=MyBMWJSONEncoder,
                 ),
             )
 

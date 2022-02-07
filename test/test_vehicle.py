@@ -1,4 +1,4 @@
-"""Tests for ConnectedDriveVehicle."""
+"""Tests for MyBMWVehicle."""
 import pytest
 
 from bimmer_connected.const import CarBrands

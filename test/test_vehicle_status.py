@@ -277,7 +277,7 @@ async def test_parse_g08(caplog):
 
 # def test_missing_attribute(caplog):
 #     """Test if error handling is working correctly."""
-#     account = unittest.mock.MagicMock(ConnectedDriveAccount)
+#     account = unittest.mock.MagicMock(MyBMWAccount)
 #     state = VehicleState(account, None)
 #     state._attributes[SERVICE_STATUS] = {}
 #     assert status.mileage is None

@@ -8,7 +8,7 @@ from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit
 
 if TYPE_CHECKING:
-    from bimmer_connected.vehicle import ConnectedDriveVehicle
+    from bimmer_connected.vehicle import MyBMWVehicle
     from bimmer_connected.vehicle.doors_windows import Lid, LockState, Window
     from bimmer_connected.vehicle.fuel_and_battery import ChargingState
     from bimmer_connected.vehicle.reports import CheckControlMessage, ConditionBasedService
@@ -20,7 +20,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
     # pylint: disable=unused-argument
-    def __init__(self, vehicle: "ConnectedDriveVehicle", status_dict: Dict = None):
+    def __init__(self, vehicle: "MyBMWVehicle", status_dict: Dict = None):
         """Constructor."""
         self.vehicle = vehicle
 

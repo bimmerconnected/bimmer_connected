@@ -16,7 +16,7 @@ from bimmer_connected.vehicle.reports import CheckControlMessageReport, Conditio
 from bimmer_connected.vehicle.vehicle_status import VehicleStatus
 
 if TYPE_CHECKING:
-    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.account import MyBMWAccount
     from bimmer_connected.vehicle.models import VehicleDataBase
 
 
@@ -67,15 +67,15 @@ class LscType(StrEnum):
 
 
 # pylint: disable=too-many-public-methods,too-many-instance-attributes
-class ConnectedDriveVehicle:
+class MyBMWVehicle:
     """Models state and remote services of one vehicle.
 
-    :param account: ConnectedDrive account this vehicle belongs to
+    :param account: MyBMW account this vehicle belongs to
     :param attributes: attributes of the vehicle as provided by the server
     """
 
-    def __init__(self, account: "ConnectedDriveAccount", vehicle_data: dict) -> None:
-        """Initializes a ConnectedDriveVehicle."""
+    def __init__(self, account: "MyBMWAccount", vehicle_data: dict) -> None:
+        """Initializes a MyBMWVehicle."""
         self.account = account
         self.data = vehicle_data
         self.status = VehicleStatus(self)
@@ -323,3 +323,8 @@ class ConnectedDriveVehicle:
     def has_weekly_planner_service(self) -> bool:
         # pylint:disable=missing-function-docstring
         return self.is_charging_plan_supported
+
+
+@deprecated("MyBMWVehicle")
+class ConnectedDriveVehicle(MyBMWVehicle):
+    """Deprecated class name for compatibility."""

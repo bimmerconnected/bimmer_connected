@@ -52,7 +52,7 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
     return None
 
 
-class ConnectedDriveJSONEncoder(json.JSONEncoder):
+class MyBMWJSONEncoder(json.JSONEncoder):
     """JSON Encoder that handles data classes, properties and additional data types."""
 
     def default(self, o):

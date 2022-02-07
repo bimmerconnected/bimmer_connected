@@ -1,7 +1,8 @@
-"""Tests for deprecated ConnectedDriveVehicle."""
+"""Tests for deprecated MyBMWVehicle."""
 import pytest
 
 from bimmer_connected.const import CarBrands
+from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
 
 from . import (
     VIN_F11,
@@ -84,3 +85,14 @@ async def test_drive_train_attributes(caplog):
         assert vehicle_drivetrains[vehicle.vin][2] == vehicle.has_range_extender
 
     assert len(get_deprecation_warning_count(caplog)) == len(account.vehicles) * 3
+
+
+@pytest.mark.asyncio
+async def test_deprecated_vehicle(caplog):
+    """Test deprecation warning for ConnectedDriveVehicle."""
+    account = await get_mocked_account()
+
+    deprecated_vehicle = ConnectedDriveVehicle(account, account.vehicles[0].data)
+
+    assert deprecated_vehicle is not None
+    assert len(get_deprecation_warning_count(caplog)) == 1

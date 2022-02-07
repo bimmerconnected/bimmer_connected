@@ -18,7 +18,7 @@ bimmer_connected
     
 
 This is a simple library to query and control the status of your BMW or Mini vehicle from
-the ConnectedDrive portal.
+the MyBMW portal.
 
 
 Installation
@@ -45,11 +45,11 @@ Example in an :code:`asyncio` event loop
 ::
 
     import asyncio
-    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.account import MyBMWAccount
     from bimmer_connected.api.regions import Regions
 
     async def main():
-        account = ConnectedDriveAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+        account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
         await account.get_vehicles()
         vehicle = account.get_vehicle(VIN)
         print(vehicle.brand, vehicle.name, vehicle.vin)
@@ -66,11 +66,11 @@ Example in non-async code
 ::
 
     import asyncio
-    from bimmer_connected.account import ConnectedDriveAccount
+    from bimmer_connected.account import MyBMWAccount
     from bimmer_connected.api.regions import Regions
 
 
-    account = ConnectedDriveAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+    account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
     asyncio.run(account.get_vehicles())
     vehicle = account.get_vehicle(VIN)
     print(vehicle.brand, vehicle.name, vehicle.vin)
@@ -81,13 +81,13 @@ Example in non-async code
 
 Compatibility
 =============
-This works with BMW (and Mini) vehicles with a ConnectedDrive account.
+This works with BMW (and Mini) vehicles with a MyBMW account.
 So far it is tested on vehicles with a 'MGU', 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav'
 navigation system. If you have any trouble with other navigation systems, please create 
 an issue with your server responses (see next section).
 
 To use this library, your BMW (or Mini) must have the remote services enabled for your vehicle. 
-You might need to book this in the ConnectedDrive/Mini Connected portal and this might cost 
+You might need to book this in the MyBMW/Mini Connected portal and this might cost 
 some money. In addition to that you need to enable the Remote Services in your infotainment 
 system in the vehicle.
 

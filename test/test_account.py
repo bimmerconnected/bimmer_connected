@@ -1,4 +1,4 @@
-"""Tests for ConnectedDriveAccount."""
+"""Tests for MyBMWAccount."""
 
 from typing import Dict, List
 
@@ -6,7 +6,7 @@ import httpx
 import pytest
 import respx
 
-from bimmer_connected.account import ConnectedDriveAccount
+from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import Authentication
 from bimmer_connected.api.client import MyBMWClientConfiguration
 from bimmer_connected.api.regions import get_region_from_name
@@ -19,6 +19,7 @@ from . import (
     TEST_REGION_STRING,
     TEST_USERNAME,
     VIN_G21,
+    get_deprecation_warning_count,
     get_fingerprint_count,
     load_response,
 )
@@ -79,7 +80,7 @@ def account_mock():
 
 def get_account(region=None):
     """Returns account without token and vehicles (sync)."""
-    return ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
+    return MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
 
 
 async def get_mocked_account(region=None):
@@ -94,7 +95,7 @@ async def get_mocked_account(region=None):
 @pytest.mark.asyncio
 async def test_login_row_na():
     """Test the login flow."""
-    account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
     await account.get_vehicles()
     assert account is not None
 
@@ -103,7 +104,7 @@ async def test_login_row_na():
 @pytest.mark.asyncio
 async def test_login_china():
     """Test raising an error for region `china`."""
-    account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
     await account.get_vehicles()
     assert account is not None
 
@@ -112,7 +113,7 @@ async def test_login_china():
 @pytest.mark.asyncio
 async def test_vehicles():
     """Test the login flow."""
-    account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
     await account.get_vehicles()
 
     assert account.mybmw_client_config.authentication.token is not None
@@ -132,7 +133,7 @@ async def test_invalid_password():
             401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")
         )
         with pytest.raises(httpx.HTTPStatusError):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+            account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             await account.get_vehicles()
 
 
@@ -144,7 +145,7 @@ async def test_invalid_password_china():
             422, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json")
         )
         with pytest.raises(httpx.HTTPStatusError):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+            account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
             await account.get_vehicles()
 
 
@@ -156,7 +157,7 @@ async def test_server_error():
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
         with pytest.raises(httpx.HTTPStatusError):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+            account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             await account.get_vehicles()
 
 
@@ -175,7 +176,7 @@ async def test_vehicle_search_case():
 async def test_storing_fingerprints(tmp_path):
     """Test the login flow."""
     with account_mock() as mock_api:
-        account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
         await account.get_vehicles()
 
         mock_api.get("/eadrax-vcs/v1/vehicles").respond(
@@ -237,3 +238,14 @@ async def test_base_authentication():
     account.mybmw_client_config = MyBMWClientConfiguration(Authentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION))
     with pytest.raises(NotImplementedError):
         await account.get_vehicles()
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_deprecated_account(caplog):
+    """Test deprecation warning for ConnectedDriveAccount."""
+    account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    await account.get_vehicles()
+    assert account is not None
+
+    assert 1 == len(get_deprecation_warning_count(caplog))
