@@ -227,7 +227,7 @@ class TestState(unittest.TestCase):
             },
         )
         self.assertTupleEqual(
-            (39.8337, 116.22012), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
+            (39.8337, 116.22617), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
         )
 
     def test_parse_f11_no_position_vehicle_active(self):
