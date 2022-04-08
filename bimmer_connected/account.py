@@ -10,10 +10,8 @@ This library is not affiliated with or endorsed by BMW Group.
 
 import base64
 import datetime
-import hashlib
 import json
 import logging
-import os
 import pathlib
 import urllib
 from threading import Lock
@@ -40,7 +38,14 @@ from bimmer_connected.country_selector import (
     get_ocp_apim_key,
     get_server_url
 )
+from bimmer_connected.utils import (
+    RetrySession,
+    create_s256_code_challenge,
+    generate_token
+)
 from bimmer_connected.vehicle import CarBrand, ConnectedDriveVehicle
+
+VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -111,11 +116,12 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
         """Login to Rest of World and North America."""
         try:
             # We need a session for cross-request cookies
-            oauth_session = requests.Session()
+            oauth_session = RetrySession(status_forcelist=[401], allowed_methods=frozenset(["GET", "POST"]))
             r_oauth_settings = oauth_session.get(
                 OAUTH_CONFIG_URL.format(server=self.server_url),
                 headers={
                     "ocp-apim-subscription-key": get_ocp_apim_key(self._region),
+                    'user-agent': "Dart/2.13 (dart:io)",
                     "x-user-agent": X_USER_AGENT.format("bmw"),
                 }
             )
@@ -125,19 +131,19 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             # My BMW login flow
             _LOGGER.debug("Authenticating against GCDM with MyBMW flow.")
 
-            # Setting up PKCS data
-            verifier_bytes = os.urandom(64)
-            code_verifier = base64.urlsafe_b64encode(verifier_bytes).rstrip(b'=')
+            code_verifier = generate_token(86)
+            code_challenge = create_s256_code_challenge(code_verifier)
 
-            challenge_bytes = hashlib.sha256(code_verifier).digest()
-            code_challenge = base64.urlsafe_b64encode(challenge_bytes).rstrip(b'=')
-
-            state_bytes = os.urandom(16)
-            state = base64.urlsafe_b64encode(state_bytes).rstrip(b'=')
+            state = generate_token(22)
 
             authenticate_url = AUTH_URL.format(gcdm_base_url=oauth_settings["gcdmBaseUrl"])
             authenticate_headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
+                "Referer": "https://customer.bmwgroup.com/oneid/",
+                "User-Agent": (
+                    "Mozilla/5.0 (Linux; Android 7.1.2; One) AppleWebKit/537.36 (KHTML, like Gecko) "
+                    "Chrome/95.0.4638.74 Mobile Safari/537.36"
+                ),
             }
 
             # we really need all of these parameters
@@ -152,15 +158,13 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
                 "code_challenge_method": "S256",
             }
 
-            authenticate_data = urllib.parse.urlencode(
-                dict(
-                    oauth_base_values,
-                    **{
-                        "grant_type": "authorization_code",
-                        "username": self._username,
-                        "password": self._password,
-                    }
-                )
+            authenticate_data = dict(
+                oauth_base_values,
+                **{
+                    "grant_type": "authorization_code",
+                    "username": self._username,
+                    "password": self._password,
+                }
             )
             response = oauth_session.post(
                 authenticate_url,
@@ -205,7 +209,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
             response_json = response.json()
 
             expiration_time = int(response_json["expires_in"])
-            expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
+            expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time) - VALID_UNTIL_OFFSET
 
             return {
                 "access_token": response_json["access_token"],
@@ -221,7 +225,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
     def _login_china(self):
         try:
-            login_header = {'x-user-agent': X_USER_AGENT.format("bmw")}
+            login_header = {
+                'user-agent': "Dart/2.13 (dart:io)",
+                'x-user-agent': X_USER_AGENT.format("bmw")
+            }
 
             response = requests.request(
                 "GET",
@@ -253,7 +260,7 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
             return {
                 "access_token": response_json["access_token"],
-                "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"])
+                "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]) - VALID_UNTIL_OFFSET
             }
         except HTTPError as ex:
             try:
@@ -265,10 +272,10 @@ class ConnectedDriveAccount:  # pylint: disable=too-many-instance-attributes
 
     def request_header(self, brand: CarBrand = None) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
-        self._get_oauth_token()
         brand = brand or CarBrand.BMW
         headers = {
             "accept": "application/json",
+            "user-agent": "Dart/2.13 (dart:io)",
             "x-user-agent": X_USER_AGENT.format(brand.value),
             "Authorization": "Bearer {}".format(self._oauth_token),
             "accept-language": "en",

@@ -1,13 +1,61 @@
 """General utils and base classes used in the library."""
 
-from abc import ABC
+import base64
 import datetime
+import hashlib
 import inspect
 import json
 import logging
+import random
+import string
 import sys
+from abc import ABC
+from collections import OrderedDict
+
+import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util.retry import Retry
 
 _LOGGER = logging.getLogger(__name__)
+
+UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + '-._~'
+
+
+def generate_token(length=30, chars=UNICODE_CHARACTER_SET):
+    """Generate a random token with given length and characters."""
+    rand = random.SystemRandom()
+    return ''.join(rand.choice(chars) for _ in range(length))
+
+
+def create_s256_code_challenge(code_verifier):
+    """Create S256 code_challenge with the given code_verifier."""
+    data = hashlib.sha256(code_verifier.encode('ascii')).digest()
+    return base64.urlsafe_b64encode(data).rstrip(b'=').decode('UTF-8')
+
+
+class RetrySession(requests.Session):
+    """A `requests.Session` with `Retry`."""
+
+    def __init__(
+        self,
+        retries=3,
+        backoff_factor=0.3,
+        status_forcelist=None,
+        allowed_methods=None,
+        **kwargs,
+    ):
+        super().__init__(**kwargs)
+        retry = Retry(
+            total=retries,
+            read=retries,
+            connect=retries,
+            backoff_factor=backoff_factor,
+            status_forcelist=status_forcelist,
+            allowed_methods=allowed_methods,
+        )
+        self.adapters = OrderedDict()
+        self.mount('http://', HTTPAdapter(max_retries=retry))
+        self.mount('https://', HTTPAdapter(max_retries=retry))
 
 
 def serialize_for_json(obj: object, excluded: list = None, exclude_hidden: bool = True) -> dict:
@@ -38,7 +86,12 @@ def get_class_property_names(obj: object):
 def to_json(obj: object, *args, **kwargs):
     """Serialize a nested object to json. Tries to call `to_json` attribute on object first."""
     def serialize(obj: object):
-        return getattr(obj, 'to_json',  getattr(obj, '__dict__') if hasattr(obj, '__dict__') else str(obj))
+        if hasattr(obj, 'as_dict'):
+            return getattr(obj, "as_dict")()
+        if hasattr(obj, '__dict__'):
+            return {k: v for k, v in getattr(obj, "__dict__").items() if not k.startswith("_")}
+        return str(obj)
+
     return json.dumps(obj, default=serialize, *args, **kwargs)
 
 
@@ -63,7 +116,6 @@ def parse_datetime(date_str: str) -> datetime.datetime:
 class SerializableBaseClass(ABC):  # pylint: disable=too-few-public-methods
     """Base class to enable json-compatible serialization."""
 
-    @property
-    def to_json(self) -> dict:
+    def as_dict(self) -> dict:
         """Return all attributes and parameters."""
         return serialize_for_json(self)

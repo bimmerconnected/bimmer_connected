@@ -37,6 +37,7 @@ class ExecutionState(str, Enum):
     PENDING = 'PENDING'
     DELIVERED = 'DELIVERED'
     EXECUTED = 'EXECUTED'
+    ERROR = 'ERROR'
     UNKNOWN = 'UNKNOWN'
 
 
@@ -48,6 +49,7 @@ class _Services(str, Enum):
     REMOTE_DOOR_UNLOCK = 'DOOR_UNLOCK'
     REMOTE_HORN = 'HORN_BLOW'
     REMOTE_AIR_CONDITIONING = 'CLIMATE_NOW'
+    REMOTE_CHARGE_NOW = 'CHARGE_NOW'
 
 
 class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
@@ -62,6 +64,7 @@ class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
             status = response.get("eventStatus")
 
         self.state = ExecutionState(status or 'UNKNOWN')
+        self.details = response
 
 
 class RemoteServices:
@@ -134,6 +137,17 @@ class RemoteServices:
         event_id = self._trigger_remote_service(_Services.REMOTE_HORN)
         return self._block_until_done(_Services.REMOTE_HORN, event_id)
 
+    def trigger_charge_now(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to start charging.
+
+        A state update is NOT triggered after this, as the vehicle state is unchanged.
+        """
+        _LOGGER.debug('Triggering charge now')
+        event_id = self._trigger_remote_service(_Services.REMOTE_CHARGE_NOW)
+        result = self._block_until_done(_Services.REMOTE_CHARGE_NOW, event_id)
+        self._trigger_state_update()
+        return result
+
     def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
         """Trigger the air conditioning to start.
 
@@ -192,6 +206,12 @@ class RemoteServices:
                         _POLLING_TIMEOUT,
                         status.state.value
                     ))
+            if status.state == ExecutionState.ERROR:
+                raise Exception(
+                    "Remote service failed with state '{}'. Response: {}".format(
+                        status.state, status.details
+                    )
+                )
             time.sleep(_POLLING_CYCLE)
 
     def _get_remote_service_status(self, service: _Services = None, event_id: str = None) -> RemoteServiceStatus:

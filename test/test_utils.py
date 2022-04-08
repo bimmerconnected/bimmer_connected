@@ -36,7 +36,6 @@ class TestUtils(unittest.TestCase):
                 "is_vehicle_tracking_enabled",
                 "lsc_type",
                 "name",
-                "to_json",
             ],
             get_class_property_names(vehicle),
         )
