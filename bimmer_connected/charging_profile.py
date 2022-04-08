@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
     from bimmer_connected.vehicle_status import VehicleStatus
 
-    _T = TypeVar("_T", bound="ChargingProfile")
+    _ChargingProfileT = TypeVar("_ChargingProfileT", bound="ChargingProfile")
     _R = TypeVar("_R")
     _P = ParamSpec("_P")
 
@@ -101,13 +101,15 @@ class DepartureTimer(SerializableBaseClass):
 
 
 def backend_parameter(
-    func: "Callable[Concatenate[_T, _P], _R]"
-) -> "Callable[Concatenate[_T, _P], _R | None]":
+    func: "Callable[Concatenate[_ChargingProfileT, _P], _R]"
+) -> "Callable[Concatenate[_ChargingProfileT, _P], _R | None]":
     """Decorator for parameters reading data from the backend.
 
     Errors are handled in a default way.
     """
-    def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
+    def _func_wrapper(
+        self: "_ChargingProfileT", *args: "_P.args", **kwargs: "_P.kwargs"
+    ) -> "_R | None":
         # pylint: disable=protected-access
         if self.charging_profile is None:
             raise ValueError('No data available for vehicles charging profile!')

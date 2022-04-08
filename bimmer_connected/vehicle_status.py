@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
     from typing_extensions import Concatenate, ParamSpec
 
-    _T = TypeVar("_T", bound="VehicleStatus")
+    _VehicleStatusT = TypeVar("_VehicleStatusT", bound="VehicleStatus")
     _R = TypeVar("_R")
     _P = ParamSpec("_P")
 
@@ -182,13 +182,15 @@ class FuelIndicator(SerializableBaseClass):
 
 
 def backend_parameter(
-    func: "Callable[Concatenate[_T, _P], _R]"
-) -> "Callable[Concatenate[_T, _P], _R | None]":
+    func: "Callable[Concatenate[_VehicleStatusT, _P], _R]"
+) -> "Callable[Concatenate[_VehicleStatusT, _P], _R | None]":
     """Decorator for parameters reading data from the backend.
 
     Errors are handled in a default way.
     """
-    def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
+    def _func_wrapper(
+        self: "_VehicleStatusT", *args: "_P.args", **kwargs: "_P.kwargs"
+    ) -> "_R | None":
         # pylint: disable=protected-access
         if self.properties is None and self.status is None:
             raise ValueError('No data available for vehicle status!')
