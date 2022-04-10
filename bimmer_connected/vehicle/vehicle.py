@@ -233,13 +233,13 @@ class MyBMWVehicle:
                 "charging_end_time",
                 "charging_time_label",
                 "charging_status",
-                "charging_level_hv",
                 "connection_status",
+                "remaining_battery_percent",
                 "remaining_range_electric",
                 "last_charging_end_result",
             ]
         if self.has_combustion_drivetrain or self.has_range_extender_drivetrain:
-            result += ["remaining_fuel", "remaining_range_fuel", "fuel_percent"]
+            result += ["remaining_fuel", "remaining_range_fuel", "remaining_fuel_percent"]
         return result
 
     @property
