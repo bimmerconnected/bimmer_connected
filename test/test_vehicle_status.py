@@ -235,27 +235,31 @@ async def test_parse_gcj02_position(caplog):
     """Test conversion of GCJ02 to WGS84 for china."""
     account = await get_mocked_account(get_region_from_name("china"))
     vehicle = account.get_vehicle(VIN_F48)
-    vehicle.update_state(
-        dict(
-            vehicle.data,
-            **{
-                "properties": {
-                    "vehicleLocation": {
-                        "address": {"formatted": "some_formatted_address"},
-                        "coordinates": {"latitude": 39.83492, "longitude": 116.23221},
-                        "heading": 123,
-                    },
-                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
-                },
-                "status": {
-                    "FuelAndBattery": [],
-                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
-                },
+
+    vehicle_test_data = {
+        "properties": {
+            "vehicleLocation": {
+                "address": {"formatted": "some_formatted_address"},
+                "coordinates": {"latitude": 39.83492, "longitude": 116.23221},
+                "heading": 123,
             },
-        )
-        self.assertTupleEqual(
-            (39.8337, 116.22617), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
-        )
+            "lastUpdatedAt": "2021-11-14T20:20:21Z",
+        },
+        "status": {
+            "FuelAndBattery": [],
+            "lastUpdatedAt": "2021-11-14T20:20:21Z",
+        },
+    }
+
+    vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
+
+    # Update twice to test against slowly crawling position due to GCJ02 to WGS84 conversion
+    vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
+
+    assert (39.8337, 116.22617) == (
+        round(vehicle.vehicle_location.location[0], 5),
+        round(vehicle.vehicle_location.location[1], 5),
+    )
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
