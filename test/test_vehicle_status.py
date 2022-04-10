@@ -253,11 +253,9 @@ async def test_parse_gcj02_position(caplog):
                 },
             },
         )
-    )
-    assert (39.8337, 116.22617) == (
-        round(vehicle.vehicle_location.location[0], 5),
-        round(vehicle.vehicle_location.location[1], 5),
-    )
+        self.assertTupleEqual(
+            (39.8337, 116.22617), (round(status.gps_position[0], 5), round(status.gps_position[1], 5))
+        )
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
