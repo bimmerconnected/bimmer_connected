@@ -45,7 +45,7 @@ async def test_range_combustion_no_info(caplog):
     assert status.remaining_battery_percent is None
     assert status.remaining_range_electric == (None, None)
 
-    assert status.remaining_range_combined == (None, None)
+    assert status.remaining_range_total == (None, None)
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -62,7 +62,7 @@ async def test_range_combustion(caplog):
     assert status.remaining_battery_percent is None
     assert status.remaining_range_electric == (None, None)
 
-    assert (308, "km") == status.remaining_range_combined
+    assert (308, "km") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -79,9 +79,9 @@ async def test_range_phev(caplog):
     assert 41 == status.remaining_battery_percent
     assert (9, "km") == status.remaining_range_electric
 
-    assert (116, "km") == status.remaining_range_combined
+    assert (116, "km") == status.remaining_range_total
 
-    assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_combined[0]
+    assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -98,9 +98,9 @@ async def test_range_rex(caplog):
     assert 100 == status.remaining_battery_percent
     assert (164, "km") == status.remaining_range_electric
 
-    assert (228, "km") == status.remaining_range_combined
+    assert (228, "km") == status.remaining_range_total
 
-    assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_combined[0]
+    assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -117,7 +117,7 @@ async def test_range_electric(caplog):
     assert 50 == status.remaining_battery_percent
     assert (179, "km") == status.remaining_range_electric
 
-    assert (179, "km") == status.remaining_range_combined
+    assert (179, "km") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -270,7 +270,7 @@ async def test_parse_g08(caplog):
     status = (await get_mocked_account()).get_vehicle(VIN_G08).fuel_and_battery
 
     assert (179, "km") == status.remaining_range_electric
-    assert (179, "km") == status.remaining_range_combined
+    assert (179, "km") == status.remaining_range_total
     assert ChargingState.CHARGING == status.charging_status
     assert 50 == status.remaining_battery_percent
 

@@ -37,7 +37,7 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
     remaining_range_electric: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the remaining range of the vehicle on electricity."""
 
-    remaining_range_combined: Optional[ValueWithUnit] = ValueWithUnit(None, None)
+    remaining_range_total: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
 
     remaining_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
@@ -101,7 +101,7 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         fuel_indicators = vehicle_data.get("status", {}).get("fuelIndicators", [])
         for indicator in fuel_indicators:
             if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
-                retval["remaining_range_combined"] = cls._parse_to_tuple(indicator)
+                retval["remaining_range_total"] = cls._parse_to_tuple(indicator)
             elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59683:  # Electric
                 retval["remaining_range_electric"] = cls._parse_to_tuple(indicator)
 
@@ -114,8 +114,8 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
             elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
                 retval["remaining_range_fuel"] = cls._parse_to_tuple(indicator)
 
-        retval["remaining_range_combined"] = (
-            retval.get("remaining_range_combined")
+        retval["remaining_range_total"] = (
+            retval.get("remaining_range_total")
             or retval.get("remaining_range_fuel")
             or retval.get("remaining_range_electric")
         )

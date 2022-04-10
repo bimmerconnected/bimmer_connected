@@ -169,10 +169,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         return self.vehicle.fuel_and_battery.remaining_range_electric
 
     @property
-    @deprecated("vehicle.fuel_and_battery.remaining_range_combined")
+    @deprecated("vehicle.fuel_and_battery.remaining_range_total")
     def remaining_range_total(self) -> Optional[ValueWithUnit]:
         # pylint:disable=missing-function-docstring
-        return self.vehicle.fuel_and_battery.remaining_range_combined
+        return self.vehicle.fuel_and_battery.remaining_range_total
 
     @property
     @deprecated()
