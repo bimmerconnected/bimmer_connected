@@ -19,9 +19,7 @@ async def test_generic(caplog):
     """Test generic attributes."""
     status = (await get_mocked_account()).get_vehicle(VIN_G30).status
 
-    expected = datetime.datetime(
-        year=2021, month=11, day=11, hour=8, minute=58, second=53, tzinfo=datetime.timezone.utc
-    )
+    expected = datetime.datetime(year=2021, month=11, day=11, hour=8, minute=58, second=53)
     assert expected == status.timestamp
 
     assert 7991 == status.mileage[0]
@@ -206,17 +204,17 @@ async def test_condition_based_services(caplog):
     cbs = status.condition_based_services
     assert 3 == len(cbs)
     assert ConditionBasedServiceStatus.OK == cbs[0].state
-    expected_cbs0 = datetime.datetime(year=2022, month=8, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs0 = datetime.datetime(year=2022, month=8, day=1)
     assert expected_cbs0 == cbs[0].due_date
     assert (25000, "KILOMETERS") == cbs[0].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[1].state
-    expected_cbs1 = datetime.datetime(year=2023, month=8, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs1 = datetime.datetime(year=2023, month=8, day=1)
     assert expected_cbs1 == cbs[1].due_date
     assert (None, None) == cbs[1].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[2].state
-    expected_cbs2 = datetime.datetime(year=2024, month=8, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs2 = datetime.datetime(year=2024, month=8, day=1)
     assert expected_cbs2 == cbs[2].due_date
     assert (60000, "KILOMETERS") == cbs[2].due_distance
 

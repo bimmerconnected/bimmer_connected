@@ -38,7 +38,7 @@ class VehicleLocation(VehicleDataBase):
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict):
-        date_dummy = datetime.datetime(1970, 1, 1, tzinfo=datetime.timezone.utc)
+        date_dummy = datetime.datetime(1970, 1, 1)
 
         retval: Dict[str, Any] = {}
         retval["vehicle_update_timestamp"] = max(
@@ -56,9 +56,7 @@ class VehicleLocation(VehicleDataBase):
         retval = parsed
         # Overwrite vehicle data with remote service position if available & newer
         if self.remote_service_position is not None:
-            t_remote = self.remote_service_position.get(
-                "timestamp", datetime.datetime(1900, 1, 1, tzinfo=datetime.timezone.utc)
-            )
+            t_remote = self.remote_service_position.get("timestamp", datetime.datetime(1900, 1, 1))
             if t_remote > self.vehicle_update_timestamp:
                 retval["location"] = GPSPosition(
                     self.remote_service_position["latitude"], self.remote_service_position["longitude"]
@@ -78,7 +76,7 @@ class VehicleLocation(VehicleDataBase):
             _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
         else:
             pos = remote_service_dict["positionData"]["position"]
-            pos["timestamp"] = datetime.datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+            pos["timestamp"] = datetime.datetime.utcnow()
 
             self.remote_service_position = pos
 

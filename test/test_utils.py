@@ -76,10 +76,9 @@ async def test_to_json(caplog):
 def test_parse_datetime(caplog):
     """Test datetime parser."""
 
-    dt_with_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, 567000, tzinfo=datetime.timezone.utc)
-    dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, tzinfo=datetime.timezone.utc)
+    dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15)
 
-    assert dt_with_milliseconds == parse_datetime("2021-11-12T13:14:15.567Z")
+    assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15.567Z")
 
     assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15Z")
 

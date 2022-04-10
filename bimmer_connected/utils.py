@@ -4,7 +4,7 @@ import datetime
 import inspect
 import json
 import logging
-import sys
+import time
 import traceback
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, Optional
@@ -41,10 +41,9 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ"]
     for date_format in date_formats:
         try:
-            parsed = datetime.datetime.strptime(date_str, date_format)
-            # Assume implicit UTC for Python 3.6
-            if sys.version_info < (3, 7):
-                parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+            # Parse datetimes using `time.strptime` to allow running in some embedded python interpreters.
+            # https://bugs.python.org/issue27400
+            parsed = datetime.datetime(*(time.strptime(date_str, date_format)[0:6]))
             return parsed
         except ValueError:
             pass
