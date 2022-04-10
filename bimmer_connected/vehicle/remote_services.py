@@ -184,7 +184,7 @@ class RemoteServices:
     async def _trigger_state_update(self) -> None:
         """Sleep for 2x POLLING_CYCLE and force-refresh vehicles from BMW servers."""
         await asyncio.sleep(_POLLING_CYCLE * 2)
-        self._account.get_vehicles()
+        await self._account.get_vehicles()
 
     async def trigger_send_poi(self, poi: Union[PointOfInterest, Dict]) -> RemoteServiceStatus:
         """Send a PointOfInterest to the vehicle.
