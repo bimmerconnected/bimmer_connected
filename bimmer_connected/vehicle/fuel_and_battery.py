@@ -91,34 +91,37 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         if properties.get("fuelPercentage", {}).get("value"):
             retval["remaining_fuel_percent"] = int(properties.get("fuelPercentage", {}).get("value"))
 
-        if properties.get("electricRangeAndStatus", {}).get("chargePercentage"):
-            retval["remaining_battery_percent"] = int(
-                properties.get("electricRangeAndStatus", {}).get("chargePercentage")
+        if "chargingState" in properties:
+            retval["remaining_battery_percent"] = int(properties["chargingState"].get("chargePercentage") or 0)
+            retval["is_charger_connected"] = properties["chargingState"].get("isChargerConnected", False)
+
+        # Only parse ranges if vehicle has enabled LSC
+        if vehicle_data["capabilities"]["lastStateCall"]["lscState"] == "ACTIVATED":
+            fuel_indicators = vehicle_data.get("status", {}).get("fuelIndicators", [])
+            for indicator in fuel_indicators:
+                if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
+                    retval["remaining_range_total"] = cls._parse_to_tuple(indicator)
+                elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59683:  # Electric
+                    retval["remaining_range_electric"] = cls._parse_to_tuple(indicator)
+
+                    retval["charging_time_label"] = indicator["infoLabel"]
+                    retval["charging_status"] = ChargingState(
+                        indicator["chargingStatusType"]
+                        if indicator["chargingStatusType"] != "DEFAULT"
+                        else "NOT_CHARGING"
+                    )
+
+                    if indicator.get("chargingStatusType") in ["CHARGING", "PLUGGED_IN"]:
+                        retval.update(cls._parse_charging_timestamp(indicator))
+
+                elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
+                    retval["remaining_range_fuel"] = cls._parse_to_tuple(indicator)
+
+            retval["remaining_range_total"] = (
+                retval.get("remaining_range_total")
+                or retval.get("remaining_range_fuel")
+                or retval.get("remaining_range_electric")
             )
-
-        retval["is_charger_connected"] = properties.get("chargingState", {}).get("isChargerConnected", False)
-
-        fuel_indicators = vehicle_data.get("status", {}).get("fuelIndicators", [])
-        for indicator in fuel_indicators:
-            if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
-                retval["remaining_range_total"] = cls._parse_to_tuple(indicator)
-            elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59683:  # Electric
-                retval["remaining_range_electric"] = cls._parse_to_tuple(indicator)
-
-                retval["charging_time_label"] = indicator["infoLabel"]
-                retval["charging_status"] = ChargingState(indicator["chargingStatusType"])
-
-                if indicator.get("chargingStatusType") in ["CHARGING", "PLUGGED_IN"]:
-                    retval.update(cls._parse_charging_timestamp(indicator))
-
-            elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
-                retval["remaining_range_fuel"] = cls._parse_to_tuple(indicator)
-
-        retval["remaining_range_total"] = (
-            retval.get("remaining_range_total")
-            or retval.get("remaining_range_fuel")
-            or retval.get("remaining_range_electric")
-        )
 
         return retval
 
@@ -165,7 +168,9 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
     def _parse_to_tuple(fuel_indicator):
         """Parse fuel indicator to standard range tuple."""
         try:
-            range_val = int(fuel_indicator["rangeValue"])
+            # A value of '- -' apparently means zero
+            range_value = fuel_indicator["rangeValue"] if fuel_indicator["rangeValue"] != "- -" else 0
+            range_val = int(range_value)
         except ValueError:
             return ValueWithUnit(None, None)
         return ValueWithUnit(range_val, fuel_indicator["rangeUnits"])

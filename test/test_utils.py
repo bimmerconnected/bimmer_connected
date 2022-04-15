@@ -64,8 +64,8 @@ async def test_to_json(caplog):
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
 
-        expected_lines = expected.split("\n")
-        actual_lines = json.dumps(vehicle, cls=MyBMWJSONEncoder, indent=4).split("\n")
+        expected_lines = expected.splitlines()
+        actual_lines = json.dumps(vehicle, cls=MyBMWJSONEncoder, indent=4).splitlines()
 
         for i in range(max(len(expected_lines), len(actual_lines))):
             assert expected_lines[i] == actual_lines[i], f"line {i+1}"
