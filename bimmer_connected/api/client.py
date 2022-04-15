@@ -27,6 +27,9 @@ class MyBMWClient(httpx.AsyncClient):
     def __init__(self, config: MyBMWClientConfiguration, *args, brand: CarBrands = None, **kwargs):
         self.config = config
 
+        # Increase timeout
+        kwargs["timeout"] = httpx.Timeout(10.0)
+
         # Set default values
         kwargs["base_url"] = kwargs.get("base_url") or get_server_url(config.authentication.region)
         kwargs["headers"] = kwargs.get("headers") or self.generate_default_header(brand)
