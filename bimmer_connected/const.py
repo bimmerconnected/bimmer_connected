@@ -1,7 +1,7 @@
 """URLs for different services and error code mapping."""
 
 AUTH_URL = '{gcdm_base_url}/gcdm/oauth/authenticate'
-X_USER_AGENT = 'android(v1.07_20200330);{};1.7.0(11152)'
+X_USER_AGENT = 'android(v1.07_20200330);{};2.3.0(13603)'
 
 BASE_URL = 'https://{server}'
 
