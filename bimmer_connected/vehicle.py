@@ -190,7 +190,7 @@ class ConnectedDriveVehicle(SerializableBaseClass):
             result += ['condition_based_services', 'check_control_messages', 'door_lock_state', 'timestamp',
                        'last_update_reason']
             # required for existing Home Assistant binary sensors
-            result += ['lids', 'windows']
+            result += ['lids', 'windows', 'roof']
         return result
 
     @property

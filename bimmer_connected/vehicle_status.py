@@ -361,6 +361,16 @@ class VehicleStatus(SerializableBaseClass):  # pylint: disable=too-many-public-m
         return len(list(self.open_lids)) == 0
 
     @property
+    def roof_closed(self) -> bool:
+
+        result = []
+        lids = self.properties["doorsAndWindows"]
+        result.extend([Lid(k, v) for k, v in lids.items() if k in ["top"] and v != LidState.INVALID.value])
+
+        """Check if all lids are closed."""
+        return len(list(result)) == 0
+
+    @property
     @backend_parameter
     def windows(self) -> List['Window']:
         """Get all windows (doors+sun roof) of the car."""

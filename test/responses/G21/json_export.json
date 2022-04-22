@@ -541,6 +541,7 @@
             }
         },
         "all_lids_closed": true,
+        "roof_closed": true,
         "all_windows_closed": true,
         "are_all_cbs_ok": true,
         "are_parking_lights_on": null,
@@ -635,6 +636,7 @@
             }
         ],
         "max_range_electric": null,
+        "roof": false,
         "mileage": [
             27138,
             "km"
@@ -707,7 +709,8 @@
         "timestamp",
         "last_update_reason",
         "lids",
-        "windows"
+        "windows",
+        "roof"
     ],
     "available_state_services": [
         "status"
