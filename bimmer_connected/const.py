@@ -38,8 +38,10 @@ OCP_APIM_KEYS = {
 USER_AGENT = "Dart/2.13 (dart:io)"
 X_USER_AGENT = "android(v1.07_20200330);{};2.3.0(13603)"
 
+
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
 AUTH_CHINA_LOGIN_URL = "/eadrax-coas/v1/login/pwd"
+AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v1/oauth/token"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 

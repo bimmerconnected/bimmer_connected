@@ -22,6 +22,7 @@ from bimmer_connected.api.utils import (
 from bimmer_connected.const import (
     AUTH_CHINA_LOGIN_URL,
     AUTH_CHINA_PUBLIC_KEY_URL,
+    AUTH_CHINA_TOKEN_URL,
     OAUTH_CONFIG_URL,
     USER_AGENT,
     X_USER_AGENT,
@@ -41,6 +42,7 @@ class Authentication:
     region: Regions
     token: Optional[str] = None
     expires_at: Optional[datetime.datetime] = None
+    refresh_token: Optional[str] = None
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
@@ -82,12 +84,22 @@ class MyBMWAuthentication(Authentication):
 
             token_data = {}
             if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
-                token_data = await self._login_row_na()
+                # Try logging in with refresh token first
+                if self.refresh_token:
+                    token_data = await self._refresh_token_row_na()
+                if not token_data:
+                    token_data = await self._login_row_na()
+
             elif self.region in [Regions.CHINA]:
-                token_data = await self._login_china()
+                # Try logging in with refresh token first
+                if self.refresh_token:
+                    token_data = await self._refresh_token_china()
+                if not token_data:
+                    token_data = await self._login_china()
 
             self.token = token_data["access_token"]
             self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
+            self.refresh_token = token_data["refresh_token"]
 
     async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
@@ -170,7 +182,59 @@ class MyBMWAuthentication(Authentication):
         except httpx.HTTPStatusError as ex:
             handle_http_status_error(ex, "Authentication", _LOGGER)
 
-        return {"access_token": response_json["access_token"], "expires_at": expires_at}
+        return {
+            "access_token": response_json["access_token"],
+            "expires_at": expires_at,
+            "refresh_token": response_json["refresh_token"],
+        }
+
+    async def _refresh_token_row_na(self):
+        """Login to Rest of World and North America using existing refresh_token."""
+        try:
+            async with httpx.AsyncClient(
+                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
+            ) as client:
+                _LOGGER.debug("Authenticating with refresh_token flow for North America & Rest of World.")
+
+                # Attach raise_for_status event hook
+                client.event_hooks["response"].append(raise_for_status_event_handler)
+
+                # Get OAuth2 settings from BMW API
+                r_oauth_settings = await client.get(
+                    OAUTH_CONFIG_URL,
+                    headers={
+                        "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
+                        "x-user-agent": X_USER_AGENT.format("bmw"),
+                    },
+                )
+                oauth_settings = r_oauth_settings.json()
+
+                # With code, get token
+                current_utc_time = datetime.datetime.utcnow()
+                response = await client.post(
+                    oauth_settings["tokenEndpoint"],
+                    data={
+                        "scope": " ".join(oauth_settings["scopes"]),
+                        "redirect_uri": oauth_settings["returnUrl"],
+                        "grant_type": "refresh_token",
+                        "refresh_token": self.refresh_token,
+                    },
+                    auth=(oauth_settings["clientId"], oauth_settings["clientSecret"]),
+                )
+                response_json = response.json()
+
+                expiration_time = int(response_json["expires_in"])
+                expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
+
+        except httpx.HTTPStatusError:
+            _LOGGER.debug("Unable to get access token using refresh token.")
+            return {}
+
+        return {
+            "access_token": response_json["access_token"],
+            "expires_at": expires_at,
+            "refresh_token": response_json["refresh_token"],
+        }
 
     async def _login_china(self):
         try:
@@ -212,4 +276,42 @@ class MyBMWAuthentication(Authentication):
         return {
             "access_token": response_json["access_token"],
             "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]),
+            "refresh_token": response_json["refresh_token"],
+        }
+
+    async def _refresh_token_china(self):
+        try:
+            async with httpx.AsyncClient(
+                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
+            ) as client:
+                _LOGGER.debug("Authenticating with refresh token for China.")
+
+                # Attach raise_for_status event hook
+                client.event_hooks["response"].append(raise_for_status_event_handler)
+
+                login_header = {"x-user-agent": X_USER_AGENT.format("bmw")}
+                current_utc_time = datetime.datetime.utcnow()
+
+                # Try logging in using refresh_token
+                response = await client.post(
+                    AUTH_CHINA_TOKEN_URL,
+                    headers=login_header,
+                    data={
+                        "refresh_token": self.refresh_token,
+                        "grant_type": "refresh_token",
+                    },
+                )
+                response_json = response.json()
+
+                expiration_time = int(response_json["expires_in"])
+                expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
+
+        except httpx.HTTPStatusError:
+            _LOGGER.debug("Unable to get access token using refresh token.")
+            return {}
+
+        return {
+            "access_token": response_json["access_token"],
+            "expires_at": expires_at,
+            "refresh_token": response_json["refresh_token"],
         }

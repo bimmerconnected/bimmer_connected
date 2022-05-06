@@ -1,6 +1,8 @@
 """Tests for MyBMWAccount."""
 
+import datetime
 from typing import Dict, List
+from unittest import mock
 
 import httpx
 import pytest
@@ -71,6 +73,9 @@ def account_mock():
     router.post("/eadrax-coas/v1/login/pwd").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
     )
+    router.post("/eadrax-coas/v1/oauth/token").respond(
+        200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")
+    )
 
     # Get all vehicle fingerprints
     router.get("/eadrax-vcs/v1/vehicles").mock(side_effect=vehicles_sideeffect)
@@ -102,11 +107,49 @@ async def test_login_row_na():
 
 @account_mock()
 @pytest.mark.asyncio
+async def test_login_refresh_token_row_na():
+    """Test the login flow using refresh_token."""
+    with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+        await account.get_vehicles()
+
+        with mock.patch(
+            "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
+            wraps=account.mybmw_client_config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+        ) as mock_listener:
+            mock_listener.reset_mock()
+            await account.get_vehicles()
+
+            assert mock_listener.call_count == 2
+            assert account.mybmw_client_config.authentication.refresh_token is not None
+
+
+@account_mock()
+@pytest.mark.asyncio
 async def test_login_china():
-    """Test raising an error for region `china`."""
+    """Test the login flow for region `china`."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
     await account.get_vehicles()
     assert account is not None
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_login_refresh_token_china():
+    """Test the login flow using refresh_token  for region `china`."""
+    with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+        await account.get_vehicles()
+
+        with mock.patch(
+            "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
+            wraps=account.mybmw_client_config.authentication._refresh_token_china,  # pylint: disable=protected-access
+        ) as mock_listener:
+            mock_listener.reset_mock()
+            await account.get_vehicles()
+
+            assert mock_listener.call_count == 2
+            assert account.mybmw_client_config.authentication.refresh_token is not None
 
 
 @account_mock()
