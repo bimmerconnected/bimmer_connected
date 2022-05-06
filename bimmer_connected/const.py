@@ -35,6 +35,7 @@ OCP_APIM_KEYS = {
     Regions.REST_OF_WORLD: "4f1c85a3-758f-a37d-bbb6-f8704494acfa",
 }
 
+USER_AGENT = "Dart/2.13 (dart:io)"
 X_USER_AGENT = "android(v1.07_20200330);{};2.3.0(13603)"
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"

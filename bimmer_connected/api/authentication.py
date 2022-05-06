@@ -19,7 +19,13 @@ from bimmer_connected.api.utils import (
     handle_http_status_error,
     raise_for_status_event_handler,
 )
-from bimmer_connected.const import AUTH_CHINA_LOGIN_URL, AUTH_CHINA_PUBLIC_KEY_URL, OAUTH_CONFIG_URL, X_USER_AGENT
+from bimmer_connected.const import (
+    AUTH_CHINA_LOGIN_URL,
+    AUTH_CHINA_PUBLIC_KEY_URL,
+    OAUTH_CONFIG_URL,
+    USER_AGENT,
+    X_USER_AGENT,
+)
 
 EXPIRES_AT_OFFSET = datetime.timedelta(seconds=10)
 
@@ -87,7 +93,7 @@ class MyBMWAuthentication(Authentication):
         """Login to Rest of World and North America."""
         try:
             async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": "Dart/2.13 (dart:io)"}
+                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
             ) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
 
@@ -169,7 +175,7 @@ class MyBMWAuthentication(Authentication):
     async def _login_china(self):
         try:
             async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": "Dart/2.13 (dart:io)"}
+                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
             ) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for China.")
 

@@ -10,7 +10,7 @@ import httpx
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_server_url
 from bimmer_connected.api.utils import log_to_to_file, raise_for_status_event_handler
-from bimmer_connected.const import X_USER_AGENT, CarBrands
+from bimmer_connected.const import USER_AGENT, X_USER_AGENT, CarBrands
 
 
 @dataclass
@@ -64,6 +64,6 @@ class MyBMWClient(httpx.AsyncClient):
         return {
             "accept": "application/json",
             "accept-language": "en",
-            "user-agent": "Dart/2.13 (dart:io)",
+            "user-agent": USER_AGENT,
             "x-user-agent": X_USER_AGENT.format(brand or CarBrands.BMW),
         }
