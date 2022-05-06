@@ -64,7 +64,7 @@ class MyBMWAuthentication(Authentication):
     def _create_or_update_lock(self):
         """Makes sure that there is a lock in the current event loop."""
         loop: asyncio.BaseEventLoop = self._lock._loop  # pylint: disable=protected-access
-        if loop != asyncio.get_running_loop():
+        if loop != asyncio.get_event_loop():
             self._lock = asyncio.Lock()
 
     async def login(self) -> None:
