@@ -102,6 +102,10 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
         """Set the position of the observer for all vehicles."""
         self.observer_position = GPSPosition(latitude=latitude, longitude=longitude)
 
+    def set_refresh_token(self, refresh_token: str) -> None:
+        """Overwrite the current value of the MyBMW refresh token."""
+        self.mybmw_client_config.authentication.refresh_token = refresh_token
+
     @property
     def timezone(self):
         """Returns the current tzinfo."""
@@ -111,6 +115,11 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
     def utcdiff(self):
         """Returns the difference to UTC in minutes."""
         return round(self.timezone.utcoffset(datetime.datetime.now()).seconds / 60, 0)
+
+    @property
+    def refresh_token(self) -> Optional[str]:
+        """Returns the current refresh_token."""
+        return self.mybmw_client_config.authentication.refresh_token
 
 
 @deprecated("MyBMWAccount")

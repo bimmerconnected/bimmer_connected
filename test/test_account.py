@@ -292,3 +292,16 @@ async def test_deprecated_account(caplog):
     assert account is not None
 
     assert 1 == len(get_deprecation_warning_count(caplog))
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_refresh_token_getset():
+    """Test getting/setting the refresh_token."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    assert account.refresh_token is None
+    await account.get_vehicles()
+    assert account.refresh_token == "another_token_string"
+
+    account.set_refresh_token("new_refresh_token")
+    assert account.refresh_token == "new_refresh_token"
