@@ -149,6 +149,7 @@ Thank you
 =========
 
 Thank you to all `contributors <https://github.com/bimmerconnected/bimmer_connected/graphs/contributors>`_ for your research and contributions! And thanks to everyone who shares the `fingerprint data <https://github.com/bimmerconnected/bimmer_connected#data-contributions>`_ of their vehicles which we use to test the code.
+A special thanks to @HuChundong, @muxiachuixue, @vividmuse for figuring out how to solve login issues!
 
 This library is basically a best-of of other similar solutions,
 yet none of them provided a ready to use library with a matching interface

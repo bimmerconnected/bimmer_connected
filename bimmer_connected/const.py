@@ -31,8 +31,15 @@ SERVER_URLS_MYBMW = {
 }
 
 OCP_APIM_KEYS = {
-    Regions.NORTH_AMERICA: "31e102f5-6f7e-7ef3-9044-ddce63891362",
-    Regions.REST_OF_WORLD: "4f1c85a3-758f-a37d-bbb6-f8704494acfa",
+    Regions.NORTH_AMERICA: "MzFlMTAyZjUtNmY3ZS03ZWYzLTkwNDQtZGRjZTYzODkxMzYy",
+    Regions.REST_OF_WORLD: "NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh",
+}
+
+AES_KEYS = {
+    Regions.CHINA: {
+        "key": "UzJUdzEwdlExWGYySmxLYQ==",
+        "iv": "dTFGUDd4ZWRrQWhMR3ozVQ==",
+    }
 }
 
 USER_AGENT = "Dart/2.13 (dart:io)"
@@ -40,7 +47,7 @@ X_USER_AGENT = "android(v1.07_20200330);{};2.3.0(13603)"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
-AUTH_CHINA_LOGIN_URL = "/eadrax-coas/v1/login/pwd"
+AUTH_CHINA_LOGIN_URL = "/eadrax-coas/v2/login/pwd"
 AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v1/oauth/token"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"

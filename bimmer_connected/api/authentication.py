@@ -9,10 +9,11 @@ from typing import Optional
 
 import httpx
 import jwt
-from Crypto.Cipher import PKCS1_v1_5
+from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from Crypto.Util.Padding import pad
 
-from bimmer_connected.api.regions import Regions, get_ocp_apim_key, get_server_url
+from bimmer_connected.api.regions import Regions, get_aes_keys, get_ocp_apim_key, get_server_url
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_token,
@@ -259,6 +260,11 @@ class MyBMWAuthentication(Authentication):
                 cipher_rsa = PKCS1_v1_5.new(public_key)
                 encrypted = cipher_rsa.encrypt(self.password.encode())
                 pw_encrypted = base64.b64encode(encrypted).decode("UTF-8")
+
+                cipher_aes = AES.new(**get_aes_keys(self.region), mode=AES.MODE_CBC)
+                nonce = f"{self.username}|{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%fZ')}".encode()
+
+                login_header["x-login-nonce"] = base64.b64encode(cipher_aes.encrypt(pad(nonce, 16))).decode()
 
                 # Get token
                 response = await client.post(

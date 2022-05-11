@@ -70,7 +70,7 @@ def account_mock():
     router.get("/eadrax-coas/v1/cop/publickey").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_publickey.json")
     )
-    router.post("/eadrax-coas/v1/login/pwd").respond(
+    router.post("/eadrax-coas/v2/login/pwd").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
     )
     router.post("/eadrax-coas/v1/oauth/token").respond(
@@ -184,7 +184,7 @@ async def test_invalid_password():
 async def test_invalid_password_china():
     """Test parsing the results of an invalid password."""
     with account_mock() as mock_api:
-        mock_api.post("/eadrax-coas/v1/login/pwd").respond(
+        mock_api.post("/eadrax-coas/v2/login/pwd").respond(
             422, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json")
         )
         with pytest.raises(httpx.HTTPStatusError):

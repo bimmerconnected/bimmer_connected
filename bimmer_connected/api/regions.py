@@ -1,7 +1,8 @@
 """Get the right url for the different countries."""
-from typing import List
+from base64 import b64decode
+from typing import Dict, List
 
-from bimmer_connected.const import OCP_APIM_KEYS, SERVER_URLS_MYBMW, Regions
+from bimmer_connected.const import AES_KEYS, OCP_APIM_KEYS, SERVER_URLS_MYBMW, Regions
 
 
 def valid_regions() -> List[str]:
@@ -27,4 +28,9 @@ def get_server_url(region: Regions) -> str:
 
 def get_ocp_apim_key(region: Regions) -> str:
     """Get the authorization for OAuth settings."""
-    return OCP_APIM_KEYS[region]
+    return b64decode(OCP_APIM_KEYS[region]).decode()
+
+
+def get_aes_keys(region: Regions) -> Dict[str, bytes]:
+    """Get the keys for login nonce."""
+    return {k: b64decode(v) for k, v in AES_KEYS[region].items()}
