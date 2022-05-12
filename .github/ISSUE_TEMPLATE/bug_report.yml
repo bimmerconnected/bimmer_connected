@@ -61,17 +61,17 @@ body:
         - China
   - type: checkboxes
     attributes:
-      label: ConnectedDrive website
-      description: If you see any issues with the BMW integration in Home Assistant (or when directly using the library), please make sure to first login to the BMW ConnectedDrive website of your country and check if you can successfully login and query the car status.
+      label: MyBMW website
+      description: If you see any issues with the BMW integration in Home Assistant (or when directly using the library), please make sure to first login to the BMW MyBMW website of your country and check if you can successfully login and query the car status.
       options:
-        - label: I can still successfully login to the BMW ConnectedDrive website and the car status is available there.
-        - label: I have ConnectedDrive enabled for my vehicle.
+        - label: I can still successfully login to the BMW MyBMW website and the car status is available there.
+        - label: I have MyBMW enabled for my vehicle.
   - type: checkboxes
     attributes:
       label: Number of cars
       description: If you have more than 1 car please mention that here.
       options:
-        - label: I have 2 or more cars linked to the ConnectedDrive account.
+        - label: I have 2 or more cars linked to the MyBMW account.
         - label: I have a Mini vehicle linked to my account.
   - type: textarea
     attributes:

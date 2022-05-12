@@ -1,0 +1,59 @@
+repos:
+  - repo: https://github.com/psf/black
+    rev: 22.3.0
+    hooks:
+      - id: black
+        args:
+          - --safe
+          - --quiet
+        files: ^((bimmer_connected|test)/.+)?[^/]+\.py$
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.1.0
+    hooks:
+      - id: codespell
+        args:
+          # - --ignore-words-list=hass,alot,datas,dof,dur,ether,farenheit,hist,iff,iif,ines,ist,lightsensor,mut,nd,pres,referer,rime,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,iam,incomfort,ba,haa
+          - --skip="./.*,*.csv,*.json"
+          - --quiet-level=2
+        exclude_types: [csv, json]
+        exclude: ^test/responses/
+  - repo: https://github.com/PyCQA/flake8
+    rev: 4.0.1
+    hooks:
+      - id: flake8
+        additional_dependencies:
+          - pycodestyle==2.8.0
+          - pyflakes==2.4.0
+          - flake8-docstrings==1.6.0
+          - pydocstyle==6.1.1
+          - flake8-comprehensions==3.7.0
+          - flake8-noqa==1.2.1
+          - mccabe==0.6.1
+        files: ^(bimmer_connected|test)/.+\.py$
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        files: ^(bimmer_connected|test)/.+\.py$
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v0.931
+  #   hooks: 
+  #     - id: mypy
+  #       name: mypy
+  #       entry: mypy
+  #       additional_dependencies: [types-setuptools, "typing_extensions>=3.10.0.2,<5.0"]
+  #       files: ^(bimmer_connected|test)/.+\.py$
+  - repo: local
+    hooks:
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
+        types: [python]
+        args:
+          [
+            "-j 4",
+            "-rn", # Only display messages
+            "-sn", # Don't display the score
+          ]
+        files: ^(bimmer_connected|test)/.+\.py$

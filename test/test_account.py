@@ -1,12 +1,18 @@
-"""Tests for ConnectedDriveAccount."""
-import json
-import unittest
+"""Tests for MyBMWAccount."""
 
-import requests_mock
-from requests import HTTPError
+import datetime
+from typing import Dict, List
+from unittest import mock
 
-from bimmer_connected.account import ConnectedDriveAccount
-from bimmer_connected.country_selector import get_region_from_name
+import httpx
+import pytest
+import respx
+
+from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
+from bimmer_connected.api.authentication import Authentication
+from bimmer_connected.api.client import MyBMWClientConfiguration
+from bimmer_connected.api.regions import get_region_from_name
+from bimmer_connected.vehicle.models import GPSPosition
 
 from . import (
     RESPONSE_DIR,
@@ -15,191 +21,287 @@ from . import (
     TEST_REGION_STRING,
     TEST_USERNAME,
     VIN_G21,
+    get_deprecation_warning_count,
     get_fingerprint_count,
     load_response,
 )
 
 
-def authenticate_callback(request, context):  # pylint: disable=inconsistent-return-statements
+def authenticate_sideeffect(request: httpx.Request) -> httpx.Response:
     """Returns /oauth/authentication response based on request."""
-    # pylint: disable=protected-access,unused-argument,no-self-use
+    request_text = request.read().decode("UTF-8")
+    if "username" in request_text and "password" in request_text and "grant_type" in request_text:
+        return httpx.Response(200, json=load_response(RESPONSE_DIR / "auth" / "authorization_response.json"))
+    return httpx.Response(
+        302,
+        headers={
+            "Location": "com.mini.connected://oauth?code=CODE&state=STATE&client_id=CLIENT_ID&nonce=login_nonce",
+        },
+    )
 
-    if "username" in request.text and "password" in request.text and "grant_type" in request.text:
-        return load_response(RESPONSE_DIR / "auth" / "authorization_response.json")
-    context.headers = {
-        "Location": "com.mini.connected://oauth?code=CODE&state=STATE&client_id=CLIENT_ID&nonce=login_nonce",
-    }
-    context.status_code = 302
 
-
-def return_vehicles(request, context):  # pylint: disable=inconsistent-return-statements
+def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
     """Returns /vehicles response based on x-user-agent."""
-    # pylint: disable=protected-access,unused-argument,no-self-use
-
-    x_user_agent = request._request.headers.get("x-user-agent", "").split(";")
+    x_user_agent = request.headers.get("x-user-agent", "").split(";")
     if len(x_user_agent) == 3:
         brand = x_user_agent[1]
     else:
         raise ValueError("x-user-agent not configured correctly!")
 
-    response_vehicles = []
-    files = RESPONSE_DIR.rglob("vehicles_v2_{}_0.json".format(brand))
+    response_vehicles: List[Dict] = []
+    files = RESPONSE_DIR.rglob(f"vehicles_v2_{brand}_0.json")
     for file in files:
         response_vehicles.extend(load_response(file))
-    return response_vehicles
+    return httpx.Response(200, json=response_vehicles)
 
 
-def get_base_adapter():
+def account_mock():
     """Returns mocked adapter for auth."""
-    adapter = requests_mock.Adapter()
-    adapter.register_uri(
-        "GET",
-        "/eadrax-ucs/v1/presentation/oauth/config",
-        json=load_response(RESPONSE_DIR / "auth" / "oauth_config.json"),
+    router = respx.mock(assert_all_called=False)
+
+    # Login to north_america and rest_of_world
+    router.get("/eadrax-ucs/v1/presentation/oauth/config").respond(
+        200, json=load_response(RESPONSE_DIR / "auth" / "oauth_config.json")
     )
-    adapter.register_uri("POST", "/gcdm/oauth/authenticate", json=authenticate_callback)
-    adapter.register_uri("POST", "/gcdm/oauth/token", json=load_response(RESPONSE_DIR / "auth" / "auth_token.json"))
-    adapter.register_uri("GET", "/eadrax-vcs/v1/vehicles", json=return_vehicles)
-    adapter.register_uri(
-        "GET", "/eadrax-coas/v1/cop/publickey", json=load_response(RESPONSE_DIR / "auth" / "auth_cn_publickey.json")
+    router.post("/gcdm/oauth/authenticate").mock(side_effect=authenticate_sideeffect)
+    router.post("/gcdm/oauth/token").respond(200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json"))
+
+    # Login to china
+    router.get("/eadrax-coas/v1/cop/publickey").respond(
+        200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_publickey.json")
     )
-    adapter.register_uri(
-        "POST", "/eadrax-coas/v1/login/pwd", json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
+    router.post("/eadrax-coas/v2/login/pwd").respond(
+        200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
     )
-    return adapter
+    router.post("/eadrax-coas/v1/oauth/token").respond(
+        200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")
+    )
+
+    # Get all vehicle fingerprints
+    router.get("/eadrax-vcs/v1/vehicles").mock(side_effect=vehicles_sideeffect)
+
+    return router
 
 
-def get_mocked_account(region=None):
+def get_account(region=None):
+    """Returns account without token and vehicles (sync)."""
+    return MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
+
+
+async def get_mocked_account(region=None):
     """Returns pre-mocked account."""
-    with requests_mock.Mocker(adapter=get_base_adapter()):
-        account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
+    with account_mock():
+        account = get_account(region)
+        await account.get_vehicles()
     return account
 
 
-class TestAccount(unittest.TestCase):
-    """Tests for ConnectedDriveAccount."""
+@account_mock()
+@pytest.mark.asyncio
+async def test_login_row_na():
+    """Test the login flow."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+    await account.get_vehicles()
+    assert account is not None
 
-    def test_login_row_na(self):
-        """Test the login flow."""
-        with requests_mock.Mocker(adapter=get_base_adapter()):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
-        self.assertIsNotNone(account)
 
-    def test_login_china(self):
-        """Test raising an error for region `china`."""
-        with requests_mock.Mocker(adapter=get_base_adapter()):
-            account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
-        self.assertIsNotNone(account)
+@account_mock()
+@pytest.mark.asyncio
+async def test_login_refresh_token_row_na():
+    """Test the login flow using refresh_token."""
+    with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+        await account.get_vehicles()
 
-    def test_vehicles(self):
-        """Test the login flow."""
-        account = get_mocked_account()
+        with mock.patch(
+            "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
+            wraps=account.mybmw_client_config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+        ) as mock_listener:
+            mock_listener.reset_mock()
+            await account.get_vehicles()
 
-        self.assertIsNotNone(account._oauth_token)  # pylint: disable=protected-access
-        self.assertEqual(get_fingerprint_count(), len(account.vehicles))
-        vehicle = account.get_vehicle(VIN_G21)
-        self.assertEqual(VIN_G21, vehicle.vin)
+            assert mock_listener.call_count == 2
+            assert account.mybmw_client_config.authentication.refresh_token is not None
 
-        self.assertIsNone(account.get_vehicle("invalid_vin"))
 
-    def test_invalid_password(self):
-        """Test parsing the results of an invalid password."""
-        with requests_mock.Mocker(adapter=get_base_adapter()) as mock:
-            mock.post(
-                "/gcdm/oauth/authenticate",
-                json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json"),
-                status_code=401,
-            )
-            with self.assertRaises(HTTPError):
-                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+@account_mock()
+@pytest.mark.asyncio
+async def test_login_china():
+    """Test the login flow for region `china`."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    await account.get_vehicles()
+    assert account is not None
 
-    def test_invalid_password_china(self):
-        """Test parsing the results of an invalid password."""
-        with requests_mock.Mocker(adapter=get_base_adapter()) as mock:
-            mock.post(
-                "/eadrax-coas/v1/login/pwd",
-                json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json"),
-                status_code=422,
-            )
-            with self.assertRaises(HTTPError):
-                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
 
-    def test_server_error(self):
-        """Test parsing the results of a server error."""
-        with requests_mock.Mocker(adapter=get_base_adapter()) as mock:
-            mock.post(
-                "/gcdm/oauth/authenticate",
-                text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt"),
-                status_code=500,
-            )
-            with self.assertRaises(HTTPError):
-                ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+@account_mock()
+@pytest.mark.asyncio
+async def test_login_refresh_token_china():
+    """Test the login flow using refresh_token  for region `china`."""
+    with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+        await account.get_vehicles()
 
-    def test_anonymize_data(self):
-        """Test anonymization function."""
-        test_dict = {
-            "vin": "secret",
-            "a sub-dict": {
-                "lat": 666,
-                "lon": 666,
-                "heading": 666,
-            },
-            "licensePlate": "secret",
-            "public": "public_data",
-            "a_list": [
-                {"vin": "secret"},
-                {
-                    "lon": 666,
-                    "public": "more_public_data",
-                },
-            ],
-            "b_list": ["a", "b"],
-            "empty_list": [],
-        }
-        anon_text = json.dumps(ConnectedDriveAccount._anonymize_data(test_dict))  # pylint: disable=protected-access
-        self.assertNotIn("secret", anon_text)
-        self.assertNotIn("666", anon_text)
-        self.assertIn("public_data", anon_text)
-        self.assertIn("more_public_data", anon_text)
+        with mock.patch(
+            "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
+            wraps=account.mybmw_client_config.authentication._refresh_token_china,  # pylint: disable=protected-access
+        ) as mock_listener:
+            mock_listener.reset_mock()
+            await account.get_vehicles()
 
-    def test_vehicle_search_case(self):
-        """Check if the search for the vehicle by VIN is NOT case sensitive."""
-        account = get_mocked_account()
+            assert mock_listener.call_count == 2
+            assert account.mybmw_client_config.authentication.refresh_token is not None
 
-        vin = account.vehicles[1].vin
-        self.assertEqual(vin, account.get_vehicle(vin).vin)
-        self.assertEqual(vin, account.get_vehicle(vin.lower()).vin)
-        self.assertEqual(vin, account.get_vehicle(vin.upper()).vin)
 
-    def test_set_observer_value(self):
-        """Test set_observer_position with valid arguments."""
-        account = get_mocked_account()
+@account_mock()
+@pytest.mark.asyncio
+async def test_vehicles():
+    """Test the login flow."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    await account.get_vehicles()
 
-        account.set_observer_position(1.0, 2.0)
-        for vehicle in account.vehicles:
-            self.assertEqual(vehicle.observer_latitude, 1.0)
-            self.assertEqual(vehicle.observer_longitude, 2.0)
+    assert account.mybmw_client_config.authentication.token is not None
+    assert get_fingerprint_count() == len(account.vehicles)
 
-    def test_set_observer_not_set(self):
-        """Test set_observer_position with no arguments."""
-        account = get_mocked_account()
+    vehicle = account.get_vehicle(VIN_G21)
+    assert VIN_G21 == vehicle.vin
 
-        for vehicle in account.vehicles:
-            self.assertIsNone(vehicle.observer_latitude)
-            self.assertIsNone(vehicle.observer_longitude)
+    assert account.get_vehicle("invalid_vin") is None
 
-        account.set_observer_position(17.99, 179.9)
 
-        for vehicle in account.vehicles:
-            self.assertEqual(vehicle.observer_latitude, 17.99)
-            self.assertEqual(vehicle.observer_longitude, 179.9)
+@pytest.mark.asyncio
+async def test_invalid_password():
+    """Test parsing the results of an invalid password."""
+    with account_mock() as mock_api:
+        mock_api.post("/gcdm/oauth/authenticate").respond(
+            401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")
+        )
+        with pytest.raises(httpx.HTTPStatusError):
+            account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+            await account.get_vehicles()
 
-    def test_set_observer_some_none(self):
-        """Test set_observer_position with invalid arguments."""
-        account = get_mocked_account()
 
-        with self.assertRaises(ValueError):
-            account.set_observer_position(None, 2.0)
+@pytest.mark.asyncio
+async def test_invalid_password_china():
+    """Test parsing the results of an invalid password."""
+    with account_mock() as mock_api:
+        mock_api.post("/eadrax-coas/v2/login/pwd").respond(
+            422, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json")
+        )
+        with pytest.raises(httpx.HTTPStatusError):
+            account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+            await account.get_vehicles()
 
-        with self.assertRaises(ValueError):
-            account.set_observer_position(1.0, None)
+
+@pytest.mark.asyncio
+async def test_server_error():
+    """Test parsing the results of a server error."""
+    with account_mock() as mock_api:
+        mock_api.post("/gcdm/oauth/authenticate").respond(
+            500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
+        )
+        with pytest.raises(httpx.HTTPStatusError):
+            account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_vehicle_search_case():
+    """Check if the search for the vehicle by VIN is NOT case sensitive."""
+    account = await get_mocked_account()
+
+    vin = account.vehicles[1].vin
+    assert vin == account.get_vehicle(vin).vin
+    assert vin == account.get_vehicle(vin.lower()).vin
+    assert vin == account.get_vehicle(vin.upper()).vin
+
+
+@pytest.mark.asyncio
+async def test_storing_fingerprints(tmp_path):
+    """Test the login flow."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
+        await account.get_vehicles()
+
+        mock_api.get("/eadrax-vcs/v1/vehicles").respond(
+            500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
+        )
+        with pytest.raises(httpx.HTTPStatusError):
+            await account.get_vehicles()
+
+    files = list(tmp_path.iterdir())
+    json_files = [f for f in files if f.suffix == ".json"]
+    txt_files = [f for f in files if f.suffix == ".txt"]
+
+    assert len(json_files) == 2
+    assert len(txt_files) == 2
+
+
+@pytest.mark.asyncio
+async def test_set_observer_value():
+    """Test set_observer_position with valid arguments."""
+    account = await get_mocked_account()
+
+    account.set_observer_position(1.0, 2.0)
+
+    assert account.observer_position == GPSPosition(1.0, 2.0)
+
+
+@pytest.mark.asyncio
+async def test_set_observer_not_set():
+    """Test set_observer_position with no arguments."""
+    account = await get_mocked_account()
+
+    assert account.observer_position is None
+
+    account.set_observer_position(17.99, 179.9)
+
+    assert account.observer_position == GPSPosition(17.99, 179.9)
+
+
+@pytest.mark.asyncio
+async def test_set_observer_invalid_values():
+    """Test set_observer_position with invalid arguments."""
+    account = await get_mocked_account()
+
+    with pytest.raises(TypeError):
+        account.set_observer_position(None, 2.0)
+
+    with pytest.raises(TypeError):
+        account.set_observer_position(1.0, None)
+
+    with pytest.raises(TypeError):
+        account.set_observer_position(1.0, "16.0")
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_base_authentication():
+    """Test logging in with the Authentication base clas."""
+    account = get_account()
+    account.mybmw_client_config = MyBMWClientConfiguration(Authentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION))
+    with pytest.raises(NotImplementedError):
+        await account.get_vehicles()
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_deprecated_account(caplog):
+    """Test deprecation warning for ConnectedDriveAccount."""
+    account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    await account.get_vehicles()
+    assert account is not None
+
+    assert 1 == len(get_deprecation_warning_count(caplog))
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_refresh_token_getset():
+    """Test getting/setting the refresh_token."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    assert account.refresh_token is None
+    await account.get_vehicles()
+    assert account.refresh_token == "another_token_string"
+
+    account.set_refresh_token("new_refresh_token")
+    assert account.refresh_token == "new_refresh_token"
