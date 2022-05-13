@@ -108,7 +108,7 @@ jobs:
         run: |
           pylint -j4 bimmer_connected test
 
-  pylint:
+  mypy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
