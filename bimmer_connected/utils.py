@@ -69,12 +69,7 @@ def deprecated(replacement: str = None):
 
     def decorator(func: "Callable[Concatenate[_T, _P], _R]") -> "Callable[Concatenate[_T, _P], _R | None]":
         def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
-            # warnings.simplefilter('always', DeprecationWarning)  # turn off filter
             replacement_text = f" Please change to '{replacement}'." if replacement else ""
-            # warnings.warn(f"{func.__qualname__} is deprecated.{replacement_text}",
-            # category=DeprecationWarning,
-            # stacklevel=2)
-            # warnings.simplefilter('default', DeprecationWarning)  # reset filter
             stack = traceback.extract_stack()[-2]
             _LOGGER.warning(
                 "DeprecationWarning:%s:%s: '%s' is deprecated.%s",
