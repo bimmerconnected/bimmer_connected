@@ -77,7 +77,7 @@ class DepartureTimer:
     @property
     def weekdays(self) -> List[str]:
         """Active weekdays for this timer."""
-        return self._timer_dict.get("timerWeekDays")  # type: ignore
+        return self._timer_dict.get("timerWeekDays")  # type: ignore[return-value]
 
 
 @dataclass

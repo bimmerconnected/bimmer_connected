@@ -153,8 +153,8 @@ class MyBMWVehicle:
         timestamps = [
             ts
             for ts in [
-                parse_datetime(self._properties.get("lastUpdatedAt")),  # type: ignore
-                parse_datetime(self._status.get("lastUpdatedAt")),  # type: ignore
+                parse_datetime(str(self._properties.get("lastUpdatedAt"))),
+                parse_datetime(str(self._status.get("lastUpdatedAt"))),
             ]
             if ts
         ]
@@ -300,25 +300,25 @@ class MyBMWVehicle:
     # Deprecated
     # # # # # # # # # # # # # # #
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @deprecated("vehicle.has_electric_drivetrain")
     def has_hv_battery(self) -> bool:
         # pylint:disable=missing-function-docstring
         return self.has_electric_drivetrain
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @deprecated("vehicle.has_range_extender_drivetrain")
     def has_range_extender(self) -> bool:
         # pylint:disable=missing-function-docstring
         return self.has_range_extender_drivetrain
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @deprecated("vehicle.has_combustion_drivetrain")
     def has_internal_combustion_engine(self) -> bool:
         # pylint:disable=missing-function-docstring
         return self.has_combustion_drivetrain
 
-    @property  # type: ignore
+    @property  # type: ignore[misc]
     @deprecated("vehicle.is_charging_plan_supported")
     def has_weekly_planner_service(self) -> bool:
         # pylint:disable=missing-function-docstring
