@@ -1,54 +1,60 @@
-"""Tests for ConnectedDriveAccount."""
+"""Tests for utils."""
 import datetime
-import logging
+import json
 import os
 import time
-import unittest
-from unittest.mock import Mock
+from unittest import mock
 
+import pytest
 import time_machine
 
-from bimmer_connected.country_selector import get_region_from_name, valid_regions
-from bimmer_connected.utils import get_class_property_names, parse_datetime, to_json
+from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
-from . import RESPONSE_DIR, VIN_G21
+from . import RESPONSE_DIR, VIN_G21, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
-class TestUtils(unittest.TestCase):
-    """Tests for utils."""
+@pytest.mark.asyncio
+async def test_drive_train():
+    """Tests available attribute."""
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G21)
+    assert [
+        "available_attributes",
+        "brand",
+        "drive_train",
+        "drive_train_attributes",
+        "fuel_indicator_count",
+        "has_combustion_drivetrain",
+        "has_electric_drivetrain",
+        "has_hv_battery",
+        "has_internal_combustion_engine",
+        "has_range_extender",
+        "has_range_extender_drivetrain",
+        "has_weekly_planner_service",
+        "is_charging_plan_supported",
+        "is_lsc_enabled",
+        "is_vehicle_active",
+        "is_vehicle_tracking_enabled",
+        "last_update_reason",
+        "lsc_type",
+        "mileage",
+        "name",
+        "timestamp",
+        "vin",
+    ] == get_class_property_names(vehicle)
 
-    def test_drive_train(self):
-        """Tests available attribute."""
-        vehicle = get_mocked_account().get_vehicle(VIN_G21)
-        self.assertEqual(
-            [
-                "available_attributes",
-                "available_state_services",
-                "brand",
-                "charging_profile",
-                "drive_train",
-                "drive_train_attributes",
-                "has_hv_battery",
-                "has_internal_combustion_engine",
-                "has_range_extender",
-                "has_weekly_planner_service",
-                "is_vehicle_tracking_enabled",
-                "lsc_type",
-                "name",
-            ],
-            get_class_property_names(vehicle),
-        )
 
-    @time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
-    def test_to_json(self):
-        """Test serialization to JSON."""
+@time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
+@pytest.mark.asyncio
+async def test_to_json(caplog):
+    """Test serialization to JSON."""
+    with mock.patch("bimmer_connected.account.MyBMWAccount.timezone", new_callable=mock.PropertyMock) as mock_timezone:
         # Force UTC
         os.environ["TZ"] = "UTC"
         time.tzset()
+        mock_timezone.return_value = datetime.timezone.utc
 
-        account = get_mocked_account()
-        account.timezone = Mock(return_value=datetime.timezone.utc)
+        account = await get_mocked_account()
         vehicle = account.get_vehicle(VIN_G21)
 
         # Unset UTC after vehicle has been loaded
@@ -57,30 +63,26 @@ class TestUtils(unittest.TestCase):
 
         with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
             expected = file.read().decode("UTF-8")
-        self.assertEqual(expected, to_json(vehicle, indent=4))
 
-    def test_parse_datetime(self):
-        """Test datetime parser."""
+        expected_lines = expected.splitlines()
+        actual_lines = json.dumps(vehicle, cls=MyBMWJSONEncoder, indent=4).splitlines()
 
-        dt_with_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, 567000, tzinfo=datetime.timezone.utc)
-        dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, tzinfo=datetime.timezone.utc)
+        for i in range(max(len(expected_lines), len(actual_lines))):
+            assert expected_lines[i] == actual_lines[i], f"line {i+1}"
 
-        self.assertEqual(dt_with_milliseconds, parse_datetime("2021-11-12T13:14:15.567Z"))
-
-        self.assertEqual(dt_without_milliseconds, parse_datetime("2021-11-12T13:14:15Z"))
-
-        with self.assertLogs(level=logging.ERROR):
-            self.assertIsNone(parse_datetime("2021-14-12T13:14:15Z"))
+        assert len(get_deprecation_warning_count(caplog)) == 0
 
 
-class TestCountrySelector(unittest.TestCase):
-    """Tests for Country Selector."""
+def test_parse_datetime(caplog):
+    """Test datetime parser."""
 
-    def test_valid_regions(self):
-        """Test valid regions."""
-        self.assertListEqual(["north_america", "china", "rest_of_world"], valid_regions())
+    dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15)
 
-    def test_unknown_region(self):
-        """Test unkown region."""
-        with self.assertRaises(ValueError):
-            get_region_from_name("unkown")
+    assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15.567Z")
+
+    assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15Z")
+
+    unparseable_datetime = "2021-14-12T13:14:15Z"
+    assert parse_datetime(unparseable_datetime) is None
+    errors = [r for r in caplog.records if r.levelname == "ERROR" and unparseable_datetime in r.message]
+    assert len(errors) == 1

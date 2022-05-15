@@ -18,12 +18,12 @@ bimmer_connected
     
 
 This is a simple library to query and control the status of your BMW or Mini vehicle from
-the ConnectedDrive portal.
+the MyBMW portal.
 
 
 Installation
 ============
-:code:`bimmer_connected` requires **Python 3.6 or above** but should also run with Python 3.5. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
+:code:`bimmer_connected` requires **Python 3.6 or above**. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
 using :code:`pip3 install --upgrade bimmer_connected`. 
 
 Alteratively, clone the project and execute :code:`pip install -e .` to install the current 
@@ -31,29 +31,68 @@ Alteratively, clone the project and execute :code:`pip install -e .` to install 
 
 Usage
 =====
+While this library is mainly written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_, it can be use on its own.
+
 After installation, execute :code:`bimmerconnected` from command line for usage instruction
 or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/latest/#cli>`_.
 
+Please be aware that :code:`bimmer_connected` is an :code:`async` library when using it in Python code.
 The description of the :code:`modules` can be found in the `module documentation 
 <http://bimmer-connected.readthedocs.io/en/latest/#module>`_.
 
-This library is written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_.
+Example in an :code:`asyncio` event loop
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+    import asyncio
+    from bimmer_connected.account import MyBMWAccount
+    from bimmer_connected.api.regions import Regions
+
+    async def main():
+        account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+        await account.get_vehicles()
+        vehicle = account.get_vehicle(VIN)
+        print(vehicle.brand, vehicle.name, vehicle.vin)
+        
+        result = await vehicle.remote_services.trigger_remote_light_flash()
+        print(result.state)
+
+    asyncio.run(main())
+
+    
+Example in non-async code
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+    import asyncio
+    from bimmer_connected.account import MyBMWAccount
+    from bimmer_connected.api.regions import Regions
+
+
+    account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+    asyncio.run(account.get_vehicles())
+    vehicle = account.get_vehicle(VIN)
+    print(vehicle.brand, vehicle.name, vehicle.vin)
+        
+    result = asyncio.run(vehicle.remote_services.trigger_remote_light_flash())
+    print(result.state)
 
 
 Compatibility
 =============
-This works with BMW (and Mini) vehicles with a ConnectedDrive account.
+This works with BMW (and Mini) vehicles with a MyBMW account.
 So far it is tested on vehicles with a 'MGU', 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav'
 navigation system. If you have any trouble with other navigation systems, please create 
 an issue with your server responses (see next section).
 
 To use this library, your BMW (or Mini) must have the remote services enabled for your vehicle. 
-You might need to book this in the ConnectedDrive/Mini Connected portal and this might cost 
+You might need to book this in the MyBMW/Mini Connected portal and this might cost 
 some money. In addition to that you need to enable the Remote Services in your infotainment 
 system in the vehicle.
 
 Different models of vehicles and infotainment systems result in different types of attributes
-provided by the server. So the experience with the library will certaily vary across the different 
+provided by the server. So the experience with the library will certainly vary across the different 
 vehicle models.
 
 Data Contributions
@@ -110,6 +149,7 @@ Thank you
 =========
 
 Thank you to all `contributors <https://github.com/bimmerconnected/bimmer_connected/graphs/contributors>`_ for your research and contributions! And thanks to everyone who shares the `fingerprint data <https://github.com/bimmerconnected/bimmer_connected#data-contributions>`_ of their vehicles which we use to test the code.
+A special thanks to @HuChundong, @muxiachuixue, @vividmuse for figuring out how to solve login issues!
 
 This library is basically a best-of of other similar solutions,
 yet none of them provided a ready to use library with a matching interface
