@@ -100,6 +100,16 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         return len(self.open_lids) == 0
 
     @property
+    def roof_closed(self) -> bool:
+
+        result = []
+        lids = self.properties["doorsAndWindows"]
+        result.extend([Lid(k, v) for k, v in lids.items() if k in ["top"] and v != LidState.INVALID.value])
+
+        """Check if all lids are closed."""
+        return len(list(result)) == 0
+
+    @property
     def open_windows(self) -> List[Window]:
         """Get all open windows of the car."""
         return [lid for lid in self.windows if not lid.is_closed]
