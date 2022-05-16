@@ -45,14 +45,24 @@ class Authentication:
     expires_at: Optional[datetime.datetime] = None
     refresh_token: Optional[str] = None
 
+    _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+
+    def _create_or_update_lock(self):
+        """Makes sure that there is a lock in the current event loop."""
+        loop: asyncio.BaseEventLoop = self._lock._loop  # pylint: disable=protected-access
+        if loop != asyncio.get_event_loop():
+            self._lock = asyncio.Lock()
+
     async def login(self) -> None:
         """Get a valid OAuth token."""
         raise NotImplementedError("Not implemented in Authentication base class.")
 
     async def get_authentication(self) -> str:
         """Returns a valid Bearer token."""
-        if not self.is_token_valid:
-            await self.login()
+        self._create_or_update_lock()
+        async with self._lock:
+            if not self.is_token_valid:
+                await self.login()
         return f"Bearer {self.token}"
 
     @property
@@ -68,39 +78,29 @@ class Authentication:
 class MyBMWAuthentication(Authentication):
     """Authentication for MyBMW API."""
 
-    _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
-
-    def _create_or_update_lock(self):
-        """Makes sure that there is a lock in the current event loop."""
-        loop: asyncio.BaseEventLoop = self._lock._loop  # pylint: disable=protected-access
-        if loop != asyncio.get_event_loop():
-            self._lock = asyncio.Lock()
-
     async def login(self) -> None:
         """Get a valid OAuth token."""
-        self._create_or_update_lock()
-        async with self._lock:
-            if self.is_token_valid:
-                return
+        if self.is_token_valid:
+            return
 
-            token_data = {}
-            if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
-                # Try logging in with refresh token first
-                if self.refresh_token:
-                    token_data = await self._refresh_token_row_na()
-                if not token_data:
-                    token_data = await self._login_row_na()
+        token_data = {}
+        if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
+            # Try logging in with refresh token first
+            if self.refresh_token:
+                token_data = await self._refresh_token_row_na()
+            if not token_data:
+                token_data = await self._login_row_na()
 
-            elif self.region in [Regions.CHINA]:
-                # Try logging in with refresh token first
-                if self.refresh_token:
-                    token_data = await self._refresh_token_china()
-                if not token_data:
-                    token_data = await self._login_china()
+        elif self.region in [Regions.CHINA]:
+            # Try logging in with refresh token first
+            if self.refresh_token:
+                token_data = await self._refresh_token_china()
+            if not token_data:
+                token_data = await self._login_china()
 
-            self.token = token_data["access_token"]
-            self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
-            self.refresh_token = token_data["refresh_token"]
+        self.token = token_data["access_token"]
+        self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
+        self.refresh_token = token_data["refresh_token"]
 
     async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
