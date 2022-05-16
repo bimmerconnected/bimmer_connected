@@ -13,9 +13,9 @@ License: MIT License
 # flake8: noqa
 
 # -*- coding: utf-8 -*-
-from math import sin, cos, sqrt, fabs, atan2
+from math import atan2, cos, fabs
 from math import pi as PI
-
+from math import sin, sqrt
 
 # define ellipsoid
 a = 6378245.0
@@ -26,11 +26,11 @@ ee = 1 - (b * b) / (a * a)
 
 def outOfChina(lng, lat):
     """check weather lng and lat out of china
-    
+
     Arguments:
         lng {float} -- longitude
         lat {float} -- latitude
-    
+
     Returns:
         Bollen -- True or False
     """
@@ -46,7 +46,7 @@ def transformLat(x, y):
 
 
 def transformLon(x, y):
-    ret = 300.0 + x + 2.0 * y + 0.1 * x * x +  0.1 * x * y + 0.1 * sqrt(fabs(x))
+    ret = 300.0 + x + 2.0 * y + 0.1 * x * x + 0.1 * x * y + 0.1 * sqrt(fabs(x))
     ret = ret + (20.0 * sin(6.0 * x * PI) + 20.0 * sin(2.0 * x * PI)) * 2.0 / 3.0
     ret = ret + (20.0 * sin(x * PI) + 40.0 * sin(x / 3.0 * PI)) * 2.0 / 3.0
     ret = ret + (150.0 * sin(x / 12.0 * PI) + 300.0 * sin(x * PI / 30.0)) * 2.0 / 3.0
@@ -55,11 +55,11 @@ def transformLon(x, y):
 
 def wgs2gcj(wgsLon, wgsLat):
     """wgs coord to gcj
-    
+
     Arguments:
         wgsLon {float} -- lon
         wgsLat {float} -- lat
-    
+
     Returns:
         tuple -- gcj coords
     """
@@ -84,14 +84,14 @@ def gcj2wgs(gcjLon, gcjLat):
     w0 = g0
     g1 = wgs2gcj(w0[0], w0[1])
     # w1 = w0 - (g1 - g0)
-    w1 = tuple(map(lambda x: x[0]-(x[1]-x[2]), zip(w0,g1,g0)))
+    w1 = tuple(map(lambda x: x[0] - (x[1] - x[2]), zip(w0, g1, g0)))
     # delta = w1 - w0
     delta = tuple(map(lambda x: x[0] - x[1], zip(w1, w0)))
-    while (abs(delta[0]) >= 1e-6 or abs(delta[1]) >= 1e-6):
+    while abs(delta[0]) >= 1e-6 or abs(delta[1]) >= 1e-6:
         w0 = w1
         g1 = wgs2gcj(w0[0], w0[1])
         # w1 = w0 - (g1 - g0)
-        w1 = tuple(map(lambda x: x[0]-(x[1]-x[2]), zip(w0,g1,g0)))
+        w1 = tuple(map(lambda x: x[0] - (x[1] - x[2]), zip(w0, g1, g0)))
         # delta = w1 - w0
         delta = tuple(map(lambda x: x[0] - x[1], zip(w1, w0)))
     return w1
@@ -125,8 +125,7 @@ def bd2wgs(bdLon, bdLat):
     return gcj2wgs(gcj[0], gcj[1])
 
 
-class Transform():
-
+class Transform:
     def transformLat(self, x, y):
         return transformLat(x, y)
 

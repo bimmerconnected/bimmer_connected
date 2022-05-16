@@ -1,19 +1,29 @@
 """Test for remote_services."""
-import logging
-import re
+from collections import defaultdict
+from copy import deepcopy
+from pathlib import Path
+from typing import Dict, List
 
-from unittest import TestCase, mock
+try:
+    from unittest import mock
 
+    if not hasattr(mock, "AsyncMock"):
+        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
+        raise ImportError()
+except ImportError:
+    import mock  # type: ignore[import,no-redef]
+
+from uuid import uuid4
+
+import httpx
+import pytest
 import time_machine
-import requests_mock
-from requests.exceptions import HTTPError
 
-from bimmer_connected import remote_services
-from bimmer_connected.remote_services import ExecutionState, RemoteServiceStatus
-
+from bimmer_connected.vehicle import remote_services
+from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
 from . import RESPONSE_DIR, VIN_F45, load_response
-from .test_account import get_base_adapter, get_mocked_account
+from .test_account import account_mock, get_mocked_account
 
 _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
 _RESPONSE_PENDING = RESPONSE_DIR / "remote_services" / "eadrax_service_pending.json"
@@ -27,179 +37,210 @@ POI_DATA = {
     "lat": 37.4028943,
     "lon": -121.9700289,
     "name": "49ers",
-    "additional_info": "Hi Sam",
     "street": "4949 Marie P DeBartolo Way",
     "city": "Santa Clara",
     "postal_code": "CA 95054",
     "country": "United States",
-    "website": "https://www.49ers.com/",
-    "phone_numbers": ["+1 408-562-4949"],
 }
 
+STATUS_RESPONSE_ORDER = [_RESPONSE_PENDING, _RESPONSE_DELIVERED, _RESPONSE_EXECUTED]
+STATUS_RESPONSE_DICT: Dict[str, List[Path]] = defaultdict(lambda: deepcopy(STATUS_RESPONSE_ORDER))
 
-def get_remote_services_adapter():
+
+def service_trigger_sideeffect(request: httpx.Request) -> httpx.Response:  # pylint: disable=unused-argument
+    """Returns specific eventId for each remote function."""
+    json_data = load_response(_RESPONSE_INITIATED)
+    json_data["eventId"] = str(uuid4())
+    return httpx.Response(200, json=json_data)
+
+
+def service_status_sideeffect(request: httpx.Request) -> httpx.Response:
+    """Returns all 3 eventStatus responses per function."""
+    response_data = STATUS_RESPONSE_DICT[request.url.params["eventId"]].pop(0)
+    return httpx.Response(200, json=load_response(response_data))
+
+
+def remote_services_mock():
     """Returns mocked adapter for auth."""
-    adapter = get_base_adapter()
-    adapter.register_uri(
-        "POST",
-        re.compile(r"/eadrax-vrccs/v2/presentation/remote-commands/.+/.+$"),
-        json=load_response(_RESPONSE_INITIATED),
+    router = account_mock()
+
+    router.post(path__regex=r"/eadrax-vrccs/v2/presentation/remote-commands/.+/.+$").mock(
+        side_effect=service_trigger_sideeffect
     )
-    adapter.register_uri(
-        "POST",
-        re.compile(r"/eadrax-vrccs/v2/presentation/remote-commands/eventStatus\?eventId=.+$"),
-        [
-            {"json": load_response(_RESPONSE_PENDING)},
-            {"json": load_response(_RESPONSE_DELIVERED)},
-            {"json": load_response(_RESPONSE_EXECUTED)},
-        ],
+    router.post("/eadrax-vrccs/v2/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
+        side_effect=service_status_sideeffect
     )
-    adapter.register_uri("POST", "/eadrax-dcs/v1/send-to-car/send-to-car", status_code=201)
-    adapter.register_uri(
-        "POST",
-        re.compile(r"/eadrax-vrccs/v2/presentation/remote-commands/eventPosition\?eventId=.+$"),
+
+    router.post("/eadrax-dcs/v1/send-to-car/send-to-car").respond(201)
+    router.post("/eadrax-vrccs/v2/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
+        200,
         json=load_response(_RESPONSE_EVENTPOSITION),
     )
-    return adapter
+    return router
 
 
-class TestRemoteServices(TestCase):
-    """Test for remote_services."""
+def test_states():
+    """Test parsing the different response types."""
+    rss = RemoteServiceStatus(load_response(_RESPONSE_PENDING))
+    assert ExecutionState.PENDING == rss.state
 
-    # pylint: disable=protected-access
+    rss = RemoteServiceStatus(load_response(_RESPONSE_DELIVERED))
+    assert ExecutionState.DELIVERED == rss.state
 
-    def test_states(self):
-        """Test parsing the different response types."""
-        rss = RemoteServiceStatus(load_response(_RESPONSE_PENDING))
-        self.assertEqual(ExecutionState.PENDING, rss.state)
+    rss = RemoteServiceStatus(load_response(_RESPONSE_EXECUTED))
+    assert ExecutionState.EXECUTED == rss.state
 
-        rss = RemoteServiceStatus(load_response(_RESPONSE_DELIVERED))
-        self.assertEqual(ExecutionState.DELIVERED, rss.state)
 
-        rss = RemoteServiceStatus(load_response(_RESPONSE_EXECUTED))
-        self.assertEqual(ExecutionState.EXECUTED, rss.state)
+@remote_services_mock()
+@pytest.mark.asyncio
+@pytest.mark.filterwarnings("ignore:coroutine 'AsyncMockMixin._execute_mock_call' was never awaited:RuntimeWarning")
+async def test_trigger_remote_services():
+    """Test executing a remote light flash."""
+    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
 
-    def test_trigger_remote_services(self):
-        """Test executing a remote light flash."""
-        remote_services._POLLING_CYCLE = 0
-        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+    services = [
+        ("LIGHT_FLASH", "trigger_remote_light_flash", False),
+        ("DOOR_LOCK", "trigger_remote_door_lock", True),
+        ("DOOR_UNLOCK", "trigger_remote_door_unlock", True),
+        ("CLIMATE_NOW", "trigger_remote_air_conditioning", True),
+        ("CLIMATE_STOP", "trigger_remote_air_conditioning_stop", True),
+        ("VEHICLE_FINDER", "trigger_remote_vehicle_finder", False),
+        ("HORN_BLOW", "trigger_remote_horn", False),
+        ("SEND_POI", "trigger_send_poi", False),
+        ("CHARGE_NOW", "trigger_charge_now", True),
+    ]
 
-        services = [
-            ("LIGHT_FLASH", "trigger_remote_light_flash", False),
-            ("DOOR_LOCK", "trigger_remote_door_lock", True),
-            ("DOOR_UNLOCK", "trigger_remote_door_unlock", True),
-            ("CLIMATE_NOW", "trigger_remote_air_conditioning", True),
-            ("CLIMATE_STOP", "trigger_remote_air_conditioning_stop", True),
-            ("VEHICLE_FINDER", "trigger_remote_vehicle_finder", False),
-            ("HORN_BLOW", "trigger_remote_horn", False),
-            ("CHARGE_NOW", "trigger_charge_now", True),
-            ("SEND_POI", "trigger_send_poi", False),
-        ]
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_F45)
 
-        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
-            for service, call, triggers_update in services:
-                account = get_mocked_account()
-                mock_listener = mock.Mock(return_value=None)
-                account.add_update_listener(mock_listener)
-                vehicle = account.get_vehicle(VIN_F45)
+    for service, call, triggers_update in services:
+        with mock.patch(
+            "bimmer_connected.account.MyBMWAccount.get_vehicles", new_callable=mock.AsyncMock
+        ) as mock_listener:
+            mock_listener.reset_mock()
 
-                if service == "SEND_POI":
-                    response = getattr(vehicle.remote_services, call)(POI_DATA)
+            if service == "SEND_POI":
+                response = await getattr(vehicle.remote_services, call)(POI_DATA)
+            else:
+                response = await getattr(vehicle.remote_services, call)()
+                assert ExecutionState.EXECUTED == response.state
+
+                if triggers_update:
+                    mock_listener.assert_called_once_with()
                 else:
-                    response = getattr(vehicle.remote_services, call)()
-                    self.assertEqual(ExecutionState.EXECUTED, response.state)
+                    mock_listener.assert_not_called()
 
-                    if triggers_update:
-                        mock_listener.assert_called_once_with()
-                    else:
-                        mock_listener.assert_not_called()
 
-    def test_get_remote_service_status(self):
-        """Test get_remove_service_status method."""
-        remote_services._POLLING_CYCLE = 0
-        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+@pytest.mark.asyncio
+async def test_get_remote_service_status():
+    """Test get_remove_service_status method."""
+    # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 0
 
-        account = get_mocked_account()
-        vehicle = account.get_vehicle(VIN_F45)
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_F45)
 
-        with requests_mock.Mocker() as mocker:
-            mocker.post(
-                "/eadrax-vrccs/v2/presentation/remote-commands/eventStatus?eventId=None",
-                [
-                    dict(status_code=500, json=[]),
-                    dict(status_code=200, text="You can't parse this..."),
-                    dict(status_code=200, json=load_response(_RESPONSE_ERROR)),
-                ],
-            )
+    with remote_services_mock() as mock_api:
+        mock_api.post("/eadrax-vrccs/v2/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
+            side_effect=[
+                httpx.Response(500),
+                httpx.Response(200, text="You can't parse this..."),
+                httpx.Response(200, json=load_response(_RESPONSE_ERROR)),
+            ],
+        )
 
-            with self.assertRaises(HTTPError):
-                vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
-            with self.assertRaises(ValueError):
-                vehicle.remote_services._get_remote_service_status(remote_services._Services.REMOTE_LIGHT_FLASH)
-            with self.assertRaises(Exception):
-                vehicle.remote_services._block_until_done(event_id=remote_services._Services.REMOTE_LIGHT_FLASH)
+        with pytest.raises(httpx.HTTPStatusError):
+            await vehicle.remote_services._block_until_done(uuid4())
+        with pytest.raises(ValueError):
+            await vehicle.remote_services._block_until_done(uuid4())
+        with pytest.raises(Exception):
+            await vehicle.remote_services._block_until_done(uuid4())
 
-    def test_get_remote_position(self):
-        """Test getting position from remote service."""
-        remote_services._POLLING_CYCLE = 0
-        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
 
-        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
-            account = get_mocked_account()
-            account.set_observer_position(1.0, 0.0)
-            vehicle = account.get_vehicle(VIN_F45)
-            status = vehicle.status
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_get_remote_position():
+    """Test getting position from remote service."""
+    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
 
-            # Check original position
-            self.assertTupleEqual((12.3456, 34.5678), status.gps_position)
-            self.assertAlmostEqual(123, status.gps_heading)
+    account = await get_mocked_account()
+    account.set_observer_position(1.0, 0.0)
+    vehicle = account.get_vehicle(VIN_F45)
+    status = vehicle.status
 
-            # Check updated position
-            vehicle.remote_services.trigger_remote_vehicle_finder()
-            self.assertTupleEqual((123.456, 34.5678), status.gps_position)
-            self.assertAlmostEqual(121, status.gps_heading)
+    # Check original position
+    assert (12.3456, 34.5678) == status.gps_position
+    assert 123 == status.gps_heading
 
-            # Position should still be from vehicle finder after status update
-            account._get_vehicles()
-            self.assertTupleEqual((123.456, 34.5678), status.gps_position)
-            self.assertAlmostEqual(121, status.gps_heading)
+    # Check updated position
+    await vehicle.remote_services.trigger_remote_vehicle_finder()
+    assert (123.456, 34.5678) == status.gps_position
+    assert 121 == status.gps_heading
 
-    def test_get_remote_position_fail_without_observer(self):
-        """Test getting position from remote service."""
-        remote_services._POLLING_CYCLE = 0
-        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+    # Position should still be from vehicle finder after status update
+    await account.get_vehicles()
+    assert (123.456, 34.5678) == status.gps_position
+    assert 121 == status.gps_heading
 
-        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
-            account = get_mocked_account()
-            vehicle = account.get_vehicle(VIN_F45)
 
-            with self.assertLogs(level=logging.ERROR):
-                vehicle.remote_services.trigger_remote_vehicle_finder()
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_get_remote_position_fail_without_observer(caplog):
+    """Test getting position from remote service."""
+    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
 
-    @time_machine.travel("2020-01-01", tick=False)
-    def test_get_remote_position_too_old(self):
-        """Test remote service position being ignored as vehicle status is newer."""
-        remote_services._POLLING_CYCLE = 0
-        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_F45)
 
-        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
-            account = get_mocked_account()
-            vehicle = account.get_vehicle(VIN_F45)
-            status = vehicle.status
+    await vehicle.remote_services.trigger_remote_vehicle_finder()
+    errors = [
+        r
+        for r in caplog.records
+        if r.levelname == "ERROR"
+        and "Unknown position: Set observer position to retrieve vehicle coordinates" in r.message
+    ]
+    assert len(errors) == 1
 
-            vehicle.remote_services.trigger_remote_vehicle_finder()
 
-            self.assertTupleEqual((12.3456, 34.5678), status.gps_position)
-            self.assertAlmostEqual(123, status.gps_heading)
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_fail_with_timeout():
+    """Test failing after timeout was reached."""
+    remote_services._POLLING_CYCLE = 1  # pylint: disable=protected-access
+    remote_services._POLLING_TIMEOUT = 2  # pylint: disable=protected-access
 
-    def test_poi(self):
-        """Test get_remove_service_status method."""
-        remote_services._POLLING_CYCLE = 0
-        remote_services._UPDATE_AFTER_REMOTE_SERVICE_DELAY = 0
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_F45)
 
-        account = get_mocked_account()
-        vehicle = account.get_vehicle(VIN_F45)
+    with pytest.raises(TimeoutError):
+        await vehicle.remote_services.trigger_remote_light_flash()
 
-        with requests_mock.Mocker(adapter=get_remote_services_adapter()):
-            with self.assertRaises(TypeError):
-                vehicle.remote_services.trigger_send_poi({"lat": 12.34})
+
+@time_machine.travel("2020-01-01", tick=False)
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_get_remote_position_too_old():
+    """Test remote service position being ignored as vehicle status is newer."""
+    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_F45)
+    status = vehicle.status
+
+    await vehicle.remote_services.trigger_remote_vehicle_finder()
+
+    assert (12.3456, 34.5678) == status.gps_position
+    assert 123 == status.gps_heading
+
+
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_poi():
+    """Test get_remove_service_status method."""
+    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_F45)
+
+    with pytest.raises(TypeError):
+        await vehicle.remote_services.trigger_send_poi({"lat": 12.34})
