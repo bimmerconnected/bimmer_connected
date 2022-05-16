@@ -18,6 +18,13 @@ class LidState(StrEnum):
     INTERMEDIATE = "INTERMEDIATE"
     INVALID = "INVALID"
 
+class RoofState(StrEnum):
+    """Possible states of the convertible roof."""
+
+    CLOSED = "CLOSED"
+    OPEN = "OPEN"
+    INTERMEDIATE = "INTERMEDIATE" # Unsure; when convertible top is half-open, API whatever returns "OPEN" 
+    UNKNOWN = "UNKNOWN"
 
 class LockState(StrEnum):
     """Possible states of the door locks."""
@@ -60,6 +67,9 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     door_lock_state: LockState = LockState.UNKNOWN
     """Get state of the door locks."""
 
+    roof_state: RoofState = RoofState.UNKNOWN
+    """Get state of the door locks."""
+
     lids: List[Lid] = field(default_factory=list)
     """All lids (doors+hood+trunk) of the car."""
 
@@ -85,6 +95,9 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         if "moonroof" in doors_and_windows:
             retval["windows"].append(Window("moonroof", doors_and_windows["moonroof"]))
 
+        if "convertibleTop" in doors_and_windows:
+            retval["roof_state"] = RoofState(doors_and_windows["convertibleTop"])
+
         retval["door_lock_state"] = LockState(vehicle_data["status"]["doorsGeneralState"].upper())
 
         return retval
@@ -101,13 +114,7 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
 
     @property
     def roof_closed(self) -> bool:
-
-        result = []
-        lids = self.properties["doorsAndWindows"]
-        result.extend([Lid(k, v) for k, v in lids.items() if k in ["top"] and v != LidState.INVALID.value])
-
-        """Check if all lids are closed."""
-        return len(list(result)) == 0
+        return self.roof_state == "CLOSED"
 
     @property
     def open_windows(self) -> List[Window]:
