@@ -203,7 +203,7 @@ class RemoteServices:
             await client.post(
                 VEHICLE_POI_URL,
                 headers={"content-type": "application/json"},
-                data=json.dumps(
+                content=json.dumps(
                     {
                         "location": poi.__dict__,
                         "vin": self._vehicle.vin,

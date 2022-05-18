@@ -8,6 +8,7 @@ pylint
 black
 flake8
 mypy
+types-setuptools
 pbr
 time_machine
 pre-commit

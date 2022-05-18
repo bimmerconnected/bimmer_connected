@@ -19,3 +19,7 @@ disable="""
 
 [tool.pytest.ini_options]
 asyncio_mode = "strict"
+
+[tool.mypy]
+show_error_codes = true
+enable_error_code = "ignore-without-code"

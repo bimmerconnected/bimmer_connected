@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Dict, Optional
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
 
-    from typing_extensions import Concatenate, ParamSpec
+    from typing_extensions import ParamSpec
 
     _T = TypeVar("_T")
     _R = TypeVar("_R")
@@ -64,17 +64,12 @@ class MyBMWJSONEncoder(json.JSONEncoder):
         return str(o)
 
 
-def deprecated(replacement: str = None):
+def deprecated(replacement: Optional[str] = None) -> "Callable[[Callable[_P, _R]], Callable[_P, _R | None]]":
     """Mark a function or property as deprecated."""
 
-    def decorator(func: "Callable[Concatenate[_T, _P], _R]") -> "Callable[Concatenate[_T, _P], _R | None]":
-        def _func_wrapper(self: "_T", *args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
-            # warnings.simplefilter('always', DeprecationWarning)  # turn off filter
+    def decorator(func: "Callable[_P, _R]") -> "Callable[_P, _R | None]":
+        def _func_wrapper(*args: "_P.args", **kwargs: "_P.kwargs") -> "_R | None":
             replacement_text = f" Please change to '{replacement}'." if replacement else ""
-            # warnings.warn(f"{func.__qualname__} is deprecated.{replacement_text}",
-            # category=DeprecationWarning,
-            # stacklevel=2)
-            # warnings.simplefilter('default', DeprecationWarning)  # reset filter
             stack = traceback.extract_stack()[-2]
             _LOGGER.warning(
                 "DeprecationWarning:%s:%s: '%s' is deprecated.%s",
@@ -83,7 +78,7 @@ def deprecated(replacement: str = None):
                 func.__qualname__,
                 replacement_text,
             )
-            return func(self, *args, **kwargs)
+            return func(*args, **kwargs)
 
         return _func_wrapper
 

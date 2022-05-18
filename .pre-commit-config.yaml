@@ -35,14 +35,14 @@ repos:
     hooks:
       - id: isort
         files: ^(bimmer_connected|test)/.+\.py$
-  # - repo: https://github.com/pre-commit/mirrors-mypy
-  #   rev: v0.931
-  #   hooks: 
-  #     - id: mypy
-  #       name: mypy
-  #       entry: mypy
-  #       additional_dependencies: [types-setuptools, "typing_extensions>=3.10.0.2,<5.0"]
-  #       files: ^(bimmer_connected|test)/.+\.py$
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v0.950
+    hooks: 
+      - id: mypy
+        name: mypy
+        entry: mypy
+        additional_dependencies: [types-setuptools, "typing_extensions>=3.10.0.2,<5.0"]
+        files: ^(bimmer_connected|test)/.+\.py$
   - repo: local
     hooks:
       - id: pylint
