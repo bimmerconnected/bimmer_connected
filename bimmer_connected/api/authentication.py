@@ -24,6 +24,7 @@ from bimmer_connected.const import (
     AUTH_CHINA_LOGIN_URL,
     AUTH_CHINA_PUBLIC_KEY_URL,
     AUTH_CHINA_TOKEN_URL,
+    HTTPX_TIMEOUT,
     OAUTH_CONFIG_URL,
     USER_AGENT,
     X_USER_AGENT,
@@ -106,7 +107,9 @@ class MyBMWAuthentication(Authentication):
         """Login to Rest of World and North America."""
         try:
             async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
+                base_url=get_server_url(self.region),
+                headers={"user-agent": USER_AGENT},
+                timeout=httpx.Timeout(HTTPX_TIMEOUT),
             ) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
 
@@ -193,7 +196,9 @@ class MyBMWAuthentication(Authentication):
         """Login to Rest of World and North America using existing refresh_token."""
         try:
             async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
+                base_url=get_server_url(self.region),
+                headers={"user-agent": USER_AGENT},
+                timeout=httpx.Timeout(HTTPX_TIMEOUT),
             ) as client:
                 _LOGGER.debug("Authenticating with refresh_token flow for North America & Rest of World.")
 
@@ -240,7 +245,9 @@ class MyBMWAuthentication(Authentication):
     async def _login_china(self):
         try:
             async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
+                base_url=get_server_url(self.region),
+                headers={"user-agent": USER_AGENT},
+                timeout=httpx.Timeout(HTTPX_TIMEOUT),
             ) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for China.")
 
@@ -288,7 +295,9 @@ class MyBMWAuthentication(Authentication):
     async def _refresh_token_china(self):
         try:
             async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
+                base_url=get_server_url(self.region),
+                headers={"user-agent": USER_AGENT},
+                timeout=httpx.Timeout(HTTPX_TIMEOUT),
             ) as client:
                 _LOGGER.debug("Authenticating with refresh token for China.")
 
