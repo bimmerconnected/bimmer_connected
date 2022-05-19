@@ -30,8 +30,6 @@ from bimmer_connected.const import (
     X_USER_AGENT,
 )
 
-EXPIRES_AT_OFFSET = datetime.timedelta(seconds=10)
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -91,6 +89,7 @@ class MyBMWAuthentication(Authentication):
                 token_data = await self._refresh_token_row_na()
             if not token_data:
                 token_data = await self._login_row_na()
+            token_data["expires_at"] = token_data["expires_at"] - datetime.timedelta(seconds=10)
 
         elif self.region in [Regions.CHINA]:
             # Try logging in with refresh token first
@@ -98,9 +97,10 @@ class MyBMWAuthentication(Authentication):
                 token_data = await self._refresh_token_china()
             if not token_data:
                 token_data = await self._login_china()
+            token_data["expires_at"] = token_data["expires_at"] - datetime.timedelta(seconds=300)
 
         self.token = token_data["access_token"]
-        self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
+        self.expires_at = token_data["expires_at"]
         self.refresh_token = token_data["refresh_token"]
 
     async def _login_row_na(self):  # pylint: disable=too-many-locals
