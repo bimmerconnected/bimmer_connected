@@ -10,7 +10,7 @@ import httpx
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_server_url
 from bimmer_connected.api.utils import log_to_to_file, raise_for_status_event_handler
-from bimmer_connected.const import USER_AGENT, X_USER_AGENT, CarBrands
+from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
 
 
 @dataclass
@@ -28,7 +28,7 @@ class MyBMWClient(httpx.AsyncClient):
         self.config = config
 
         # Increase timeout
-        kwargs["timeout"] = httpx.Timeout(10.0)
+        kwargs["timeout"] = httpx.Timeout(HTTPX_TIMEOUT)
 
         # Set default values
         kwargs["base_url"] = kwargs.get("base_url") or get_server_url(config.authentication.region)

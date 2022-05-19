@@ -42,6 +42,8 @@ AES_KEYS = {
     }
 }
 
+HTTPX_TIMEOUT = 30.0
+
 USER_AGENT = "Dart/2.13 (dart:io)"
 X_USER_AGENT = "android(v1.07_20200330);{};2.3.0(13603)"
 
