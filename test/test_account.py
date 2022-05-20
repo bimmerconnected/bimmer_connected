@@ -9,8 +9,6 @@ import pytest
 import respx
 
 from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
-from bimmer_connected.api.authentication import Authentication
-from bimmer_connected.api.client import MyBMWClientConfiguration
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.models import GPSPosition
 
@@ -107,7 +105,7 @@ async def test_login_row_na():
 
 @account_mock()
 @pytest.mark.asyncio
-async def test_login_refresh_token_row_na():
+async def test_login_refresh_token_row_na_expired():
     """Test the login flow using refresh_token."""
     with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
@@ -124,6 +122,27 @@ async def test_login_refresh_token_row_na():
             assert account.mybmw_client_config.authentication.refresh_token is not None
 
 
+@pytest.mark.asyncio
+async def test_login_refresh_token_row_na_401():
+    """Test the login flow using refresh_token."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+        await account.get_vehicles()
+
+        with mock.patch(
+            "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
+            wraps=account.mybmw_client_config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+        ) as mock_listener:
+            mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+                side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
+            )
+            mock_listener.reset_mock()
+            await account.get_vehicles()
+
+            assert mock_listener.call_count == 1
+            assert account.mybmw_client_config.authentication.refresh_token is not None
+
+
 @account_mock()
 @pytest.mark.asyncio
 async def test_login_china():
@@ -135,7 +154,7 @@ async def test_login_china():
 
 @account_mock()
 @pytest.mark.asyncio
-async def test_login_refresh_token_china():
+async def test_login_refresh_token_china_expired():
     """Test the login flow using refresh_token  for region `china`."""
     with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
@@ -152,6 +171,27 @@ async def test_login_refresh_token_china():
             assert account.mybmw_client_config.authentication.refresh_token is not None
 
 
+@pytest.mark.asyncio
+async def test_login_refresh_token_row_china_401():
+    """Test the login flow using refresh_token."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+        await account.get_vehicles()
+
+        with mock.patch(
+            "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
+            wraps=account.mybmw_client_config.authentication._refresh_token_china,  # pylint: disable=protected-access
+        ) as mock_listener:
+            mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+                side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
+            )
+            mock_listener.reset_mock()
+            await account.get_vehicles()
+
+            assert mock_listener.call_count == 1
+            assert account.mybmw_client_config.authentication.refresh_token is not None
+
+
 @account_mock()
 @pytest.mark.asyncio
 async def test_vehicles():
@@ -159,7 +199,7 @@ async def test_vehicles():
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
     await account.get_vehicles()
 
-    assert account.mybmw_client_config.authentication.token is not None
+    assert account.mybmw_client_config.authentication.access_token is not None
     assert get_fingerprint_count() == len(account.vehicles)
 
     vehicle = account.get_vehicle(VIN_G21)
@@ -233,7 +273,7 @@ async def test_storing_fingerprints(tmp_path):
     txt_files = [f for f in files if f.suffix == ".txt"]
 
     assert len(json_files) == 2
-    assert len(txt_files) == 2
+    assert len(txt_files) == 1
 
 
 @pytest.mark.asyncio
@@ -271,16 +311,6 @@ async def test_set_observer_invalid_values():
 
     with pytest.raises(TypeError):
         account.set_observer_position(1.0, "16.0")
-
-
-@account_mock()
-@pytest.mark.asyncio
-async def test_base_authentication():
-    """Test logging in with the Authentication base clas."""
-    account = get_account()
-    account.mybmw_client_config = MyBMWClientConfiguration(Authentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION))
-    with pytest.raises(NotImplementedError):
-        await account.get_vehicles()
 
 
 @account_mock()

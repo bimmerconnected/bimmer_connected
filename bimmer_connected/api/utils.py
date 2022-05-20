@@ -26,16 +26,6 @@ def create_s256_code_challenge(code_verifier: str) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("UTF-8")
 
 
-async def raise_for_status_event_handler(response: httpx.Response):
-    """Event handler that automatically raises HTTPStatusErrors when attached.
-
-    Will only raise on 4xx/5xx errors and not raise on 3xx.
-    """
-    if response.is_error:
-        await response.aread()
-        response.raise_for_status()
-
-
 def handle_http_status_error(
     ex: httpx.HTTPStatusError, module: str = "MyBMW API", log_handler: logging.Logger = None
 ) -> None:
