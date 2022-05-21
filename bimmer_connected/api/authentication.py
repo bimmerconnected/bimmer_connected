@@ -56,7 +56,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.access_token: Optional[str] = access_token
         self.expires_at: Optional[datetime.datetime] = expires_at
         self.refresh_token: Optional[str] = refresh_token
-        self.session_id: Optional[str] = str(uuid4())
+        self.session_id: str = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
 
     @property
@@ -74,7 +74,7 @@ class MyBMWAuthentication(httpx.Auth):
         async with self.login_lock:
             if not self.access_token:
                 await self.login()
-        request.headers["authorization"] = f"Bearer {self.access_token or ''}"
+        request.headers["authorization"] = f"Bearer {self.access_token}"
         request.headers["bmw-session-id"] = self.session_id
 
         # Try getting a response
@@ -84,7 +84,7 @@ class MyBMWAuthentication(httpx.Auth):
             async with self.login_lock:
                 _LOGGER.debug("Received unauthorized response, refreshing token.")
                 await self.login()
-            request.headers["authorization"] = f"Bearer {self.access_token or ''}"
+            request.headers["authorization"] = f"Bearer {self.access_token}"
             request.headers["bmw-session-id"] = self.session_id
             yield request
 
@@ -114,7 +114,6 @@ class MyBMWAuthentication(httpx.Auth):
         self.access_token = token_data["access_token"]
         self.expires_at = token_data["expires_at"]
         self.refresh_token = token_data["refresh_token"]
-        self.session_id = str(uuid4())
 
     async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
