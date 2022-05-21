@@ -1,10 +1,12 @@
 """Authentication management for BMW APIs."""
 
+import asyncio
 import base64
 import datetime
 import logging
 from collections import defaultdict
 from typing import AsyncGenerator, Generator, Optional
+from uuid import uuid4
 
 import httpx
 import jwt
@@ -24,7 +26,7 @@ from bimmer_connected.const import (
     X_USER_AGENT,
 )
 
-EXPIRES_AT_OFFSET = datetime.timedelta(seconds=30)
+EXPIRES_AT_OFFSET = datetime.timedelta(seconds=HTTPX_TIMEOUT * 2)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -32,7 +34,7 @@ _LOGGER = logging.getLogger(__name__)
 class MyBMWAuthentication(httpx.Auth):
     """Authentication for MyBMW API."""
 
-    # pylint: disable=too-many-arguments
+    # pylint: disable=too-many-arguments,too-many-instance-attributes
     def __init__(
         self,
         username: str,
@@ -42,32 +44,50 @@ class MyBMWAuthentication(httpx.Auth):
         expires_at: Optional[datetime.datetime] = None,
         refresh_token: Optional[str] = None,
     ):
-        self.username = username
-        self.password = password
-        self.region = region
-        self.access_token = access_token
-        self.expires_at = expires_at
-        self.refresh_token = refresh_token
+        self.username: str = username
+        self.password: str = password
+        self.region: Regions = region
+        self.access_token: Optional[str] = access_token
+        self.expires_at: Optional[datetime.datetime] = expires_at
+        self.refresh_token: Optional[str] = refresh_token
+        self.session_id: Optional[str] = None
+        self._lock: Optional[asyncio.Lock] = None
+
+    @property
+    def login_lock(self) -> asyncio.Lock:
+        """Makes sure that there is a lock in the current event loop."""
+        if not self._lock:
+            self._lock = asyncio.Lock()
+        return self._lock
 
     def sync_auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
         raise RuntimeError("Cannot use a async authentication class with httpx.Client")
 
     async def async_auth_flow(self, request: httpx.Request) -> AsyncGenerator[httpx.Request, httpx.Response]:
         # Get an access token on first call
-        if not self.access_token or (self.expires_at and self.expires_at < datetime.datetime.utcnow()):
-            await self.login()
+        async with self.login_lock:
+            await self.ensure_login()
         request.headers["authorization"] = f"Bearer {self.access_token}"
+        request.headers["bmw-session-id"] = self.session_id
 
         # Try getting a response
         response: httpx.Response = yield request
 
         if response.status_code == 401:
-            await self.login()
+            async with self.login_lock:
+                _LOGGER.debug("Received unauthorized, refreshing token.")
+                await self.ensure_login()
             request.headers["authorization"] = f"Bearer {self.access_token}"
+            request.headers["bmw-session-id"] = self.session_id
             yield request
 
-    async def login(self) -> None:
+    async def ensure_login(self) -> None:
         """Get a valid OAuth token."""
+        _LOGGER.debug("Checking authorization...")
+        if self.expires_at and self.expires_at > datetime.datetime.utcnow():
+            _LOGGER.debug("Token still valid.")
+            return
+
         token_data = {}
         if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
             # Try logging in with refresh token first
@@ -88,6 +108,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.access_token = token_data["access_token"]
         self.expires_at = token_data["expires_at"]
         self.refresh_token = token_data["refresh_token"]
+        self.session_id = str(uuid4())
 
     async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
@@ -248,7 +269,7 @@ class MyBMWAuthentication(httpx.Auth):
 
         return {
             "access_token": response_json["access_token"],
-            "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]) - datetime.timedelta(minutes=55),
+            "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]),
             "refresh_token": response_json["refresh_token"],
         }
 
@@ -270,9 +291,7 @@ class MyBMWAuthentication(httpx.Auth):
                 response_json = response.json()
 
                 expiration_time = int(response_json["expires_in"])
-                expires_at = (
-                    current_utc_time + datetime.timedelta(seconds=expiration_time) - datetime.timedelta(minutes=55)
-                )
+                expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
         except httpx.HTTPStatusError:
             _LOGGER.debug("Unable to get access token using refresh token.")

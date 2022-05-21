@@ -19,7 +19,6 @@ from bimmer_connected.vehicle.models import GPSPosition
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
-# lock = asyncio.Lock()
 
 
 @dataclass
