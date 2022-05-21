@@ -74,7 +74,7 @@ class MyBMWAuthentication(httpx.Auth):
         async with self.login_lock:
             if not self.access_token:
                 await self.login()
-        request.headers["authorization"] = f"Bearer {self.access_token}"
+        request.headers["authorization"] = f"Bearer {self.access_token or ''}"
         request.headers["bmw-session-id"] = self.session_id
 
         # Try getting a response
@@ -84,7 +84,7 @@ class MyBMWAuthentication(httpx.Auth):
             async with self.login_lock:
                 _LOGGER.debug("Received unauthorized response, refreshing token.")
                 await self.login()
-            request.headers["authorization"] = f"Bearer {self.access_token}"
+            request.headers["authorization"] = f"Bearer {self.access_token or ''}"
             request.headers["bmw-session-id"] = self.session_id
             yield request
 
@@ -203,7 +203,7 @@ class MyBMWAuthentication(httpx.Auth):
         """Login to Rest of World and North America using existing refresh_token."""
         try:
             async with MyBMWLoginClient(region=self.region) as client:
-                _LOGGER.debug("Authenticating with refresh_token flow for North America & Rest of World.")
+                _LOGGER.debug("Authenticating with refresh token for North America & Rest of World.")
 
                 # Get OAuth2 settings from BMW API
                 r_oauth_settings = await client.get(

@@ -18,6 +18,7 @@ import pytest
 import respx
 
 from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
+from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.models import GPSPosition
 
@@ -153,6 +154,29 @@ async def test_login_refresh_token_row_na_401():
             assert account.mybmw_client_config.authentication.refresh_token is not None
 
 
+@pytest.mark.asyncio
+async def test_login_refresh_token_row_na_invalid(caplog):
+    """Test the login flow using refresh_token."""
+    with account_mock() as mock_api:
+        mock_api.post("/gcdm/oauth/token").mock(
+            side_effect=[
+                httpx.Response(400),
+                httpx.Response(200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")),
+            ]
+        )
+
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+        account.set_refresh_token("INVALID")
+
+        caplog.set_level(logging.DEBUG)
+        await account.get_vehicles()
+
+        debug_messages = [r.message for r in caplog.records if r.name.startswith("bimmer_connected")]
+        assert "Authenticating with refresh token for North America & Rest of World." in debug_messages
+        assert "Unable to get access token using refresh token." in debug_messages
+        assert "Authenticating with MyBMW flow for North America & Rest of World." in debug_messages
+
+
 @account_mock()
 @pytest.mark.asyncio
 async def test_login_china():
@@ -183,7 +207,7 @@ async def test_login_refresh_token_china_expired():
 
 
 @pytest.mark.asyncio
-async def test_login_refresh_token_row_china_401():
+async def test_login_refresh_token_china_401():
     """Test the login flow using refresh_token."""
     with account_mock() as mock_api:
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
@@ -201,6 +225,29 @@ async def test_login_refresh_token_row_china_401():
 
             assert mock_listener.call_count == 1
             assert account.mybmw_client_config.authentication.refresh_token is not None
+
+
+@pytest.mark.asyncio
+async def test_login_refresh_token_china_invalid(caplog):
+    """Test the login flow using refresh_token."""
+    with account_mock() as mock_api:
+        mock_api.post("/eadrax-coas/v1/oauth/token").mock(
+            side_effect=[
+                httpx.Response(400),
+                httpx.Response(200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")),
+            ]
+        )
+
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+        account.set_refresh_token("INVALID")
+
+        caplog.set_level(logging.DEBUG)
+        await account.get_vehicles()
+
+        debug_messages = [r.message for r in caplog.records if r.name.startswith("bimmer_connected")]
+        assert "Authenticating with refresh token for China." in debug_messages
+        assert "Unable to get access token using refresh token." in debug_messages
+        assert "Authenticating with MyBMW flow for China." in debug_messages
 
 
 @account_mock()
@@ -394,3 +441,17 @@ async def test_429_retry_raise(caplog):
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
             with pytest.raises(httpx.HTTPStatusError):
                 await account.get_vehicles()
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_client_async_only():
+    """Test that the Authentication providers only work async."""
+
+    with httpx.Client(auth=MyBMWAuthentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)) as client:
+        with pytest.raises(RuntimeError):
+            client.get("/eadrax-ucs/v1/presentation/oauth/config")
+
+    with httpx.Client(auth=MyBMWLoginRetry()) as client:
+        with pytest.raises(RuntimeError):
+            client.get("/eadrax-ucs/v1/presentation/oauth/config")
