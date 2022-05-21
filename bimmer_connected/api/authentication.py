@@ -71,7 +71,8 @@ class MyBMWAuthentication(httpx.Auth):
     async def async_auth_flow(self, request: httpx.Request) -> AsyncGenerator[httpx.Request, httpx.Response]:
         # Get an access token on first call
         async with self.login_lock:
-            await self.ensure_login()
+            if not self.access_token:
+                await self.ensure_login()
         request.headers["authorization"] = f"Bearer {self.access_token}"
         request.headers["bmw-session-id"] = self.session_id
 
@@ -80,7 +81,7 @@ class MyBMWAuthentication(httpx.Auth):
 
         if response.status_code == 401:
             async with self.login_lock:
-                _LOGGER.debug("Received unauthorized, refreshing token.")
+                _LOGGER.debug("Received unauthorized response, refreshing token.")
                 await self.ensure_login()
             request.headers["authorization"] = f"Bearer {self.access_token}"
             request.headers["bmw-session-id"] = self.session_id
@@ -88,11 +89,6 @@ class MyBMWAuthentication(httpx.Auth):
 
     async def ensure_login(self) -> None:
         """Get a valid OAuth token."""
-        _LOGGER.debug("Checking authorization...")
-        if self.expires_at and self.expires_at > datetime.datetime.utcnow():
-            _LOGGER.debug("Token still valid.")
-            return
-
         token_data = {}
         if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
             # Try logging in with refresh token first
