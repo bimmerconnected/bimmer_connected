@@ -38,16 +38,18 @@ def get_correlation_id() -> Dict[str, str]:
 
 
 def handle_http_status_error(
-    ex: httpx.HTTPStatusError, module: str = "MyBMW API", log_handler: logging.Logger = None
+    ex: httpx.HTTPStatusError, module: str = "MyBMW API", log_handler: logging.Logger = None, debug: bool = False
 ) -> None:
     """Try to extract information from response and re-raise Exception."""
     _logger = log_handler or logging.getLogger(__name__)
+    _level = logging.DEBUG if debug else logging.ERROR
     try:
         err = ex.response.json()
-        _logger.error("%s error (%s): %s", module, err["error"], err["error_description"])
+        _logger.log(_level, "%s error (%s): %s", module, err["error"], err["error_description"])
     except (json.JSONDecodeError, KeyError):
-        _logger.error("%s error: %s", module, ex.response.text)
-    raise ex
+        _logger.log(_level, "%s error: %s", module, ex.response.text)
+    if not debug:
+        raise ex
 
 
 def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:

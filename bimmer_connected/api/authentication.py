@@ -232,8 +232,9 @@ class MyBMWAuthentication(httpx.Auth):
                 expiration_time = int(response_json["expires_in"])
                 expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
-        except httpx.HTTPStatusError:
+        except httpx.HTTPStatusError as ex:
             _LOGGER.debug("Unable to get access token using refresh token.")
+            handle_http_status_error(ex, "Authentication", _LOGGER, debug=True)
             return {}
 
         return {
@@ -302,8 +303,9 @@ class MyBMWAuthentication(httpx.Auth):
                 expiration_time = int(response_json["expires_in"])
                 expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
-        except httpx.HTTPStatusError:
+        except httpx.HTTPStatusError as ex:
             _LOGGER.debug("Unable to get access token using refresh token.")
+            handle_http_status_error(ex, "Authentication", _LOGGER, debug=True)
             return {}
 
         return {
