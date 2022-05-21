@@ -4,6 +4,7 @@ import asyncio
 import base64
 import datetime
 import logging
+import math
 from collections import defaultdict
 from typing import AsyncGenerator, Generator, Optional
 from uuid import uuid4
@@ -322,6 +323,8 @@ class MyBMWLoginClient(httpx.AsyncClient):
         # Increase timeout
         kwargs["timeout"] = httpx.Timeout(HTTPX_TIMEOUT)
 
+        kwargs["auth"] = MyBMWLoginRetry()
+
         # Set default values
         kwargs["base_url"] = get_server_url(kwargs.pop("region"))
         kwargs["headers"] = {"user-agent": USER_AGENT, "x-user-agent": X_USER_AGENT.format("bmw")}
@@ -333,12 +336,36 @@ class MyBMWLoginClient(httpx.AsyncClient):
         async def raise_for_status_event_handler(response: httpx.Response):
             """Event handler that automatically raises HTTPStatusErrors when attached.
 
-            Will only raise on 4xx/5xx errors (incl. 401) and not raise on 3xx.
+            Will only raise on 4xx/5xx errors (but not on 429) and not raise on 3xx.
             """
-            if response.is_error:
+            if response.is_error and not response.status_code == 429:
                 await response.aread()
                 response.raise_for_status()
 
         kwargs["event_hooks"]["response"].append(raise_for_status_event_handler)
 
         super().__init__(*args, **kwargs)
+
+
+class MyBMWLoginRetry(httpx.Auth):
+    """httpx.Auth used as workaround to retry & sleep on 429 Too Many Requests."""
+
+    def sync_auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        raise RuntimeError("Cannot use a async authentication class with httpx.Client")
+
+    async def async_auth_flow(self, request: httpx.Request) -> AsyncGenerator[httpx.Request, httpx.Response]:
+        # Try getting a response
+        response: httpx.Response = (yield request)
+
+        for _ in range(5):
+            if response.status_code == 429:
+                await response.aread()
+                wait_time = math.ceil(
+                    next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
+                )
+                _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
+                await asyncio.sleep(wait_time)
+                response = yield request
+        if response.status_code == 429:
+            await response.aread()
+            response.raise_for_status()

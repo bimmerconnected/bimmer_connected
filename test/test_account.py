@@ -1,6 +1,7 @@
 """Tests for MyBMWAccount."""
 
 import datetime
+import logging
 from typing import Dict, List
 from unittest import mock
 
@@ -337,3 +338,51 @@ async def test_refresh_token_getset():
 
     account.set_refresh_token("new_refresh_token")
     assert account.refresh_token == "new_refresh_token"
+
+
+@pytest.mark.asyncio
+async def test_429_retry_ok(caplog):
+    """Test the login flow using refresh_token."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+        mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(
+            side_effect=[
+                httpx.Response(429, json=json_429),
+                httpx.Response(429, json=json_429),
+                httpx.Response(200, json=load_response(RESPONSE_DIR / "auth" / "oauth_config.json")),
+            ]
+        )
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 2
+
+
+@pytest.mark.asyncio
+async def test_429_retry_raise(caplog):
+    """Test the login flow using refresh_token."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+        mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(
+            side_effect=[
+                *[httpx.Response(429, json=json_429)] * 6,
+            ]
+        )
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            with pytest.raises(httpx.HTTPStatusError):
+                await account.get_vehicles()
