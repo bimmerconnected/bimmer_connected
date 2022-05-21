@@ -118,7 +118,8 @@ async def test_login_refresh_token_row_na_expired():
             mock_listener.reset_mock()
             await account.get_vehicles()
 
-            assert mock_listener.call_count == 2
+            # Should not be called at all, as expiry date is not checked anymore
+            assert mock_listener.call_count == 0
             assert account.mybmw_client_config.authentication.refresh_token is not None
 
 
@@ -167,7 +168,8 @@ async def test_login_refresh_token_china_expired():
             mock_listener.reset_mock()
             await account.get_vehicles()
 
-            assert mock_listener.call_count == 2
+            # Should not be called at all, as expiry date is not checked anymore
+            assert mock_listener.call_count == 0
             assert account.mybmw_client_config.authentication.refresh_token is not None
 
 

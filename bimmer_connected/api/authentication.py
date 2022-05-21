@@ -72,22 +72,22 @@ class MyBMWAuthentication(httpx.Auth):
         # Get an access token on first call
         async with self.login_lock:
             if not self.access_token:
-                await self.ensure_login()
+                await self.login()
         request.headers["authorization"] = f"Bearer {self.access_token}"
         request.headers["bmw-session-id"] = self.session_id
 
         # Try getting a response
-        response: httpx.Response = yield request
+        response: httpx.Response = (yield request)
 
         if response.status_code == 401:
             async with self.login_lock:
                 _LOGGER.debug("Received unauthorized response, refreshing token.")
-                await self.ensure_login()
+                await self.login()
             request.headers["authorization"] = f"Bearer {self.access_token}"
             request.headers["bmw-session-id"] = self.session_id
             yield request
 
-    async def ensure_login(self) -> None:
+    async def login(self) -> None:
         """Get a valid OAuth token."""
         token_data = {}
         if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
