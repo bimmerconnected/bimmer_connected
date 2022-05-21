@@ -4,13 +4,12 @@ import pathlib
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, Optional
-from uuid import uuid4
 
 import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_server_url
-from bimmer_connected.api.utils import log_to_to_file
+from bimmer_connected.api.utils import get_correlation_id, log_to_to_file
 from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
 
 
@@ -68,13 +67,10 @@ class MyBMWClient(httpx.AsyncClient):
     @staticmethod
     def generate_default_header(brand: CarBrands = None) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
-        correlation_id = str(uuid4())
         return {
             "accept": "application/json",
             "accept-language": "en",
             "user-agent": USER_AGENT,
             "x-user-agent": X_USER_AGENT.format(brand or CarBrands.BMW),
-            "x-identity-provider": "gcdm",
-            "x-correlation-id": correlation_id,
-            "bmw-correlation-id": correlation_id,
+            **get_correlation_id(),
         }

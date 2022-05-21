@@ -15,7 +15,12 @@ from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import pad
 
 from bimmer_connected.api.regions import Regions, get_aes_keys, get_ocp_apim_key, get_server_url
-from bimmer_connected.api.utils import create_s256_code_challenge, generate_token, handle_http_status_error
+from bimmer_connected.api.utils import (
+    create_s256_code_challenge,
+    generate_token,
+    get_correlation_id,
+    handle_http_status_error,
+)
 from bimmer_connected.const import (
     AUTH_CHINA_LOGIN_URL,
     AUTH_CHINA_PUBLIC_KEY_URL,
@@ -50,7 +55,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.access_token: Optional[str] = access_token
         self.expires_at: Optional[datetime.datetime] = expires_at
         self.refresh_token: Optional[str] = refresh_token
-        self.session_id: Optional[str] = None
+        self.session_id: Optional[str] = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
 
     @property
@@ -121,6 +126,8 @@ class MyBMWAuthentication(httpx.Auth):
                     OAUTH_CONFIG_URL,
                     headers={
                         "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
+                        "bmw-session-id": self.session_id,
+                        **get_correlation_id(),
                     },
                 )
                 oauth_settings = r_oauth_settings.json()
@@ -202,6 +209,8 @@ class MyBMWAuthentication(httpx.Auth):
                     OAUTH_CONFIG_URL,
                     headers={
                         "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
+                        "bmw-session-id": self.session_id,
+                        **get_correlation_id(),
                     },
                 )
                 oauth_settings = r_oauth_settings.json()

@@ -8,6 +8,7 @@ import pathlib
 import random
 import string
 from typing import Dict, List, Union
+from uuid import uuid4
 
 import httpx
 
@@ -24,6 +25,16 @@ def create_s256_code_challenge(code_verifier: str) -> str:
     """Create S256 code_challenge with the given code_verifier."""
     data = hashlib.sha256(code_verifier.encode("ascii")).digest()
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("UTF-8")
+
+
+def get_correlation_id() -> Dict[str, str]:
+    """Generate corrlation headers."""
+    correlation_id = str(uuid4())
+    return {
+        "x-identity-provider": "gcdm",
+        "x-correlation-id": correlation_id,
+        "bmw-correlation-id": correlation_id,
+    }
 
 
 def handle_http_status_error(
