@@ -3,7 +3,15 @@
 import datetime
 import logging
 from typing import Dict, List
-from unittest import mock
+
+try:
+    from unittest import mock
+
+    if not hasattr(mock, "AsyncMock"):
+        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
+        raise ImportError()
+except ImportError:
+    import mock  # type: ignore[import,no-redef]
 
 import httpx
 import pytest
