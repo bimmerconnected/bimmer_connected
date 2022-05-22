@@ -577,6 +577,7 @@
     },
     "doors_and_windows": {
         "door_lock_state": "LOCKED",
+        "convertible_top": "UNKNOWN",
         "lids": [
             {
                 "name": "hood",
@@ -796,7 +797,8 @@
         "timestamp",
         "last_update_reason",
         "lids",
-        "windows"
+        "windows",
+        "convertible_top"
     ],
     "brand": "bmw",
     "drive_train": "PLUGIN_HYBRID",

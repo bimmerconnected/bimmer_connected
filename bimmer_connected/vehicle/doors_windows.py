@@ -17,6 +17,7 @@ class LidState(StrEnum):
     OPEN_TILT = "OPEN_TILT"
     INTERMEDIATE = "INTERMEDIATE"
     INVALID = "INVALID"
+    UNKNOWN = "UNKNOWN"
 
 
 class LockState(StrEnum):
@@ -60,6 +61,9 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     door_lock_state: LockState = LockState.UNKNOWN
     """Get state of the door locks."""
 
+    convertible_top: LidState = LidState.UNKNOWN
+    """Get state of the convertible roof."""
+
     lids: List[Lid] = field(default_factory=list)
     """All lids (doors+hood+trunk) of the car."""
 
@@ -84,6 +88,9 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         retval["windows"] = [Window(k, v) for k, v in doors_and_windows["windows"].items() if v != LidState.INVALID]
         if "moonroof" in doors_and_windows:
             retval["windows"].append(Window("moonroof", doors_and_windows["moonroof"]))
+
+        if "convertibleTop" in doors_and_windows:
+            retval["convertible_top"] = LidState(doors_and_windows["convertibleTop"])
 
         retval["door_lock_state"] = LockState(vehicle_data["status"]["doorsGeneralState"].upper())
 
