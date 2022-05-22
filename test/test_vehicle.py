@@ -15,6 +15,7 @@ from . import (
     VIN_G05,
     VIN_G08,
     VIN_G21,
+    VIN_G23,
     VIN_G30,
     VIN_I01_NOREX,
     VIN_I01_REX,
@@ -83,6 +84,7 @@ async def test_drive_train_attributes(caplog):
         VIN_G05: (True, True, False),
         VIN_G08: (False, True, False),
         VIN_G21: (True, True, False),
+        VIN_G23: (True, True, False),
         VIN_G30: (True, True, False),
         VIN_I01_NOREX: (False, True, False),
         VIN_I01_REX: (False, True, True),
@@ -159,6 +161,7 @@ async def test_available_attributes(caplog):
         "last_update_reason",
         "lids",
         "windows",
+        "convertible_top",
     ] == vehicle.available_attributes
 
     vehicle = account.get_vehicle(VIN_G30)
@@ -186,6 +189,7 @@ async def test_available_attributes(caplog):
         "last_update_reason",
         "lids",
         "windows",
+        "convertible_top",
     ] == vehicle.available_attributes
 
     assert len(get_deprecation_warning_count(caplog)) == 0

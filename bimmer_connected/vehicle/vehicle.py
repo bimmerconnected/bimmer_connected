@@ -267,7 +267,7 @@ class MyBMWVehicle:
                 "last_update_reason",
             ]
             # required for existing Home Assistant binary sensors
-            result += ["lids", "windows"]
+            result += ["lids", "windows", "convertible_top"]
         return result
 
     @property

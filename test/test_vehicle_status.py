@@ -10,7 +10,7 @@ from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
-from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX, get_deprecation_warning_count
+from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G23, VIN_G30, VIN_I01_REX, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
@@ -313,6 +313,16 @@ async def test_windows_g31(caplog):
     assert 5 == len(list(status.windows))
     assert 0 == len(list(status.open_windows))
     assert status.all_windows_closed is True
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_convertible_roof_g23(caplog):
+    """Test features around windows."""
+    status = (await get_mocked_account()).get_vehicle(VIN_G23).doors_and_windows
+
+    assert status.convertible_top == LidState.OPEN
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
