@@ -9,8 +9,8 @@ import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_server_url
-from bimmer_connected.api.utils import log_to_to_file, raise_for_status_event_handler
-from bimmer_connected.const import USER_AGENT, X_USER_AGENT, CarBrands
+from bimmer_connected.api.utils import get_correlation_id, log_to_to_file
+from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
 
 
 @dataclass
@@ -27,8 +27,11 @@ class MyBMWClient(httpx.AsyncClient):
     def __init__(self, config: MyBMWClientConfiguration, *args, brand: CarBrands = None, **kwargs):
         self.config = config
 
+        # Add authentication
+        kwargs["auth"] = self.config.authentication
+
         # Increase timeout
-        kwargs["timeout"] = httpx.Timeout(10.0)
+        kwargs["timeout"] = httpx.Timeout(HTTPX_TIMEOUT)
 
         # Set default values
         kwargs["base_url"] = kwargs.get("base_url") or get_server_url(config.authentication.region)
@@ -36,12 +39,6 @@ class MyBMWClient(httpx.AsyncClient):
 
         # Register event hooks
         kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))
-
-        # Event hook which checks and updates token if required before request is sent
-        async def update_request_header(request: httpx.Request):
-            request.headers["authorization"] = await self.config.authentication.get_authentication()
-
-        kwargs["event_hooks"]["request"].append(update_request_header)
 
         # Event hook for logging content to file
         async def log_response(response: httpx.Response):
@@ -54,6 +51,15 @@ class MyBMWClient(httpx.AsyncClient):
             kwargs["event_hooks"]["response"].append(log_response)
 
         # Event hook which calls raise_for_status on all requests
+        async def raise_for_status_event_handler(response: httpx.Response):
+            """Event handler that automatically raises HTTPStatusErrors when attached.
+
+            Will only raise on 4xx/5xx errors (but not 401!) and not raise on 3xx.
+            """
+            if response.is_error and response.status_code != 401:
+                await response.aread()
+                response.raise_for_status()
+
         kwargs["event_hooks"]["response"].append(raise_for_status_event_handler)
 
         super().__init__(*args, **kwargs)
@@ -66,4 +72,5 @@ class MyBMWClient(httpx.AsyncClient):
             "accept-language": "en",
             "user-agent": USER_AGENT,
             "x-user-agent": X_USER_AGENT.format(brand or CarBrands.BMW),
+            **get_correlation_id(),
         }

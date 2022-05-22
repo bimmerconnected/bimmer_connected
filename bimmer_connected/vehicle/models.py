@@ -78,6 +78,8 @@ class GPSPosition:
             return tuple(self.__iter__()) == other
         if hasattr(self, "__dict__") and hasattr(other, "__dict__"):
             return self.__dict__ == other.__dict__
+        if hasattr(self, "__dict__") and isinstance(other, Dict):
+            return self.__dict__ == other
         return False
 
 
@@ -111,19 +113,6 @@ class PointOfInterest:
         self.coordinates = GPSPosition(lat, lon)
         # pylint: disable=invalid-name
         self.locationAddress = PointOfInterestAddress(street, postal_code, city, country)
-
-
-def check_strict_types(cls):
-    """Checks a dataclass for strict typing. Use in __post_init__."""
-    for field_name, field_def in cls.__dataclass_fields__.items():  # pylint: disable=no-member
-        try:
-            original_type = field_def.type.__args__
-            field_type = original_type or field_def.type
-        except AttributeError:
-            field_type = field_def.type
-
-        if not isinstance(getattr(cls, field_name), field_type):
-            raise TypeError(f"'{field_name}' not of type '{field_def.type}'")
 
 
 class ValueWithUnit(NamedTuple):

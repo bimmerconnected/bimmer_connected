@@ -8,6 +8,7 @@ import pathlib
 import random
 import string
 from typing import Dict, List, Union
+from uuid import uuid4
 
 import httpx
 
@@ -26,27 +27,29 @@ def create_s256_code_challenge(code_verifier: str) -> str:
     return base64.urlsafe_b64encode(data).rstrip(b"=").decode("UTF-8")
 
 
-async def raise_for_status_event_handler(response: httpx.Response):
-    """Event handler that automatically raises HTTPStatusErrors when attached.
-
-    Will only raise on 4xx/5xx errors and not raise on 3xx.
-    """
-    if response.is_error:
-        await response.aread()
-        response.raise_for_status()
+def get_correlation_id() -> Dict[str, str]:
+    """Generate corrlation headers."""
+    correlation_id = str(uuid4())
+    return {
+        "x-identity-provider": "gcdm",
+        "x-correlation-id": correlation_id,
+        "bmw-correlation-id": correlation_id,
+    }
 
 
 def handle_http_status_error(
-    ex: httpx.HTTPStatusError, module: str = "MyBMW API", log_handler: logging.Logger = None
+    ex: httpx.HTTPStatusError, module: str = "MyBMW API", log_handler: logging.Logger = None, debug: bool = False
 ) -> None:
     """Try to extract information from response and re-raise Exception."""
     _logger = log_handler or logging.getLogger(__name__)
+    _level = logging.DEBUG if debug else logging.ERROR
     try:
         err = ex.response.json()
-        _logger.error("%s error (%s): %s", module, err["error"], err["error_description"])
+        _logger.log(_level, "%s error (%s): %s", module, err["error"], err["error_description"])
     except (json.JSONDecodeError, KeyError):
-        _logger.error("%s error: %s", module, ex.response.text)
-    raise ex
+        _logger.log(_level, "%s error: %s", module, ex.response.text)
+    if not debug:
+        raise ex
 
 
 def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:

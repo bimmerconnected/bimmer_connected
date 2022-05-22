@@ -1,6 +1,5 @@
 """Access to a MyBMW account and all vehicles therein."""
 
-import asyncio
 import datetime
 import logging
 import pathlib
@@ -20,7 +19,6 @@ from bimmer_connected.vehicle.models import GPSPosition
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
-# lock = asyncio.Lock()
 
 
 @dataclass
@@ -64,18 +62,14 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                 "appDateTime": int(datetime.datetime.now().timestamp() * 1000),
                 "tireGuardMode": "ENABLED",
             }
-            vehicles_tasks: List[asyncio.Task] = []
-            for brand in CarBrands:
-                vehicles_tasks.append(
-                    asyncio.ensure_future(
-                        client.get(
-                            VEHICLES_URL,
-                            params=vehicles_request_params,
-                            headers=client.generate_default_header(brand),
-                        )
-                    )
+            vehicles_responses: List[httpx.Response] = [
+                await client.get(
+                    VEHICLES_URL,
+                    params=vehicles_request_params,
+                    headers=client.generate_default_header(brand),
                 )
-            vehicles_responses: List[httpx.Response] = await asyncio.gather(*vehicles_tasks)
+                for brand in CarBrands
+            ]
 
             for response in vehicles_responses:
                 for vehicle_dict in response.json():

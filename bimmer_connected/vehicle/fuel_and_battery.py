@@ -84,10 +84,11 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         properties = vehicle_data.get("properties", {})
 
         fuel_level = properties.get("fuelLevel", {})
-        retval["remaining_fuel"] = ValueWithUnit(
-            fuel_level.get("value"),
-            fuel_level.get("units"),
-        )
+        if fuel_level:
+            retval["remaining_fuel"] = ValueWithUnit(
+                fuel_level.get("value"),
+                fuel_level.get("units"),
+            )
 
         if properties.get("fuelPercentage", {}).get("value"):
             retval["remaining_fuel_percent"] = int(properties.get("fuelPercentage", {}).get("value"))
@@ -97,7 +98,7 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
             retval["is_charger_connected"] = properties["chargingState"].get("isChargerConnected", False)
 
         # Only parse ranges if vehicle has enabled LSC
-        if vehicle_data["capabilities"]["lastStateCall"]["lscState"] == "ACTIVATED":
+        if "capabilities" in vehicle_data and vehicle_data["capabilities"]["lastStateCall"]["lscState"] == "ACTIVATED":
             fuel_indicators = vehicle_data.get("status", {}).get("fuelIndicators", [])
             for indicator in fuel_indicators:
                 if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined

@@ -4,8 +4,10 @@ import asyncio
 import base64
 import datetime
 import logging
-from dataclasses import dataclass, field
-from typing import Optional
+import math
+from collections import defaultdict
+from typing import AsyncGenerator, Generator, Optional
+from uuid import uuid4
 
 import httpx
 import jwt
@@ -17,108 +19,115 @@ from bimmer_connected.api.regions import Regions, get_aes_keys, get_ocp_apim_key
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_token,
+    get_correlation_id,
     handle_http_status_error,
-    raise_for_status_event_handler,
 )
 from bimmer_connected.const import (
     AUTH_CHINA_LOGIN_URL,
     AUTH_CHINA_PUBLIC_KEY_URL,
     AUTH_CHINA_TOKEN_URL,
+    HTTPX_TIMEOUT,
     OAUTH_CONFIG_URL,
     USER_AGENT,
     X_USER_AGENT,
 )
 
-EXPIRES_AT_OFFSET = datetime.timedelta(seconds=10)
+EXPIRES_AT_OFFSET = datetime.timedelta(seconds=HTTPX_TIMEOUT * 2)
 
 _LOGGER = logging.getLogger(__name__)
 
 
-@dataclass
-class Authentication:
-    """Base class for Authentication."""
-
-    username: str
-    password: str
-    region: Regions
-    token: Optional[str] = None
-    expires_at: Optional[datetime.datetime] = None
-    refresh_token: Optional[str] = None
-
-    async def login(self) -> None:
-        """Get a valid OAuth token."""
-        raise NotImplementedError("Not implemented in Authentication base class.")
-
-    async def get_authentication(self) -> str:
-        """Returns a valid Bearer token."""
-        if not self.is_token_valid:
-            await self.login()
-        return f"Bearer {self.token}"
-
-    @property
-    def is_token_valid(self) -> bool:
-        """Check if current token is still valid."""
-        if self.token and self.expires_at and datetime.datetime.utcnow() < self.expires_at:
-            _LOGGER.debug("Old token is still valid. Not getting a new one.")
-            return True
-        return False
-
-
-@dataclass
-class MyBMWAuthentication(Authentication):
+class MyBMWAuthentication(httpx.Auth):
     """Authentication for MyBMW API."""
 
-    _lock: asyncio.Lock = field(default_factory=asyncio.Lock)
+    # pylint: disable=too-many-arguments,too-many-instance-attributes
+    def __init__(
+        self,
+        username: str,
+        password: str,
+        region: Regions,
+        access_token: Optional[str] = None,
+        expires_at: Optional[datetime.datetime] = None,
+        refresh_token: Optional[str] = None,
+    ):
+        self.username: str = username
+        self.password: str = password
+        self.region: Regions = region
+        self.access_token: Optional[str] = access_token
+        self.expires_at: Optional[datetime.datetime] = expires_at
+        self.refresh_token: Optional[str] = refresh_token
+        self.session_id: str = str(uuid4())
+        self._lock: Optional[asyncio.Lock] = None
 
-    def _create_or_update_lock(self):
+    @property
+    def login_lock(self) -> asyncio.Lock:
         """Makes sure that there is a lock in the current event loop."""
-        loop: asyncio.BaseEventLoop = self._lock._loop  # pylint: disable=protected-access
-        if loop != asyncio.get_event_loop():
+        if not self._lock:
             self._lock = asyncio.Lock()
+        return self._lock
+
+    def sync_auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        raise RuntimeError("Cannot use a async authentication class with httpx.Client")
+
+    async def async_auth_flow(self, request: httpx.Request) -> AsyncGenerator[httpx.Request, httpx.Response]:
+        # Get an access token on first call
+        async with self.login_lock:
+            if not self.access_token:
+                await self.login()
+        request.headers["authorization"] = f"Bearer {self.access_token}"
+        request.headers["bmw-session-id"] = self.session_id
+
+        # Try getting a response
+        response: httpx.Response = (yield request)
+
+        if response.status_code == 401:
+            async with self.login_lock:
+                _LOGGER.debug("Received unauthorized response, refreshing token.")
+                await self.login()
+            request.headers["authorization"] = f"Bearer {self.access_token}"
+            request.headers["bmw-session-id"] = self.session_id
+            yield request
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
-        self._create_or_update_lock()
-        async with self._lock:
-            if self.is_token_valid:
-                return
+        token_data = {}
+        if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
+            # Try logging in with refresh token first
+            if self.refresh_token:
+                token_data = await self._refresh_token_row_na()
+            if not token_data:
+                # clear refresh token as precaution
+                self.refresh_token = None
+                token_data = await self._login_row_na()
+            token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
-            token_data = {}
-            if self.region in [Regions.NORTH_AMERICA, Regions.REST_OF_WORLD]:
-                # Try logging in with refresh token first
-                if self.refresh_token:
-                    token_data = await self._refresh_token_row_na()
-                if not token_data:
-                    token_data = await self._login_row_na()
+        elif self.region in [Regions.CHINA]:
+            # Try logging in with refresh token first
+            if self.refresh_token:
+                token_data = await self._refresh_token_china()
+            if not token_data:
+                # clear refresh token as precaution
+                self.refresh_token = None
+                token_data = await self._login_china()
+            token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
-            elif self.region in [Regions.CHINA]:
-                # Try logging in with refresh token first
-                if self.refresh_token:
-                    token_data = await self._refresh_token_china()
-                if not token_data:
-                    token_data = await self._login_china()
-
-            self.token = token_data["access_token"]
-            self.expires_at = token_data["expires_at"] - EXPIRES_AT_OFFSET
-            self.refresh_token = token_data["refresh_token"]
+        self.access_token = token_data["access_token"]
+        self.expires_at = token_data["expires_at"]
+        self.refresh_token = token_data["refresh_token"]
 
     async def _login_row_na(self):  # pylint: disable=too-many-locals
         """Login to Rest of World and North America."""
         try:
-            async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
-            ) as client:
+            async with MyBMWLoginClient(region=self.region) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
-
-                # Attach raise_for_status event hook
-                client.event_hooks["response"].append(raise_for_status_event_handler)
 
                 # Get OAuth2 settings from BMW API
                 r_oauth_settings = await client.get(
                     OAUTH_CONFIG_URL,
                     headers={
                         "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
-                        "x-user-agent": X_USER_AGENT.format("bmw"),
+                        "bmw-session-id": self.session_id,
+                        **get_correlation_id(),
                     },
                 )
                 oauth_settings = r_oauth_settings.json()
@@ -192,20 +201,16 @@ class MyBMWAuthentication(Authentication):
     async def _refresh_token_row_na(self):
         """Login to Rest of World and North America using existing refresh_token."""
         try:
-            async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
-            ) as client:
-                _LOGGER.debug("Authenticating with refresh_token flow for North America & Rest of World.")
-
-                # Attach raise_for_status event hook
-                client.event_hooks["response"].append(raise_for_status_event_handler)
+            async with MyBMWLoginClient(region=self.region) as client:
+                _LOGGER.debug("Authenticating with refresh token for North America & Rest of World.")
 
                 # Get OAuth2 settings from BMW API
                 r_oauth_settings = await client.get(
                     OAUTH_CONFIG_URL,
                     headers={
                         "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
-                        "x-user-agent": X_USER_AGENT.format("bmw"),
+                        "bmw-session-id": self.session_id,
+                        **get_correlation_id(),
                     },
                 )
                 oauth_settings = r_oauth_settings.json()
@@ -227,8 +232,9 @@ class MyBMWAuthentication(Authentication):
                 expiration_time = int(response_json["expires_in"])
                 expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
-        except httpx.HTTPStatusError:
+        except httpx.HTTPStatusError as ex:
             _LOGGER.debug("Unable to get access token using refresh token.")
+            handle_http_status_error(ex, "Authentication", _LOGGER, debug=True)
             return {}
 
         return {
@@ -239,20 +245,12 @@ class MyBMWAuthentication(Authentication):
 
     async def _login_china(self):
         try:
-            async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
-            ) as client:
+            async with MyBMWLoginClient(region=self.region) as client:
                 _LOGGER.debug("Authenticating with MyBMW flow for China.")
-
-                # Attach raise_for_status event hook
-                client.event_hooks["response"].append(raise_for_status_event_handler)
-
-                login_header = {"x-user-agent": X_USER_AGENT.format("bmw")}
 
                 # Get current RSA public certificate & use it to encrypt password
                 response = await client.get(
                     AUTH_CHINA_PUBLIC_KEY_URL,
-                    headers=login_header,
                 )
                 pem_public_key = response.json()["data"]["value"]
 
@@ -264,11 +262,11 @@ class MyBMWAuthentication(Authentication):
                 cipher_aes = AES.new(**get_aes_keys(self.region), mode=AES.MODE_CBC)
                 nonce = f"{self.username}|{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%fZ')}".encode()
 
-                login_header["x-login-nonce"] = base64.b64encode(cipher_aes.encrypt(pad(nonce, 16))).decode()
-
                 # Get token
                 response = await client.post(
-                    AUTH_CHINA_LOGIN_URL, headers=login_header, json={"mobile": self.username, "password": pw_encrypted}
+                    AUTH_CHINA_LOGIN_URL,
+                    headers={"x-login-nonce": base64.b64encode(cipher_aes.encrypt(pad(nonce, 16))).decode()},
+                    json={"mobile": self.username, "password": pw_encrypted},
                 )
                 response_json = response.json()["data"]
 
@@ -287,21 +285,14 @@ class MyBMWAuthentication(Authentication):
 
     async def _refresh_token_china(self):
         try:
-            async with httpx.AsyncClient(
-                base_url=get_server_url(self.region), headers={"user-agent": USER_AGENT}
-            ) as client:
+            async with MyBMWLoginClient(region=self.region) as client:
                 _LOGGER.debug("Authenticating with refresh token for China.")
 
-                # Attach raise_for_status event hook
-                client.event_hooks["response"].append(raise_for_status_event_handler)
-
-                login_header = {"x-user-agent": X_USER_AGENT.format("bmw")}
                 current_utc_time = datetime.datetime.utcnow()
 
                 # Try logging in using refresh_token
                 response = await client.post(
                     AUTH_CHINA_TOKEN_URL,
-                    headers=login_header,
                     data={
                         "refresh_token": self.refresh_token,
                         "grant_type": "refresh_token",
@@ -312,8 +303,9 @@ class MyBMWAuthentication(Authentication):
                 expiration_time = int(response_json["expires_in"])
                 expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
-        except httpx.HTTPStatusError:
+        except httpx.HTTPStatusError as ex:
             _LOGGER.debug("Unable to get access token using refresh token.")
+            handle_http_status_error(ex, "Authentication", _LOGGER, debug=True)
             return {}
 
         return {
@@ -321,3 +313,58 @@ class MyBMWAuthentication(Authentication):
             "expires_at": expires_at,
             "refresh_token": response_json["refresh_token"],
         }
+
+
+class MyBMWLoginClient(httpx.AsyncClient):
+    """Async HTTP client based on `httpx.AsyncClient` with automated OAuth token refresh."""
+
+    def __init__(self, *args, **kwargs):
+        # Increase timeout
+        kwargs["timeout"] = httpx.Timeout(HTTPX_TIMEOUT)
+
+        kwargs["auth"] = MyBMWLoginRetry()
+
+        # Set default values
+        kwargs["base_url"] = get_server_url(kwargs.pop("region"))
+        kwargs["headers"] = {"user-agent": USER_AGENT, "x-user-agent": X_USER_AGENT.format("bmw")}
+
+        # Register event hooks
+        kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))
+
+        # Event hook which calls raise_for_status on all requests
+        async def raise_for_status_event_handler(response: httpx.Response):
+            """Event handler that automatically raises HTTPStatusErrors when attached.
+
+            Will only raise on 4xx/5xx errors (but not on 429) and not raise on 3xx.
+            """
+            if response.is_error and not response.status_code == 429:
+                await response.aread()
+                response.raise_for_status()
+
+        kwargs["event_hooks"]["response"].append(raise_for_status_event_handler)
+
+        super().__init__(*args, **kwargs)
+
+
+class MyBMWLoginRetry(httpx.Auth):
+    """httpx.Auth used as workaround to retry & sleep on 429 Too Many Requests."""
+
+    def sync_auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        raise RuntimeError("Cannot use a async authentication class with httpx.Client")
+
+    async def async_auth_flow(self, request: httpx.Request) -> AsyncGenerator[httpx.Request, httpx.Response]:
+        # Try getting a response
+        response: httpx.Response = (yield request)
+
+        for _ in range(5):
+            if response.status_code == 429:
+                await response.aread()
+                wait_time = math.ceil(
+                    next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
+                )
+                _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
+                await asyncio.sleep(wait_time)
+                response = yield request
+        if response.status_code == 429:
+            await response.aread()
+            response.raise_for_status()

@@ -7,7 +7,8 @@ import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
-from bimmer_connected.vehicle.fuel_and_battery import ChargingState
+from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBattery
+from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
 from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G23, VIN_G30, VIN_I01_REX, get_deprecation_warning_count
@@ -25,16 +26,14 @@ async def test_generic(caplog):
     assert 7991 == status.mileage[0]
     assert "km" == status.mileage[1]
 
-    assert (12.3456, 34.5678) == status.vehicle_location.location
-    assert 123 == status.vehicle_location.heading
-
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
 async def test_range_combustion_no_info(caplog):
     """Test if the parsing of mileage and range is working"""
-    status = (await get_mocked_account()).get_vehicle(VIN_F31).fuel_and_battery
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
+    status = vehicle.fuel_and_battery
 
     assert (32, "LITERS") == status.remaining_fuel
     assert status.remaining_range_fuel == (None, None)
@@ -44,6 +43,14 @@ async def test_range_combustion_no_info(caplog):
     assert status.remaining_range_electric == (None, None)
 
     assert status.remaining_range_total == (None, None)
+
+    status_from_vehicle_data = FuelAndBattery.from_vehicle_data(vehicle.data)
+    status_from_vehicle_data.account_timezone = status.account_timezone
+    assert status_from_vehicle_data == status
+    assert FuelAndBattery.from_vehicle_data({}) is None
+
+    # pylint: disable=protected-access
+    assert FuelAndBattery._parse_to_tuple({"rangeValue": "seventeen", "rangeUnit": "mi"}) == (None, None)
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -213,6 +220,21 @@ async def test_condition_based_services(caplog):
     assert (60000, "KILOMETERS") == cbs[2].due_distance
 
     assert vehicle.condition_based_services.is_service_required is False
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_position_generic(caplog):
+    """Test generic attributes."""
+    status = (await get_mocked_account()).get_vehicle(VIN_G30)
+
+    assert (12.3456, 34.5678) == status.vehicle_location.location
+    assert 123 == status.vehicle_location.heading
+
+    assert VehicleLocation.from_vehicle_data(status.data).location == status.vehicle_location.location
+
+    assert VehicleLocation.from_vehicle_data({}) is None
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 

@@ -32,7 +32,7 @@ class VehicleLocation(VehicleDataBase):
     def from_vehicle_data(cls, vehicle_data: Dict):
         """Creates the class based on vehicle data from API."""
         parsed = cls._parse_vehicle_data(vehicle_data) or {}
-        if len(parsed) > 0:
+        if len(parsed) > 1:  # must be greater than 1 due to timestamp dummy
             return cls(**parsed)
         return None
 

@@ -3,6 +3,7 @@ import pytest
 
 from bimmer_connected.const import CarBrands
 from bimmer_connected.vehicle import DriveTrainType, VehicleViewDirection
+from bimmer_connected.vehicle.models import GPSPosition, StrEnum, VehicleDataBase
 
 from . import (
     VIN_F11,
@@ -209,3 +210,43 @@ async def test_vehicle_image(caplog):
         assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
 
     assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_no_timestamp():
+    """Test no timestamp available."""
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
+    vehicle._properties.pop("lastUpdatedAt")  # pylint: disable=protected-access
+    vehicle._status.pop("lastUpdatedAt")  # pylint: disable=protected-access
+
+    assert vehicle.timestamp is None
+
+
+def test_strenum():
+    """Tests StrEnum."""
+
+    class TestEnum(StrEnum):
+        """Test StrEnum."""
+
+        HELLO = "HELLO"
+
+    assert TestEnum("hello") == TestEnum.HELLO
+    assert TestEnum("HELLO") == TestEnum.HELLO
+
+    with pytest.raises(ValueError):
+        TestEnum("WORLD")
+
+
+def test_vehiclebasedata():
+    """Tests VehicleBaseData."""
+    with pytest.raises(NotImplementedError):
+        VehicleDataBase._parse_vehicle_data({})  # pylint: disable=protected-access
+
+
+def test_gpsposition():
+    """Tests around GPSPosition."""
+    pos = GPSPosition(1.0, 2.0)
+    assert pos == GPSPosition(1, 2)
+    assert pos == {"latitude": 1.0, "longitude": 2.0}
+    assert pos == (1, 2)
+    assert pos != "(1, 2)"
