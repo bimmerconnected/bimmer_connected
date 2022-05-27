@@ -20,6 +20,7 @@ import respx
 from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.regions import get_region_from_name
+from bimmer_connected.const import Regions
 from bimmer_connected.vehicle.models import GPSPosition
 
 from . import (
@@ -51,10 +52,13 @@ def authenticate_sideeffect(request: httpx.Request) -> httpx.Response:
 def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
     """Returns /vehicles response based on x-user-agent."""
     x_user_agent = request.headers.get("x-user-agent", "").split(";")
-    if len(x_user_agent) == 3:
+    if len(x_user_agent) == 4:
         brand = x_user_agent[1]
     else:
         raise ValueError("x-user-agent not configured correctly!")
+
+    # Test if given region is valid
+    _ = Regions(x_user_agent[3])
 
     response_vehicles: List[Dict] = []
     files = RESPONSE_DIR.rglob(f"vehicles_v2_{brand}_0.json")

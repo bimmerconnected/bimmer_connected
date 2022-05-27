@@ -66,7 +66,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                 await client.get(
                     VEHICLES_URL,
                     params=vehicles_request_params,
-                    headers=client.generate_default_header(brand),
+                    headers=client.generate_default_header(self.region, brand),
                 )
                 for brand in CarBrands
             ]

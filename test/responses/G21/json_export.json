@@ -572,7 +572,7 @@
         },
         "heading": 123,
         "vehicle_update_timestamp": "2021-11-14T20:20:21",
-        "account_region": "Regions.REST_OF_WORLD",
+        "account_region": "row",
         "remote_service_position": null
     },
     "doors_and_windows": {
