@@ -56,7 +56,7 @@ class MyBMWClient(httpx.AsyncClient):
 
             Will only raise on 4xx/5xx errors (but not 401!) and not raise on 3xx.
             """
-            if response.is_error and response.status_code != 401:
+            if response.is_error and response.status_code not in [401, 429]:
                 await response.aread()
                 response.raise_for_status()
 

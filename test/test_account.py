@@ -400,7 +400,7 @@ async def test_refresh_token_getset():
 
 
 @pytest.mark.asyncio
-async def test_429_retry_ok(caplog):
+async def test_429_retry_ok_login(caplog):
     """Test the login flow using refresh_token."""
     with account_mock() as mock_api:
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
@@ -428,7 +428,7 @@ async def test_429_retry_ok(caplog):
 
 
 @pytest.mark.asyncio
-async def test_429_retry_raise(caplog):
+async def test_429_retry_raise_login(caplog):
     """Test the login flow using refresh_token."""
     with account_mock() as mock_api:
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
@@ -437,7 +437,55 @@ async def test_429_retry_raise(caplog):
 
         mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(
             side_effect=[
-                *[httpx.Response(429, json=json_429)] * 6,
+                *[httpx.Response(429, json=json_429)] * 3,
+            ]
+        )
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            with pytest.raises(httpx.HTTPStatusError):
+                await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_429_retry_ok_vehicles(caplog):
+    """Test waiting on 429 for vehicles."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+        mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+            side_effect=[
+                httpx.Response(429, json=json_429),
+                httpx.Response(429, json=json_429),
+                *[httpx.Response(200, json=[])] * 2,
+            ]
+        )
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 2
+
+
+@pytest.mark.asyncio
+async def test_429_retry_raise_vehicles(caplog):
+    """Test waiting on 429 for vehicles and fail if it happens too often."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+        mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+            side_effect=[
+                *[httpx.Response(429, json=json_429)] * 3,
             ]
         )
         caplog.set_level(logging.DEBUG)
