@@ -110,7 +110,7 @@ async def get_status(args) -> None:
 
         for vehicle in account.vehicles:
             print(f"VIN: {vehicle.vin}")
-            print(f"Mileage: {vehicle.status.mileage}")
+            print(f"Mileage: {vehicle.mileage.value} {vehicle.mileage.unit}")
             print("Vehicle data:")
             print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder, indent=4))
 

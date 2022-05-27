@@ -145,7 +145,8 @@ class MyBMWVehicle:
     @property
     def mileage(self) -> ValueWithUnit:
         """Get the mileage of the vehicle."""
-        return ValueWithUnit(self._status["currentMileage"]["mileage"], self._status["currentMileage"]["units"])
+        current_mileage = self._status.get("currentMileage", {})
+        return ValueWithUnit(current_mileage.get("mileage"), current_mileage.get("units"))
 
     @property
     def timestamp(self) -> Optional[datetime.datetime]:
