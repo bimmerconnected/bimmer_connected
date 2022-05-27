@@ -435,16 +435,19 @@ async def test_429_retry_raise_login(caplog):
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(
-            side_effect=[
-                *[httpx.Response(429, json=json_429)] * 3,
-            ]
-        )
+        mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(return_value=httpx.Response(429, json=json_429))
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
             with pytest.raises(httpx.HTTPStatusError):
                 await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 3
 
 
 @pytest.mark.asyncio
@@ -483,16 +486,19 @@ async def test_429_retry_raise_vehicles(caplog):
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-vcs/v1/vehicles").mock(
-            side_effect=[
-                *[httpx.Response(429, json=json_429)] * 3,
-            ]
-        )
+        mock_api.get("/eadrax-vcs/v1/vehicles").mock(return_value=httpx.Response(429, json=json_429))
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
             with pytest.raises(httpx.HTTPStatusError):
                 await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 3
 
 
 @account_mock()

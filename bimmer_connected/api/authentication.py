@@ -97,6 +97,8 @@ class MyBMWAuthentication(httpx.Auth):
                     _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
                     await asyncio.sleep(wait_time)
                     response = yield request
+            # Raise if still error after 3rd retry
+            response.raise_for_status()
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
