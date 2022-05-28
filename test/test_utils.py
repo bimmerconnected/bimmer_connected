@@ -2,6 +2,7 @@
 import datetime
 import json
 import os
+import sys
 import time
 from unittest import mock
 
@@ -76,11 +77,15 @@ async def test_to_json(caplog):
 def test_parse_datetime(caplog):
     """Test datetime parser."""
 
-    dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15)
+    dt_without_milliseconds = datetime.datetime(2021, 11, 12, 13, 14, 15, tzinfo=datetime.timezone.utc)
 
     assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15.567Z")
 
     assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15Z")
+
+    if sys.version_info >= (3, 7):
+        # Don't test timezone parsing on Python 3.6 (not supported there)
+        assert dt_without_milliseconds == parse_datetime("2021-11-12T16:14:15+03:00")
 
     unparseable_datetime = "2021-14-12T13:14:15Z"
     assert parse_datetime(unparseable_datetime) is None
