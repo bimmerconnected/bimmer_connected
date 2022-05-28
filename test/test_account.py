@@ -20,6 +20,7 @@ import respx
 from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.regions import get_region_from_name
+from bimmer_connected.const import Regions
 from bimmer_connected.vehicle.models import GPSPosition
 
 from . import (
@@ -51,10 +52,13 @@ def authenticate_sideeffect(request: httpx.Request) -> httpx.Response:
 def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
     """Returns /vehicles response based on x-user-agent."""
     x_user_agent = request.headers.get("x-user-agent", "").split(";")
-    if len(x_user_agent) == 3:
+    if len(x_user_agent) == 4:
         brand = x_user_agent[1]
     else:
         raise ValueError("x-user-agent not configured correctly!")
+
+    # Test if given region is valid
+    _ = Regions(x_user_agent[3])
 
     response_vehicles: List[Dict] = []
     files = RESPONSE_DIR.rglob(f"vehicles_v2_{brand}_0.json")
@@ -396,7 +400,7 @@ async def test_refresh_token_getset():
 
 
 @pytest.mark.asyncio
-async def test_429_retry_ok(caplog):
+async def test_429_retry_ok_login(caplog):
     """Test the login flow using refresh_token."""
     with account_mock() as mock_api:
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
@@ -424,23 +428,77 @@ async def test_429_retry_ok(caplog):
 
 
 @pytest.mark.asyncio
-async def test_429_retry_raise(caplog):
+async def test_429_retry_raise_login(caplog):
     """Test the login flow using refresh_token."""
     with account_mock() as mock_api:
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(
-            side_effect=[
-                *[httpx.Response(429, json=json_429)] * 6,
-            ]
-        )
+        mock_api.get("/eadrax-ucs/v1/presentation/oauth/config").mock(return_value=httpx.Response(429, json=json_429))
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
             with pytest.raises(httpx.HTTPStatusError):
                 await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 3
+
+
+@pytest.mark.asyncio
+async def test_429_retry_ok_vehicles(caplog):
+    """Test waiting on 429 for vehicles."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+        mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+            side_effect=[
+                httpx.Response(429, json=json_429),
+                httpx.Response(429, json=json_429),
+                *[httpx.Response(200, json=[])] * 2,
+            ]
+        )
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 2
+
+
+@pytest.mark.asyncio
+async def test_429_retry_raise_vehicles(caplog):
+    """Test waiting on 429 for vehicles and fail if it happens too often."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+        mock_api.get("/eadrax-vcs/v1/vehicles").mock(return_value=httpx.Response(429, json=json_429))
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            with pytest.raises(httpx.HTTPStatusError):
+                await account.get_vehicles()
+
+        log_429 = [
+            r
+            for r in caplog.records
+            if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+        ]
+        assert len(log_429) == 3
 
 
 @account_mock()

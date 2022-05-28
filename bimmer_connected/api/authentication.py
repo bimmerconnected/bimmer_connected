@@ -87,6 +87,18 @@ class MyBMWAuthentication(httpx.Auth):
             request.headers["authorization"] = f"Bearer {self.access_token}"
             request.headers["bmw-session-id"] = self.session_id
             yield request
+        elif response.status_code == 429:
+            for _ in range(3):
+                if response.status_code == 429:
+                    await response.aread()
+                    wait_time = math.ceil(
+                        next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
+                    )
+                    _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
+                    await asyncio.sleep(wait_time)
+                    response = yield request
+            # Raise if still error after 3rd retry
+            response.raise_for_status()
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
@@ -324,9 +336,10 @@ class MyBMWLoginClient(httpx.AsyncClient):
 
         kwargs["auth"] = MyBMWLoginRetry()
 
-        # Set default values
-        kwargs["base_url"] = get_server_url(kwargs.pop("region"))
-        kwargs["headers"] = {"user-agent": USER_AGENT, "x-user-agent": X_USER_AGENT.format("bmw")}
+        # Set default values#
+        region = kwargs.pop("region")
+        kwargs["base_url"] = get_server_url(region)
+        kwargs["headers"] = {"user-agent": USER_AGENT, "x-user-agent": X_USER_AGENT.format("bmw", region.value)}
 
         # Register event hooks
         kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))
@@ -356,7 +369,7 @@ class MyBMWLoginRetry(httpx.Auth):
         # Try getting a response
         response: httpx.Response = (yield request)
 
-        for _ in range(5):
+        for _ in range(3):
             if response.status_code == 429:
                 await response.aread()
                 wait_time = math.ceil(

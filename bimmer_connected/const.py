@@ -16,12 +16,12 @@ class CarBrands(str, Enum):
     MINI = "mini"
 
 
-class Regions(Enum):
+class Regions(str, Enum):
     """Regions of the world with separate servers."""
 
-    NORTH_AMERICA = 0
-    CHINA = 1
-    REST_OF_WORLD = 2
+    NORTH_AMERICA = "na"
+    CHINA = "cn"
+    REST_OF_WORLD = "row"
 
 
 SERVER_URLS_MYBMW = {
@@ -44,8 +44,8 @@ AES_KEYS = {
 
 HTTPX_TIMEOUT = 30.0
 
-USER_AGENT = "Dart/2.13 (dart:io)"
-X_USER_AGENT = "android(v1.07_20200330);{};2.3.0(13603)"
+USER_AGENT = "Dart/2.14 (dart:io)"
+X_USER_AGENT = "android(SP1A.210812.016.C1);{};2.5.2(14945);{}"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
