@@ -82,6 +82,8 @@ def test_parse_datetime(caplog):
 
     assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15Z")
 
+    assert dt_without_milliseconds == parse_datetime("2021-11-12T16:14:15+03:00")
+
     unparseable_datetime = "2021-14-12T13:14:15Z"
     assert parse_datetime(unparseable_datetime) is None
     errors = [r for r in caplog.records if r.levelname == "ERROR" and unparseable_datetime in r.message]
