@@ -571,7 +571,7 @@
             "longitude": 34.5678
         },
         "heading": 123,
-        "vehicle_update_timestamp": "2021-11-14T20:20:21",
+        "vehicle_update_timestamp": "2021-11-14T20:20:21+00:00",
         "account_region": "row",
         "remote_service_position": null
     },
@@ -647,7 +647,7 @@
             {
                 "service_type": "OIL",
                 "state": "OK",
-                "due_date": "2022-10-01T00:00:00",
+                "due_date": "2022-10-01T00:00:00+00:00",
                 "due_distance": [
                     6000,
                     "KILOMETERS"
@@ -656,7 +656,7 @@
             {
                 "service_type": "VEHICLE_CHECK",
                 "state": "OK",
-                "due_date": "2024-10-01T00:00:00",
+                "due_date": "2024-10-01T00:00:00+00:00",
                 "due_distance": [
                     39000,
                     "KILOMETERS"
@@ -683,7 +683,7 @@
             {
                 "service_type": "BRAKE_FLUID",
                 "state": "OK",
-                "due_date": "2023-10-01T00:00:00",
+                "due_date": "2023-10-01T00:00:00+00:00",
                 "due_distance": [
                     null,
                     null
@@ -833,6 +833,6 @@
         "km"
     ],
     "name": "330e xDrive",
-    "timestamp": "2021-11-14T20:20:21",
+    "timestamp": "2021-11-14T20:20:21+00:00",
     "vin": "some_vin_G21"
 }

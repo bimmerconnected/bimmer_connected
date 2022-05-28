@@ -44,6 +44,7 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
             # Parse datetimes using `time.strptime` to allow running in some embedded python interpreters.
             # https://bugs.python.org/issue27400
             parsed = datetime.datetime(*(time.strptime(date_str, date_format)[0:6]))
+            parsed = parsed.replace(tzinfo=datetime.timezone.utc)
             return parsed
         except ValueError:
             pass
