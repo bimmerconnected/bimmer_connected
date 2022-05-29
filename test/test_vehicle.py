@@ -2,8 +2,8 @@
 import pytest
 
 from bimmer_connected.const import CarBrands
+from bimmer_connected.models import GPSPosition, StrEnum, VehicleDataBase
 from bimmer_connected.vehicle import DriveTrainType, VehicleViewDirection
-from bimmer_connected.vehicle.models import GPSPosition, StrEnum, VehicleDataBase
 
 from . import (
     VIN_F11,

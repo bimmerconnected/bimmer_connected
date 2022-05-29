@@ -13,8 +13,8 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_URL,
     VEHICLE_POI_URL,
 )
+from bimmer_connected.models import PointOfInterest, StrEnum
 from bimmer_connected.utils import MyBMWJSONEncoder
-from bimmer_connected.vehicle.models import PointOfInterest, StrEnum
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import MyBMWVehicle

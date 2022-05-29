@@ -12,9 +12,9 @@ from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import VEHICLES_URL, CarBrands
+from bimmer_connected.models import GPSPosition
 from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
-from bimmer_connected.vehicle.models import GPSPosition
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 

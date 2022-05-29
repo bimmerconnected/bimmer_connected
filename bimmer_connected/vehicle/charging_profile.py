@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from bimmer_connected.vehicle.models import StrEnum, VehicleDataBase
+from bimmer_connected.models import StrEnum, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 

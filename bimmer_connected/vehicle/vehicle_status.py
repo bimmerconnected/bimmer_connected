@@ -4,8 +4,8 @@ import datetime
 import logging
 from typing import TYPE_CHECKING, Dict, List, Optional
 
+from bimmer_connected.models import GPSPosition, ValueWithUnit
 from bimmer_connected.utils import deprecated
-from bimmer_connected.vehicle.models import GPSPosition, ValueWithUnit
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import MyBMWVehicle
