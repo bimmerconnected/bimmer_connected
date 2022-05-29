@@ -53,14 +53,6 @@ The :mod:`bimmer_connected.vehicle` module contains all data & parsers for a veh
     :undoc-members:
 
 
-:mod:`bimmer_connected.vehicle.models`
---------------------------------------------------------
- 
-.. automodule:: bimmer_connected.vehicle.models
-    :members:
-    :undoc-members:
-
-
 :mod:`bimmer_connected.vehicle.reports`
 --------------------------------------------------------
  

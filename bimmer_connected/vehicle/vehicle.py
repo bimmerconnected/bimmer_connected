@@ -5,19 +5,19 @@ from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
+from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
-from bimmer_connected.vehicle.models import StrEnum, ValueWithUnit
 from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
 from bimmer_connected.vehicle.vehicle_status import VehicleStatus
 
 if TYPE_CHECKING:
     from bimmer_connected.account import MyBMWAccount
-    from bimmer_connected.vehicle.models import VehicleDataBase
+    from bimmer_connected.models import VehicleDataBase
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -293,7 +293,7 @@ class MyBMWVehicle:
             view=direction.value,
         )
         # the accept field of the header needs to be updated as we want a png not the usual JSON
-        async with MyBMWClient(self.account.mybmw_client_config, brand=self.brand) as client:
+        async with MyBMWClient(self.account.config, brand=self.brand) as client:
             response = await client.get(url, headers={"accept": "image/png"})
         return response.content
 

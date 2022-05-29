@@ -7,8 +7,8 @@ from typing import Any, Dict, Optional
 
 from bimmer_connected.const import Regions
 from bimmer_connected.coord_convert import gcj2wgs
+from bimmer_connected.models import GPSPosition, VehicleDataBase
 from bimmer_connected.utils import parse_datetime
-from bimmer_connected.vehicle.models import GPSPosition, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
 

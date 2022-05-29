@@ -19,9 +19,10 @@ import respx
 
 from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
+from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.const import Regions
-from bimmer_connected.vehicle.models import GPSPosition
+from bimmer_connected.models import GPSPosition
 
 from . import (
     RESPONSE_DIR,
@@ -127,14 +128,14 @@ async def test_login_refresh_token_row_na_expired():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
-            wraps=account.mybmw_client_config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
         ) as mock_listener:
             mock_listener.reset_mock()
             await account.get_vehicles()
 
             # Should not be called at all, as expiry date is not checked anymore
             assert mock_listener.call_count == 0
-            assert account.mybmw_client_config.authentication.refresh_token is not None
+            assert account.config.authentication.refresh_token is not None
 
 
 @pytest.mark.asyncio
@@ -146,7 +147,7 @@ async def test_login_refresh_token_row_na_401():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
-            wraps=account.mybmw_client_config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
         ) as mock_listener:
             mock_api.get("/eadrax-vcs/v1/vehicles").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
@@ -155,7 +156,7 @@ async def test_login_refresh_token_row_na_401():
             await account.get_vehicles()
 
             assert mock_listener.call_count == 1
-            assert account.mybmw_client_config.authentication.refresh_token is not None
+            assert account.config.authentication.refresh_token is not None
 
 
 @pytest.mark.asyncio
@@ -200,14 +201,14 @@ async def test_login_refresh_token_china_expired():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
-            wraps=account.mybmw_client_config.authentication._refresh_token_china,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
         ) as mock_listener:
             mock_listener.reset_mock()
             await account.get_vehicles()
 
             # Should not be called at all, as expiry date is not checked anymore
             assert mock_listener.call_count == 0
-            assert account.mybmw_client_config.authentication.refresh_token is not None
+            assert account.config.authentication.refresh_token is not None
 
 
 @pytest.mark.asyncio
@@ -219,7 +220,7 @@ async def test_login_refresh_token_china_401():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
-            wraps=account.mybmw_client_config.authentication._refresh_token_china,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
         ) as mock_listener:
             mock_api.get("/eadrax-vcs/v1/vehicles").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
@@ -228,7 +229,7 @@ async def test_login_refresh_token_china_401():
             await account.get_vehicles()
 
             assert mock_listener.call_count == 1
-            assert account.mybmw_client_config.authentication.refresh_token is not None
+            assert account.config.authentication.refresh_token is not None
 
 
 @pytest.mark.asyncio
@@ -261,7 +262,7 @@ async def test_vehicles():
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
     await account.get_vehicles()
 
-    assert account.mybmw_client_config.authentication.access_token is not None
+    assert account.config.authentication.access_token is not None
     assert get_fingerprint_count() == len(account.vehicles)
 
     vehicle = account.get_vehicle(VIN_G21)
@@ -345,7 +346,7 @@ async def test_set_observer_value():
 
     account.set_observer_position(1.0, 2.0)
 
-    assert account.observer_position == GPSPosition(1.0, 2.0)
+    assert account.config.observer_position == GPSPosition(1.0, 2.0)
 
 
 @pytest.mark.asyncio
@@ -353,11 +354,11 @@ async def test_set_observer_not_set():
     """Test set_observer_position with no arguments."""
     account = await get_mocked_account()
 
-    assert account.observer_position is None
+    assert account.config.observer_position is None
 
     account.set_observer_position(17.99, 179.9)
 
-    assert account.observer_position == GPSPosition(17.99, 179.9)
+    assert account.config.observer_position == GPSPosition(17.99, 179.9)
 
 
 @pytest.mark.asyncio
@@ -373,6 +374,26 @@ async def test_set_observer_invalid_values():
 
     with pytest.raises(TypeError):
         account.set_observer_position(1.0, "16.0")
+
+
+@pytest.mark.asyncio
+async def test_set_use_metric_units():
+    """Test set_observer_position with no arguments."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    assert account.config.use_metric_units is True
+
+    metric_client = MyBMWClient(account.config)
+    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
+
+    account.set_use_metric_units(False)
+    assert account.config.use_metric_units is False
+    imperial_client = MyBMWClient(account.config)
+    assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
+
+    imperial_account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=False)
+    assert imperial_account.config.use_metric_units is False
+    imperial_client = MyBMWClient(imperial_account.config)
+    assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
 
 
 @account_mock()

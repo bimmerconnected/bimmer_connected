@@ -12,9 +12,9 @@ from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import VEHICLES_URL, CarBrands
+from bimmer_connected.models import GPSPosition
 from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
-from bimmer_connected.vehicle.models import GPSPosition
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 
@@ -34,29 +34,34 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
     region: Regions
     """Region of the account. See `api.Regions`."""
 
-    mybmw_client_config: MyBMWClientConfiguration = None  # type: ignore[assignment]
+    config: MyBMWClientConfiguration = None  # type: ignore[assignment]
     """Optional. If provided, username/password/region are ignored."""
 
     log_responses: InitVar[pathlib.Path] = None
     """Optional. If set, all responses from the server will be logged to this directory."""
 
-    observer_position: Optional[GPSPosition] = None
+    observer_position: InitVar[GPSPosition] = None
     """Optional. Required for getting a position on older cars."""
+
+    use_metric_units: InitVar[bool] = True
+    """Optional. Use metric units (km, l) by default. Use imperial units (mi, gal) if False."""
 
     vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
-    def __post_init__(self, password, log_responses):
-        if self.mybmw_client_config is None:
-            self.mybmw_client_config = MyBMWClientConfiguration(
+    def __post_init__(self, password, log_responses, observer_position, use_metric_units):
+        if self.config is None:
+            self.config = MyBMWClientConfiguration(
                 MyBMWAuthentication(self.username, password, self.region),
                 log_response_path=log_responses,
+                observer_position=observer_position,
+                use_metric_units=use_metric_units,
             )
 
     async def get_vehicles(self) -> None:
         """Retrieve vehicle data from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
-        async with MyBMWClient(self.mybmw_client_config) as client:
+        async with MyBMWClient(self.config) as client:
             vehicles_request_params = {
                 "apptimezone": self.utcdiff,
                 "appDateTime": int(datetime.datetime.now().timestamp() * 1000),
@@ -66,7 +71,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                 await client.get(
                     VEHICLES_URL,
                     params=vehicles_request_params,
-                    headers=client.generate_default_header(self.region, brand),
+                    headers=client.generate_default_header(brand),
                 )
                 for brand in CarBrands
             ]
@@ -94,11 +99,15 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
 
     def set_observer_position(self, latitude: float, longitude: float) -> None:
         """Set the position of the observer for all vehicles."""
-        self.observer_position = GPSPosition(latitude=latitude, longitude=longitude)
+        self.config.observer_position = GPSPosition(latitude=latitude, longitude=longitude)
 
     def set_refresh_token(self, refresh_token: str) -> None:
         """Overwrite the current value of the MyBMW refresh token."""
-        self.mybmw_client_config.authentication.refresh_token = refresh_token
+        self.config.authentication.refresh_token = refresh_token
+
+    def set_use_metric_units(self, use_metric_units: bool) -> None:
+        """Change between using metric units (km, l) if True or imperial units (mi, gal) if False."""
+        self.config.use_metric_units = use_metric_units
 
     @property
     def timezone(self):
@@ -113,7 +122,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
     @property
     def refresh_token(self) -> Optional[str]:
         """Returns the current refresh_token."""
-        return self.mybmw_client_config.authentication.refresh_token
+        return self.config.authentication.refresh_token
 
 
 @deprecated("MyBMWAccount")
