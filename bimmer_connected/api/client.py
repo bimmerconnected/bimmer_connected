@@ -10,7 +10,8 @@ import httpx
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_server_url
 from bimmer_connected.api.utils import get_correlation_id, log_to_to_file
-from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands, Regions
+from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
+from bimmer_connected.models import GPSPosition
 
 
 @dataclass
@@ -19,6 +20,8 @@ class MyBMWClientConfiguration:
 
     authentication: MyBMWAuthentication
     log_response_path: Optional[pathlib.Path] = None
+    observer_position: Optional[GPSPosition] = None
+    use_metric_units: Optional[bool] = True
 
 
 class MyBMWClient(httpx.AsyncClient):
@@ -35,7 +38,7 @@ class MyBMWClient(httpx.AsyncClient):
 
         # Set default values
         kwargs["base_url"] = kwargs.get("base_url") or get_server_url(config.authentication.region)
-        kwargs["headers"] = kwargs.get("headers") or self.generate_default_header(config.authentication.region, brand)
+        kwargs["headers"] = kwargs.get("headers") or self.generate_default_header(brand)
 
         # Register event hooks
         kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))
@@ -64,13 +67,13 @@ class MyBMWClient(httpx.AsyncClient):
 
         super().__init__(*args, **kwargs)
 
-    @staticmethod
-    def generate_default_header(region: Regions, brand: CarBrands = None) -> Dict[str, str]:
+    def generate_default_header(self, brand: CarBrands = None) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
         return {
             "accept": "application/json",
             "accept-language": "en",
             "user-agent": USER_AGENT,
-            "x-user-agent": X_USER_AGENT.format((brand or CarBrands.BMW), region.value),
+            "x-user-agent": X_USER_AGENT.format((brand or CarBrands.BMW), self.config.authentication.region.value),
             **get_correlation_id(),
+            "bmw-units-preferences": "d=KM;v=L" if self.config.use_metric_units else "d=MI;v=G",
         }

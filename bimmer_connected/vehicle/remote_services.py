@@ -150,7 +150,7 @@ class RemoteServices:
         """Start a generic remote service."""
 
         url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service_type=service_id.value)
-        async with MyBMWClient(self._account.mybmw_client_config, brand=self._vehicle.brand) as client:
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(url, params=params)
         return response.json().get("eventId")
 
@@ -177,7 +177,7 @@ class RemoteServices:
         """The execution status of the last remote service that was triggered."""
         _LOGGER.debug("getting remote service status for '%s'", event_id)
         url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)
-        async with MyBMWClient(self._account.mybmw_client_config, brand=self._vehicle.brand) as client:
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(url)
         return RemoteServiceStatus(response.json())
 
@@ -199,7 +199,7 @@ class RemoteServices:
         if isinstance(poi, Dict):
             poi = PointOfInterest(**poi)
 
-        async with MyBMWClient(self._account.mybmw_client_config, brand=self._vehicle.brand) as client:
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             await client.post(
                 VEHICLE_POI_URL,
                 headers={"content-type": "application/json"},
@@ -229,19 +229,19 @@ class RemoteServices:
 
     async def _get_event_position(self, event_id) -> Dict:
         url = REMOTE_SERVICE_POSITION_URL.format(event_id=event_id)
-        if not self._account.observer_position:
+        if not self._account.config.observer_position:
             return {
                 "errorDetails": {
                     "title": "Unknown position",
                     "description": "Set observer position to retrieve vehicle coordinates!",
                 }
             }
-        async with MyBMWClient(self._account.mybmw_client_config, brand=self._vehicle.brand) as client:
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(
                 url,
                 headers={
-                    "latitude": str(self._account.observer_position.latitude),
-                    "longitude": str(self._account.observer_position.longitude),
+                    "latitude": str(self._account.config.observer_position.latitude),
+                    "longitude": str(self._account.config.observer_position.longitude),
                 },
             )
         return response.json()

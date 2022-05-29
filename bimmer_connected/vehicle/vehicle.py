@@ -293,7 +293,7 @@ class MyBMWVehicle:
             view=direction.value,
         )
         # the accept field of the header needs to be updated as we want a png not the usual JSON
-        async with MyBMWClient(self.account.mybmw_client_config, brand=self.brand) as client:
+        async with MyBMWClient(self.account.config, brand=self.brand) as client:
             response = await client.get(url, headers={"accept": "image/png"})
         return response.content
 

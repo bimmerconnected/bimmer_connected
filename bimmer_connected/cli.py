@@ -138,7 +138,7 @@ async def fingerprint(args) -> None:
     for vehicle in account.vehicles:
         if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
             print(f"Getting 'charging-sessions' for {vehicle.vin}")
-            async with MyBMWClient(account.mybmw_client_config, brand=vehicle.brand) as client:
+            async with MyBMWClient(account.config, brand=vehicle.brand) as client:
                 await client.post(
                     "/eadrax-chs/v1/charging-sessions",
                     params={"vin": vehicle.vin, "maxResults": 40, "include_date_picker": "true"},
