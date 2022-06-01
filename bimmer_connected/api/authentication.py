@@ -339,7 +339,10 @@ class MyBMWLoginClient(httpx.AsyncClient):
         # Set default values#
         region = kwargs.pop("region")
         kwargs["base_url"] = get_server_url(region)
-        kwargs["headers"] = {"user-agent": USER_AGENT, "x-user-agent": X_USER_AGENT.format("bmw", region.value)}
+        kwargs["headers"] = {
+            "user-agent": USER_AGENT,
+            "x-user-agent": X_USER_AGENT.format(brand="bmw", region=region.value),
+        }
 
         # Register event hooks
         kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))

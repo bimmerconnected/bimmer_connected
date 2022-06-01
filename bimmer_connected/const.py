@@ -45,7 +45,7 @@ AES_KEYS = {
 HTTPX_TIMEOUT = 30.0
 
 USER_AGENT = "Dart/2.14 (dart:io)"
-X_USER_AGENT = "android(SP1A.210812.016.C1);{};2.5.2(14945);{}"
+X_USER_AGENT = "android(SP1A.210812.016.C1);{brand};2.5.0(14963);{region}"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"

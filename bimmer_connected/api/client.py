@@ -73,7 +73,9 @@ class MyBMWClient(httpx.AsyncClient):
             "accept": "application/json",
             "accept-language": "en",
             "user-agent": USER_AGENT,
-            "x-user-agent": X_USER_AGENT.format((brand or CarBrands.BMW), self.config.authentication.region.value),
+            "x-user-agent": X_USER_AGENT.format(
+                brand=(brand or CarBrands.BMW), region=self.config.authentication.region.value
+            ),
             **get_correlation_id(),
             "bmw-units-preferences": "d=KM;v=L" if self.config.use_metric_units else "d=MI;v=G",
         }
