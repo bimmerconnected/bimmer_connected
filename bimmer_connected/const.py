@@ -42,10 +42,16 @@ AES_KEYS = {
     }
 }
 
+APP_VERSIONS = {
+    Regions.NORTH_AMERICA: "2.5.2(14945)",
+    Regions.REST_OF_WORLD: "2.5.2(14945)",
+    Regions.CHINA: "2.3.0(13603)",
+}
+
 HTTPX_TIMEOUT = 30.0
 
 USER_AGENT = "Dart/2.14 (dart:io)"
-X_USER_AGENT = "android(SP1A.210812.016.C1);{brand};2.5.0(14963);{region}"
+X_USER_AGENT = "android(SP1A.210812.016.C1);{brand};{app_version};{region}"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"

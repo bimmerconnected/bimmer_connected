@@ -2,7 +2,7 @@
 from base64 import b64decode
 from typing import Dict, List
 
-from bimmer_connected.const import AES_KEYS, OCP_APIM_KEYS, SERVER_URLS_MYBMW, Regions
+from bimmer_connected.const import AES_KEYS, APP_VERSIONS, OCP_APIM_KEYS, SERVER_URLS_MYBMW, Regions
 
 
 def valid_regions() -> List[str]:
@@ -24,6 +24,11 @@ def get_region_from_name(name: str) -> Regions:
 def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return f"https://{SERVER_URLS_MYBMW[region]}"
+
+
+def get_app_version(region: Regions) -> str:
+    """Get the app version & build number for the region."""
+    return APP_VERSIONS[region]
 
 
 def get_ocp_apim_key(region: Regions) -> str:
