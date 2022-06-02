@@ -1,0 +1,49 @@
+[
+    {
+        "appVehicleType": "DEMO",
+        "attributes": {
+            "a4aType": "BLUETOOTH",
+            "bodyType": "I20",
+            "brand": "BMW_I",
+            "color": 4285537312,
+            "countryOfOrigin": "DE",
+            "driveTrain": "ELECTRIC",
+            "driverGuideInfo": {
+                "androidAppScheme": "com.bmwgroup.driversguide.row",
+                "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
+                "iosAppScheme": "bmwdriversguide:///open",
+                "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
+            },
+            "headUnitType": "MGU",
+            "hmiVersion": "ID8",
+            "lastFetched": "2022-06-03T19:02:30.647Z",
+            "model": "iX xDrive50",
+            "softwareVersionCurrent": {
+                "iStep": 300,
+                "puStep": {
+                    "month": 7,
+                    "year": 21
+                },
+                "seriesCluster": "S21A"
+            },
+            "softwareVersionExFactory": {
+                "iStep": 300,
+                "puStep": {
+                    "month": 7,
+                    "year": 21
+                },
+                "seriesCluster": "S21A"
+            },
+            "telematicsUnit": "WAVE01",
+            "year": 2021
+        },
+        "mappingInfo": {
+            "isAssociated": false,
+            "isLmmEnabled": false,
+            "isPrimaryUser": true,
+            "lmmStatusReasons": [],
+            "mappingStatus": "CONFIRMED"
+        },
+        "vin": "WBA00000000DEMO01"
+    }
+]

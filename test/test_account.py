@@ -2,7 +2,6 @@
 
 import datetime
 import logging
-from typing import Dict, List
 
 try:
     from unittest import mock
@@ -25,12 +24,14 @@ from bimmer_connected.const import Regions
 from bimmer_connected.models import GPSPosition
 
 from . import (
+    ALL_FINGERPRINTS,
+    ALL_STATES,
     RESPONSE_DIR,
     TEST_PASSWORD,
     TEST_REGION,
     TEST_REGION_STRING,
     TEST_USERNAME,
-    VIN_G21,
+    VIN_G23,
     get_deprecation_warning_count,
     get_fingerprint_count,
     load_response,
@@ -61,11 +62,18 @@ def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
     # Test if given region is valid
     _ = Regions(x_user_agent[3])
 
-    response_vehicles: List[Dict] = []
-    files = RESPONSE_DIR.rglob(f"vehicles_v2_{brand}_0.json")
-    for file in files:
-        response_vehicles.extend(load_response(file))
-    return httpx.Response(200, json=response_vehicles)
+    return httpx.Response(200, json=ALL_FINGERPRINTS.get(brand, []))
+
+
+def vehicle_state_sideeffect(request: httpx.Request, vin: str) -> httpx.Response:
+    """Returns /vehicles response based on x-user-agent."""
+    x_user_agent = request.headers.get("x-user-agent", "").split(";")
+    assert len(x_user_agent) == 4
+
+    try:
+        return httpx.Response(200, json=ALL_STATES[vin])
+    except KeyError:
+        return httpx.Response(404)
 
 
 def account_mock():
@@ -91,7 +99,10 @@ def account_mock():
     )
 
     # Get all vehicle fingerprints
-    router.get("/eadrax-vcs/v1/vehicles").mock(side_effect=vehicles_sideeffect)
+    router.get("/eadrax-vcs/v2/vehicles").mock(side_effect=vehicles_sideeffect)
+
+    # router.get("/eadrax-vcs/v2/vehicles").mock(side_effect=vehicles_sideeffect)
+    router.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(side_effect=vehicle_state_sideeffect)
 
     return router
 
@@ -149,7 +160,7 @@ async def test_login_refresh_token_row_na_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
             wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+            mock_api.get("/eadrax-vcs/v2/vehicles").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -222,7 +233,7 @@ async def test_login_refresh_token_china_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
             wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+            mock_api.get("/eadrax-vcs/v2/vehicles").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -265,8 +276,8 @@ async def test_vehicles():
     assert account.config.authentication.access_token is not None
     assert get_fingerprint_count() == len(account.vehicles)
 
-    vehicle = account.get_vehicle(VIN_G21)
-    assert VIN_G21 == vehicle.vin
+    vehicle = account.get_vehicle(VIN_G23)
+    assert VIN_G23 == vehicle.vin
 
     assert account.get_vehicle("invalid_vin") is None
 
@@ -325,7 +336,7 @@ async def test_storing_fingerprints(tmp_path):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
         await account.get_vehicles()
 
-        mock_api.get("/eadrax-vcs/v1/vehicles").respond(
+        mock_api.get("/eadrax-vcs/v2/vehicles").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
         with pytest.raises(httpx.HTTPStatusError):
@@ -335,7 +346,7 @@ async def test_storing_fingerprints(tmp_path):
     json_files = [f for f in files if f.suffix == ".json"]
     txt_files = [f for f in files if f.suffix == ".txt"]
 
-    assert len(json_files) == 2
+    assert len(json_files) == (get_fingerprint_count() + 2)
     assert len(txt_files) == 1
 
 
@@ -479,7 +490,7 @@ async def test_429_retry_ok_vehicles(caplog):
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-vcs/v1/vehicles").mock(
+        mock_api.get("/eadrax-vcs/v2/vehicles").mock(
             side_effect=[
                 httpx.Response(429, json=json_429),
                 httpx.Response(429, json=json_429),
@@ -507,7 +518,7 @@ async def test_429_retry_raise_vehicles(caplog):
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-vcs/v1/vehicles").mock(return_value=httpx.Response(429, json=json_429))
+        mock_api.get("/eadrax-vcs/v2/vehicles").mock(return_value=httpx.Response(429, json=json_429))
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):

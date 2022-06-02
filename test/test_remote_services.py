@@ -22,7 +22,7 @@ import time_machine
 from bimmer_connected.vehicle import remote_services
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
-from . import RESPONSE_DIR, VIN_F45, load_response
+from . import RESPONSE_DIR, VIN_G23, load_response
 from .test_account import account_mock, get_mocked_account
 
 _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
@@ -111,7 +111,7 @@ async def test_trigger_remote_services():
     ]
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
 
     for service, call, triggers_update in services:
         with mock.patch(
@@ -138,7 +138,7 @@ async def test_get_remote_service_status():
     remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
 
     with remote_services_mock() as mock_api:
         mock_api.post("/eadrax-vrccs/v2/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
@@ -165,12 +165,12 @@ async def test_get_remote_position():
 
     account = await get_mocked_account()
     account.set_observer_position(1.0, 0.0)
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
     status = vehicle.status
 
     # Check original position
-    assert (12.3456, 34.5678) == status.gps_position
-    assert 123 == status.gps_heading
+    assert (48.177334, 11.556274) == status.gps_position
+    assert 180 == status.gps_heading
 
     # Check updated position
     await vehicle.remote_services.trigger_remote_vehicle_finder()
@@ -190,7 +190,7 @@ async def test_get_remote_position_fail_without_observer(caplog):
     remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
     errors = [
@@ -210,7 +210,7 @@ async def test_fail_with_timeout():
     remote_services._POLLING_TIMEOUT = 2  # pylint: disable=protected-access
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
 
     with pytest.raises(TimeoutError):
         await vehicle.remote_services.trigger_remote_light_flash()
@@ -224,13 +224,13 @@ async def test_get_remote_position_too_old():
     remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
     status = vehicle.status
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
 
-    assert (12.3456, 34.5678) == status.gps_position
-    assert 123 == status.gps_heading
+    assert (48.177334, 11.556274) == status.gps_position
+    assert 180 == status.gps_heading
 
 
 @remote_services_mock()
@@ -240,7 +240,7 @@ async def test_poi():
     remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_F45)
+    vehicle = account.get_vehicle(VIN_G23)
 
     with pytest.raises(TypeError):
         await vehicle.remote_services.trigger_send_poi({"lat": 12.34})

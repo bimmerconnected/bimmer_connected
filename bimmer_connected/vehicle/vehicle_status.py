@@ -67,10 +67,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         return self.vehicle.fuel_and_battery.remaining_fuel
 
     @property  # type: ignore[misc]
-    @deprecated("vehicle.fuel_indicator_count")
-    def fuel_indicator_count(self) -> Optional[int]:
+    @deprecated()
+    def fuel_indicator_count(self) -> None:
         # pylint:disable=missing-function-docstring
-        return self.vehicle.fuel_indicator_count
+        return None
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.doors_and_windows.lids")
@@ -115,10 +115,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         return self.vehicle.doors_and_windows.door_lock_state
 
     @property  # type: ignore[misc]
-    @deprecated("vehicle.last_update_reason")
-    def last_update_reason(self) -> str:
+    @deprecated()
+    def last_update_reason(self) -> None:
         # pylint:disable=missing-function-docstring
-        return self.vehicle.last_update_reason
+        return None
 
     @property  # type: ignore[misc]
     @deprecated()
@@ -205,10 +205,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         return self.vehicle.fuel_and_battery.charging_end_time
 
     @property  # type: ignore[misc]
-    @deprecated("vehicle.fuel_and_battery.charging_time_label")
+    @deprecated()
     def charging_time_label(self) -> Optional[str]:
         # pylint:disable=missing-function-docstring
-        return self.vehicle.fuel_and_battery.charging_time_label
+        return None
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.fuel_and_battery.remaining_battery_percent")

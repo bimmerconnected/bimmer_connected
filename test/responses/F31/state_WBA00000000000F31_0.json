@@ -1,0 +1,125 @@
+{
+  "capabilities": {
+      "climateFunction": "VENTILATION",
+      "climateNow": true,
+      "climateTimerTrigger": "START_TIMER",
+      "horn": true,
+      "isBmwChargingSupported": false,
+      "isCarSharingSupported": false,
+      "isChargeNowForBusinessSupported": false,
+      "isChargingHistorySupported": false,
+      "isChargingHospitalityEnabled": false,
+      "isChargingLoudnessEnabled": false,
+      "isChargingPlanSupported": false,
+      "isChargingPowerLimitEnabled": false,
+      "isChargingSettingsEnabled": false,
+      "isChargingTargetSocEnabled": false,
+      "isClimateTimerSupported": true,
+      "isCustomerEsimSupported": false,
+      "isDCSContractManagementSupported": false,
+      "isDataPrivacyEnabled": false,
+      "isEasyChargeEnabled": false,
+      "isEvGoChargingSupported": false,
+      "isMiniChargingSupported": false,
+      "isNonLscFeatureEnabled": true,
+      "isRemoteEngineStartSupported": false,
+      "isRemoteHistoryDeletionSupported": false,
+      "isRemoteHistorySupported": true,
+      "isRemoteParkingSupported": false,
+      "isRemoteServicesActivationRequired": false,
+      "isRemoteServicesBookingRequired": false,
+      "isScanAndChargeSupported": false,
+      "isSustainabilitySupported": false,
+      "isWifiHotspotServiceSupported": false,
+      "lights": true,
+      "lock": true,
+      "remoteChargingCommands": {},
+      "sendPoi": true,
+      "specialThemeSupport": [],
+      "unlock": true,
+      "vehicleFinder": true,
+      "vehicleStateSource": "A4A"
+  },
+  "state": {
+      "checkControlMessages": [
+          {
+              "severity": "LOW",
+              "type": "ENGINE_OIL"
+          }
+      ],
+      "climateTimers": [
+          {
+              "departureTime": {
+                  "hour": 6,
+                  "minute": 40
+              },
+              "isWeeklyTimer": true,
+              "timerAction": "ACTIVATE",
+              "timerWeekDays": [
+                  "THURSDAY",
+                  "SUNDAY"
+              ]
+          },
+          {
+              "departureTime": {
+                  "hour": 12,
+                  "minute": 50
+              },
+              "isWeeklyTimer": false,
+              "timerAction": "ACTIVATE",
+              "timerWeekDays": [
+                  "MONDAY"
+              ]
+          },
+          {
+              "departureTime": {
+                  "hour": 18,
+                  "minute": 59
+              },
+              "isWeeklyTimer": true,
+              "timerAction": "DEACTIVATE",
+              "timerWeekDays": [
+                  "WEDNESDAY"
+              ]
+          }
+      ],
+      "combustionFuelLevel": {
+          "remainingFuelLiters": 14
+      },
+      "driverPreferences": {
+          "lscPrivacyMode": "OFF"
+      },
+      "isLeftSteering": true,
+      "isLscSupported": false,
+      "lastFetched": "2022-06-01T19:18:54.528Z",
+      "lastUpdatedAt": "2021-11-01T16:02:44Z",
+      "requiredServices": [
+          {
+              "dateTime": "2021-11-01T00:00:00.000Z",
+              "description": "Wechsel demnächst fällig. Bitte Termin mit Ihrem Servicepartner vereinbaren.",
+              "status": "PENDING",
+              "type": "BRAKE_FLUID"
+          },
+          {
+              "dateTime": "2022-07-01T00:00:00.000Z",
+              "description": "Nächster Service nach der angegebenen Fahrstrecke oder zum angegebenen Termin.",
+              "mileage": 9000,
+              "status": "OK",
+              "type": "OIL"
+          },
+          {
+              "dateTime": "2022-07-01T00:00:00.000Z",
+              "description": "Nächste Sichtprüfung nach der angegebenen Fahrstrecke oder zum angegebenen Termin.",
+              "mileage": 9000,
+              "status": "OK",
+              "type": "VEHICLE_CHECK"
+          },
+          {
+              "dateTime": "2023-02-01T00:00:00.000Z",
+              "description": "Nächste gesetzliche Fahrzeuguntersuchung zum angegebenen Termin.",
+              "status": "OK",
+              "type": "VEHICLE_TUV"
+          }
+      ]
+  }
+}

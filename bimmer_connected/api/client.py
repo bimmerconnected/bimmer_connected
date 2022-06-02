@@ -82,4 +82,5 @@ class MyBMWClient(httpx.AsyncClient):
             ),
             **get_correlation_id(),
             "bmw-units-preferences": "d=KM;v=L" if self.config.use_metric_units else "d=MI;v=G",
+            "24-hour-format": "true",
         }

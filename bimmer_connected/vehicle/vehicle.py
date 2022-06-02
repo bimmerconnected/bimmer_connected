@@ -1,10 +1,10 @@
 """Models state and remote services of one vehicle."""
 import datetime
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.const import SERVICE_PROPERTIES, SERVICE_STATUS, VEHICLE_IMAGE_URL, CarBrands
+from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_CAPABILITIES, ATTR_STATE, VEHICLE_IMAGE_URL, CarBrands
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
@@ -122,24 +122,14 @@ class MyBMWVehicle:
     # # # # # # # # # # # # # # #
 
     @property
-    def _status(self) -> Dict:
-        """A shortcut to `data.status`."""
-        return self.data[SERVICE_STATUS]
-
-    @property
-    def _properties(self) -> Dict:
-        """A shortcut to `data.properties`."""
-        return self.data[SERVICE_PROPERTIES]
-
-    @property
     def brand(self) -> CarBrands:
         """Get the car brand."""
-        return CarBrands(self.data["brand"])
+        return CarBrands(self.data[ATTR_ATTRIBUTES]["brand"])
 
     @property
     def name(self) -> str:
         """Get the name of the vehicle."""
-        return self.data["model"]
+        return self.data[ATTR_ATTRIBUTES]["model"]
 
     @property
     def vin(self) -> str:
@@ -149,13 +139,12 @@ class MyBMWVehicle:
     @property
     def drive_train(self) -> DriveTrainType:
         """Get the type of drive train of the vehicle."""
-        return DriveTrainType(self.data["driveTrain"])
+        return DriveTrainType(self.data[ATTR_ATTRIBUTES]["driveTrain"])
 
     @property
     def mileage(self) -> ValueWithUnit:
         """Get the mileage of the vehicle."""
-        current_mileage = self._status.get("currentMileage", {})
-        return ValueWithUnit(current_mileage.get("mileage"), current_mileage.get("units"))
+        return ValueWithUnit(self.data[ATTR_STATE].get("currentMileage", 0), "km" if self.data["is_metric"] else "mi")
 
     @property
     def timestamp(self) -> Optional[datetime.datetime]:
@@ -163,19 +152,14 @@ class MyBMWVehicle:
         timestamps = [
             ts
             for ts in [
-                parse_datetime(str(self._properties.get("lastUpdatedAt"))),
-                parse_datetime(str(self._status.get("lastUpdatedAt"))),
+                parse_datetime(str(self.data[ATTR_ATTRIBUTES].get("lastFetched"))),
+                parse_datetime(str(self.data[ATTR_STATE].get("lastFetched"))),
             ]
             if ts
         ]
         if len(timestamps) == 0:
             return None
         return max(timestamps)
-
-    @property
-    def last_update_reason(self) -> str:
-        """The reason for the last state update."""
-        return self._status["timestampMessage"]
 
     # # # # # # # # # # # # # # #
     # Capabilities & properties
@@ -194,7 +178,7 @@ class MyBMWVehicle:
         """Return True if vehicle is equipped with a range extender.
 
         In this case we can get the state of the gas tank."""
-        return self.drive_train == DriveTrainType.ELECTRIC and self.fuel_indicator_count == 3
+        return self.drive_train == DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER
 
     @property
     def has_combustion_drivetrain(self) -> bool:
@@ -206,12 +190,12 @@ class MyBMWVehicle:
     @property
     def is_charging_plan_supported(self) -> bool:
         """Return True if charging control (weekly planner) is available."""
-        return self.data["capabilities"]["isChargingPlanSupported"]
+        return self.data[ATTR_CAPABILITIES].get("isChargingPlanSupported", False)
 
     @property
     def is_vehicle_tracking_enabled(self) -> bool:
         """Return True if vehicle finder is enabled in vehicle."""
-        return self.data["capabilities"]["vehicleFinder"]["isEnabled"]
+        return self.data[ATTR_CAPABILITIES].get("vehicleFinder", False)
 
     @property
     def is_vehicle_active(self) -> bool:
@@ -219,12 +203,21 @@ class MyBMWVehicle:
 
         If the vehicle was active/moving at the time of the last status update, current position is not available.
         """
-        return self._properties["inMotion"]
+        return False
+
+    @property
+    def lsc_type(self) -> LscType:
+        """Get the lscType of the vehicle.
+
+        Not really sure what that value really means. If it is NOT_CAPABLE, that probably means that the
+        vehicle state will not contain much data.
+        """
+        return LscType(self.data[ATTR_CAPABILITIES].get("lastStateCallState", "NOT_CAPABLE"))
 
     @property
     def is_lsc_enabled(self) -> bool:
         """Return True if LastStateCall is enabled (vehicle automatically updates API)."""
-        return self.data["capabilities"]["lastStateCall"]["lscState"] == "ACTIVATED"
+        return self.data[ATTR_STATE]["isLscSupported"]
 
     @property
     def drive_train_attributes(self) -> List[str]:
@@ -253,20 +246,11 @@ class MyBMWVehicle:
         return result
 
     @property
-    def lsc_type(self) -> LscType:
-        """Get the lscType of the vehicle.
-
-        Not really sure what that value really means. If it is NOT_CAPABLE, that probably means that the
-        vehicle state will not contain much data.
-        """
-        return LscType(self.data["capabilities"]["lastStateCall"].get("lscState"))
-
-    @property
     def available_attributes(self) -> List[str]:
         """Get the list of non-drivetrain attributes available for this vehicle."""
         # attributes available in all vehicles
         result = ["gps_position", "vin"]
-        if self.lsc_type == LscType.ACTIVATED:
+        if self.is_lsc_enabled:
             # generic attributes if lsc_type =! NOT_SUPPORTED
             result += self.drive_train_attributes
             result += [
@@ -274,19 +258,10 @@ class MyBMWVehicle:
                 "check_control_messages",
                 "door_lock_state",
                 "timestamp",
-                "last_update_reason",
             ]
             # required for existing Home Assistant binary sensors
-            result += ["lids", "windows", "convertible_top"]
+            result += ["lids", "windows"]
         return result
-
-    @property
-    def fuel_indicator_count(self) -> int:
-        """Gets the number of fuel indicators.
-
-        Can be used to identify REX vehicles if driveTrain == ELECTRIC.
-        """
-        return len(self._status["fuelIndicators"])
 
     # # # # # # # # # # # # # # #
     # Generic functions

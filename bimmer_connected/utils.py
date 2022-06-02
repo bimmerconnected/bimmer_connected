@@ -87,3 +87,18 @@ def deprecated(replacement: Optional[str] = None) -> "Callable[[Callable[_P, _R]
         return _func_wrapper
 
     return decorator
+
+
+def to_camel_case(input_str: str) -> str:
+    """Converts SNAKE_CASE or snake_case to camelCase."""
+
+    retval = ""
+    flag_upper = False
+    for curr in input_str.lower():
+        if not curr.isalnum():
+            if curr == "_":
+                flag_upper = True
+            continue
+        retval = retval + (curr.upper() if flag_upper else curr)
+        flag_upper = False
+    return retval

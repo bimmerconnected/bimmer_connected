@@ -119,3 +119,8 @@ class ValueWithUnit(NamedTuple):
 
     value: Optional[Union[int, float]]
     unit: Optional[str]
+
+    # def __add__(self, other: "ValueWithUnit"):
+    #     if self.unit != other.unit or not other:
+    #         raise ValueError("Both values must have the same unit!")
+    #     return ValueWithUnit(self.value + other.value, self.unit)

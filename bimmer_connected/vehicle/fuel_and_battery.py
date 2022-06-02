@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from bimmer_connected.models import StrEnum, ValueWithUnit, VehicleDataBase
+from bimmer_connected.utils import parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -38,9 +39,6 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
     remaining_range_electric: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the remaining range of the vehicle on electricity."""
 
-    remaining_range_total: Optional[ValueWithUnit] = ValueWithUnit(None, None)
-    """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
-
     remaining_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
     """Get the remaining fuel of the vehicle."""
 
@@ -59,13 +57,25 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
     charging_end_time: Optional[datetime.datetime] = None
     """The estimated time the vehicle will have finished charging."""
 
-    charging_time_label: Optional[str] = None
-    """The planned start/estimated end time as provided by the API."""
-
     is_charger_connected: bool = False
     """Get status of the connection"""
 
     account_timezone: datetime.timezone = datetime.timezone.utc
+
+    @property
+    def remaining_range_total(self) -> Optional[ValueWithUnit]:
+        """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
+        fuel = self.remaining_range_fuel
+        electric = self.remaining_range_electric
+        if not fuel:
+            return electric
+        if not electric:
+            return fuel
+        unit = fuel.unit or electric.unit
+        total = (fuel.value or 0) + (electric.value or 0)
+        if (fuel.unit and electric.unit and fuel.unit != electric.unit) or not total:
+            return ValueWithUnit(None, None)
+        return ValueWithUnit(total, unit)
 
     # pylint:disable=arguments-differ
     @classmethod
@@ -81,98 +91,67 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         """Parse fuel indicators based on Ids."""
         retval: Dict[str, Any] = {}
 
-        properties = vehicle_data.get("properties", {})
+        state = vehicle_data.get("state", {})
 
-        fuel_level = properties.get("fuelLevel", {})
-        if fuel_level:
+        fuel_data = state.get("combustionFuelLevel", {})
+        if fuel_data:
+            retval.update(cls._parse_fuel_data(fuel_data))
+
+        electric_data = state.get("electricChargingState", {})
+        if electric_data:
+            retval.update(cls._parse_electric_data(electric_data, parse_datetime(state["lastFetched"])))
+
+        if "remaining_fuel" in retval:
             retval["remaining_fuel"] = ValueWithUnit(
-                fuel_level.get("value"),
-                fuel_level.get("units"),
+                retval["remaining_fuel"], "L" if vehicle_data["is_metric"] else "gal"
             )
-
-        if properties.get("fuelPercentage", {}).get("value"):
-            retval["remaining_fuel_percent"] = int(properties.get("fuelPercentage", {}).get("value"))
-
-        if "chargingState" in properties:
-            retval["remaining_battery_percent"] = int(properties["chargingState"].get("chargePercentage") or 0)
-            retval["is_charger_connected"] = properties["chargingState"].get("isChargerConnected", False)
-
-        # Only parse ranges if vehicle has enabled LSC
-        if "capabilities" in vehicle_data and vehicle_data["capabilities"]["lastStateCall"]["lscState"] == "ACTIVATED":
-            fuel_indicators = vehicle_data.get("status", {}).get("fuelIndicators", [])
-            for indicator in fuel_indicators:
-                if (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59691:  # Combined
-                    retval["remaining_range_total"] = cls._parse_to_tuple(indicator)
-                elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59683:  # Electric
-                    retval["remaining_range_electric"] = cls._parse_to_tuple(indicator)
-
-                    retval["charging_time_label"] = indicator["infoLabel"]
-                    retval["charging_status"] = ChargingState(
-                        indicator["chargingStatusType"]
-                        if indicator["chargingStatusType"] != "DEFAULT"
-                        else "NOT_CHARGING"
-                    )
-
-                    if indicator.get("chargingStatusType") in ["CHARGING", "PLUGGED_IN"]:
-                        retval.update(cls._parse_charging_timestamp(indicator))
-
-                elif (indicator.get("rangeIconId") or indicator.get("infoIconId")) == 59681:  # Fuel
-                    retval["remaining_range_fuel"] = cls._parse_to_tuple(indicator)
-
-            retval["remaining_range_total"] = (
-                retval.get("remaining_range_total")
-                or retval.get("remaining_range_fuel")
-                or retval.get("remaining_range_electric")
+        if "remaining_range_fuel" in retval:
+            retval["remaining_range_fuel"] = ValueWithUnit(
+                retval["remaining_range_fuel"], "km" if vehicle_data["is_metric"] else "mi"
+            )
+        if "remaining_range_electric" in retval:
+            retval["remaining_range_electric"] = ValueWithUnit(
+                retval["remaining_range_electric"], "km" if vehicle_data["is_metric"] else "mi"
             )
 
         return retval
 
-    def _update_after_parse(self, parsed: Dict) -> Dict:
-        """Updates parsed vehicle data with attributes stored in class if needed."""
-        if parsed.get("charging_end_time"):
-            parsed["charging_end_time"] = parsed["charging_end_time"].replace(tzinfo=self.account_timezone)
-        if parsed.get("charging_start_time"):
-            parsed["charging_start_time"] = parsed["charging_start_time"].replace(tzinfo=self.account_timezone)
-        return parsed
+    @staticmethod
+    def _parse_fuel_data(fuel_data: Dict) -> Dict:
+        """Parse fuel data."""
+        retval = {}
+        if "remainingFuelLiters" in fuel_data:
+            retval["remaining_fuel"] = fuel_data["remainingFuelLiters"]
+        if "remainingFuelPercent" in fuel_data:
+            retval["remaining_fuel_percent"] = fuel_data["remainingFuelPercent"]
+        if "range" in fuel_data:
+            retval["remaining_range_fuel"] = fuel_data["range"]
+        return retval
 
     @staticmethod
-    def _parse_charging_timestamp(indicator: Dict) -> Dict:
-        """Parse charging end time string to timestamp."""
-        charging_start_time: Optional[datetime.datetime] = None
-        charging_end_time: Optional[datetime.datetime] = None
-
-        # Only calculate charging end time if infolabel is like '100% at ~11:04am'
-        # Other options: 'Charging', 'Starts at ~09:00am' (but not handled here)
-
-        time_str = indicator["infoLabel"].split("~")[-1].strip()
-        try:
-            time_parsed = datetime.datetime.strptime(time_str, "%I:%M %p")
-
-            current_time = datetime.datetime.now()
-            datetime_parsed = time_parsed.replace(
-                year=current_time.year, month=current_time.month, day=current_time.day
+    def _parse_electric_data(electric_data: Dict, last_fetched: Optional[datetime.datetime]) -> Dict:
+        """Parse electric data."""
+        retval = {}
+        if "isChargerConnected" in electric_data:
+            retval["is_charger_connected"] = electric_data["isChargerConnected"]
+        if "chargingLevelPercent" in electric_data:
+            retval["remaining_battery_percent"] = int(electric_data["chargingLevelPercent"])
+        if "range" in electric_data:
+            retval["remaining_range_electric"] = electric_data["range"]
+        if "chargingStatus" in electric_data:
+            retval["charging_status"] = ChargingState(
+                electric_data["chargingStatus"] if electric_data["chargingStatus"] != "INVALID" else "NOT_CHARGING"
             )
-            if datetime_parsed < current_time:
-                datetime_parsed = datetime_parsed + datetime.timedelta(days=1)
-
-            if indicator["chargingStatusType"] == "CHARGING":
-                charging_end_time = datetime_parsed
-            elif indicator["chargingStatusType"] == "PLUGGED_IN":
-                charging_start_time = datetime_parsed
-        except ValueError:
-            _LOGGER.error("Error parsing charging end time '%s' out of '%s'", time_str, indicator["infoLabel"])
-        return {
-            "charging_end_time": charging_end_time,
-            "charging_start_time": charging_start_time,
-        }
-
-    @staticmethod
-    def _parse_to_tuple(fuel_indicator):
-        """Parse fuel indicator to standard range tuple."""
-        try:
-            # A value of '- -' apparently means zero
-            range_value = fuel_indicator["rangeValue"] if fuel_indicator["rangeValue"] != "- -" else 0
-            range_val = int(range_value)
-        except ValueError:
-            return ValueWithUnit(None, None)
-        return ValueWithUnit(range_val, fuel_indicator["rangeUnits"])
+        if "remainingChargingMinutes" in electric_data:
+            if retval["charging_status"] == ChargingState.CHARGING and last_fetched:
+                retval["charging_start_time"] = last_fetched + datetime.timedelta(
+                    minutes=electric_data["remainingChargingMinutes"]
+                )
+            if (
+                retval["charging_status"] in [ChargingState.PLUGGED_IN, ChargingState.WAITING_FOR_CHARGING]
+                and last_fetched
+            ):
+                retval["charging_end_time"] = last_fetched + datetime.timedelta(
+                    minutes=electric_data["remainingChargingMinutes"]
+                )
+        return retval

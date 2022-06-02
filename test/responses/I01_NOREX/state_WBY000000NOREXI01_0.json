@@ -1,0 +1,214 @@
+{
+    "state": {
+      "isLeftSteering": true,
+      "lastFetched": "2022-06-01T20:20:02.141Z",
+      "lastUpdatedAt": "2022-06-01T17:17:37Z",
+      "isLscSupported": true,
+      "range": 313,
+      "doorsState": {
+        "combinedSecurityState": "UNLOCKED",
+        "leftFront": "CLOSED",
+        "leftRear": "CLOSED",
+        "rightFront": "CLOSED",
+        "rightRear": "CLOSED",
+        "combinedState": "CLOSED",
+        "hood": "CLOSED",
+        "trunk": "CLOSED"
+      },
+      "windowsState": {
+        "leftFront": "CLOSED",
+        "rightFront": "CLOSED",
+        "combinedState": "CLOSED"
+      },
+      "location": {
+        "coordinates": {
+          "latitude": 12.3456,
+          "longitude": 12.3456
+        },
+        "address": {
+          "formatted": "some_formatted_address"
+        },
+        "heading": 123
+      },
+      "currentMileage": 78230,
+      "requiredServices": [
+        {
+          "dateTime": "2023-10-01T00:00:00.000Z",
+          "type": "BRAKE_FLUID",
+          "status": "OK",
+          "description": "Next service due by the specified date."
+        },
+        {
+          "dateTime": "2023-10-01T00:00:00.000Z",
+          "type": "VEHICLE_CHECK",
+          "status": "OK",
+          "description": "Next vehicle check due after the specified distance or date."
+        },
+        {
+          "dateTime": "2023-10-01T00:00:00.000Z",
+          "type": "VEHICLE_TUV",
+          "status": "OK",
+          "description": "Next state inspection due by the specified date."
+        }
+      ],
+      "checkControlMessages": [],
+      "chargingProfile": {
+        "chargingControlType": "WEEKLY_PLANNER",
+        "reductionOfChargeCurrent": {
+          "start": {
+            "hour": 0,
+            "minute": 0
+          },
+          "end": {
+            "hour": 0,
+            "minute": 0
+          }
+        },
+        "chargingMode": "IMMEDIATE_CHARGING",
+        "chargingPreference": "CHARGING_WINDOW",
+        "departureTimes": [
+          {
+            "id": 1,
+            "timeStamp": {
+              "hour": 7,
+              "minute": 40
+            },
+            "action": "ACTIVATE",
+            "timerWeekDays": [
+              "MONDAY",
+              "TUESDAY",
+              "WEDNESDAY",
+              "THURSDAY",
+              "FRIDAY"
+            ]
+          },
+          {
+            "id": 2,
+            "timeStamp": {
+              "hour": 0,
+              "minute": 0
+            },
+            "action": "DEACTIVATE",
+            "timerWeekDays": []
+          },
+          {
+            "id": 3,
+            "timeStamp": {
+              "hour": 0,
+              "minute": 0
+            },
+            "action": "DEACTIVATE",
+            "timerWeekDays": []
+          },
+          {
+            "id": 4,
+            "timeStamp": {
+              "hour": 7,
+              "minute": 40
+            },
+            "action": "DEACTIVATE",
+            "timerWeekDays": [
+              "THURSDAY"
+            ]
+          }
+        ],
+        "climatisationOn": true,
+        "chargingSettings": {
+          "targetSoc": 100,
+          "idcc": "NO_ACTION",
+          "hospitality": "NO_ACTION"
+        }
+      },
+      "electricChargingState": {
+        "chargingLevelPercent": 93,
+        "range": 313,
+        "isChargerConnected": false,
+        "chargingConnectionType": "UNKNOWN",
+        "chargingStatus": "INVALID",
+        "chargingTarget": 100
+      },
+      "combustionFuelLevel": {
+        "remainingFuelLiters": 0,
+        "range": 0
+      },
+      "driverPreferences": {
+        "lscPrivacyMode": "OFF"
+      },
+      "climateTimers": [
+        {
+          "departureTime": {
+            "hour": 6,
+            "minute": 40
+          },
+          "isWeeklyTimer": true,
+          "timerWeekDays": [
+            "THURSDAY",
+            "SUNDAY"
+          ],
+          "timerAction": "ACTIVATE"
+        },
+        {
+          "departureTime": {
+            "hour": 12,
+            "minute": 50
+          },
+          "isWeeklyTimer": false,
+          "timerWeekDays": [
+            "MONDAY"
+          ],
+          "timerAction": "ACTIVATE"
+        },
+        {
+          "departureTime": {
+            "hour": 18,
+            "minute": 59
+          },
+          "isWeeklyTimer": true,
+          "timerWeekDays": [
+            "WEDNESDAY"
+          ],
+          "timerAction": "DEACTIVATE"
+        }
+      ]
+    },
+    "capabilities": {
+        "climateNow": true,
+        "climateFunction": "AIR_CONDITIONING",
+        "horn": true,
+        "isBmwChargingSupported": true,
+        "isCarSharingSupported": false,
+        "isChargeNowForBusinessSupported": false,
+        "isChargingHistorySupported": true,
+        "isChargingHospitalityEnabled": false,
+        "isChargingLoudnessEnabled": false,
+        "isChargingPlanSupported": true,
+        "isChargingPowerLimitEnabled": false,
+        "isChargingSettingsEnabled": false,
+        "isChargingTargetSocEnabled": false,
+        "isCustomerEsimSupported": false,
+        "isDataPrivacyEnabled": false,
+        "isDCSContractManagementSupported": true,
+        "isEasyChargeEnabled": false,
+        "isMiniChargingSupported": false,
+        "isEvGoChargingSupported": false,
+        "isRemoteHistoryDeletionSupported": false,
+        "isRemoteEngineStartSupported": false,
+        "isRemoteServicesActivationRequired": false,
+        "isRemoteServicesBookingRequired": false,
+        "isScanAndChargeSupported": false,
+        "lastStateCallState": "ACTIVATED",
+        "lights": true,
+        "lock": true,
+        "sendPoi": true,
+        "unlock": true,
+        "vehicleFinder": true,
+        "vehicleStateSource": "LAST_STATE_CALL",
+        "isRemoteHistorySupported": true,
+        "isWifiHotspotServiceSupported": false,
+        "isNonLscFeatureEnabled": false,
+        "isSustainabilitySupported": false,
+        "specialThemeSupport": [],
+        "isRemoteParkingSupported": false,
+        "remoteChargingCommands": {}
+    }
+}
