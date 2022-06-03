@@ -108,8 +108,6 @@ class MyBMWAuthentication(httpx.Auth):
             if self.refresh_token:
                 token_data = await self._refresh_token_row_na()
             if not token_data:
-                # clear refresh token as precaution
-                self.refresh_token = None
                 token_data = await self._login_row_na()
             token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
@@ -118,8 +116,6 @@ class MyBMWAuthentication(httpx.Auth):
             if self.refresh_token:
                 token_data = await self._refresh_token_china()
             if not token_data:
-                # clear refresh token as precaution
-                self.refresh_token = None
                 token_data = await self._login_china()
             token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
