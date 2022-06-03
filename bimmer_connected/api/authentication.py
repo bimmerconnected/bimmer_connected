@@ -15,7 +15,7 @@ from Crypto.Cipher import AES, PKCS1_v1_5
 from Crypto.PublicKey import RSA
 from Crypto.Util.Padding import pad
 
-from bimmer_connected.api.regions import Regions, get_aes_keys, get_ocp_apim_key, get_server_url
+from bimmer_connected.api.regions import Regions, get_aes_keys, get_app_version, get_ocp_apim_key, get_server_url
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_token,
@@ -108,8 +108,6 @@ class MyBMWAuthentication(httpx.Auth):
             if self.refresh_token:
                 token_data = await self._refresh_token_row_na()
             if not token_data:
-                # clear refresh token as precaution
-                self.refresh_token = None
                 token_data = await self._login_row_na()
             token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
@@ -118,8 +116,6 @@ class MyBMWAuthentication(httpx.Auth):
             if self.refresh_token:
                 token_data = await self._refresh_token_china()
             if not token_data:
-                # clear refresh token as precaution
-                self.refresh_token = None
                 token_data = await self._login_china()
             token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
 
@@ -339,7 +335,10 @@ class MyBMWLoginClient(httpx.AsyncClient):
         # Set default values#
         region = kwargs.pop("region")
         kwargs["base_url"] = get_server_url(region)
-        kwargs["headers"] = {"user-agent": USER_AGENT, "x-user-agent": X_USER_AGENT.format("bmw", region.value)}
+        kwargs["headers"] = {
+            "user-agent": USER_AGENT,
+            "x-user-agent": X_USER_AGENT.format(brand="bmw", app_version=get_app_version(region), region=region.value),
+        }
 
         # Register event hooks
         kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))

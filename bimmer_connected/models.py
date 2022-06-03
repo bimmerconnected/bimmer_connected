@@ -45,7 +45,6 @@ class VehicleDataBase:
 
     def _update_after_parse(self, parsed: Dict) -> Dict:
         """Updates parsed vehicle data with attributes stored in class if needed."""
-        # pylint:disable=no-self-use
         return parsed
 
 

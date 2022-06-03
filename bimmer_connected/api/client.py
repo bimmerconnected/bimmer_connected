@@ -8,7 +8,7 @@ from typing import Dict, Optional
 import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
-from bimmer_connected.api.regions import get_server_url
+from bimmer_connected.api.regions import get_app_version, get_server_url
 from bimmer_connected.api.utils import get_correlation_id, log_to_to_file
 from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
 from bimmer_connected.models import GPSPosition
@@ -73,7 +73,11 @@ class MyBMWClient(httpx.AsyncClient):
             "accept": "application/json",
             "accept-language": "en",
             "user-agent": USER_AGENT,
-            "x-user-agent": X_USER_AGENT.format((brand or CarBrands.BMW), self.config.authentication.region.value),
+            "x-user-agent": X_USER_AGENT.format(
+                brand=(brand or CarBrands.BMW),
+                app_version=get_app_version(self.config.authentication.region),
+                region=self.config.authentication.region.value,
+            ),
             **get_correlation_id(),
             "bmw-units-preferences": "d=KM;v=L" if self.config.use_metric_units else "d=MI;v=G",
         }
