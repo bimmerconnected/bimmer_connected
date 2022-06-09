@@ -144,12 +144,15 @@ async def fingerprint(args) -> None:
                 f"/eadrax-vcs/v2/vehicles/{vehicle['vin']}/state",
                 headers={"bmw-current-date": datetime.utcnow().isoformat()},
             )
-            if DriveTrainType(vehicle["attributes"]["driveTrain"]) in HV_BATTERY_DRIVE_TRAINS:
-                await client.get(
-                    f"/eadrax-crccs/v1/vehicles/{vehicle['vin']}",
-                    params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
-                    headers={"bmw-current-date": datetime.utcnow().isoformat()},
-                )
+            try:
+                if DriveTrainType(vehicle["attributes"]["driveTrain"]) in HV_BATTERY_DRIVE_TRAINS:
+                    await client.get(
+                        f"/eadrax-crccs/v1/vehicles/{vehicle['vin']}",
+                        params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
+                        headers={"bmw-current-date": datetime.utcnow().isoformat()},
+                    )
+            except httpx.HTTPStatusError:
+                pass
 
     print(f"fingerprint of the vehicles written to {time_dir}")
 
