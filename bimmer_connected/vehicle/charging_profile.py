@@ -114,7 +114,7 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
 
         charging_profile = vehicle_data["status"]["chargingProfile"]
 
-        retval["is_pre_entry_climatization_enabled"] = bool(charging_profile["climatisationOn"])
+        retval["is_pre_entry_climatization_enabled"] = bool(charging_profile.get("climatisationOn", False))
         retval["departure_times"] = [DepartureTimer(t) for t in charging_profile["departureTimes"]]
         retval["preferred_charging_window"] = ChargingWindow(charging_profile["reductionOfChargeCurrent"])
         retval["timer_type"] = TimerTypes(charging_profile["chargingControlType"])
