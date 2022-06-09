@@ -1,6 +1,7 @@
 """Generic API management."""
 
 import pathlib
+import re
 from collections import defaultdict
 from dataclasses import dataclass
 from typing import Dict, Optional
@@ -48,6 +49,7 @@ class MyBMWClient(httpx.AsyncClient):
             content = await response.aread()
             brand = [x for x in [b.value for b in CarBrands] if x in response.request.headers.get("x-user-agent", "")]
             base_file_name = "_".join([response.url.path.split("/")[-1]] + brand)
+            base_file_name = re.sub(r"\d", "0", base_file_name)
             log_to_to_file(content, config.log_response_path, base_file_name)  # type: ignore[arg-type]
 
         if config.log_response_path:
