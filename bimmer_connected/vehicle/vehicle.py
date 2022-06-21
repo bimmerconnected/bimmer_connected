@@ -29,14 +29,23 @@ class DriveTrainType(StrEnum):
     COMBUSTION = "COMBUSTION"
     PLUGIN_HYBRID = "PLUGIN_HYBRID"  # PHEV
     ELECTRIC = "ELECTRIC"
+    ELECTRIC_WITH_RANGE_EXTENDER = "ELECTRIC_WITH_RANGE_EXTENDER"
     HYBRID = "HYBRID"  # mild hybrids
 
 
 #: Set of drive trains that have a combustion engine
-COMBUSTION_ENGINE_DRIVE_TRAINS = {DriveTrainType.COMBUSTION, DriveTrainType.PLUGIN_HYBRID}
+COMBUSTION_ENGINE_DRIVE_TRAINS = {
+    DriveTrainType.COMBUSTION,
+    DriveTrainType.PLUGIN_HYBRID,
+    DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER,
+}
 
 #: set of drive trains that have a high voltage battery
-HV_BATTERY_DRIVE_TRAINS = {DriveTrainType.PLUGIN_HYBRID, DriveTrainType.ELECTRIC}
+HV_BATTERY_DRIVE_TRAINS = {
+    DriveTrainType.PLUGIN_HYBRID,
+    DriveTrainType.ELECTRIC,
+    DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER,
+}
 
 
 class VehicleViewDirection(StrEnum):

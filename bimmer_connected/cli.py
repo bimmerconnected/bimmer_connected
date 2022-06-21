@@ -15,9 +15,10 @@ import httpx
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
+from bimmer_connected.const import CarBrands
 from bimmer_connected.utils import MyBMWJSONEncoder
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
-from bimmer_connected.vehicle.vehicle import HV_BATTERY_DRIVE_TRAINS
+from bimmer_connected.vehicle.vehicle import HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 
 TEXT_VIN = "Vehicle Identification Number"
 
@@ -135,20 +136,23 @@ async def fingerprint(args) -> None:
     await account.get_vehicles()
 
     # Patching in new My BMW endpoints for fingerprinting
-    for vehicle in account.vehicles:
-        if vehicle.drive_train in HV_BATTERY_DRIVE_TRAINS:
-            print(f"Getting 'charging-sessions' for {vehicle.vin}")
-            async with MyBMWClient(account.config, brand=vehicle.brand) as client:
-                await client.post(
-                    "/eadrax-chs/v1/charging-sessions",
-                    params={"vin": vehicle.vin, "maxResults": 40, "include_date_picker": "true"},
-                )
+    async with MyBMWClient(account.config, brand=CarBrands.BMW) as client:
+        vehicles_v2 = await client.get("/eadrax-vcs/v2/vehicles")
 
-                print(f"Getting 'charging-statistics' for {vehicle.vin}")
-                await client.post(
-                    "/eadrax-chs/v1/charging-statistics",
-                    params={"vin": vehicle.vin, "currentDate": datetime.utcnow().isoformat()},
-                )
+        for vehicle in vehicles_v2.json():
+            await client.get(
+                f"/eadrax-vcs/v2/vehicles/{vehicle['vin']}/state",
+                headers={"bmw-current-date": datetime.utcnow().isoformat(), "24-hour-format": "true"},
+            )
+            try:
+                if DriveTrainType(vehicle["attributes"]["driveTrain"]) in HV_BATTERY_DRIVE_TRAINS:
+                    await client.get(
+                        f"/eadrax-crccs/v1/vehicles/{vehicle['vin']}",
+                        params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
+                        headers={"bmw-current-date": datetime.utcnow().isoformat(), "24-hour-format": "true"},
+                    )
+            except httpx.HTTPStatusError:
+                pass
 
     print(f"fingerprint of the vehicles written to {time_dir}")
 
