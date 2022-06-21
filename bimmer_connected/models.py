@@ -3,7 +3,7 @@
 import logging
 from dataclasses import InitVar, dataclass, field
 from enum import Enum
-from typing import Dict, NamedTuple, Optional, Tuple, Union
+from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -106,7 +106,7 @@ class PointOfInterest:
 
     coordinates: GPSPosition = field(init=False)
     locationAddress: Optional[PointOfInterestAddress] = field(init=False)  # pylint: disable=invalid-name
-    type: str = field(default="SHARED_DESTINATION_FROM_EXTERNAL_APP", init=False)
+    entryPoints: List = field(init=False, default_factory=list)  # pylint: disable=invalid-name
 
     def __post_init__(self, lat, lon, street, postal_code, city, country):  # pylint: disable=too-many-arguments
         self.coordinates = GPSPosition(lat, lon)
