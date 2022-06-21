@@ -114,11 +114,25 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
 
         charging_profile = vehicle_data["status"]["chargingProfile"]
 
-        retval["is_pre_entry_climatization_enabled"] = bool(charging_profile.get("climatisationOn", False))
-        retval["departure_times"] = [DepartureTimer(t) for t in charging_profile["departureTimes"]]
-        retval["preferred_charging_window"] = ChargingWindow(charging_profile["reductionOfChargeCurrent"])
-        retval["timer_type"] = TimerTypes(charging_profile["chargingControlType"])
-        retval["charging_preferences"] = ChargingPreferences(charging_profile["chargingPreference"])
-        retval["charging_mode"] = ChargingMode(charging_profile["chargingMode"])
+        retval["is_pre_entry_climatization_enabled"] = (
+            bool(charging_profile["climatisationOn"]) if "" in charging_profile else None
+        )
+        retval["departure_times"] = [DepartureTimer(t) for t in charging_profile.get("departureTimes", [])]
+        retval["preferred_charging_window"] = (
+            ChargingWindow(charging_profile["reductionOfChargeCurrent"])
+            if "reductionOfChargeCurrent" in charging_profile
+            else None
+        )
+        retval["timer_type"] = (
+            TimerTypes(charging_profile["chargingControlType"]) if "chargingControlType" in charging_profile else None
+        )
+        retval["charging_preferences"] = (
+            ChargingPreferences(charging_profile["chargingPreference"])
+            if "chargingPreference" in charging_profile
+            else None
+        )
+        retval["charging_mode"] = (
+            ChargingMode(charging_profile["chargingMode"]) if "chargingMode" in charging_profile else None
+        )
 
         return retval

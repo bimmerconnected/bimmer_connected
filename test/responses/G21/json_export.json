@@ -697,7 +697,7 @@
         "has_check_control_messages": false
     },
     "charging_profile": {
-        "is_pre_entry_climatization_enabled": false,
+        "is_pre_entry_climatization_enabled": null,
         "timer_type": "weeklyPlanner",
         "departure_times": [
             {
