@@ -208,7 +208,7 @@ async def test_no_timestamp():
     assert vehicle.timestamp is None
 
 
-def test_strenum():
+def test_strenum(caplog):
     """Tests StrEnum."""
 
     class TestEnum(StrEnum):
@@ -221,6 +221,19 @@ def test_strenum():
 
     with pytest.raises(ValueError):
         TestEnum("WORLD")
+
+    class TestEnumUnkown(StrEnum):
+        """Test StrEnum with UNKNOWN value."""
+
+        HELLO = "HELLO"
+        UNKNOWN = "UNKNOWN"
+
+    assert TestEnumUnkown("hello") == TestEnumUnkown.HELLO
+    assert TestEnumUnkown("HELLO") == TestEnumUnkown.HELLO
+
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 0
+    assert TestEnumUnkown("WORLD") == TestEnumUnkown.UNKNOWN
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
 
 
 def test_vehiclebasedata():

@@ -18,6 +18,7 @@ class ConditionBasedServiceStatus(StrEnum):
     OK = "OK"
     OVERDUE = "OVERDUE"
     PENDING = "PENDING"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass
@@ -73,6 +74,7 @@ class CheckControlStatus(StrEnum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass

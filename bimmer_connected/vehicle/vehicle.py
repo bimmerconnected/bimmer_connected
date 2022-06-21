@@ -31,6 +31,7 @@ class DriveTrainType(StrEnum):
     ELECTRIC = "ELECTRIC"
     ELECTRIC_WITH_RANGE_EXTENDER = "ELECTRIC_WITH_RANGE_EXTENDER"
     HYBRID = "HYBRID"  # mild hybrids
+    UNKNOWN = "UNKNOWN"
 
 
 #: Set of drive trains that have a combustion engine
@@ -62,6 +63,7 @@ class VehicleViewDirection(StrEnum):
     # DASHBOARD = 'DASHBOARD'
     # DRIVERDOOR = 'DRIVERDOOR'
     # REARBIRDSEYE = 'REARBIRDSEYE'
+    UNKNOWN = "UNKNOWN"
 
 
 class LscType(StrEnum):
@@ -73,6 +75,7 @@ class LscType(StrEnum):
     NOT_CAPABLE = "NOT_CAPABLE"
     NOT_SUPPORTED = "NOT_SUPPORTED"
     ACTIVATED = "ACTIVATED"
+    UNKNOWN = "UNKNOWN"
 
 
 # pylint: disable=too-many-public-methods,too-many-instance-attributes

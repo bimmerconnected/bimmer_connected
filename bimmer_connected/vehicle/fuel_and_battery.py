@@ -27,6 +27,7 @@ class ChargingState(StrEnum):
     PLUGGED_IN = "PLUGGED_IN"
     WAITING_FOR_CHARGING = "WAITING_FOR_CHARGING"
     TARGET_REACHED = "TARGET_REACHED"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass

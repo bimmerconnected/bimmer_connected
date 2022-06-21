@@ -9,13 +9,19 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class StrEnum(str, Enum):
-    """A string enumeration of type `(str, Enum)`. All members are compared via `upper()`."""
+    """A string enumeration of type `(str, Enum)`. All members are compared via `upper()`. Defaults to UNKNOWN."""
 
     @classmethod
     def _missing_(cls, value):
+        has_unknown = False
         for member in cls:
+            if member.value.upper() == "UNKNOWN":
+                has_unknown = True
             if member.value.upper() == value.upper():
                 return member
+        if has_unknown:
+            _LOGGER.warning("'%s' is not a valid '%s'", value, cls.__name__)
+            return getattr(cls, "UNKNOWN")
         raise ValueError(f"'{value}' is not a valid {cls.__name__}")
 
 
