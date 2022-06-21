@@ -2,7 +2,11 @@
 import datetime
 import json
 import sys
-from zoneinfo import ZoneInfo
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo  # type: ignore[import, no-redef]
 
 import pytest
 import time_machine
@@ -62,7 +66,7 @@ def test_parse_datetime(caplog):
 
 
 @time_machine.travel(
-    datetime.datetime(2011, 11, 28, tzinfo=ZoneInfo("America/Los_Angeles")),
+    datetime.datetime(2011, 11, 28, tzinfo=zoneinfo.ZoneInfo("America/Los_Angeles")),
     tick=False,
 )
 @pytest.mark.asyncio
@@ -84,7 +88,7 @@ def test_json_encoder():
                     "value_int": 1,
                     "value_str": "string",
                 },
-                ZoneInfo("America/Los_Angeles"),
+                zoneinfo.ZoneInfo("America/Los_Angeles"),
             ],
         },
         cls=MyBMWJSONEncoder,

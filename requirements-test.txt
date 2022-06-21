@@ -12,3 +12,4 @@ types-setuptools
 pbr
 time_machine
 pre-commit
+backports.zoneinfo;python_version<"3.9"
