@@ -61,11 +61,16 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
         """Retrieve vehicle data from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
+        fetched_at = datetime.datetime.now(datetime.timezone.utc)
+
         async with MyBMWClient(self.config) as client:
             vehicles_responses: List[httpx.Response] = [
                 await client.get(
                     VEHICLES_URL,
-                    headers=client.generate_default_header(brand),
+                    headers={
+                        **client.generate_default_header(brand),
+                        "bmw-current-date": fetched_at.isoformat(),
+                    },
                 )
                 for brand in CarBrands
             ]
@@ -83,6 +88,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
 
                     # Add unit information
                     vehicle_dict["is_metric"] = self.config.use_metric_units
+                    vehicle_dict["fetched_at"] = fetched_at
 
                     # If vehicle already exists, just update it's state
                     existing_vehicle = self.get_vehicle(vehicle_dict["vin"])

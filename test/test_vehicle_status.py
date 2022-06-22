@@ -11,7 +11,7 @@ from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBatt
 from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
-from . import VIN_F31, VIN_G01, VIN_G08, VIN_G20, VIN_G23, VIN_I01_REX, get_deprecation_warning_count
+from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
@@ -93,14 +93,14 @@ async def test_range_rex(caplog):
     """Test if the parsing of mileage and range is working"""
     status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).fuel_and_battery
 
-    assert (5, "L") == status.remaining_fuel
-    assert (123, "km") == status.remaining_range_fuel
+    assert (6, "L") == status.remaining_fuel
+    assert (105, "km") == status.remaining_range_fuel
     assert status.remaining_fuel_percent is None
 
-    assert 84 == status.remaining_battery_percent
-    assert (209, "km") == status.remaining_range_electric
+    assert 82 == status.remaining_battery_percent
+    assert (174, "km") == status.remaining_range_electric
 
-    assert (332, "km") == status.remaining_range_total
+    assert (279, "km") == status.remaining_range_total
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
@@ -124,27 +124,31 @@ async def test_range_electric(caplog):
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
-@time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
+@time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog):
     """Test if the parsing of mileage and range is working"""
     account = await get_mocked_account()
-    status = account.get_vehicle(VIN_G08).fuel_and_battery
-    assert datetime.datetime(2011, 11, 29, 4, 1, tzinfo=account.timezone) == status.charging_end_time
+    status = account.get_vehicle(VIN_I01_NOREX).fuel_and_battery
+    assert datetime.datetime(2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc) == status.charging_end_time
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
+@time_machine.travel("2021-11-28 17:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_plugged_in_waiting_for_charge_window(caplog):
     """G01 is plugged in but not charging, as its waiting for charging window."""
     # Should be None on G01 as it is only "charging"
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G01)
+    vehicle = account.get_vehicle(VIN_I01_REX)
 
     assert vehicle.fuel_and_battery.charging_end_time is None
-    assert ChargingState.PLUGGED_IN == vehicle.fuel_and_battery.charging_status
+    assert ChargingState.WAITING_FOR_CHARGING == vehicle.fuel_and_battery.charging_status
     assert vehicle.fuel_and_battery.is_charger_connected is True
+    assert (
+        datetime.datetime(2021, 11, 28, 18, 1, tzinfo=account.timezone) == vehicle.fuel_and_battery.charging_start_time
+    )
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -244,19 +248,6 @@ async def test_parse_gcj02_position(caplog):
 
 
 @pytest.mark.asyncio
-async def test_parse_g08(caplog):
-    """Test if the parsing of the attributes is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).fuel_and_battery
-
-    assert (179, "km") == status.remaining_range_electric
-    assert (179, "km") == status.remaining_range_total
-    assert ChargingState.CHARGING == status.charging_status
-    assert 50 == status.remaining_battery_percent
-
-    assert len(get_deprecation_warning_count(caplog)) == 0
-
-
-@pytest.mark.asyncio
 async def test_lids(caplog):
     """Test features around lids."""
     # status = (await get_mocked_account()).get_vehicle(VIN_G01).doors_and_windows
@@ -349,7 +340,7 @@ async def test_charging_profile(caplog):
     assert charging_profile.departure_times[3].start_time is None
 
     charging_window = charging_profile.preferred_charging_window
-    assert charging_window.start_time == datetime.time(1, 30)
-    assert charging_window.end_time == datetime.time(18, 1)
+    assert charging_window.start_time == datetime.time(18, 1)
+    assert charging_window.end_time == datetime.time(1, 30)
 
     assert len(get_deprecation_warning_count(caplog)) == 0

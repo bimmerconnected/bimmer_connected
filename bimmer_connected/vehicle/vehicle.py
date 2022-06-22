@@ -234,7 +234,6 @@ class MyBMWVehicle:
         if self.has_electric_drivetrain:
             result += [
                 "charging_time_remaining",
-                "charging_start_time",
                 "charging_end_time",
                 "charging_time_label",
                 "charging_status",

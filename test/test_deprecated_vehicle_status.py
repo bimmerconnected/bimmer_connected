@@ -10,7 +10,7 @@ from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
-from . import VIN_F31, VIN_G01, VIN_G08, VIN_G20, VIN_G23, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
+from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
@@ -95,14 +95,14 @@ async def test_range_rex(caplog):
     """Test if the parsing of mileage and range is working"""
     status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).status
 
-    assert (5, "L") == status.remaining_fuel
-    assert (123, "km") == status.remaining_range_fuel
+    assert (6, "L") == status.remaining_fuel
+    assert (105, "km") == status.remaining_range_fuel
     assert status.fuel_percent is None
 
-    assert 84 == status.charging_level_hv
-    assert (209, "km") == status.remaining_range_electric
+    assert 82 == status.charging_level_hv
+    assert (174, "km") == status.remaining_range_electric
 
-    assert (332, "km") == status.remaining_range_total
+    assert (279, "km") == status.remaining_range_total
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
@@ -126,13 +126,13 @@ async def test_range_electric(caplog):
     assert len(get_deprecation_warning_count(caplog)) == 6
 
 
-@time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
+@time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog):
     """Test if the parsing of mileage and range is working"""
     account = await get_mocked_account()
-    status = account.get_vehicle(VIN_G08).status
-    assert datetime.datetime(2011, 11, 29, 4, 1, tzinfo=account.timezone) == status.charging_end_time
+    status = account.get_vehicle(VIN_I01_NOREX).status
+    assert datetime.datetime(2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc) == status.charging_end_time
 
     warnings = [r for r in caplog.records if r.levelname == "WARNING" and "DeprecationWarning" in r.message]
     assert len(warnings) == 1
@@ -149,33 +149,17 @@ async def test_charging_time_label(caplog):
 
 
 @pytest.mark.asyncio
-async def test_charging_end_time_parsing_failure(caplog):
-    """Test if the parsing of mileage and range is working"""
-    account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_I20)
-
-    assert vehicle.status.charging_end_time is None
-    assert vehicle.status.charging_time_label is None
-
-    errors = [r for r in caplog.records if r.levelname == "ERROR" and "Error parsing charging end time" in r.message]
-    assert len(errors) == 0
-
-    assert len(get_deprecation_warning_count(caplog)) == 2
-
-
-@pytest.mark.asyncio
 async def test_plugged_in_waiting_for_charge_window(caplog):
     """G01 is plugged in but not charging, as its waiting for charging window."""
     # Should be None on G01 as it is only "charging"
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G01)
+    vehicle = account.get_vehicle(VIN_I01_REX)
 
     assert vehicle.status.charging_end_time is None
-    assert "Starts at ~ 09:00 AM" == vehicle.status.charging_time_label
-    assert ChargingState.PLUGGED_IN == vehicle.status.charging_status
+    assert ChargingState.WAITING_FOR_CHARGING == vehicle.status.charging_status
     assert "CONNECTED" == vehicle.status.connection_status
 
-    assert len(get_deprecation_warning_count(caplog)) == 4
+    assert len(get_deprecation_warning_count(caplog)) == 3
 
 
 @pytest.mark.asyncio
@@ -239,19 +223,6 @@ async def test_parse_gcj02_position(caplog):
     assert (39.8337, 116.22617) == (round(vehicle.status.gps_position[0], 5), round(vehicle.status.gps_position[1], 5))
 
     assert len(get_deprecation_warning_count(caplog)) == 2
-
-
-@pytest.mark.asyncio
-async def test_parse_g08(caplog):
-    """Test if the parsing of the attributes is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).status
-
-    assert (179, "km") == status.remaining_range_electric
-    assert (179, "km") == status.remaining_range_total
-    assert ChargingState.CHARGING == status.charging_status
-    assert 50 == status.charging_level_hv
-
-    assert len(get_deprecation_warning_count(caplog)) == 4
 
 
 @pytest.mark.asyncio

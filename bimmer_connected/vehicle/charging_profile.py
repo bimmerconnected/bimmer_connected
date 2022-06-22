@@ -45,14 +45,12 @@ class ChargingWindow:
     @property
     def start_time(self) -> datetime.time:
         """Start of the charging window."""
-        # end of reductionOfChargeCurrent == start of charging window
-        return datetime.time(int(self._window_dict["end"]["hour"]), int(self._window_dict["end"]["minute"]))
+        return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
 
     @property
     def end_time(self) -> datetime.time:
         """End of the charging window."""
-        # start of reductionOfChargeCurrent == end of charging window
-        return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
+        return datetime.time(int(self._window_dict["end"]["hour"]), int(self._window_dict["end"]["minute"]))
 
 
 class DepartureTimer:

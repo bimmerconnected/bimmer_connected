@@ -133,7 +133,7 @@ async def fingerprint(args) -> None:
     account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region), log_responses=time_dir)
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
-    await account.get_vehicles()
+    # await account.get_vehicles()
 
     # Patching in new My BMW endpoints for fingerprinting
     async with MyBMWClient(account.config, brand=CarBrands.BMW) as client:

@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
 from bimmer_connected.models import StrEnum, ValueWithUnit, VehicleDataBase
-from bimmer_connected.utils import parse_datetime
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,8 +51,8 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
     charging_status: Optional[ChargingState] = None
     """Charging state of the vehicle."""
 
-    charging_start_time: Optional[datetime.datetime] = None
-    """The planned time the vehicle will start charging."""
+    charging_start_time_no_tz: Optional[datetime.datetime] = None
+    """The planned time the vehicle will start charging without time zone information."""
 
     charging_end_time: Optional[datetime.datetime] = None
     """The estimated time the vehicle will have finished charging."""
@@ -68,15 +67,20 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
         fuel = self.remaining_range_fuel
         electric = self.remaining_range_electric
-        if not fuel:
+        if fuel and not fuel.value:
             return electric
-        if not electric:
+        if electric and not electric.value:
             return fuel
-        unit = fuel.unit or electric.unit
-        total = (fuel.value or 0) + (electric.value or 0)
-        if (fuel.unit and electric.unit and fuel.unit != electric.unit) or not total:
-            return ValueWithUnit(None, None)
+        unit = fuel.unit or electric.unit  # type: ignore[union-attr]
+        total = (fuel.value or 0) + (electric.value or 0)  # type: ignore[union-attr]
         return ValueWithUnit(total, unit)
+
+    @property
+    def charging_start_time(self) -> Optional[datetime.datetime]:
+        """The planned time the vehicle will start charging."""
+        if self.charging_start_time_no_tz:
+            return self.charging_start_time_no_tz.astimezone(self.account_timezone)
+        return None
 
     # pylint:disable=arguments-differ
     @classmethod
@@ -100,7 +104,13 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
 
         electric_data = state.get("electricChargingState", {})
         if electric_data:
-            retval.update(cls._parse_electric_data(electric_data, parse_datetime(state["lastFetched"])))
+            retval.update(
+                cls._parse_electric_data(
+                    electric_data,
+                    vehicle_data["fetched_at"],
+                    state.get("chargingProfile", {}).get("reductionOfChargeCurrent"),
+                ),
+            )
 
         if "remaining_fuel" in retval:
             retval["remaining_fuel"] = ValueWithUnit(
@@ -130,7 +140,9 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
         return retval
 
     @staticmethod
-    def _parse_electric_data(electric_data: Dict, last_fetched: Optional[datetime.datetime]) -> Dict:
+    def _parse_electric_data(
+        electric_data: Dict, fetched_at: datetime.datetime, charging_window: Optional[Dict] = None
+    ) -> Dict:
         """Parse electric data."""
         retval = {}
         if "isChargerConnected" in electric_data:
@@ -144,15 +156,14 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
                 electric_data["chargingStatus"] if electric_data["chargingStatus"] != "INVALID" else "NOT_CHARGING"
             )
         if "remainingChargingMinutes" in electric_data:
-            if retval["charging_status"] == ChargingState.CHARGING and last_fetched:
-                retval["charging_start_time"] = last_fetched + datetime.timedelta(
-                    minutes=electric_data["remainingChargingMinutes"]
-                )
-            if (
-                retval["charging_status"] in [ChargingState.PLUGGED_IN, ChargingState.WAITING_FOR_CHARGING]
-                and last_fetched
-            ):
-                retval["charging_end_time"] = last_fetched + datetime.timedelta(
-                    minutes=electric_data["remainingChargingMinutes"]
-                )
+            retval["charging_end_time"] = fetched_at + datetime.timedelta(
+                minutes=electric_data["remainingChargingMinutes"]
+            )
+
+        if retval["charging_status"] == ChargingState.WAITING_FOR_CHARGING and isinstance(charging_window, Dict):
+            retval["charging_start_time_no_tz"] = datetime.datetime.combine(
+                datetime.datetime.now().date(),
+                datetime.time(int(charging_window["start"]["hour"]), int(charging_window["start"]["minute"])),
+            )
+
         return retval

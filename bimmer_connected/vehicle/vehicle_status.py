@@ -193,10 +193,10 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
         return None
 
     @property  # type: ignore[misc]
-    @deprecated("vehicle.fuel_and_battery.charging_start_time")
-    def charging_start_time(self) -> Optional[datetime.datetime]:
+    @deprecated()
+    def charging_start_time(self) -> None:
         # pylint:disable=missing-function-docstring
-        return self.vehicle.fuel_and_battery.charging_start_time
+        return None
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.fuel_and_battery.charging_end_time")
