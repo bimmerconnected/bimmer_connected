@@ -129,8 +129,14 @@ async def test_range_electric(caplog):
 async def test_charging_end_time(caplog):
     """Test if the parsing of mileage and range is working"""
     account = await get_mocked_account()
-    status = account.get_vehicle(VIN_I01_NOREX).fuel_and_battery
-    assert datetime.datetime(2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc) == status.charging_end_time
+    vehicle = account.get_vehicle(VIN_I01_NOREX)
+
+    assert vehicle.fuel_and_battery.charging_end_time == datetime.datetime(
+        2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc
+    )
+    assert vehicle.fuel_and_battery.charging_status == ChargingState.CHARGING
+    assert vehicle.fuel_and_battery.is_charger_connected is True
+    assert vehicle.fuel_and_battery.charging_start_time is None
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -138,16 +144,15 @@ async def test_charging_end_time(caplog):
 @time_machine.travel("2021-11-28 17:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_plugged_in_waiting_for_charge_window(caplog):
-    """G01 is plugged in but not charging, as its waiting for charging window."""
-    # Should be None on G01 as it is only "charging"
+    """I01_REX is plugged in but not charging, as its waiting for charging window."""
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_I01_REX)
 
     assert vehicle.fuel_and_battery.charging_end_time is None
-    assert ChargingState.WAITING_FOR_CHARGING == vehicle.fuel_and_battery.charging_status
+    assert vehicle.fuel_and_battery.charging_status == ChargingState.WAITING_FOR_CHARGING
     assert vehicle.fuel_and_battery.is_charger_connected is True
-    assert (
-        datetime.datetime(2021, 11, 28, 18, 1, tzinfo=account.timezone) == vehicle.fuel_and_battery.charging_start_time
+    assert vehicle.fuel_and_battery.charging_start_time == datetime.datetime(
+        2021, 11, 28, 18, 1, tzinfo=account.timezone
     )
 
     assert len(get_deprecation_warning_count(caplog)) == 0
