@@ -72,8 +72,8 @@ def test_parse_datetime(caplog):
 @pytest.mark.asyncio
 async def test_account_timezone():
     """Test the timezone in MyBMWAccount."""
-    # mocking the timezone doesn't work on Python 3.6
-    if sys.version_info >= (3, 7):
+    # mocking the timezone doesn't work with the backported zoneinfo on Python<3.9
+    if sys.version_info > (3, 9):
         account = await get_mocked_account()
         assert account.utcdiff == 960
 
