@@ -38,7 +38,6 @@ class DriveTrainType(StrEnum):
 COMBUSTION_ENGINE_DRIVE_TRAINS = {
     DriveTrainType.COMBUSTION,
     DriveTrainType.PLUGIN_HYBRID,
-    DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER,
 }
 
 #: set of drive trains that have a high voltage battery
