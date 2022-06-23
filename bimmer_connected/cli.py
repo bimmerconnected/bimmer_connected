@@ -15,7 +15,6 @@ import httpx
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
-from bimmer_connected.const import CarBrands
 from bimmer_connected.utils import MyBMWJSONEncoder
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
 
@@ -135,14 +134,18 @@ async def fingerprint(args) -> None:
     await account.get_vehicles()
 
     # Patching in new My BMW endpoints for fingerprinting
-    async with MyBMWClient(account.config, brand=CarBrands.BMW) as client:
+    async with MyBMWClient(account.config) as client:
         for vehicle in account.vehicles:
             try:
                 if vehicle.has_electric_drivetrain:
                     await client.get(
                         f"/eadrax-crccs/v1/vehicles/{vehicle.vin}",
                         params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
-                        headers={"bmw-current-date": datetime.utcnow().isoformat(), "24-hour-format": "true"},
+                        headers={
+                            **client.generate_default_header(vehicle.brand),
+                            "bmw-current-date": datetime.utcnow().isoformat(),
+                            "24-hour-format": "true",
+                        },
                     )
             except httpx.HTTPStatusError:
                 pass
