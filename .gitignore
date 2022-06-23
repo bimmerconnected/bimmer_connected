@@ -19,3 +19,4 @@ ChangeLog
 /.eggs
 build/
 htmlcov/
+.DS_Store

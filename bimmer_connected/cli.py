@@ -18,7 +18,6 @@ from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import CarBrands
 from bimmer_connected.utils import MyBMWJSONEncoder
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
-from bimmer_connected.vehicle.vehicle import HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 
 TEXT_VIN = "Vehicle Identification Number"
 
@@ -133,21 +132,15 @@ async def fingerprint(args) -> None:
     account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region), log_responses=time_dir)
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
-    # await account.get_vehicles()
+    await account.get_vehicles()
 
     # Patching in new My BMW endpoints for fingerprinting
     async with MyBMWClient(account.config, brand=CarBrands.BMW) as client:
-        vehicles_v2 = await client.get("/eadrax-vcs/v2/vehicles")
-
-        for vehicle in vehicles_v2.json():
-            await client.get(
-                f"/eadrax-vcs/v2/vehicles/{vehicle['vin']}/state",
-                headers={"bmw-current-date": datetime.utcnow().isoformat(), "24-hour-format": "true"},
-            )
+        for vehicle in account.vehicles:
             try:
-                if DriveTrainType(vehicle["attributes"]["driveTrain"]) in HV_BATTERY_DRIVE_TRAINS:
+                if vehicle.has_electric_drivetrain:
                     await client.get(
-                        f"/eadrax-crccs/v1/vehicles/{vehicle['vin']}",
+                        f"/eadrax-crccs/v1/vehicles/{vehicle.vin}",
                         params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
                         headers={"bmw-current-date": datetime.utcnow().isoformat(), "24-hour-format": "true"},
                     )
