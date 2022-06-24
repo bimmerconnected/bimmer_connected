@@ -11,5 +11,6 @@ mypy
 types-setuptools
 pbr
 time_machine>=2.7.1;python_version>="3.7"
+time_machine~=2.5.0;python_version<"3.7"
 pre-commit
 backports.zoneinfo;python_version<"3.9"
