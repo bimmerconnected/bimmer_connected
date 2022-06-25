@@ -4,23 +4,7 @@ import pytest
 from bimmer_connected.const import CarBrands
 from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
 
-from . import (
-    VIN_F11,
-    VIN_F31,
-    VIN_F35,
-    VIN_F44,
-    VIN_F45,
-    VIN_F48,
-    VIN_G01,
-    VIN_G05,
-    VIN_G08,
-    VIN_G21,
-    VIN_G23,
-    VIN_G30,
-    VIN_I01_NOREX,
-    VIN_I01_REX,
-    get_deprecation_warning_count,
-)
+from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 ATTRIBUTE_MAPPING = {
@@ -65,20 +49,13 @@ async def test_drive_train_attributes(caplog):
     account = await get_mocked_account()
 
     vehicle_drivetrains = {
-        VIN_F11: (True, False, False),
         VIN_F31: (True, False, False),
-        VIN_F35: (True, False, False),
-        VIN_F44: (True, False, False),
-        VIN_F45: (True, True, False),
-        VIN_F48: (True, False, False),
         VIN_G01: (True, True, False),
-        VIN_G05: (True, True, False),
-        VIN_G08: (False, True, False),
-        VIN_G21: (True, True, False),
-        VIN_G23: (True, True, False),
-        VIN_G30: (True, True, False),
+        VIN_G20: (True, False, False),
+        VIN_G23: (False, True, False),
         VIN_I01_NOREX: (False, True, False),
         VIN_I01_REX: (False, True, True),
+        VIN_I20: (False, True, False),
     }
 
     for vehicle in account.vehicles:

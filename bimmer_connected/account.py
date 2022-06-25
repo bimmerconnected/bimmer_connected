@@ -11,7 +11,7 @@ import httpx
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
-from bimmer_connected.const import VEHICLES_URL, CarBrands
+from bimmer_connected.const import VEHICLE_STATE_URL, VEHICLES_URL, CarBrands
 from bimmer_connected.models import GPSPosition
 from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
@@ -61,23 +61,35 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
         """Retrieve vehicle data from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
+        fetched_at = datetime.datetime.now(datetime.timezone.utc)
+
         async with MyBMWClient(self.config) as client:
-            vehicles_request_params = {
-                "apptimezone": self.utcdiff,
-                "appDateTime": int(datetime.datetime.now().timestamp() * 1000),
-                "tireGuardMode": "ENABLED",
-            }
             vehicles_responses: List[httpx.Response] = [
                 await client.get(
                     VEHICLES_URL,
-                    params=vehicles_request_params,
-                    headers=client.generate_default_header(brand),
+                    headers={
+                        **client.generate_default_header(brand),
+                        "bmw-current-date": fetched_at.isoformat(),
+                    },
                 )
                 for brand in CarBrands
             ]
 
             for response in vehicles_responses:
                 for vehicle_dict in response.json():
+                    # Get the detailed vehicle state
+                    state_response = await client.get(
+                        VEHICLE_STATE_URL.format(vin=vehicle_dict["vin"]),
+                        headers=response.request.headers,  # Reuse the same headers as used to get vehicle list
+                    )
+
+                    # Add state information to vehicle_dict
+                    vehicle_dict.update(state_response.json())
+
+                    # Add unit information
+                    vehicle_dict["is_metric"] = self.config.use_metric_units
+                    vehicle_dict["fetched_at"] = fetched_at
+
                     # If vehicle already exists, just update it's state
                     existing_vehicle = self.get_vehicle(vehicle_dict["vin"])
                     if existing_vehicle:

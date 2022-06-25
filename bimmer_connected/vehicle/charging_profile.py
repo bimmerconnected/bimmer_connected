@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
+from bimmer_connected.const import ATTR_STATE
 from bimmer_connected.models import StrEnum, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -13,23 +14,26 @@ _LOGGER = logging.getLogger(__name__)
 class ChargingMode(StrEnum):
     """Charging mode of electric vehicle."""
 
-    IMMEDIATE_CHARGING = "immediateCharging"
-    DELAYED_CHARGING = "delayedCharging"
+    IMMEDIATE_CHARGING = "IMMEDIATE_CHARGING"
+    DELAYED_CHARGING = "DELAYED_CHARGING"
+    UNKNOWN = "UNKNOWN"
 
 
 class ChargingPreferences(StrEnum):
     """Charging preferences of electric vehicle."""
 
-    NO_PRESELECTION = "noPreSelection"
-    CHARGING_WINDOW = "chargingWindow"
+    NO_PRESELECTION = "NO_PRESELECTION"
+    CHARGING_WINDOW = "CHARGING_WINDOW"
+    UNKNOWN = "UNKNOWN"
 
 
 class TimerTypes(StrEnum):
     """Different timer types."""
 
-    TWO_WEEKS = "twoWeeksTimer"
-    ONE_WEEK = "weeklyPlanner"
-    OVERRIDE_TIMER = "overrideTimer"
+    TWO_WEEKS = "TWO_WEEKS_TIMER"
+    ONE_WEEK = "WEEKLY_PLANNER"
+    OVERRIDE_TIMER = "OVERRIDE_TIMER"
+    UNKNOWN = "UNKNOWN"
 
 
 class ChargingWindow:
@@ -41,14 +45,12 @@ class ChargingWindow:
     @property
     def start_time(self) -> datetime.time:
         """Start of the charging window."""
-        # end of reductionOfChargeCurrent == start of charging window
-        return datetime.time(int(self._window_dict["end"]["hour"]), int(self._window_dict["end"]["minute"]))
+        return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
 
     @property
     def end_time(self) -> datetime.time:
         """End of the charging window."""
-        # start of reductionOfChargeCurrent == end of charging window
-        return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
+        return datetime.time(int(self._window_dict["end"]["hour"]), int(self._window_dict["end"]["minute"]))
 
 
 class DepartureTimer:
@@ -107,32 +109,14 @@ class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         """Parse doors and windows."""
         retval: Dict[str, Any] = {}
 
-        if "status" not in vehicle_data or "chargingProfile" not in vehicle_data["status"]:
-            if vehicle_data["capabilities"]["isChargingPlanSupported"]:
-                _LOGGER.error("Unable to read data from `status.chargingProfile`.")
-            return retval
+        if ATTR_STATE in vehicle_data and "chargingProfile" in vehicle_data[ATTR_STATE]:
+            charging_profile = vehicle_data[ATTR_STATE]["chargingProfile"]
 
-        charging_profile = vehicle_data["status"]["chargingProfile"]
-
-        retval["is_pre_entry_climatization_enabled"] = (
-            bool(charging_profile["climatisationOn"]) if "" in charging_profile else None
-        )
-        retval["departure_times"] = [DepartureTimer(t) for t in charging_profile.get("departureTimes", [])]
-        retval["preferred_charging_window"] = (
-            ChargingWindow(charging_profile["reductionOfChargeCurrent"])
-            if "reductionOfChargeCurrent" in charging_profile
-            else None
-        )
-        retval["timer_type"] = (
-            TimerTypes(charging_profile["chargingControlType"]) if "chargingControlType" in charging_profile else None
-        )
-        retval["charging_preferences"] = (
-            ChargingPreferences(charging_profile["chargingPreference"])
-            if "chargingPreference" in charging_profile
-            else None
-        )
-        retval["charging_mode"] = (
-            ChargingMode(charging_profile["chargingMode"]) if "chargingMode" in charging_profile else None
-        )
+            retval["is_pre_entry_climatization_enabled"] = bool(charging_profile.get("climatisationOn", False))
+            retval["departure_times"] = [DepartureTimer(t) for t in charging_profile.get("departureTimes", [])]
+            retval["preferred_charging_window"] = ChargingWindow(charging_profile.get("reductionOfChargeCurrent", {}))
+            retval["timer_type"] = TimerTypes(charging_profile.get("chargingControlType", "UNKNOWN"))
+            retval["charging_preferences"] = ChargingPreferences(charging_profile.get("chargingPreference", "UNKNOWN"))
+            retval["charging_mode"] = ChargingMode(charging_profile.get("chargingMode", "UNKNOWN"))
 
         return retval

@@ -13,27 +13,21 @@ TEST_PASSWORD = "my_secret"
 TEST_REGION = Regions.REST_OF_WORLD
 TEST_REGION_STRING = "rest_of_world"
 
-VIN_F11 = "some_vin_F11"
-VIN_F31 = "some_vin_F31"
-VIN_F35 = "some_vin_F35"
-VIN_F44 = "some_vin_F44"
-VIN_F45 = "some_vin_F45"
-VIN_F48 = "some_vin_F48"
-VIN_G01 = "some_vin_G01"
-VIN_G05 = "some_vin_G05"
-VIN_G08 = "some_vin_G08"
-VIN_G21 = "some_vin_G21"
-VIN_G23 = "some_vin_G23"
-VIN_G30 = "some_vin_G30"
-VIN_I01_NOREX = "some_vin_I01_NOREX"
-VIN_I01_REX = "some_vin_I01_REX"
+VIN_F31 = "WBA00000000000F31"
+VIN_G01 = "WBA00000000DEMO04"
+VIN_G20 = "WBA00000000DEMO03"
+VIN_G23 = "WBA00000000DEMO02"
+VIN_I01_NOREX = "WBY000000NOREXI01"
+VIN_I01_REX = "WBY00000000REXI01"
+VIN_I20 = "WBA00000000DEMO01"
 
-ALL_FINGERPRINTS: List[Dict] = []
+ALL_FINGERPRINTS: Dict[str, List[Dict]] = {}
+ALL_STATES: Dict[str, Dict] = {}
 
 
 def get_fingerprint_count() -> int:
     """Returns number of loaded vehicles."""
-    return len(ALL_FINGERPRINTS)
+    return len(*ALL_FINGERPRINTS.values())
 
 
 def load_response(path: Union[Path, str]) -> Any:
@@ -44,8 +38,14 @@ def load_response(path: Union[Path, str]) -> Any:
         return file.read().decode("UTF-8")
 
 
-for fingerprint in RESPONSE_DIR.rglob("vehicles_v2_*_0.json"):
-    ALL_FINGERPRINTS.extend(load_response(fingerprint))
+for fingerprint in RESPONSE_DIR.rglob("vehicles_v2_*.json"):
+    brand = fingerprint.stem.split("_")[-2]
+    if brand not in ALL_FINGERPRINTS:
+        ALL_FINGERPRINTS[brand] = []
+    ALL_FINGERPRINTS[brand].extend(load_response(fingerprint))
+
+for state in RESPONSE_DIR.rglob("state_*.json"):
+    ALL_STATES[state.stem.split("_")[-2]] = load_response(state)
 
 
 def get_deprecation_warning_count(caplog):

@@ -4,7 +4,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
+from bimmer_connected.const import ATTR_STATE
 from bimmer_connected.models import StrEnum, VehicleDataBase
+from bimmer_connected.utils import to_camel_case
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -61,9 +63,6 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
     door_lock_state: LockState = LockState.UNKNOWN
     """Get state of the door locks."""
 
-    convertible_top: LidState = LidState.UNKNOWN
-    """Get state of the convertible roof."""
-
     lids: List[Lid] = field(default_factory=list)
     """All lids (doors+hood+trunk) of the car."""
 
@@ -75,24 +74,31 @@ class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attr
         """Parse doors and windows."""
         retval: Dict[str, Any] = {}
 
-        if "properties" not in vehicle_data or "doorsAndWindows" not in vehicle_data["status"]:
-            _LOGGER.error("Unable to read data from `properties.doorsAndWindows`.")
-            return retval
+        if ATTR_STATE in vehicle_data:
+            if "doorsState" in vehicle_data[ATTR_STATE]:
+                retval["lids"] = [
+                    Lid(k, v)
+                    for k, v in vehicle_data[ATTR_STATE]["doorsState"].items()
+                    if k not in ["combinedState", "combinedSecurityState"] and v != LidState.INVALID
+                ]
+                retval["door_lock_state"] = LockState(
+                    vehicle_data[ATTR_STATE]["doorsState"].get("combinedSecurityState", "UNKNOWN")
+                )
 
-        doors_and_windows = vehicle_data["properties"]["doorsAndWindows"]
+            if "windowsState" in vehicle_data[ATTR_STATE]:
+                retval["windows"] = [
+                    Window(k, v)
+                    for k, v in vehicle_data[ATTR_STATE]["windowsState"].items()
+                    if k not in ["combinedState"] and v != LidState.INVALID
+                ]
 
-        retval["lids"] = [
-            Lid(k, v) for k, v in doors_and_windows.items() if k in ["hood", "trunk"] and v != LidState.INVALID
-        ] + [Lid(k, v) for k, v in doors_and_windows["doors"].items() if v != LidState.INVALID]
-
-        retval["windows"] = [Window(k, v) for k, v in doors_and_windows["windows"].items() if v != LidState.INVALID]
-        if "moonroof" in doors_and_windows:
-            retval["windows"].append(Window("moonroof", doors_and_windows["moonroof"]))
-
-        if "convertibleTop" in doors_and_windows:
-            retval["convertible_top"] = LidState(doors_and_windows["convertibleTop"])
-
-        retval["door_lock_state"] = LockState(vehicle_data["status"]["doorsGeneralState"].upper())
+            if "roofState" in vehicle_data[ATTR_STATE]:
+                retval["lids"].append(
+                    Lid(
+                        to_camel_case(vehicle_data[ATTR_STATE]["roofState"]["roofStateType"]),
+                        vehicle_data[ATTR_STATE]["roofState"]["roofState"],
+                    )
+                )
 
         return retval
 

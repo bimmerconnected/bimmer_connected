@@ -9,13 +9,19 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class StrEnum(str, Enum):
-    """A string enumeration of type `(str, Enum)`. All members are compared via `upper()`."""
+    """A string enumeration of type `(str, Enum)`. All members are compared via `upper()`. Defaults to UNKNOWN."""
 
     @classmethod
     def _missing_(cls, value):
+        has_unknown = False
         for member in cls:
+            if member.value.upper() == "UNKNOWN":
+                has_unknown = True
             if member.value.upper() == value.upper():
                 return member
+        if has_unknown:
+            _LOGGER.warning("'%s' is not a valid '%s'", value, cls.__name__)
+            return getattr(cls, "UNKNOWN")
         raise ValueError(f"'{value}' is not a valid {cls.__name__}")
 
 
@@ -119,3 +125,8 @@ class ValueWithUnit(NamedTuple):
 
     value: Optional[Union[int, float]]
     unit: Optional[str]
+
+    # def __add__(self, other: "ValueWithUnit"):
+    #     if self.unit != other.unit or not other:
+    #         raise ValueError("Both values must have the same unit!")
+    #     return ValueWithUnit(self.value + other.value, self.unit)

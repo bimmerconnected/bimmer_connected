@@ -1,27 +1,12 @@
 """Tests for MyBMWVehicle."""
 import pytest
 
-from bimmer_connected.const import CarBrands
+from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE, CarBrands
 from bimmer_connected.models import GPSPosition, StrEnum, VehicleDataBase
 from bimmer_connected.vehicle import DriveTrainType, VehicleViewDirection
+from bimmer_connected.vehicle.reports import CheckControlMessageReport
 
-from . import (
-    VIN_F11,
-    VIN_F31,
-    VIN_F35,
-    VIN_F44,
-    VIN_F45,
-    VIN_F48,
-    VIN_G01,
-    VIN_G05,
-    VIN_G08,
-    VIN_G21,
-    VIN_G23,
-    VIN_G30,
-    VIN_I01_NOREX,
-    VIN_I01_REX,
-    get_deprecation_warning_count,
-)
+from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
 from .test_account import account_mock, get_mocked_account
 
 ATTRIBUTE_MAPPING = {
@@ -45,8 +30,20 @@ ATTRIBUTE_MAPPING = {
 @pytest.mark.asyncio
 async def test_drive_train(caplog):
     """Tests around drive_train attribute."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G21)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
+    assert DriveTrainType.COMBUSTION == vehicle.drive_train
+
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
     assert DriveTrainType.PLUGIN_HYBRID == vehicle.drive_train
+
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
+    assert DriveTrainType.ELECTRIC == vehicle.drive_train
+
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_NOREX)
+    assert DriveTrainType.ELECTRIC == vehicle.drive_train
+
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_REX)
+    assert DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER == vehicle.drive_train
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -75,20 +72,13 @@ async def test_drive_train_attributes(caplog):
     account = await get_mocked_account()
 
     vehicle_drivetrains = {
-        VIN_F11: (True, False, False),
         VIN_F31: (True, False, False),
-        VIN_F35: (True, False, False),
-        VIN_F44: (True, False, False),
-        VIN_F45: (True, True, False),
-        VIN_F48: (True, False, False),
         VIN_G01: (True, True, False),
-        VIN_G05: (True, True, False),
-        VIN_G08: (False, True, False),
-        VIN_G21: (True, True, False),
-        VIN_G23: (True, True, False),
-        VIN_G30: (True, True, False),
+        VIN_G20: (True, False, False),
+        VIN_G23: (False, True, False),
         VIN_I01_NOREX: (False, True, False),
         VIN_I01_REX: (False, True, True),
+        VIN_I20: (False, True, False),
     }
 
     for vehicle in account.vehicles:
@@ -123,7 +113,7 @@ def test_car_brand(caplog):
 @pytest.mark.asyncio
 async def test_get_is_tracking_enabled(caplog):
     """Test setting observer position"""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F11)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_REX)
     assert vehicle.is_vehicle_tracking_enabled is False
 
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
@@ -140,39 +130,13 @@ async def test_available_attributes(caplog):
     vehicle = account.get_vehicle(VIN_F31)
     assert ["gps_position", "vin"] == vehicle.available_attributes
 
-    vehicle = account.get_vehicle(VIN_G08)
+    vehicle = account.get_vehicle(VIN_G01)
     assert [
         "gps_position",
         "vin",
         "remaining_range_total",
         "mileage",
         "charging_time_remaining",
-        "charging_start_time",
-        "charging_end_time",
-        "charging_time_label",
-        "charging_status",
-        "connection_status",
-        "remaining_battery_percent",
-        "remaining_range_electric",
-        "last_charging_end_result",
-        "condition_based_services",
-        "check_control_messages",
-        "door_lock_state",
-        "timestamp",
-        "last_update_reason",
-        "lids",
-        "windows",
-        "convertible_top",
-    ] == vehicle.available_attributes
-
-    vehicle = account.get_vehicle(VIN_G30)
-    assert [
-        "gps_position",
-        "vin",
-        "remaining_range_total",
-        "mileage",
-        "charging_time_remaining",
-        "charging_start_time",
         "charging_end_time",
         "charging_time_label",
         "charging_status",
@@ -187,10 +151,30 @@ async def test_available_attributes(caplog):
         "check_control_messages",
         "door_lock_state",
         "timestamp",
-        "last_update_reason",
         "lids",
         "windows",
-        "convertible_top",
+    ] == vehicle.available_attributes
+
+    vehicle = account.get_vehicle(VIN_G23)
+    assert [
+        "gps_position",
+        "vin",
+        "remaining_range_total",
+        "mileage",
+        "charging_time_remaining",
+        "charging_end_time",
+        "charging_time_label",
+        "charging_status",
+        "connection_status",
+        "remaining_battery_percent",
+        "remaining_range_electric",
+        "last_charging_end_result",
+        "condition_based_services",
+        "check_control_messages",
+        "door_lock_state",
+        "timestamp",
+        "lids",
+        "windows",
     ] == vehicle.available_attributes
 
     assert len(get_deprecation_warning_count(caplog)) == 0
@@ -199,7 +183,7 @@ async def test_available_attributes(caplog):
 @pytest.mark.asyncio
 async def test_vehicle_image(caplog):
     """Test vehicle image request."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G05)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
 
     with account_mock() as mock_api:
         mock_api.get(
@@ -216,13 +200,13 @@ async def test_vehicle_image(caplog):
 async def test_no_timestamp():
     """Test no timestamp available."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
-    vehicle._properties.pop("lastUpdatedAt")  # pylint: disable=protected-access
-    vehicle._status.pop("lastUpdatedAt")  # pylint: disable=protected-access
+    vehicle.data[ATTR_STATE].pop("lastFetched")  # pylint: disable=protected-access
+    vehicle.data[ATTR_ATTRIBUTES].pop("lastFetched")  # pylint: disable=protected-access
 
     assert vehicle.timestamp is None
 
 
-def test_strenum():
+def test_strenum(caplog):
     """Tests StrEnum."""
 
     class TestEnum(StrEnum):
@@ -236,11 +220,30 @@ def test_strenum():
     with pytest.raises(ValueError):
         TestEnum("WORLD")
 
+    class TestEnumUnkown(StrEnum):
+        """Test StrEnum with UNKNOWN value."""
+
+        HELLO = "HELLO"
+        UNKNOWN = "UNKNOWN"
+
+    assert TestEnumUnkown("hello") == TestEnumUnkown.HELLO
+    assert TestEnumUnkown("HELLO") == TestEnumUnkown.HELLO
+
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 0
+    assert TestEnumUnkown("WORLD") == TestEnumUnkown.UNKNOWN
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+
 
 def test_vehiclebasedata():
     """Tests VehicleBaseData."""
     with pytest.raises(NotImplementedError):
         VehicleDataBase._parse_vehicle_data({})  # pylint: disable=protected-access
+
+    # CheckControlMessageReport does not override parent methods from_vehicle_data()
+    ccmr = CheckControlMessageReport.from_vehicle_data(
+        {"state": {"checkControlMessages": [{"severity": "LOW", "type": "ENGINE_OIL"}]}}
+    )
+    assert len(ccmr.messages) == 1
 
 
 def test_gpsposition():
@@ -250,3 +253,4 @@ def test_gpsposition():
     assert pos == {"latitude": 1.0, "longitude": 2.0}
     assert pos == (1, 2)
     assert pos != "(1, 2)"
+    assert pos[0] == 1

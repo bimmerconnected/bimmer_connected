@@ -5,6 +5,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from bimmer_connected.const import ATTR_STATE
 from bimmer_connected.models import StrEnum, ValueWithUnit, VehicleDataBase
 from bimmer_connected.utils import parse_datetime
 
@@ -17,6 +18,7 @@ class ConditionBasedServiceStatus(StrEnum):
     OK = "OK"
     OVERDUE = "OVERDUE"
     PENDING = "PENDING"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass
@@ -28,11 +30,13 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
     due_date: Optional[datetime.date]
     due_distance: ValueWithUnit
 
-    # pylint:disable=invalid-name,unused-argument,redefined-builtin
+    # pylint:disable=invalid-name,redefined-builtin,too-many-arguments,unused-argument
     @classmethod
-    def from_api_entry(cls, type: str, status: str, dateTime: str = None, distance: Dict = None, **kwargs):
+    def from_api_entry(
+        cls, type: str, status: str, dateTime: str = None, mileage: int = None, is_metric: bool = True, **kwargs
+    ):
         """Parse a condition based service entry from the API format to `ConditionBasedService`."""
-        due_distance = ValueWithUnit(distance["value"], distance["units"]) if distance else ValueWithUnit(None, None)
+        due_distance = ValueWithUnit(mileage, "km" if is_metric else "mi") if mileage else ValueWithUnit(None, None)
         due_date = parse_datetime(dateTime) if dateTime else None
         return cls(type, ConditionBasedServiceStatus(status), due_date, due_distance)
 
@@ -52,13 +56,12 @@ class ConditionBasedServiceReport(VehicleDataBase):
         """Parse doors and windows."""
         retval: Dict[str, Any] = {}
 
-        if "properties" not in vehicle_data or "serviceRequired" not in vehicle_data["properties"]:
-            _LOGGER.error("Unable to read data from `properties.serviceRequired`.")
-            return retval
-
-        messages = vehicle_data["properties"]["serviceRequired"]
-        retval["messages"] = [ConditionBasedService.from_api_entry(**m) for m in messages]
-        retval["is_service_required"] = vehicle_data["properties"]["isServiceRequired"]
+        if ATTR_STATE in vehicle_data and "requiredServices" in vehicle_data[ATTR_STATE]:
+            messages = vehicle_data[ATTR_STATE]["requiredServices"]
+            retval["messages"] = [
+                ConditionBasedService.from_api_entry(**m, is_metric=vehicle_data["is_metric"]) for m in messages
+            ]
+            retval["is_service_required"] = any((m.state != ConditionBasedServiceStatus.OK) for m in retval["messages"])
 
         return retval
 
@@ -71,6 +74,7 @@ class CheckControlStatus(StrEnum):
     MEDIUM = "MEDIUM"
     HIGH = "HIGH"
     CRITICAL = "CRITICAL"
+    UNKNOWN = "UNKNOWN"
 
 
 @dataclass
@@ -78,14 +82,14 @@ class CheckControlMessage:
     """Check control message sent from the server."""
 
     description_short: str
-    description_long: str
+    description_long: Optional[str]
     state: CheckControlStatus
 
-    # pylint:disable=invalid-name,unused-argument
+    # pylint:disable=invalid-name,redefined-builtin,unused-argument
     @classmethod
-    def from_api_entry(cls, title: str, longDescription: str, state: str, **kwargs):
+    def from_api_entry(cls, type: str, severity: str, longDescription: str = None, **kwargs):
         """Parses a check control entry from the API format to `CheckControlMessage`."""
-        return cls(title, longDescription, CheckControlStatus(state))
+        return cls(type, longDescription, CheckControlStatus(severity))
 
 
 @dataclass
@@ -103,12 +107,9 @@ class CheckControlMessageReport(VehicleDataBase):
         """Parse doors and windows."""
         retval: Dict[str, Any] = {}
 
-        if "status" not in vehicle_data or "checkControlMessages" not in vehicle_data["status"]:
-            _LOGGER.error("Unable to read data from `status.checkControlMessages`.")
-            return retval
-
-        messages = vehicle_data["status"]["checkControlMessages"]
-        retval["messages"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["state"] != "OK"]
-        retval["has_check_control_messages"] = vehicle_data["status"]["checkControlMessagesGeneralState"] != "No Issues"
+        if ATTR_STATE in vehicle_data and "checkControlMessages" in vehicle_data[ATTR_STATE]:
+            messages = vehicle_data[ATTR_STATE]["checkControlMessages"]
+            retval["messages"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["severity"] != "OK"]
+            retval["has_check_control_messages"] = len(retval["messages"]) > 0
 
         return retval

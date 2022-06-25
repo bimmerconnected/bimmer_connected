@@ -7,6 +7,7 @@ class CarBrands(str, Enum):
 
     @classmethod
     def _missing_(cls, value):
+        value = next(iter(value.split("_")))
         for member in cls:
             if member.value == value.lower():
                 return member
@@ -60,7 +61,8 @@ AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v1/oauth/token"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 
-VEHICLES_URL = "/eadrax-vcs/v1/vehicles"
+VEHICLES_URL = "/eadrax-vcs/v2/vehicles"
+VEHICLE_STATE_URL = VEHICLES_URL + "/{vin}/state"
 
 REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v2/presentation/remote-commands"
 REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + "/{vin}/{service_type}"
@@ -73,8 +75,11 @@ VEHICLE_POI_URL = "/eadrax-dcs/v1/send-to-car/send-to-car"
 VEHICLE_CHARGING_STATISTICS_URL = "/eadrax-chs/v1/charging-statistics"
 VEHICLE_CHARGING_SESSIONS_URL = "/eadrax-chs/v1/charging-sessions"
 
-SERVICE_PROPERTIES = "properties"
-SERVICE_STATUS = "status"
 SERVICE_CHARGING_STATISTICS_URL = "CHARGING_STATISTICS"
 SERVICE_CHARGING_SESSIONS_URL = "CHARGING_SESSIONS"
 SERVICE_CHARGING_PROFILE = "CHARGING_PROFILE"
+
+
+ATTR_STATE = "state"
+ATTR_CAPABILITIES = "capabilities"
+ATTR_ATTRIBUTES = "attributes"

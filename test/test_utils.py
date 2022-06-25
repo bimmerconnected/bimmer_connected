@@ -1,30 +1,32 @@
 """Tests for utils."""
 import datetime
 import json
-import os
 import sys
-import time
-from unittest import mock
+
+try:
+    import zoneinfo
+except ImportError:
+    from backports import zoneinfo  # type: ignore[import, no-redef]
 
 import pytest
 import time_machine
 
+from bimmer_connected.models import ValueWithUnit
 from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
-from . import RESPONSE_DIR, VIN_G21, get_deprecation_warning_count
+from . import VIN_G23
 from .test_account import get_mocked_account
 
 
 @pytest.mark.asyncio
 async def test_drive_train():
     """Tests available attribute."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G21)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
     assert [
         "available_attributes",
         "brand",
         "drive_train",
         "drive_train_attributes",
-        "fuel_indicator_count",
         "has_combustion_drivetrain",
         "has_electric_drivetrain",
         "has_hv_battery",
@@ -36,42 +38,12 @@ async def test_drive_train():
         "is_lsc_enabled",
         "is_vehicle_active",
         "is_vehicle_tracking_enabled",
-        "last_update_reason",
         "lsc_type",
         "mileage",
         "name",
         "timestamp",
         "vin",
     ] == get_class_property_names(vehicle)
-
-
-@time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
-@pytest.mark.asyncio
-async def test_to_json(caplog):
-    """Test serialization to JSON."""
-    with mock.patch("bimmer_connected.account.MyBMWAccount.timezone", new_callable=mock.PropertyMock) as mock_timezone:
-        # Force UTC
-        os.environ["TZ"] = "UTC"
-        time.tzset()
-        mock_timezone.return_value = datetime.timezone.utc
-
-        account = await get_mocked_account()
-        vehicle = account.get_vehicle(VIN_G21)
-
-        # Unset UTC after vehicle has been loaded
-        del os.environ["TZ"]
-        time.tzset()
-
-        with open(RESPONSE_DIR / "G21" / "json_export.json", "rb") as file:
-            expected = file.read().decode("UTF-8")
-
-        expected_lines = expected.splitlines()
-        actual_lines = json.dumps(vehicle, cls=MyBMWJSONEncoder, indent=4).splitlines()
-
-        for i in range(max(len(expected_lines), len(actual_lines))):
-            assert expected_lines[i] == actual_lines[i], f"line {i+1}"
-
-        assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 def test_parse_datetime(caplog):
@@ -91,3 +63,40 @@ def test_parse_datetime(caplog):
     assert parse_datetime(unparseable_datetime) is None
     errors = [r for r in caplog.records if r.levelname == "ERROR" and unparseable_datetime in r.message]
     assert len(errors) == 1
+
+
+@time_machine.travel(
+    datetime.datetime(2011, 11, 28, tzinfo=zoneinfo.ZoneInfo("America/Los_Angeles")),
+    tick=False,
+)
+@pytest.mark.asyncio
+async def test_account_timezone():
+    """Test the timezone in MyBMWAccount."""
+    # mocking the timezone doesn't work with the time_machine<2.7.1 on Python 3.6
+    if sys.version_info > (3, 7):
+        account = await get_mocked_account()
+        assert account.utcdiff == 960
+
+
+def test_json_encoder():
+    """Test the MyBMWJSONEncoder."""
+    encoded = json.dumps(
+        {
+            "datetime": datetime.datetime(2022, 6, 2, 22, 19, 34, 123456),
+            "date": datetime.date(2022, 6, 2),
+            "value": ValueWithUnit(17, "mi"),
+            "list": [
+                {
+                    "value_int": 1,
+                    "value_str": "string",
+                },
+                zoneinfo.ZoneInfo("America/Los_Angeles"),
+            ],
+        },
+        cls=MyBMWJSONEncoder,
+    )
+
+    assert (
+        '{"datetime": "2022-06-02T22:19:34.123456", "date": "2022-06-02", "value": [17, "mi"],'
+        ' "list": [{"value_int": 1, "value_str": "string"}, "America/Los_Angeles"]}'
+    ) == encoded

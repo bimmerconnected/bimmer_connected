@@ -10,32 +10,31 @@ from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
-from . import VIN_F11, VIN_F31, VIN_F48, VIN_G01, VIN_G08, VIN_G30, VIN_I01_REX, get_deprecation_warning_count
+from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
 @pytest.mark.asyncio
 async def test_generic(caplog):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G30).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
 
-    expected = datetime.datetime(
-        year=2021, month=11, day=11, hour=8, minute=58, second=53, tzinfo=datetime.timezone.utc
-    )
+    expected = datetime.datetime(year=2022, month=6, day=1, hour=19, minute=18, second=54, tzinfo=datetime.timezone.utc)
     assert expected == status.timestamp
 
-    assert 7991 == status.mileage[0]
+    assert 1121 == status.mileage[0]
     assert "km" == status.mileage[1]
 
-    assert (12.3456, 34.5678) == status.gps_position
-    assert 123 == status.gps_heading
+    assert (48.177334, 11.556274) == status.gps_position
+    assert 180 == status.gps_heading
 
     assert status.is_vehicle_active is False
-    assert status.fuel_indicator_count == 3
-    assert status.last_update_reason == "Updated from vehicle 11/12/2021 08:58 AM"
+    assert status.fuel_indicator_count is None
+    assert hasattr(status, "last_update_reason") is True
+    assert status.last_update_reason is None
     assert status.has_parking_light_state is False
 
-    assert len(get_deprecation_warning_count(caplog)) == 9
+    assert len(get_deprecation_warning_count(caplog)) == 10
 
 
 @pytest.mark.asyncio
@@ -43,7 +42,7 @@ async def test_range_combustion_no_info(caplog):
     """Test if the parsing of mileage and range is working"""
     status = (await get_mocked_account()).get_vehicle(VIN_F31).status
 
-    assert (32, "LITERS") == status.remaining_fuel
+    assert (14, "L") == status.remaining_fuel
     assert status.remaining_range_fuel == (None, None)
     assert status.fuel_percent is None
 
@@ -58,16 +57,16 @@ async def test_range_combustion_no_info(caplog):
 @pytest.mark.asyncio
 async def test_range_combustion(caplog):
     """Test if the parsing of mileage and range is working"""
-    status = (await get_mocked_account()).get_vehicle(VIN_F48).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G20).status
 
-    assert (19, "LITERS") == status.remaining_fuel
-    assert (308, "km") == status.remaining_range_fuel
-    assert status.fuel_percent is None
+    assert (40, "L") == status.remaining_fuel
+    assert (629, "km") == status.remaining_range_fuel
+    assert status.fuel_percent == 80
 
     assert status.charging_level_hv is None
     assert status.remaining_range_electric == (None, None)
 
-    assert (308, "km") == status.remaining_range_total
+    assert (629, "km") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 6
 
@@ -75,16 +74,16 @@ async def test_range_combustion(caplog):
 @pytest.mark.asyncio
 async def test_range_phev(caplog):
     """Test if the parsing of mileage and range is working"""
-    status = (await get_mocked_account()).get_vehicle(VIN_G30).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
 
-    assert (11, "LITERS") == status.remaining_fuel
-    assert (107, "km") == status.remaining_range_fuel
-    assert 28 == status.fuel_percent
+    assert (40, "L") == status.remaining_fuel
+    assert (476, "km") == status.remaining_range_fuel
+    assert 80 == status.fuel_percent
 
-    assert 41 == status.charging_level_hv
-    assert (9, "km") == status.remaining_range_electric
+    assert 80 == status.charging_level_hv
+    assert (40, "km") == status.remaining_range_electric
 
-    assert (116, "km") == status.remaining_range_total
+    assert (516, "km") == status.remaining_range_total
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
@@ -96,14 +95,14 @@ async def test_range_rex(caplog):
     """Test if the parsing of mileage and range is working"""
     status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).status
 
-    assert (5, "LITERS") == status.remaining_fuel
-    assert (64, "km") == status.remaining_range_fuel
+    assert (6, "L") == status.remaining_fuel
+    assert (105, "km") == status.remaining_range_fuel
     assert status.fuel_percent is None
 
-    assert 100 == status.charging_level_hv
-    assert (164, "km") == status.remaining_range_electric
+    assert 82 == status.charging_level_hv
+    assert (174, "km") == status.remaining_range_electric
 
-    assert (228, "km") == status.remaining_range_total
+    assert (279, "km") == status.remaining_range_total
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
@@ -113,27 +112,27 @@ async def test_range_rex(caplog):
 @pytest.mark.asyncio
 async def test_range_electric(caplog):
     """Test if the parsing of mileage and range is working"""
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
 
-    assert (0, "LITERS") == status.remaining_fuel
-    assert status.remaining_range_fuel == (None, None)
-    assert status.fuel_percent is None
+    assert (0, "L") == status.remaining_fuel
+    assert status.remaining_range_fuel == (0, "km")
+    assert status.fuel_percent == 0
 
-    assert 50 == status.charging_level_hv
-    assert (179, "km") == status.remaining_range_electric
+    assert 80 == status.charging_level_hv
+    assert (472, "km") == status.remaining_range_electric
 
-    assert (179, "km") == status.remaining_range_total
+    assert (472, "km") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 6
 
 
-@time_machine.travel("2011-11-28 21:28:59 +0000", tick=False)
+@time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog):
     """Test if the parsing of mileage and range is working"""
     account = await get_mocked_account()
-    status = account.get_vehicle(VIN_G08).status
-    assert datetime.datetime(2011, 11, 29, 4, 1, tzinfo=account.timezone) == status.charging_end_time
+    status = account.get_vehicle(VIN_I01_NOREX).status
+    assert datetime.datetime(2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc) == status.charging_end_time
 
     warnings = [r for r in caplog.records if r.levelname == "WARNING" and "DeprecationWarning" in r.message]
     assert len(warnings) == 1
@@ -143,44 +142,10 @@ async def test_charging_end_time(caplog):
 async def test_charging_time_label(caplog):
     """Test if the parsing of mileage and range is working"""
     account = await get_mocked_account()
-    status = account.get_vehicle(VIN_G08).status
-    assert "100% at ~04:01 AM" == status.charging_time_label
+    status = account.get_vehicle(VIN_I20).status
+    assert None is status.charging_time_label
 
     assert len(get_deprecation_warning_count(caplog)) == 1
-
-
-@pytest.mark.asyncio
-async def test_charging_end_time_parsing_failure(caplog):
-    """Test if the parsing of mileage and range is working"""
-    account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G08)
-
-    vehicle.update_state(
-        dict(
-            vehicle.data,
-            **{
-                "status": {
-                    "fuelIndicators": [
-                        {
-                            "chargingStatusIndicatorType": "CHARGING",
-                            "chargingStatusType": "CHARGING",
-                            "infoLabel": "100% at later today...",
-                            "rangeIconId": 59683,
-                            "rangeUnits": "km",
-                            "rangeValue": "179",
-                        }
-                    ]
-                },
-            },
-        )
-    )
-    assert vehicle.status.charging_end_time is None
-    assert "100% at later today..." == vehicle.status.charging_time_label
-
-    errors = [r for r in caplog.records if r.levelname == "ERROR" and "Error parsing charging end time" in r.message]
-    assert len(errors) == 1
-
-    assert len(get_deprecation_warning_count(caplog)) == 2
 
 
 @pytest.mark.asyncio
@@ -188,37 +153,36 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
     """G01 is plugged in but not charging, as its waiting for charging window."""
     # Should be None on G01 as it is only "charging"
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G01)
+    vehicle = account.get_vehicle(VIN_I01_REX)
 
     assert vehicle.status.charging_end_time is None
-    assert "Starts at ~ 09:00 AM" == vehicle.status.charging_time_label
-    assert ChargingState.PLUGGED_IN == vehicle.status.charging_status
+    assert ChargingState.WAITING_FOR_CHARGING == vehicle.status.charging_status
     assert "CONNECTED" == vehicle.status.connection_status
 
-    assert len(get_deprecation_warning_count(caplog)) == 4
+    assert len(get_deprecation_warning_count(caplog)) == 3
 
 
 @pytest.mark.asyncio
 async def test_condition_based_services(caplog):
     """Test condition based service messages."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G30).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
 
     cbs = status.condition_based_services
     assert 3 == len(cbs)
     assert ConditionBasedServiceStatus.OK == cbs[0].state
-    expected_cbs0 = datetime.datetime(year=2022, month=8, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs0 = datetime.datetime(year=2024, month=5, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs0 == cbs[0].due_date
-    assert (25000, "KILOMETERS") == cbs[0].due_distance
+    assert (50000, "km") == cbs[0].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[1].state
-    expected_cbs1 = datetime.datetime(year=2023, month=8, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs1 = datetime.datetime(year=2024, month=5, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs1 == cbs[1].due_date
-    assert (None, None) == cbs[1].due_distance
+    assert (50000, "km") == cbs[1].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[2].state
-    expected_cbs2 = datetime.datetime(year=2024, month=8, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs2 = datetime.datetime(year=2024, month=5, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs2 == cbs[2].due_date
-    assert (60000, "KILOMETERS") == cbs[2].due_distance
+    assert (50000, "km") == cbs[2].due_distance
 
     assert status.are_all_cbs_ok is True
 
@@ -240,23 +204,19 @@ async def test_parse_f31_no_position(caplog):
 async def test_parse_gcj02_position(caplog):
     """Test conversion of GCJ02 to WGS84 for china."""
     account = await get_mocked_account(get_region_from_name("china"))
-    vehicle = account.get_vehicle(VIN_F48)
+    vehicle = account.get_vehicle(VIN_G01)
     vehicle.update_state(
         dict(
             vehicle.data,
             **{
-                "properties": {
-                    "vehicleLocation": {
+                "state": {
+                    "location": {
                         "address": {"formatted": "some_formatted_address"},
                         "coordinates": {"latitude": 39.83492, "longitude": 116.23221},
                         "heading": 123,
                     },
                     "lastUpdatedAt": "2021-11-14T20:20:21Z",
-                },
-                "status": {
-                    "FuelAndBattery": [],
-                    "lastUpdatedAt": "2021-11-14T20:20:21Z",
-                },
+                }
             },
         )
     )
@@ -266,41 +226,29 @@ async def test_parse_gcj02_position(caplog):
 
 
 @pytest.mark.asyncio
-async def test_parse_g08(caplog):
-    """Test if the parsing of the attributes is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).status
+async def test_lids(caplog):
+    """Test features around lids."""
+    # status = (await get_mocked_account()).get_vehicle(VIN_G30).status
 
-    assert (179, "km") == status.remaining_range_electric
-    assert (179, "km") == status.remaining_range_total
-    assert ChargingState.CHARGING == status.charging_status
-    assert 50 == status.charging_level_hv
+    # assert 6 == len(list(status.lids))
+    # assert 3 == len(list(status.open_lids))
+    # assert status.all_lids_closed is False
+
+    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
+
+    for lid in status.lids:
+        assert LidState.CLOSED == lid.state
+    assert status.all_lids_closed is True
+    assert 0 == len(status.open_lids)
+    assert 6 == len(list(status.lids))
 
     assert len(get_deprecation_warning_count(caplog)) == 4
 
 
 @pytest.mark.asyncio
-async def test_lids(caplog):
-    """Test features around lids."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G30).status
-
-    assert 6 == len(list(status.lids))
-    assert 3 == len(list(status.open_lids))
-    assert status.all_lids_closed is False
-
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).status
-
-    for lid in status.lids:
-        assert LidState.CLOSED == lid.state
-    assert status.all_lids_closed is True
-    assert 6 == len(list(status.lids))
-
-    assert len(get_deprecation_warning_count(caplog)) == 6
-
-
-@pytest.mark.asyncio
 async def test_windows_g31(caplog):
     """Test features around windows."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
 
     for window in status.windows:
         assert LidState.CLOSED == window.state
@@ -315,7 +263,7 @@ async def test_windows_g31(caplog):
 @pytest.mark.asyncio
 async def test_door_locks(caplog):
     """Test the door locks."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G08).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
 
     assert LockState.LOCKED == status.door_lock_state
 
@@ -333,27 +281,15 @@ async def test_check_control_messages(caplog):
     F11 is the only vehicle with active Check Control Messages, so we only expect to get something there.
     However we have no vehicle with issues in check control.
     """
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F11)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
     assert vehicle.status.has_check_control_messages is True
 
     ccms = vehicle.status.check_control_messages
-    assert 2 == len(ccms)
+    assert 1 == len(ccms)
 
-    assert CheckControlStatus.MEDIUM == ccms[0].state
-    assert (
-        "Charge by driving for longer periods or use external charger. "
-        "Functions requiring battery will be switched off."
-    ) == ccms[0].description_long
-
-    assert "Battery discharged: Start engine" == ccms[0].description_short
-
-    assert CheckControlStatus.LOW == ccms[1].state
-    assert (
-        "System unable to monitor tire pressure. Check tire pressures manually. "
-        "Continued driving possible. Consult service center."
-    ) == ccms[1].description_long
-
-    assert "Flat Tire Monitor (FTM) inactive" == ccms[1].description_short
+    assert CheckControlStatus.LOW == ccms[0].state
+    assert "ENGINE_OIL" == ccms[0].description_short
+    assert None is ccms[0].description_long
 
     assert len(get_deprecation_warning_count(caplog)) == 2
 
@@ -361,7 +297,7 @@ async def test_check_control_messages(caplog):
 @pytest.mark.asyncio
 async def test_functions_without_data(caplog):
     """Test functions that do not return any result anymore."""
-    status = (await get_mocked_account()).get_vehicle(VIN_F11).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
 
     assert status.last_charging_end_result is None
     assert status.parking_lights is None

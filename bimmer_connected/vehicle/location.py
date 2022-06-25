@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from bimmer_connected.const import Regions
+from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE, Regions
 from bimmer_connected.coord_convert import gcj2wgs
 from bimmer_connected.models import GPSPosition, VehicleDataBase
 from bimmer_connected.utils import parse_datetime
@@ -42,11 +42,11 @@ class VehicleLocation(VehicleDataBase):
 
         retval: Dict[str, Any] = {}
         retval["vehicle_update_timestamp"] = max(
-            parse_datetime(vehicle_data.get("properties", {}).get("lastUpdatedAt")) or date_dummy,
-            parse_datetime(vehicle_data.get("status", {}).get("lastUpdatedAt")) or date_dummy,
+            parse_datetime(vehicle_data.get(ATTR_STATE, {}).get("lastFetched")) or date_dummy,
+            parse_datetime(vehicle_data.get(ATTR_ATTRIBUTES, {}).get("lastFetched")) or date_dummy,
         )
-        if "properties" in vehicle_data and "vehicleLocation" in vehicle_data["properties"]:
-            location = vehicle_data["properties"]["vehicleLocation"]
+        if ATTR_STATE in vehicle_data and "location" in vehicle_data[ATTR_STATE]:
+            location = vehicle_data[ATTR_STATE]["location"]
             retval["location"] = GPSPosition(location["coordinates"]["latitude"], location["coordinates"]["longitude"])
             retval["heading"] = location["heading"]
         return retval
