@@ -93,7 +93,7 @@
         },
         "checkControlMessages": [
             {
-                "severity": "LOW",
+                "severity": "MEDIUM",
                 "type": "ENGINE_OIL"
             }
         ],

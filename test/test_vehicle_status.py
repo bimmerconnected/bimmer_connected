@@ -322,6 +322,16 @@ async def test_check_control_messages(caplog):
     ccms = vehicle.check_control_messages.messages
     assert 1 == len(ccms)
 
+    assert CheckControlStatus.MEDIUM == ccms[0].state
+    assert "ENGINE_OIL" == ccms[0].description_short
+    assert None is ccms[0].description_long
+
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G20)
+    assert vehicle.check_control_messages.has_check_control_messages is False
+
+    ccms = vehicle.check_control_messages.messages
+    assert 1 == len(ccms)
+
     assert CheckControlStatus.LOW == ccms[0].state
     assert "ENGINE_OIL" == ccms[0].description_short
     assert None is ccms[0].description_long

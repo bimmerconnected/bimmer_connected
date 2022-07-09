@@ -244,6 +244,7 @@ def test_vehiclebasedata():
         {"state": {"checkControlMessages": [{"severity": "LOW", "type": "ENGINE_OIL"}]}}
     )
     assert len(ccmr.messages) == 1
+    assert ccmr.has_check_control_messages is False
 
 
 def test_gpsposition():
