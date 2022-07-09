@@ -30,7 +30,8 @@ class DriveTrainType(StrEnum):
     PLUGIN_HYBRID = "PLUGIN_HYBRID"  # PHEV
     ELECTRIC = "ELECTRIC"
     ELECTRIC_WITH_RANGE_EXTENDER = "ELECTRIC_WITH_RANGE_EXTENDER"
-    HYBRID = "HYBRID"  # mild hybrids
+    HYBRID = "HYBRID"  # mild hybrids (MyBMW API v1)
+    MILD_HYBRID = "MILD_HYBRID"  # mild hybrids (MyBMW API v2)
     UNKNOWN = "UNKNOWN"
 
 
@@ -38,6 +39,8 @@ class DriveTrainType(StrEnum):
 COMBUSTION_ENGINE_DRIVE_TRAINS = {
     DriveTrainType.COMBUSTION,
     DriveTrainType.PLUGIN_HYBRID,
+    DriveTrainType.HYBRID,
+    DriveTrainType.MILD_HYBRID,
 }
 
 #: set of drive trains that have a high voltage battery
