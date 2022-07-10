@@ -110,6 +110,6 @@ class CheckControlMessageReport(VehicleDataBase):
         if ATTR_STATE in vehicle_data and "checkControlMessages" in vehicle_data[ATTR_STATE]:
             messages = vehicle_data[ATTR_STATE]["checkControlMessages"]
             retval["messages"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["severity"] != "OK"]
-            retval["has_check_control_messages"] = len(retval["messages"]) > 0
+            retval["has_check_control_messages"] = len([m for m in retval["messages"] if m.state != "LOW"]) > 0
 
         return retval

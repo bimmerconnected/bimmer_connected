@@ -287,7 +287,7 @@ async def test_check_control_messages(caplog):
     ccms = vehicle.status.check_control_messages
     assert 1 == len(ccms)
 
-    assert CheckControlStatus.LOW == ccms[0].state
+    assert CheckControlStatus.MEDIUM == ccms[0].state
     assert "ENGINE_OIL" == ccms[0].description_short
     assert None is ccms[0].description_long
 
