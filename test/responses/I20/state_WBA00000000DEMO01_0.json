@@ -134,9 +134,7 @@
             }
         ],
         "combustionFuelLevel": {
-            "range": 0,
-            "remainingFuelLiters": 0,
-            "remainingFuelPercent": 10
+            "range": 504
         },
         "currentMileage": 1121,
         "doorsState": {

@@ -114,9 +114,9 @@ async def test_range_electric(caplog):
     """Test if the parsing of mileage and range is working"""
     status = (await get_mocked_account()).get_vehicle(VIN_G23).status
 
-    assert (0, "L") == status.remaining_fuel
-    assert status.remaining_range_fuel == (0, "km")
-    assert status.fuel_percent == 0
+    assert status.remaining_fuel == (None, None)
+    assert status.remaining_range_fuel == (None, None)
+    assert status.fuel_percent is None
 
     assert 80 == status.charging_level_hv
     assert (472, "km") == status.remaining_range_electric

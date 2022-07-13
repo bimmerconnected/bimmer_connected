@@ -107,15 +107,15 @@ def account_mock():
     return router
 
 
-def get_account(region=None):
+def get_account(region: Regions = None, metric: bool = True):
     """Returns account without token and vehicles (sync)."""
-    return MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
+    return MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION, use_metric_units=metric)
 
 
-async def get_mocked_account(region=None):
+async def get_mocked_account(region: Regions = None, metric: bool = True):
     """Returns pre-mocked account."""
     with account_mock():
-        account = get_account(region)
+        account = get_account(region, metric)
         await account.get_vehicles()
     return account
 
