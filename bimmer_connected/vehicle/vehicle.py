@@ -152,13 +152,6 @@ class MyBMWVehicle:
         return self.drive_train in HV_BATTERY_DRIVE_TRAINS
 
     @property
-    def has_range_extender_drivetrain(self) -> bool:
-        """Return True if vehicle is equipped with a range extender.
-
-        In this case we can get the state of the gas tank."""
-        return self.drive_train == DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER
-
-    @property
     def has_combustion_drivetrain(self) -> bool:
         """Return True if vehicle is equipped with an internal combustion engine.
 
@@ -218,7 +211,7 @@ class MyBMWVehicle:
                 "remaining_range_electric",
                 "last_charging_end_result",
             ]
-        if self.has_combustion_drivetrain or self.has_range_extender_drivetrain:
+        if self.has_combustion_drivetrain:
             result += ["remaining_fuel", "remaining_range_fuel", "remaining_fuel_percent"]
         return result
 
@@ -269,10 +262,10 @@ class MyBMWVehicle:
         return self.has_electric_drivetrain
 
     @property  # type: ignore[misc]
-    @deprecated("vehicle.has_range_extender_drivetrain")
+    @deprecated()
     def has_range_extender(self) -> bool:
         # pylint:disable=missing-function-docstring
-        return self.has_range_extender_drivetrain
+        return False
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.has_combustion_drivetrain")

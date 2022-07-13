@@ -73,19 +73,18 @@ async def test_drive_train_attributes(caplog):
     account = await get_mocked_account()
 
     vehicle_drivetrains = {
-        VIN_F31: (True, False, False),
-        VIN_G01: (True, True, False),
-        VIN_G20: (True, False, False),
-        VIN_G23: (False, True, False),
-        VIN_I01_NOREX: (False, True, False),
-        VIN_I01_REX: (True, True, True),
-        VIN_I20: (False, True, False),
+        VIN_F31: (True, False),
+        VIN_G01: (True, True),
+        VIN_G20: (True, False),
+        VIN_G23: (False, True),
+        VIN_I01_NOREX: (False, True),
+        VIN_I01_REX: (True, True),
+        VIN_I20: (False, True),
     }
 
     for vehicle in account.vehicles:
         assert vehicle_drivetrains[vehicle.vin][0] == vehicle.has_combustion_drivetrain
         assert vehicle_drivetrains[vehicle.vin][1] == vehicle.has_electric_drivetrain
-        assert vehicle_drivetrains[vehicle.vin][2] == vehicle.has_range_extender_drivetrain
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
