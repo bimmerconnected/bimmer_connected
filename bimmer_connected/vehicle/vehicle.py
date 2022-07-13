@@ -8,6 +8,7 @@ from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_CAPABILITIES, ATTR_STAT
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
@@ -21,34 +22,6 @@ if TYPE_CHECKING:
 
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class DriveTrainType(StrEnum):
-    """Different types of drive trains."""
-
-    COMBUSTION = "COMBUSTION"
-    PLUGIN_HYBRID = "PLUGIN_HYBRID"  # PHEV
-    ELECTRIC = "ELECTRIC"
-    ELECTRIC_WITH_RANGE_EXTENDER = "ELECTRIC_WITH_RANGE_EXTENDER"
-    HYBRID = "HYBRID"  # mild hybrids (MyBMW API v1)
-    MILD_HYBRID = "MILD_HYBRID"  # mild hybrids (MyBMW API v2)
-    UNKNOWN = "UNKNOWN"
-
-
-#: Set of drive trains that have a combustion engine
-COMBUSTION_ENGINE_DRIVE_TRAINS = {
-    DriveTrainType.COMBUSTION,
-    DriveTrainType.PLUGIN_HYBRID,
-    DriveTrainType.HYBRID,
-    DriveTrainType.MILD_HYBRID,
-}
-
-#: set of drive trains that have a high voltage battery
-HV_BATTERY_DRIVE_TRAINS = {
-    DriveTrainType.PLUGIN_HYBRID,
-    DriveTrainType.ELECTRIC,
-    DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER,
-}
 
 
 class VehicleViewDirection(StrEnum):
