@@ -97,7 +97,9 @@ async def get_status(args) -> None:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
 
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
@@ -128,7 +130,13 @@ async def fingerprint(args) -> None:
     time_dir = Path.home() / "vehicle_fingerprint" / time.strftime("%Y-%m-%d_%H-%M-%S")
     time_dir.mkdir(parents=True)
 
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region), log_responses=time_dir)
+    account = MyBMWAccount(
+        args.username,
+        args.password,
+        get_region_from_name(args.region),
+        log_responses=time_dir,
+        use_metric_units=(not args.imperial),
+    )
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
@@ -155,7 +163,9 @@ async def fingerprint(args) -> None:
 
 async def light_flash(args) -> None:
     """Trigger the vehicle to flash its lights."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_light_flash()
@@ -164,7 +174,9 @@ async def light_flash(args) -> None:
 
 async def vehicle_finder(args) -> None:
     """Trigger the vehicle finder to locate it."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
     account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
@@ -175,7 +187,9 @@ async def vehicle_finder(args) -> None:
 
 async def image(args) -> None:
     """Download a rendered image of the vehicle."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -189,7 +203,9 @@ async def image(args) -> None:
 
 async def send_poi(args) -> None:
     """Send Point Of Interest to car."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -207,7 +223,9 @@ async def send_poi(args) -> None:
 
 async def send_poi_from_address(args) -> None:
     """Create Point of Interest from OSM Nominatim and send to car."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -243,6 +261,10 @@ def _add_default_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("username", help="Connected Drive username")
     parser.add_argument("password", help="Connected Drive password")
     parser.add_argument("region", choices=valid_regions(), help="Region of the Connected Drive account")
+
+    parser.add_argument(
+        "-i", "--imperial", default=False, help="(optional) Use imperial instead of metric units", action="store_true"
+    )
 
 
 def _add_position_arguments(parser: argparse.ArgumentParser):
