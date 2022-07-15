@@ -3,7 +3,8 @@ import pytest
 
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE, CarBrands
 from bimmer_connected.models import GPSPosition, StrEnum, VehicleDataBase
-from bimmer_connected.vehicle import DriveTrainType, VehicleViewDirection
+from bimmer_connected.vehicle import VehicleViewDirection
+from bimmer_connected.vehicle.const import DriveTrainType
 from bimmer_connected.vehicle.reports import CheckControlMessageReport
 
 from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
@@ -72,19 +73,18 @@ async def test_drive_train_attributes(caplog):
     account = await get_mocked_account()
 
     vehicle_drivetrains = {
-        VIN_F31: (True, False, False),
-        VIN_G01: (True, True, False),
-        VIN_G20: (True, False, False),
-        VIN_G23: (False, True, False),
-        VIN_I01_NOREX: (False, True, False),
-        VIN_I01_REX: (False, True, True),
-        VIN_I20: (False, True, False),
+        VIN_F31: (True, False),
+        VIN_G01: (True, True),
+        VIN_G20: (True, False),
+        VIN_G23: (False, True),
+        VIN_I01_NOREX: (False, True),
+        VIN_I01_REX: (True, True),
+        VIN_I20: (False, True),
     }
 
     for vehicle in account.vehicles:
         assert vehicle_drivetrains[vehicle.vin][0] == vehicle.has_combustion_drivetrain
         assert vehicle_drivetrains[vehicle.vin][1] == vehicle.has_electric_drivetrain
-        assert vehicle_drivetrains[vehicle.vin][2] == vehicle.has_range_extender_drivetrain
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 

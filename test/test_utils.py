@@ -32,7 +32,6 @@ async def test_drive_train():
         "has_hv_battery",
         "has_internal_combustion_engine",
         "has_range_extender",
-        "has_range_extender_drivetrain",
         "has_weekly_planner_service",
         "is_charging_plan_supported",
         "is_lsc_enabled",

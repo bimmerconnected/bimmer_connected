@@ -8,6 +8,7 @@ from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_CAPABILITIES, ATTR_STAT
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
@@ -21,34 +22,6 @@ if TYPE_CHECKING:
 
 
 _LOGGER = logging.getLogger(__name__)
-
-
-class DriveTrainType(StrEnum):
-    """Different types of drive trains."""
-
-    COMBUSTION = "COMBUSTION"
-    PLUGIN_HYBRID = "PLUGIN_HYBRID"  # PHEV
-    ELECTRIC = "ELECTRIC"
-    ELECTRIC_WITH_RANGE_EXTENDER = "ELECTRIC_WITH_RANGE_EXTENDER"
-    HYBRID = "HYBRID"  # mild hybrids (MyBMW API v1)
-    MILD_HYBRID = "MILD_HYBRID"  # mild hybrids (MyBMW API v2)
-    UNKNOWN = "UNKNOWN"
-
-
-#: Set of drive trains that have a combustion engine
-COMBUSTION_ENGINE_DRIVE_TRAINS = {
-    DriveTrainType.COMBUSTION,
-    DriveTrainType.PLUGIN_HYBRID,
-    DriveTrainType.HYBRID,
-    DriveTrainType.MILD_HYBRID,
-}
-
-#: set of drive trains that have a high voltage battery
-HV_BATTERY_DRIVE_TRAINS = {
-    DriveTrainType.PLUGIN_HYBRID,
-    DriveTrainType.ELECTRIC,
-    DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER,
-}
 
 
 class VehicleViewDirection(StrEnum):
@@ -179,13 +152,6 @@ class MyBMWVehicle:
         return self.drive_train in HV_BATTERY_DRIVE_TRAINS
 
     @property
-    def has_range_extender_drivetrain(self) -> bool:
-        """Return True if vehicle is equipped with a range extender.
-
-        In this case we can get the state of the gas tank."""
-        return self.drive_train == DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER
-
-    @property
     def has_combustion_drivetrain(self) -> bool:
         """Return True if vehicle is equipped with an internal combustion engine.
 
@@ -245,7 +211,7 @@ class MyBMWVehicle:
                 "remaining_range_electric",
                 "last_charging_end_result",
             ]
-        if self.has_combustion_drivetrain or self.has_range_extender_drivetrain:
+        if self.has_combustion_drivetrain:
             result += ["remaining_fuel", "remaining_range_fuel", "remaining_fuel_percent"]
         return result
 
@@ -296,10 +262,10 @@ class MyBMWVehicle:
         return self.has_electric_drivetrain
 
     @property  # type: ignore[misc]
-    @deprecated("vehicle.has_range_extender_drivetrain")
+    @deprecated()
     def has_range_extender(self) -> bool:
         # pylint:disable=missing-function-docstring
-        return self.has_range_extender_drivetrain
+        return False
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.has_combustion_drivetrain")

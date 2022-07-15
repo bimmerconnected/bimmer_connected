@@ -1,3 +1,4 @@
 """Methods and classes around the vehicle."""
 
-from .vehicle import ConnectedDriveVehicle, DriveTrainType, MyBMWVehicle, VehicleViewDirection  # noqa
+from .const import DriveTrainType  # noqa
+from .vehicle import ConnectedDriveVehicle, MyBMWVehicle, VehicleViewDirection  # noqa
