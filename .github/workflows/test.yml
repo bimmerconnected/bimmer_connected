@@ -30,12 +30,13 @@ jobs:
         run: |
           pytest --cov=bimmer_connected --timeout=10 --cov-report=xml test
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
+        uses: codecov/codecov-action@v3
         with:
           fail_ci_if_error: true
           files: ./coverage.xml
           name: "pytest-${{ matrix.python-version }}"
-          flags: ${{ matrix.python-version }}
+          flags: "${{ matrix.python-version }}"
+          verbose: true
 
   flake8:
     runs-on: ubuntu-latest
