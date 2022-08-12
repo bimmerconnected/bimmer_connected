@@ -27,7 +27,7 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
 
     service_type: str
     state: ConditionBasedServiceStatus
-    due_date: Optional[datetime.date]
+    due_date: Optional[datetime.datetime]
     due_distance: ValueWithUnit
 
     # pylint:disable=invalid-name,redefined-builtin,too-many-arguments,unused-argument
