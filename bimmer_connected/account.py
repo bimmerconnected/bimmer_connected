@@ -76,26 +76,26 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
             ]
 
             for response in vehicles_responses:
-                for vehicle_dict in response.json():
+                for vehicle_base in response.json():
                     # Get the detailed vehicle state
                     state_response = await client.get(
-                        VEHICLE_STATE_URL.format(vin=vehicle_dict["vin"]),
+                        VEHICLE_STATE_URL.format(vin=vehicle_base["vin"]),
                         headers=response.request.headers,  # Reuse the same headers as used to get vehicle list
                     )
+                    vehicle_state = state_response.json()
 
-                    # Add state information to vehicle_dict
-                    vehicle_dict.update(state_response.json())
+                    self.add_vehicle(vehicle_base, vehicle_state, fetched_at)
 
-                    # Add unit information
-                    vehicle_dict["is_metric"] = self.config.use_metric_units
-                    vehicle_dict["fetched_at"] = fetched_at
+    def add_vehicle(self, vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None) -> None:
+        """Add or update a vehicle from the API responses."""
 
-                    # If vehicle already exists, just update it's state
-                    existing_vehicle = self.get_vehicle(vehicle_dict["vin"])
-                    if existing_vehicle:
-                        existing_vehicle.update_state(vehicle_dict)
-                    else:
-                        self.vehicles.append(MyBMWVehicle(self, vehicle_dict))
+        existing_vehicle = self.get_vehicle(vehicle_base["vin"])
+
+        # If vehicle already exists, just update it's state
+        if existing_vehicle:
+            existing_vehicle.update_state(vehicle_base, vehicle_state, fetched_at)
+        else:
+            self.vehicles.append(MyBMWVehicle(self, vehicle_base, vehicle_state, fetched_at))
 
     def get_vehicle(self, vin: str) -> Optional[MyBMWVehicle]:
         """Get vehicle with given VIN.

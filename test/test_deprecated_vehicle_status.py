@@ -9,6 +9,7 @@ from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
+from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
 
 from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
 from .test_account import get_mocked_account
@@ -205,6 +206,7 @@ async def test_parse_gcj02_position(caplog):
     """Test conversion of GCJ02 to WGS84 for china."""
     account = await get_mocked_account(get_region_from_name("china"))
     vehicle = account.get_vehicle(VIN_G01)
+    vehicle = ConnectedDriveVehicle(account, vehicle.data)
     vehicle.update_state(
         dict(
             vehicle.data,
@@ -222,7 +224,7 @@ async def test_parse_gcj02_position(caplog):
     )
     assert (39.8337, 116.22617) == (round(vehicle.status.gps_position[0], 5), round(vehicle.status.gps_position[1], 5))
 
-    assert len(get_deprecation_warning_count(caplog)) == 2
+    assert len(get_deprecation_warning_count(caplog)) == 3
 
 
 @pytest.mark.asyncio
