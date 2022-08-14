@@ -303,10 +303,10 @@ async def test_parse_gcj02_position(caplog):
         },
     }
 
-    vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
+    vehicle.update_state(dict(vehicle.data, **vehicle_test_data), {})
 
     # Update twice to test against slowly crawling position due to GCJ02 to WGS84 conversion
-    vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
+    vehicle.update_state(dict(vehicle.data, **vehicle_test_data), {})
 
     assert (39.8337, 116.22617) == (
         round(vehicle.vehicle_location.location[0], 5),

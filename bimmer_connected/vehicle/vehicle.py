@@ -1,7 +1,7 @@
 """Models state and remote services of one vehicle."""
 import datetime
 import logging
-from typing import TYPE_CHECKING, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_CAPABILITIES, ATTR_STATE, VEHICLE_IMAGE_URL, CarBrands
@@ -61,10 +61,12 @@ class MyBMWVehicle:
     :param attributes: attributes of the vehicle as provided by the server
     """
 
-    def __init__(self, account: "MyBMWAccount", vehicle_data: dict) -> None:
+    def __init__(
+        self, account: "MyBMWAccount", vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None
+    ) -> None:
         """Initializes a MyBMWVehicle."""
         self.account = account
-        self.data = vehicle_data
+        self.data = self.combine_data(account, vehicle_base, vehicle_state, fetched_at)
         self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
         self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
@@ -74,10 +76,11 @@ class MyBMWVehicle:
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
         self.charging_profile: Optional[ChargingProfile] = None
 
-        self.update_state(vehicle_data)
+        self.update_state(vehicle_base, vehicle_state, fetched_at)
 
-    def update_state(self, vehicle_data) -> None:
+    def update_state(self, vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None) -> None:
         """Update the state of a vehicle."""
+        vehicle_data = self.combine_data(self.account, vehicle_base, vehicle_state or {}, fetched_at)
         self.data = vehicle_data
 
         update_entities: List[Tuple[Type["VehicleDataBase"], str]] = [
@@ -94,6 +97,18 @@ class MyBMWVehicle:
             else:
                 curr_attr: "VehicleDataBase" = getattr(self, vehicle_attribute)
                 curr_attr.update_from_vehicle_data(vehicle_data)
+
+    @staticmethod
+    def combine_data(
+        account: "MyBMWAccount", vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None
+    ) -> Dict:
+        """Combine API responses and additional information to a single dictionary."""
+        return {
+            **vehicle_base,
+            **vehicle_state,
+            "is_metric": account.config.use_metric_units,
+            "fetched_at": fetched_at or datetime.datetime.now(datetime.timezone.utc),
+        }
 
     # # # # # # # # # # # # # # #
     # Generic attributes
@@ -283,3 +298,14 @@ class MyBMWVehicle:
 @deprecated("MyBMWVehicle")
 class ConnectedDriveVehicle(MyBMWVehicle):
     """Deprecated class name for compatibility."""
+
+    def __init__(self, account: "MyBMWAccount", vehicle_dict: dict) -> None:
+        """Initializes a ConnectedDriveVehicle (deprecated)."""
+        super().__init__(account, vehicle_dict, {})
+
+    def update_state(
+        self, vehicle_base: dict, vehicle_state: dict = None, fetched_at: datetime.datetime = None
+    ) -> None:
+        """Update the state of a vehicle."""
+
+        super().update_state(vehicle_base, vehicle_state or {}, fetched_at)
