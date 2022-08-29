@@ -1,10 +1,12 @@
 """Access to a MyBMW account and all vehicles therein."""
 
 import datetime
+import json
 import logging
 import pathlib
 from dataclasses import InitVar, dataclass, field
-from typing import List, Optional
+from tempfile import TemporaryDirectory
+from typing import Any, Dict, List, Optional
 
 import httpx
 
@@ -85,6 +87,26 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                     vehicle_state = state_response.json()
 
                     self.add_vehicle(vehicle_base, vehicle_state, fetched_at)
+
+    async def get_fingerprints(self) -> Dict[str, Any]:
+        """Retrieve vehicle data from BMW servers and return original responses as JSON."""
+        original_log_response_path = self.config.log_response_path
+        fingerprints = {}
+
+        try:
+            # Use a temporary directory to just get the files from one call to get_vehicles()
+            with TemporaryDirectory() as tempdir:
+                tempdir_path = pathlib.Path(tempdir)
+                self.config.log_response_path = tempdir_path
+                await self.get_vehicles()
+                for logfile in tempdir_path.iterdir():
+                    with open(logfile, "rb") as pointer:
+                        fingerprints[logfile.name] = json.load(pointer)
+        finally:
+            # Make sure that log_response_path is always set to the original value afterwards
+            self.config.log_response_path = original_log_response_path
+
+        return fingerprints
 
     def add_vehicle(self, vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None) -> None:
         """Add or update a vehicle from the API responses."""
