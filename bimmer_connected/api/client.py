@@ -50,7 +50,7 @@ class MyBMWClient(httpx.AsyncClient):
             brand = [x for x in [b.value for b in CarBrands] if x in response.request.headers.get("x-user-agent", "")]
             base_file_name = "_".join([response.url.path.split("/")[-1]] + brand)
             base_file_name = re.sub(r"\d", "0", base_file_name)
-            log_to_to_file(content, config.log_response_path, base_file_name)  # type: ignore[arg-type]
+            await log_to_to_file(content, config.log_response_path, base_file_name)  # type: ignore[arg-type]
 
         if config.log_response_path:
             kwargs["event_hooks"]["response"].append(log_response)
