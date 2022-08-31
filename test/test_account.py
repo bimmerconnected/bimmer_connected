@@ -545,3 +545,17 @@ async def test_client_async_only():
     with httpx.Client(auth=MyBMWLoginRetry()) as client:
         with pytest.raises(RuntimeError):
             client.get("/eadrax-ucs/v1/presentation/oauth/config")
+
+
+@pytest.mark.asyncio
+async def test_get_fingerprints():
+    """Test get_fingerprints to JSON."""
+    with account_mock():
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+        fingerprints = await account.get_fingerprints()
+
+        assert len([f for f in fingerprints if f.startswith("vehicles")]) == 2
+        assert len([f for f in fingerprints if f.startswith("state_bmw")]) == len(ALL_FINGERPRINTS.get("bmw", {}))
+        assert len([f for f in fingerprints if f.startswith("state_mini")]) == len(ALL_FINGERPRINTS.get("mini", {}))
+        assert len([f for f in fingerprints if f.startswith("state")]) == get_fingerprint_count()
