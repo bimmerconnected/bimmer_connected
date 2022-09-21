@@ -46,7 +46,8 @@ def test_anonymize_data():
     assert "more_public_data" in anon_text
 
 
-def test_log_to_file_without_file_name(tmp_path):
+@pytest.mark.asyncio
+async def test_log_to_file_without_file_name(tmp_path):
     """Test not logging to file if no file name is given."""
-    assert log_to_to_file(content=[], logfile_path=tmp_path, logfile_name=None) is None
+    assert await log_to_to_file(content=[], logfile_path=tmp_path, logfile_name=None) is None
     assert len(list(tmp_path.iterdir())) == 0

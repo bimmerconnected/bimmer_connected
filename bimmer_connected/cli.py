@@ -11,6 +11,7 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
+from aiofile import async_open
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
@@ -195,9 +196,9 @@ async def image(args) -> None:
 
     for viewdirection in VehicleViewDirection:
         filename = str(viewdirection.name).lower() + ".png"
-        with open(filename, "wb") as output_file:
+        async with async_open(filename, "wb") as output_file:
             image_data = await vehicle.get_vehicle_image(viewdirection)
-            output_file.write(image_data)
+            await output_file.write(image_data)
         print(f"vehicle image saved to {filename}")
 
 

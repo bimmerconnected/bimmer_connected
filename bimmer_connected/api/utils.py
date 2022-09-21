@@ -7,10 +7,15 @@ import logging
 import pathlib
 import random
 import string
-from typing import Dict, List, Union
+from tempfile import TemporaryDirectory
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 from uuid import uuid4
 
 import httpx
+from aiofile import async_open
+
+if TYPE_CHECKING:
+    from bimmer_connected.account import MyBMWAccount
 
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
 
@@ -85,7 +90,7 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
     return json_data
 
 
-def log_to_to_file(content: Union[str, bytes, List, Dict], logfile_path: pathlib.Path, logfile_name: str) -> None:
+async def log_to_to_file(content: Union[str, bytes, List, Dict], logfile_path: pathlib.Path, logfile_name: str) -> None:
     """If a log path is set, log all responses to a file."""
     if logfile_path is None or logfile_name is None:
         return
@@ -105,5 +110,26 @@ def log_to_to_file(content: Union[str, bytes, List, Dict], logfile_path: pathlib
         output_path = logfile_path / f"{logfile_name}_{count}.{file_extension}"
         count += 1
 
-    with open(output_path, "w", encoding="UTF-8") as logfile:
-        logfile.write(anonymized_data)
+    async with async_open(output_path, "w", encoding="UTF-8") as logfile:
+        await logfile.write(anonymized_data)
+
+
+async def get_fingerprints(account: "MyBMWAccount") -> Dict[str, Any]:
+    """Retrieve vehicle data from BMW servers and return original responses as JSON."""
+    original_log_response_path = account.config.log_response_path
+    fingerprints = {}
+
+    try:
+        # Use a temporary directory to just get the files from one call to get_vehicles()
+        with TemporaryDirectory() as tempdir:
+            tempdir_path = pathlib.Path(tempdir)
+            account.config.log_response_path = tempdir_path
+            await account.get_vehicles()
+            for logfile in tempdir_path.iterdir():
+                async with async_open(logfile, "rb") as pointer:
+                    fingerprints[logfile.name] = json.loads(await pointer.read())
+    finally:
+        # Make sure that log_response_path is always set to the original value afterwards
+        account.config.log_response_path = original_log_response_path
+
+    return fingerprints

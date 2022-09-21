@@ -20,6 +20,7 @@ from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
+from bimmer_connected.api.utils import get_fingerprints
 from bimmer_connected.const import Regions
 from bimmer_connected.models import GPSPosition
 
@@ -553,7 +554,7 @@ async def test_get_fingerprints():
     with account_mock():
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
-        fingerprints = await account.get_fingerprints()
+        fingerprints = await get_fingerprints(account)
 
         assert len([f for f in fingerprints if f.startswith("vehicles")]) == 2
         assert len([f for f in fingerprints if f.startswith("state_bmw")]) == len(ALL_FINGERPRINTS.get("bmw", {}))
