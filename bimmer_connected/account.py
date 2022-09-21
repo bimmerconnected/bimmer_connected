@@ -57,8 +57,8 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                 use_metric_units=use_metric_units,
             )
 
-    async def get_vehicles(self) -> None:
-        """Retrieve vehicle data from BMW servers."""
+    async def _init_vehicles(self) -> None:
+        """Initialize vehicles from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
         fetched_at = datetime.datetime.now(datetime.timezone.utc)
@@ -77,14 +77,29 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
 
             for response in vehicles_responses:
                 for vehicle_base in response.json():
-                    # Get the detailed vehicle state
-                    state_response = await client.get(
-                        VEHICLE_STATE_URL.format(vin=vehicle_base["vin"]),
-                        headers=response.request.headers,  # Reuse the same headers as used to get vehicle list
-                    )
-                    vehicle_state = state_response.json()
+                    self.add_vehicle(vehicle_base, {}, fetched_at)
 
-                    self.add_vehicle(vehicle_base, vehicle_state, fetched_at)
+    async def get_vehicles(self, force_init: bool = False) -> None:
+        """Retrieve vehicle data from BMW servers."""
+        _LOGGER.debug("Getting vehicle list")
+
+        fetched_at = datetime.datetime.now(datetime.timezone.utc)
+
+        if len(self.vehicles) == 0 or force_init:
+            await self._init_vehicles()
+
+        async with MyBMWClient(self.config) as client:
+            for vehicle in self.vehicles:
+                # Get the detailed vehicle state
+                state_response = await client.get(
+                    VEHICLE_STATE_URL.format(vin=vehicle.vin),
+                    headers={
+                        **client.generate_default_header(vehicle.brand),
+                        "bmw-current-date": fetched_at.isoformat(),
+                    },
+                )
+                vehicle_state = state_response.json()
+                self.add_vehicle(vehicle.data, vehicle_state, fetched_at)
 
     def add_vehicle(self, vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None) -> None:
         """Add or update a vehicle from the API responses."""

@@ -161,7 +161,7 @@ async def test_login_refresh_token_row_na_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
             wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get("/eadrax-vcs/v2/vehicles").mock(
+            mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -234,7 +234,7 @@ async def test_login_refresh_token_china_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
             wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get("/eadrax-vcs/v2/vehicles").mock(
+            mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -281,6 +281,32 @@ async def test_vehicles():
     assert VIN_G23 == vehicle.vin
 
     assert account.get_vehicle("invalid_vin") is None
+
+
+@account_mock()
+@pytest.mark.asyncio
+async def test_vehicle_init():
+    """Test vehicle initialization."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    with mock.patch(
+        "bimmer_connected.account.MyBMWAccount._init_vehicles",
+        wraps=account._init_vehicles,  # pylint: disable=protected-access
+    ) as mock_listener:
+        mock_listener.reset_mock()
+
+        # First call on init
+        await account.get_vehicles()
+        assert len(account.vehicles) == get_fingerprint_count()
+
+        # No call to _init_vehicles()
+        await account.get_vehicles()
+        assert len(account.vehicles) == get_fingerprint_count()
+
+        # Second, forced call _init_vehicles()
+        await account.get_vehicles(force_init=True)
+        assert len(account.vehicles) == get_fingerprint_count()
+
+        assert mock_listener.call_count == 2
 
 
 @pytest.mark.asyncio
@@ -337,7 +363,7 @@ async def test_storing_fingerprints(tmp_path):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
         await account.get_vehicles()
 
-        mock_api.get("/eadrax-vcs/v2/vehicles").respond(
+        mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
         with pytest.raises(httpx.HTTPStatusError):
