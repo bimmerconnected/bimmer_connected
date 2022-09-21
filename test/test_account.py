@@ -160,7 +160,7 @@ async def test_login_refresh_token_row_na_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
             wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get("/eadrax-vcs/v2/vehicles").mock(
+            mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -233,7 +233,7 @@ async def test_login_refresh_token_china_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
             wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get("/eadrax-vcs/v2/vehicles").mock(
+            mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -336,7 +336,7 @@ async def test_storing_fingerprints(tmp_path):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
         await account.get_vehicles()
 
-        mock_api.get("/eadrax-vcs/v2/vehicles").respond(
+        mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
         with pytest.raises(httpx.HTTPStatusError):
