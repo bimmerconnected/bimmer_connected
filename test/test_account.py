@@ -282,6 +282,32 @@ async def test_vehicles():
     assert account.get_vehicle("invalid_vin") is None
 
 
+@account_mock()
+@pytest.mark.asyncio
+async def test_vehicle_init():
+    """Test vehicle initialization."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    with mock.patch(
+        "bimmer_connected.account.MyBMWAccount._init_vehicles",
+        wraps=account._init_vehicles,  # pylint: disable=protected-access
+    ) as mock_listener:
+        mock_listener.reset_mock()
+
+        # First call on init
+        await account.get_vehicles()
+        assert len(account.vehicles) == get_fingerprint_count()
+
+        # No call to _init_vehicles()
+        await account.get_vehicles()
+        assert len(account.vehicles) == get_fingerprint_count()
+
+        # Second, forced call _init_vehicles()
+        await account.get_vehicles(force_init=True)
+        assert len(account.vehicles) == get_fingerprint_count()
+
+        assert mock_listener.call_count == 2
+
+
 @pytest.mark.asyncio
 async def test_invalid_password():
     """Test parsing the results of an invalid password."""

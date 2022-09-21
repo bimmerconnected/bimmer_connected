@@ -81,13 +81,13 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                 for vehicle_base in response.json():
                     self.add_vehicle(vehicle_base, {}, fetched_at)
 
-    async def get_vehicles(self) -> None:
+    async def get_vehicles(self, force_init: bool = False) -> None:
         """Retrieve vehicle data from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
         fetched_at = datetime.datetime.now(datetime.timezone.utc)
 
-        if len(self.vehicles) == 0:
+        if len(self.vehicles) == 0 or force_init:
             await self._init_vehicles()
 
         async with MyBMWClient(self.config) as client:
