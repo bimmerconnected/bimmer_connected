@@ -13,6 +13,8 @@ from uuid import uuid4
 
 import httpx
 
+from bimmer_connected.models import AnonymizedResponse
+
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
 RE_VIN = re.compile(r"(?P<vin>WB[a-zA-Z0-9]{15})")
 ANONYMIZED_VINS: Dict[str, str] = {}
@@ -97,22 +99,20 @@ def anonymize_vin(match: Match):
     return ANONYMIZED_VINS[vin]
 
 
-def anonymize_response(response: httpx.Response) -> Dict[str, str]:
+def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     """Anonymize a responses URL and content."""
     brand = response.request.headers.get("x-user-agent", ";").split(";")[1]
     brand = f"{brand}-" if brand else ""
 
-    url_path = "_".join(response.url.path.split("/")[3:] + [f"{k}={v}" for k, v in response.request.url.params.items()])
+    url_path = "_".join(response.url.path.split("/")[3:] + [str(response.request.url.params)])
     url_path = RE_VIN.sub(anonymize_vin, url_path)
 
     try:
+        content: Union[List, Dict, str]
         content = anonymize_data(response.json())
     except json.JSONDecodeError:
         content = response.text
 
     file_extension = mimetypes.guess_extension(response.headers.get("content-type") or "") or ".txt"
 
-    return {
-        "filename": f"{brand}{url_path}{file_extension}",
-        "content": content,
-    }
+    return AnonymizedResponse(f"{brand}{url_path}{file_extension}", content)

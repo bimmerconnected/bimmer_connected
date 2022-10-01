@@ -10,6 +10,8 @@ import traceback
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional
 
+from bimmer_connected.models import AnonymizedResponse
+
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
 
@@ -105,15 +107,15 @@ def to_camel_case(input_str: str) -> str:
     return retval
 
 
-def log_response_store_to_file(response_store: List[Dict[str, str]], logfile_path: pathlib.Path) -> None:
+def log_response_store_to_file(response_store: List[AnonymizedResponse], logfile_path: pathlib.Path) -> None:
     """Log all responses to files."""
 
     for response in response_store:
-        output_path = logfile_path / response["filename"]
+        output_path = logfile_path / response.filename
+        content = response.content
 
         with open(output_path, "w", encoding="UTF-8") as logfile:
-            content = response.get("content") or "NO CONTENT"
-            if output_path.suffix == ".json" and content != "NO CONTENT":
-                json.dump(content, logfile, indent=4, sort_keys=True)
+            if output_path.suffix == ".json" or not isinstance(content, str):
+                json.dump(content or [], logfile, indent=4, sort_keys=True)
             else:
-                logfile.write(content)
+                logfile.write((content or "NO CONTENT"))

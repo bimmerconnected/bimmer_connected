@@ -369,7 +369,7 @@ async def test_get_fingerprints():
         with pytest.raises(httpx.HTTPStatusError):
             await account.get_vehicles()
 
-    filenames = [Path(f["filename"]) for f in account.get_stored_responses()]
+    filenames = [Path(f.filename) for f in account.get_stored_responses()]
     json_files = [f for f in filenames if f.suffix == ".json"]
     txt_files = [f for f in filenames if f.suffix == ".txt"]
 

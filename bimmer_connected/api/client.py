@@ -10,9 +10,9 @@ from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_app_version, get_server_url
 from bimmer_connected.api.utils import anonymize_response, get_correlation_id
 from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
-from bimmer_connected.models import GPSPosition
+from bimmer_connected.models import AnonymizedResponse, GPSPosition
 
-RESPONSE_STORE: Deque[Dict[str, str]] = deque(maxlen=10)
+RESPONSE_STORE: Deque[AnonymizedResponse] = deque(maxlen=10)
 
 
 @dataclass

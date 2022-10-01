@@ -3,7 +3,7 @@
 import datetime
 import logging
 from dataclasses import InitVar, dataclass, field
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 import httpx
 
@@ -11,7 +11,7 @@ from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import VEHICLE_STATE_URL, VEHICLES_URL, CarBrands
-from bimmer_connected.models import GPSPosition
+from bimmer_connected.models import AnonymizedResponse, GPSPosition
 from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
 
@@ -136,7 +136,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
         self.config.use_metric_units = use_metric_units
 
     @staticmethod
-    def get_stored_responses() -> List[Dict[str, str]]:
+    def get_stored_responses() -> List[AnonymizedResponse]:
         """Return responses stored if log_responses was set to True."""
         responses = list(RESPONSE_STORE)
         RESPONSE_STORE.clear()
