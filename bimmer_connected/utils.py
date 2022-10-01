@@ -112,4 +112,8 @@ def log_response_store_to_file(response_store: List[Dict[str, str]], logfile_pat
         output_path = logfile_path / response["filename"]
 
         with open(output_path, "w", encoding="UTF-8") as logfile:
-            logfile.write(response.get("content", "NO CONTENT"))
+            content = response.get("content") or "NO CONTENT"
+            if output_path.suffix == ".json" and content != "NO CONTENT":
+                json.dump(content, logfile, indent=4, sort_keys=True)
+            else:
+                logfile.write(content)

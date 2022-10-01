@@ -106,7 +106,7 @@ def anonymize_response(response: httpx.Response) -> Dict[str, str]:
     url_path = RE_VIN.sub(anonymize_vin, url_path)
 
     try:
-        content = json.dumps(anonymize_data(response.json()), indent=2, sort_keys=True)
+        content = anonymize_data(response.json())
     except json.JSONDecodeError:
         content = response.text
 
