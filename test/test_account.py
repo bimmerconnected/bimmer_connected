@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+from pathlib import Path
 
 try:
     from unittest import mock
@@ -20,7 +21,6 @@ from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.api.utils import get_fingerprints
 from bimmer_connected.const import Regions
 from bimmer_connected.models import GPSPosition
 
@@ -357,10 +357,10 @@ async def test_vehicle_search_case():
 
 
 @pytest.mark.asyncio
-async def test_storing_fingerprints(tmp_path):
-    """Test the login flow."""
+async def test_get_fingerprints():
+    """Test getting fingerprints."""
     with account_mock() as mock_api:
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=tmp_path)
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
         await account.get_vehicles()
 
         mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").respond(
@@ -369,9 +369,9 @@ async def test_storing_fingerprints(tmp_path):
         with pytest.raises(httpx.HTTPStatusError):
             await account.get_vehicles()
 
-    files = list(tmp_path.iterdir())
-    json_files = [f for f in files if f.suffix == ".json"]
-    txt_files = [f for f in files if f.suffix == ".txt"]
+    filenames = [Path(f["filename"]) for f in account.get_stored_responses()]
+    json_files = [f for f in filenames if f.suffix == ".json"]
+    txt_files = [f for f in filenames if f.suffix == ".txt"]
 
     assert len(json_files) == (get_fingerprint_count() + 2)
     assert len(txt_files) == 1
@@ -572,17 +572,3 @@ async def test_client_async_only():
     with httpx.Client(auth=MyBMWLoginRetry()) as client:
         with pytest.raises(RuntimeError):
             client.get("/eadrax-ucs/v1/presentation/oauth/config")
-
-
-@pytest.mark.asyncio
-async def test_get_fingerprints():
-    """Test get_fingerprints to JSON."""
-    with account_mock():
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
-
-        fingerprints = await get_fingerprints(account)
-
-        assert len([f for f in fingerprints if f.startswith("vehicles")]) == 2
-        assert len([f for f in fingerprints if f.startswith("state_bmw")]) == len(ALL_FINGERPRINTS.get("bmw", {}))
-        assert len([f for f in fingerprints if f.startswith("state_mini")]) == len(ALL_FINGERPRINTS.get("mini", {}))
-        assert len([f for f in fingerprints if f.startswith("state")]) == get_fingerprint_count()

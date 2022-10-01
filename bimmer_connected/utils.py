@@ -4,10 +4,11 @@ import datetime
 import inspect
 import json
 import logging
+import pathlib
 import time
 import traceback
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
@@ -102,3 +103,13 @@ def to_camel_case(input_str: str) -> str:
         retval = retval + (curr.upper() if flag_upper else curr)
         flag_upper = False
     return retval
+
+
+def log_response_store_to_file(response_store: List[Dict[str, str]], logfile_path: pathlib.Path) -> None:
+    """Log all responses to files."""
+
+    for response in response_store:
+        output_path = logfile_path / response["filename"]
+
+        with open(output_path, "w", encoding="UTF-8") as logfile:
+            logfile.write(response.get("content", "NO CONTENT"))

@@ -11,12 +11,11 @@ from datetime import datetime
 from pathlib import Path
 
 import httpx
-from aiofile import async_open
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
-from bimmer_connected.utils import MyBMWJSONEncoder
+from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
 
 TEXT_VIN = "Vehicle Identification Number"
@@ -135,7 +134,7 @@ async def fingerprint(args) -> None:
         args.username,
         args.password,
         get_region_from_name(args.region),
-        log_responses=time_dir,
+        log_responses=True,
         use_metric_units=(not args.imperial),
     )
     if args.lat and args.lng:
@@ -159,6 +158,7 @@ async def fingerprint(args) -> None:
             except httpx.HTTPStatusError:
                 pass
 
+    log_response_store_to_file(account.get_stored_responses(), time_dir)
     print(f"fingerprint of the vehicles written to {time_dir}")
 
 
@@ -196,9 +196,9 @@ async def image(args) -> None:
 
     for viewdirection in VehicleViewDirection:
         filename = str(viewdirection.name).lower() + ".png"
-        async with async_open(filename, "wb") as output_file:
+        with open(filename, "wb") as output_file:
             image_data = await vehicle.get_vehicle_image(viewdirection)
-            await output_file.write(image_data)
+            output_file.write(image_data)
         print(f"vehicle image saved to {filename}")
 
 

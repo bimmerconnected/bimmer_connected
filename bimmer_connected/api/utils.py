@@ -4,20 +4,18 @@ import base64
 import hashlib
 import json
 import logging
-import pathlib
+import mimetypes
 import random
+import re
 import string
-from tempfile import TemporaryDirectory
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import Dict, List, Union
 from uuid import uuid4
 
 import httpx
-from aiofile import async_open
-
-if TYPE_CHECKING:
-    from bimmer_connected.account import MyBMWAccount
 
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
+RE_VIN = re.compile(r"(?P<vin>WB[a-zA-Z0-9]{15})")
+ANONYMIZED_VINS: Dict[str, str] = {}
 
 
 def generate_token(length: int = 30, chars: str = UNICODE_CHARACTER_SET) -> str:
@@ -66,7 +64,6 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
         "lon": 34.5678,
         "longitude": 34.5678,
         "heading": 123,
-        "vin": "some_vin",
         "licensePlate": "some_license_plate",
         "name": "some_name",
         "city": "some_city",
@@ -84,52 +81,38 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
         for key, value in json_data.items():
             if key in replacements:
                 json_data[key] = replacements[key]
+            elif isinstance(value, str):
+                json_data[key] = RE_VIN.sub(anonymize_vin, json_data[key])
             else:
                 json_data[key] = anonymize_data(value)
 
     return json_data
 
 
-async def log_to_to_file(content: Union[str, bytes, List, Dict], logfile_path: pathlib.Path, logfile_name: str) -> None:
-    """If a log path is set, log all responses to a file."""
-    if logfile_path is None or logfile_name is None:
-        return
+def anonymize_vin(match: re.Match):
+    """Anonymize VINs but keep assignment."""
+    vin = match.groupdict()["vin"]
+    if vin not in ANONYMIZED_VINS:
+        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS)+1).zfill(2)}"
+    return ANONYMIZED_VINS[vin]
+
+
+def anonymize_response(response: httpx.Response) -> Dict[str, str]:
+    """Anonymize a responses URL and content."""
+    brand = response.request.headers.get("x-user-agent", ";").split(";")[1]
+    brand = f"{brand}-" if brand else ""
+
+    url_path = "_".join(response.url.path.split("/")[3:] + response.request.url.params.multi_items())
+    url_path = RE_VIN.sub(anonymize_vin, url_path)
 
     try:
-        parsed_content = json.loads(content)  # type: ignore[arg-type]
-        anonymized_data = json.dumps(anonymize_data(parsed_content), indent=2, sort_keys=True)  # type: ignore[arg-type]
-        file_extension = "json"
+        content = json.dumps(anonymize_data(response.json()), indent=2, sort_keys=True)
     except json.JSONDecodeError:
-        anonymized_data = content.decode("UTF-8") if isinstance(content, bytes) else content  # type: ignore[assignment]
-        file_extension = "txt"
+        content = response.text
 
-    output_path = None
-    count = 0
+    file_extension = mimetypes.guess_extension(response.headers.get("content-type") or "") or ".txt"
 
-    while output_path is None or output_path.exists():
-        output_path = logfile_path / f"{logfile_name}_{count}.{file_extension}"
-        count += 1
-
-    async with async_open(output_path, "w", encoding="UTF-8") as logfile:
-        await logfile.write(anonymized_data)
-
-
-async def get_fingerprints(account: "MyBMWAccount") -> Dict[str, Any]:
-    """Retrieve vehicle data from BMW servers and return original responses as JSON."""
-    original_log_response_path = account.config.log_response_path
-    fingerprints = {}
-
-    try:
-        # Use a temporary directory to just get the files from one call to get_vehicles()
-        with TemporaryDirectory() as tempdir:
-            tempdir_path = pathlib.Path(tempdir)
-            account.config.log_response_path = tempdir_path
-            await account.get_vehicles()
-            for logfile in tempdir_path.iterdir():
-                async with async_open(logfile, "rb") as pointer:
-                    fingerprints[logfile.name] = json.loads(await pointer.read())
-    finally:
-        # Make sure that log_response_path is always set to the original value afterwards
-        account.config.log_response_path = original_log_response_path
-
-    return fingerprints
+    return {
+        "filename": f"{brand}{url_path}{file_extension}",
+        "content": content,
+    }
