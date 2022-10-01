@@ -2,7 +2,7 @@
 
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Deque, Dict, Optional
 
 import httpx
 
@@ -12,7 +12,7 @@ from bimmer_connected.api.utils import anonymize_response, get_correlation_id
 from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
 from bimmer_connected.models import GPSPosition
 
-RESPONSE_STORE: deque[httpx.Response] = deque(maxlen=10)
+RESPONSE_STORE: Deque[Dict[str, str]] = deque(maxlen=10)
 
 
 @dataclass

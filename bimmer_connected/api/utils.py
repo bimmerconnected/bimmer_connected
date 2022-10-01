@@ -8,7 +8,7 @@ import mimetypes
 import random
 import re
 import string
-from typing import Dict, List, Union
+from typing import Dict, List, Match, Union
 from uuid import uuid4
 
 import httpx
@@ -89,7 +89,7 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
     return json_data
 
 
-def anonymize_vin(match: re.Match):
+def anonymize_vin(match: Match):
     """Anonymize VINs but keep assignment."""
     vin = match.groupdict()["vin"]
     if vin not in ANONYMIZED_VINS:
@@ -102,7 +102,7 @@ def anonymize_response(response: httpx.Response) -> Dict[str, str]:
     brand = response.request.headers.get("x-user-agent", ";").split(";")[1]
     brand = f"{brand}-" if brand else ""
 
-    url_path = "_".join(response.url.path.split("/")[3:] + response.request.url.params.multi_items())
+    url_path = "_".join(response.url.path.split("/")[3:] + [f"{k}={v}" for k, v in response.request.url.params.items()])
     url_path = RE_VIN.sub(anonymize_vin, url_path)
 
     try:

@@ -49,7 +49,7 @@ class VehicleDataBase:
         """Parses desired attributes out of vehicle data from API."""
         raise NotImplementedError()
 
-    def _update_after_parse(self, parsed: Dict) -> Dict:  # pylint: disable=no-self-use
+    def _update_after_parse(self, parsed: Dict) -> Dict:
         """Updates parsed vehicle data with attributes stored in class if needed."""
         return parsed
 
