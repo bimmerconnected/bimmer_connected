@@ -79,7 +79,7 @@ class MyBMWClient(httpx.AsyncClient):
             "accept-language": "en",
             "user-agent": USER_AGENT,
             "x-user-agent": X_USER_AGENT.format(
-                brand=(brand or CarBrands.BMW),
+                brand=(brand or CarBrands.BMW).value,
                 app_version=get_app_version(self.config.authentication.region),
                 region=self.config.authentication.region.value,
             ),
