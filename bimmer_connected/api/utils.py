@@ -8,7 +8,7 @@ import mimetypes
 import random
 import re
 import string
-from typing import Dict, List, Match, Union
+from typing import Dict, List, Optional, Union
 from uuid import uuid4
 
 import httpx
@@ -43,7 +43,10 @@ def get_correlation_id() -> Dict[str, str]:
 
 
 def handle_http_status_error(
-    ex: httpx.HTTPStatusError, module: str = "MyBMW API", log_handler: logging.Logger = None, debug: bool = False
+    ex: httpx.HTTPStatusError,
+    module: str = "MyBMW API",
+    log_handler: Optional[logging.Logger] = None,
+    debug: bool = False,
 ) -> None:
     """Try to extract information from response and re-raise Exception."""
     _logger = log_handler or logging.getLogger(__name__)

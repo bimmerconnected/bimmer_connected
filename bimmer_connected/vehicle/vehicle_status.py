@@ -20,7 +20,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
     # pylint: disable=unused-argument
-    def __init__(self, vehicle: "MyBMWVehicle", status_dict: Dict = None):
+    def __init__(self, vehicle: "MyBMWVehicle", status_dict: Optional[Dict] = None):
         """Constructor."""
         self.vehicle = vehicle
 

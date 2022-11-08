@@ -1,7 +1,6 @@
 """Tests for utils."""
 import datetime
 import json
-import sys
 
 try:
     import zoneinfo

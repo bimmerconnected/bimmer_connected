@@ -62,7 +62,11 @@ class MyBMWVehicle:
     """
 
     def __init__(
-        self, account: "MyBMWAccount", vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None
+        self,
+        account: "MyBMWAccount",
+        vehicle_base: dict,
+        vehicle_state: dict,
+        fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Initializes a MyBMWVehicle."""
         self.account = account
@@ -78,7 +82,9 @@ class MyBMWVehicle:
 
         self.update_state(vehicle_base, vehicle_state, fetched_at)
 
-    def update_state(self, vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None) -> None:
+    def update_state(
+        self, vehicle_base: dict, vehicle_state: dict, fetched_at: Optional[datetime.datetime] = None
+    ) -> None:
         """Update the state of a vehicle."""
         vehicle_data = self.combine_data(self.account, vehicle_base, vehicle_state or {}, fetched_at)
         self.data = vehicle_data
@@ -100,7 +106,7 @@ class MyBMWVehicle:
 
     @staticmethod
     def combine_data(
-        account: "MyBMWAccount", vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None
+        account: "MyBMWAccount", vehicle_base: dict, vehicle_state: dict, fetched_at: Optional[datetime.datetime] = None
     ) -> Dict:
         """Combine API responses and additional information to a single dictionary."""
         return {
@@ -304,7 +310,7 @@ class ConnectedDriveVehicle(MyBMWVehicle):
         super().__init__(account, vehicle_dict, {})
 
     def update_state(
-        self, vehicle_base: dict, vehicle_state: dict = None, fetched_at: datetime.datetime = None
+        self, vehicle_base: dict, vehicle_state: Optional[dict] = None, fetched_at: Optional[datetime.datetime] = None
     ) -> None:
         """Update the state of a vehicle."""
 
