@@ -64,7 +64,7 @@ def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
     # Test if given region is valid
     _ = Regions(x_user_agent[3])
 
-    return httpx.Response(200, json=ALL_FINGERPRINTS.get(brand.value, []))
+    return httpx.Response(200, json=ALL_FINGERPRINTS.get(brand, []))
 
 
 def vehicle_state_sideeffect(request: httpx.Request, vin: str) -> httpx.Response:
