@@ -94,7 +94,7 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
     return json_data
 
 
-def anonymize_vin(match: Match):
+def anonymize_vin(match: re.Match):
     """Anonymize VINs but keep assignment."""
     vin = match.groupdict()["vin"]
     if vin not in ANONYMIZED_VINS:
