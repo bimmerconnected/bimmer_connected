@@ -1,18 +1,18 @@
 """Generic API management."""
 
-import pathlib
-import re
-from collections import defaultdict
+from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Deque, Dict, Optional
 
 import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_app_version, get_server_url
-from bimmer_connected.api.utils import get_correlation_id, log_to_to_file
+from bimmer_connected.api.utils import anonymize_response, get_correlation_id
 from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
-from bimmer_connected.models import GPSPosition
+from bimmer_connected.models import AnonymizedResponse, GPSPosition
+
+RESPONSE_STORE: Deque[AnonymizedResponse] = deque(maxlen=10)
 
 
 @dataclass
@@ -20,9 +20,15 @@ class MyBMWClientConfiguration:
     """Stores global settings for MyBMWClient."""
 
     authentication: MyBMWAuthentication
-    log_response_path: Optional[pathlib.Path] = None
+    log_responses: Optional[bool] = False
     observer_position: Optional[GPSPosition] = None
     use_metric_units: Optional[bool] = True
+
+    def set_log_responses(self, log_responses: bool) -> None:
+        """Set if responses are logged and clear response store."""
+
+        self.log_responses = log_responses
+        RESPONSE_STORE.clear()
 
 
 class MyBMWClient(httpx.AsyncClient):
@@ -44,15 +50,12 @@ class MyBMWClient(httpx.AsyncClient):
         # Register event hooks
         kwargs["event_hooks"] = defaultdict(list, **kwargs.get("event_hooks", {}))
 
-        # Event hook for logging content to file
+        # Event hook for logging content
         async def log_response(response: httpx.Response):
-            content = await response.aread()
-            brand = [x for x in [b.value for b in CarBrands] if x in response.request.headers.get("x-user-agent", "")]
-            base_file_name = "_".join([response.url.path.split("/")[-1]] + brand)
-            base_file_name = re.sub(r"\d", "0", base_file_name)
-            await log_to_to_file(content, config.log_response_path, base_file_name)  # type: ignore[arg-type]
+            await response.aread()
+            RESPONSE_STORE.append(anonymize_response(response))
 
-        if config.log_response_path:
+        if config.log_responses:
             kwargs["event_hooks"]["response"].append(log_response)
 
         # Event hook which calls raise_for_status on all requests

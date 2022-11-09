@@ -4,10 +4,13 @@ import datetime
 import inspect
 import json
 import logging
+import pathlib
 import time
 import traceback
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
+
+from bimmer_connected.models import AnonymizedResponse
 
 if TYPE_CHECKING:
     from typing import Callable, TypeVar
@@ -102,3 +105,17 @@ def to_camel_case(input_str: str) -> str:
         retval = retval + (curr.upper() if flag_upper else curr)
         flag_upper = False
     return retval
+
+
+def log_response_store_to_file(response_store: List[AnonymizedResponse], logfile_path: pathlib.Path) -> None:
+    """Log all responses to files."""
+
+    for response in response_store:
+        output_path = logfile_path / response.filename
+        content = response.content
+
+        with open(output_path, "w", encoding="UTF-8") as logfile:
+            if output_path.suffix == ".json" or not isinstance(content, str):
+                json.dump(content or [], logfile, indent=4, sort_keys=True)
+            else:
+                logfile.write((content or "NO CONTENT"))

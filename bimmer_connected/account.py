@@ -2,17 +2,16 @@
 
 import datetime
 import logging
-import pathlib
 from dataclasses import InitVar, dataclass, field
 from typing import List, Optional
 
 import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
-from bimmer_connected.api.client import MyBMWClient, MyBMWClientConfiguration
+from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import VEHICLE_STATE_URL, VEHICLES_URL, CarBrands
-from bimmer_connected.models import GPSPosition
+from bimmer_connected.models import AnonymizedResponse, GPSPosition
 from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
 
@@ -37,7 +36,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
     config: MyBMWClientConfiguration = None  # type: ignore[assignment]
     """Optional. If provided, username/password/region are ignored."""
 
-    log_responses: InitVar[pathlib.Path] = None
+    log_responses: InitVar[bool] = False
     """Optional. If set, all responses from the server will be logged to this directory."""
 
     observer_position: InitVar[GPSPosition] = None
@@ -52,7 +51,7 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
         if self.config is None:
             self.config = MyBMWClientConfiguration(
                 MyBMWAuthentication(self.username, password, self.region),
-                log_response_path=log_responses,
+                log_responses=log_responses,
                 observer_position=observer_position,
                 use_metric_units=use_metric_units,
             )
@@ -135,6 +134,13 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
     def set_use_metric_units(self, use_metric_units: bool) -> None:
         """Change between using metric units (km, l) if True or imperial units (mi, gal) if False."""
         self.config.use_metric_units = use_metric_units
+
+    @staticmethod
+    def get_stored_responses() -> List[AnonymizedResponse]:
+        """Return responses stored if log_responses was set to True."""
+        responses = list(RESPONSE_STORE)
+        RESPONSE_STORE.clear()
+        return responses
 
     @property
     def timezone(self):
