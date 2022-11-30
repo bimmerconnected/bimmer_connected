@@ -46,6 +46,11 @@ def main_parser() -> argparse.ArgumentParser:
     flash_parser.add_argument("vin", help=TEXT_VIN)
     flash_parser.set_defaults(func=light_flash)
 
+    horn_parser = subparsers.add_parser("horn", description="Trigger the vehicle horn")
+    _add_default_arguments(horn_parser)
+    horn_parser.add_argument("vin", help=TEXT_VIN)
+    horn_parser.set_defaults(func=horn)
+
     finder_parser = subparsers.add_parser("vehiclefinder", description="Update the vehicle GPS location.")
     _add_default_arguments(finder_parser)
     finder_parser.add_argument("vin", help=TEXT_VIN)
@@ -170,6 +175,17 @@ async def light_flash(args) -> None:
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_light_flash()
+    print(status.state)
+
+
+async def horn(args) -> None:
+    """Trigger the vehicle to horn."""
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_remote_horn()
     print(status.state)
 
 
