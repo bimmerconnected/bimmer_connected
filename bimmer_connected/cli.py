@@ -46,7 +46,7 @@ def main_parser() -> argparse.ArgumentParser:
     flash_parser.add_argument("vin", help=TEXT_VIN)
     flash_parser.set_defaults(func=light_flash)
 
-    horn_parser = subparsers.add_parser("horn", description="Flash the vehicle lights.")
+    horn_parser = subparsers.add_parser("horn", description="Trigger the vehicle horn")
     _add_default_arguments(horn_parser)
     horn_parser.add_argument("vin", help=TEXT_VIN)
     horn_parser.set_defaults(func=horn)
