@@ -20,7 +20,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
     """Models the status of a vehicle."""
 
     # pylint: disable=unused-argument
-    def __init__(self, vehicle: "MyBMWVehicle", status_dict: Dict = None):
+    def __init__(self, vehicle: "MyBMWVehicle", status_dict: Optional[Dict] = None):
         """Constructor."""
         self.vehicle = vehicle
 
@@ -32,7 +32,7 @@ class VehicleStatus:  # pylint: disable=too-many-public-methods
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.vehicle_location.location")
-    def gps_position(self) -> GPSPosition:
+    def gps_position(self) -> Optional[GPSPosition]:
         # pylint:disable=missing-function-docstring
         return self.vehicle.vehicle_location.location
 

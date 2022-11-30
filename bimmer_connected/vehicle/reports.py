@@ -33,7 +33,13 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
     # pylint:disable=invalid-name,redefined-builtin,too-many-arguments,unused-argument
     @classmethod
     def from_api_entry(
-        cls, type: str, status: str, dateTime: str = None, mileage: int = None, is_metric: bool = True, **kwargs
+        cls,
+        type: str,
+        status: str,
+        dateTime: Optional[str] = None,
+        mileage: Optional[int] = None,
+        is_metric: bool = True,
+        **kwargs
     ):
         """Parse a condition based service entry from the API format to `ConditionBasedService`."""
         due_distance = ValueWithUnit(mileage, "km" if is_metric else "mi") if mileage else ValueWithUnit(None, None)
@@ -87,7 +93,7 @@ class CheckControlMessage:
 
     # pylint:disable=invalid-name,redefined-builtin,unused-argument
     @classmethod
-    def from_api_entry(cls, type: str, severity: str, longDescription: str = None, **kwargs):
+    def from_api_entry(cls, type: str, severity: str, longDescription: Optional[str] = None, **kwargs):
         """Parses a check control entry from the API format to `CheckControlMessage`."""
         return cls(type, longDescription, CheckControlStatus(severity))
 

@@ -17,7 +17,7 @@ _LOGGER = logging.getLogger(__name__)
 class VehicleLocation(VehicleDataBase):
     """The current position of a vehicle."""
 
-    location: GPSPosition = GPSPosition(None, None)
+    location: Optional[GPSPosition] = None
     """The last known position of the vehicle."""
 
     heading: Optional[int] = None

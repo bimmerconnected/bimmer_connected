@@ -4,7 +4,7 @@ import asyncio
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING, Dict, Union
+from typing import TYPE_CHECKING, Dict, Optional, Union
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import (
@@ -140,13 +140,13 @@ class RemoteServices:
         await self._trigger_state_update()
         return result
 
-    async def trigger_remote_service(self, service_id: Services, params: Dict = None) -> RemoteServiceStatus:
+    async def trigger_remote_service(self, service_id: Services, params: Optional[Dict] = None) -> RemoteServiceStatus:
         """Trigger a generic remote service and wait for the result."""
         event_id = await self._start_remote_service(service_id, params)
         status = await self._block_until_done(event_id)
         return status
 
-    async def _start_remote_service(self, service_id: Services, params: Dict = None) -> str:
+    async def _start_remote_service(self, service_id: Services, params: Optional[Dict] = None) -> str:
         """Start a generic remote service."""
 
         url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service_type=service_id.value)
@@ -173,7 +173,7 @@ class RemoteServices:
             f"Current state: {status.state.value}"
         )
 
-    async def _get_remote_service_status(self, event_id: str = None) -> RemoteServiceStatus:
+    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
         """The execution status of the last remote service that was triggered."""
         _LOGGER.debug("getting remote service status for '%s'", event_id)
         url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)

@@ -100,7 +100,9 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
                 vehicle_state = state_response.json()
                 self.add_vehicle(vehicle.data, vehicle_state, fetched_at)
 
-    def add_vehicle(self, vehicle_base: dict, vehicle_state: dict, fetched_at: datetime.datetime = None) -> None:
+    def add_vehicle(
+        self, vehicle_base: dict, vehicle_state: dict, fetched_at: Optional[datetime.datetime] = None
+    ) -> None:
         """Add or update a vehicle from the API responses."""
 
         existing_vehicle = self.get_vehicle(vehicle_base["vin"])

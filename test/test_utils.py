@@ -1,7 +1,6 @@
 """Tests for utils."""
 import datetime
 import json
-import sys
 
 try:
     import zoneinfo
@@ -54,9 +53,7 @@ def test_parse_datetime(caplog):
 
     assert dt_without_milliseconds == parse_datetime("2021-11-12T13:14:15Z")
 
-    if sys.version_info >= (3, 7):
-        # Don't test timezone parsing on Python 3.6 (not supported there)
-        assert dt_without_milliseconds == parse_datetime("2021-11-12T16:14:15+03:00")
+    assert dt_without_milliseconds == parse_datetime("2021-11-12T16:14:15+03:00")
 
     unparseable_datetime = "2021-14-12T13:14:15Z"
     assert parse_datetime(unparseable_datetime) is None
@@ -71,10 +68,8 @@ def test_parse_datetime(caplog):
 @pytest.mark.asyncio
 async def test_account_timezone():
     """Test the timezone in MyBMWAccount."""
-    # mocking the timezone doesn't work with the time_machine<2.7.1 on Python 3.6
-    if sys.version_info > (3, 7):
-        account = await get_mocked_account()
-        assert account.utcdiff == 960
+    account = await get_mocked_account()
+    assert account.utcdiff == 960
 
 
 def test_json_encoder():

@@ -34,7 +34,7 @@ class MyBMWClientConfiguration:
 class MyBMWClient(httpx.AsyncClient):
     """Async HTTP client based on `httpx.AsyncClient` with automated OAuth token refresh."""
 
-    def __init__(self, config: MyBMWClientConfiguration, *args, brand: CarBrands = None, **kwargs):
+    def __init__(self, config: MyBMWClientConfiguration, *args, brand: Optional[CarBrands] = None, **kwargs):
         self.config = config
 
         # Add authentication
@@ -72,14 +72,14 @@ class MyBMWClient(httpx.AsyncClient):
 
         super().__init__(*args, **kwargs)
 
-    def generate_default_header(self, brand: CarBrands = None) -> Dict[str, str]:
+    def generate_default_header(self, brand: Optional[CarBrands] = None) -> Dict[str, str]:
         """Generate a header for HTTP requests to the server."""
         return {
             "accept": "application/json",
             "accept-language": "en",
             "user-agent": USER_AGENT,
             "x-user-agent": X_USER_AGENT.format(
-                brand=(brand or CarBrands.BMW),
+                brand=(brand or CarBrands.BMW).value,
                 app_version=get_app_version(self.config.authentication.region),
                 region=self.config.authentication.region.value,
             ),

@@ -3,6 +3,7 @@
 import datetime
 import logging
 from pathlib import Path
+from typing import Optional
 
 try:
     from unittest import mock
@@ -108,12 +109,12 @@ def account_mock():
     return router
 
 
-def get_account(region: Regions = None, metric: bool = True):
+def get_account(region: Optional[Regions] = None, metric: bool = True):
     """Returns account without token and vehicles (sync)."""
     return MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION, use_metric_units=metric)
 
 
-async def get_mocked_account(region: Regions = None, metric: bool = True):
+async def get_mocked_account(region: Optional[Regions] = None, metric: bool = True):
     """Returns pre-mocked account."""
     with account_mock():
         account = get_account(region, metric)
