@@ -46,7 +46,7 @@ AES_KEYS = {
 APP_VERSIONS = {
     Regions.NORTH_AMERICA: "2.5.2(14945)",
     Regions.REST_OF_WORLD: "2.5.2(14945)",
-    Regions.CHINA: "2.3.0(13603)",
+    Regions.CHINA: "2.12.0(19965)",
 }
 
 HTTPX_TIMEOUT = 30.0
