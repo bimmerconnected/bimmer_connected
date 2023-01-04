@@ -91,10 +91,11 @@ class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
             for vehicle in self.vehicles:
                 # Get the detailed vehicle state
                 state_response = await client.get(
-                    VEHICLE_STATE_URL.format(vin=vehicle.vin),
+                    VEHICLE_STATE_URL,
                     headers={
                         **client.generate_default_header(vehicle.brand),
                         "bmw-current-date": fetched_at.isoformat(),
+                        "bmw-vin": vehicle.vin,
                     },
                 )
                 vehicle_state = state_response.json()

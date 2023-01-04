@@ -107,8 +107,10 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     brand = response.request.headers.get("x-user-agent", ";").split(";")[1]
     brand = f"{brand}-" if brand else ""
 
-    url_path = "_".join(response.url.path.split("/")[3:] + [str(response.request.url.params)])
-    url_path = RE_VIN.sub(anonymize_vin, url_path)
+    url_parts = response.url.path.split("/")[3:]
+    if "bmw-vin" in response.request.headers:
+        url_parts.append(response.request.headers["bmw-vin"])
+    url_path = RE_VIN.sub(anonymize_vin, "_".join(url_parts))
 
     try:
         content: Union[List, Dict, str]
@@ -116,6 +118,7 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     except json.JSONDecodeError:
         content = response.text
 
-    file_extension = mimetypes.guess_extension(response.headers.get("content-type") or "") or ".txt"
+    content_type = next(iter((response.headers.get("content-type") or "").split(";")), "")
+    file_extension = mimetypes.guess_extension(content_type or ".txt")
 
     return AnonymizedResponse(f"{brand}{url_path}{file_extension}", content)
