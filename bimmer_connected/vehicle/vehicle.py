@@ -30,11 +30,11 @@ class VehicleViewDirection(StrEnum):
     This is used to get a rendered image of the vehicle.
     """
 
-    FRONTSIDE = "VehicleStatus"
-    FRONT = "VehicleInfo"
+    FRONTSIDE = "VehicleStatus"  # also available as AngleSideViewForty
+    FRONT = "FrontView"
     # REARSIDE = 'REARSIDE'
     # REAR = 'REAR'
-    SIDE = "ChargingHistory"
+    SIDE = "SideViewLeft"
     # DASHBOARD = 'DASHBOARD'
     # DRIVERDOOR = 'DRIVERDOOR'
     # REARBIRDSEYE = 'REARBIRDSEYE'
