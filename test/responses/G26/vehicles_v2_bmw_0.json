@@ -3,11 +3,11 @@
         "appVehicleType": "DEMO",
         "attributes": {
             "a4aType": "NOT_SUPPORTED",
-            "bodyType": "G20",
+            "bodyType": "G26",
             "brand": "BMW",
-            "color": 4280233344,
-            "countryOfOrigin": "PT",
-            "driveTrain": "COMBUSTION",
+            "color": 4284245350,
+            "countryOfOrigin": "DE",
+            "driveTrain": "ELECTRIC",
             "driverGuideInfo": {
                 "androidAppScheme": "com.bmwgroup.driversguide.row",
                 "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
@@ -16,27 +16,27 @@
             },
             "headUnitRaw": "HU_MGU",
             "headUnitType": "MGU",
-            "hmiVersion": "ID7",
+            "hmiVersion": "ID8",
             "lastFetched": "2023-01-04T14:57:06.019Z",
-            "model": "M340i xDrive",
+            "model": "i4 eDrive40",
             "softwareVersionCurrent": {
                 "iStep": 470,
                 "puStep": {
-                    "month": 7,
+                    "month": 11,
                     "year": 21
                 },
-                "seriesCluster": "S18A"
+                "seriesCluster": "G026"
             },
             "softwareVersionExFactory": {
-                "iStep": 420,
+                "iStep": 470,
                 "puStep": {
-                    "month": 7,
-                    "year": 20
+                    "month": 11,
+                    "year": 21
                 },
-                "seriesCluster": "S18A"
+                "seriesCluster": "G026"
             },
-            "telematicsUnit": "ATM2",
-            "year": 2022
+            "telematicsUnit": "WAVE01",
+            "year": 2021
         },
         "mappingInfo": {
             "isAssociated": false,
@@ -45,6 +45,6 @@
             "lmmStatusReasons": [],
             "mappingStatus": "CONFIRMED"
         },
-        "vin": "WBA00000000DEMO03"
+        "vin": "WBA00000000DEMO02"
     }
 ]

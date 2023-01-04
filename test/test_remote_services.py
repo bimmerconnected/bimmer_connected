@@ -64,15 +64,15 @@ def remote_services_mock():
     """Returns mocked adapter for auth."""
     router = account_mock()
 
-    router.post(path__regex=r"/eadrax-vrccs/v2/presentation/remote-commands/.+/.+$").mock(
+    router.post(path__regex=r"/eadrax-vrccs/v3/presentation/remote-commands/.+/.+$").mock(
         side_effect=service_trigger_sideeffect
     )
-    router.post("/eadrax-vrccs/v2/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
+    router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
         side_effect=service_status_sideeffect
     )
 
     router.post("/eadrax-dcs/v1/send-to-car/send-to-car").respond(201)
-    router.post("/eadrax-vrccs/v2/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
+    router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
         200,
         json=load_response(_RESPONSE_EVENTPOSITION),
     )
@@ -141,7 +141,7 @@ async def test_get_remote_service_status():
     vehicle = account.get_vehicle(VIN_G23)
 
     with remote_services_mock() as mock_api:
-        mock_api.post("/eadrax-vrccs/v2/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
+        mock_api.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
             side_effect=[
                 httpx.Response(500),
                 httpx.Response(200, text="You can't parse this..."),

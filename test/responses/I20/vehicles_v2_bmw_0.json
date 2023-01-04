@@ -14,9 +14,10 @@
                 "iosAppScheme": "bmwdriversguide:///open",
                 "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
             },
+            "headUnitRaw": "HU_MGU",
             "headUnitType": "MGU",
             "hmiVersion": "ID8",
-            "lastFetched": "2022-06-03T19:02:30.647Z",
+            "lastFetched": "2023-01-04T14:57:06.019Z",
             "model": "iX xDrive50",
             "softwareVersionCurrent": {
                 "iStep": 300,

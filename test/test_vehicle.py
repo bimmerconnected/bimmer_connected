@@ -7,7 +7,17 @@ from bimmer_connected.vehicle import VehicleViewDirection
 from bimmer_connected.vehicle.const import DriveTrainType
 from bimmer_connected.vehicle.reports import CheckControlMessageReport
 
-from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
+from . import (
+    VIN_F31,
+    VIN_G01,
+    VIN_G20,
+    VIN_G23,
+    VIN_G70,
+    VIN_I01_NOREX,
+    VIN_I01_REX,
+    VIN_I20,
+    get_deprecation_warning_count,
+)
 from .test_account import account_mock, get_mocked_account
 
 ATTRIBUTE_MAPPING = {
@@ -77,6 +87,7 @@ async def test_drive_train_attributes(caplog):
         VIN_G01: (True, True),
         VIN_G20: (True, False),
         VIN_G23: (False, True),
+        VIN_G70: (False, True),
         VIN_I01_NOREX: (False, True),
         VIN_I01_REX: (True, True),
         VIN_I20: (False, True),

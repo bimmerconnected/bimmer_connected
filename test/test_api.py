@@ -60,7 +60,7 @@ async def test_storing_fingerprints(tmp_path):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
         await account.get_vehicles()
 
-        mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").respond(
+        mock_api.get("/eadrax-vcs/v4/vehicles/state").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
         with pytest.raises(httpx.HTTPStatusError):
@@ -72,7 +72,7 @@ async def test_storing_fingerprints(tmp_path):
     json_files = [f for f in files if f.suffix == ".json"]
     txt_files = [f for f in files if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 2)
+    assert len(json_files) == (get_fingerprint_count() + 1)
     assert len(txt_files) == 1
 
 

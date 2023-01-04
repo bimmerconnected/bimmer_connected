@@ -20,7 +20,7 @@ async def test_generic(caplog):
     """Test generic attributes."""
     status = (await get_mocked_account()).get_vehicle(VIN_G23)
 
-    expected = datetime.datetime(year=2022, month=6, day=1, hour=19, minute=18, second=54, tzinfo=datetime.timezone.utc)
+    expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=datetime.timezone.utc)
     assert expected == status.timestamp
 
     assert 1121 == status.mileage[0]
@@ -166,10 +166,10 @@ async def test_range_electric(caplog):
     assert status.remaining_range_fuel == (None, None)
     assert status.remaining_fuel_percent is None
 
-    assert 80 == status.remaining_battery_percent
-    assert (504, "km") == status.remaining_range_electric
+    assert 70 == status.remaining_battery_percent
+    assert (340, "km") == status.remaining_range_electric
 
-    assert (504, "km") == status.remaining_range_total
+    assert (340, "km") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -180,10 +180,10 @@ async def test_range_electric(caplog):
     assert status.remaining_range_fuel == (None, None)
     assert status.remaining_fuel_percent is None
 
-    assert 80 == status.remaining_battery_percent
-    assert (504, "mi") == status.remaining_range_electric
+    assert 70 == status.remaining_battery_percent
+    assert (340, "mi") == status.remaining_range_electric
 
-    assert (504, "mi") == status.remaining_range_total
+    assert (340, "mi") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -228,19 +228,19 @@ async def test_condition_based_services(caplog):
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
 
     cbs = vehicle.condition_based_services.messages
-    assert 3 == len(cbs)
+    assert 5 == len(cbs)
     assert ConditionBasedServiceStatus.OK == cbs[0].state
-    expected_cbs0 = datetime.datetime(year=2024, month=5, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs0 = datetime.datetime(year=2024, month=12, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs0 == cbs[0].due_date
     assert (50000, "km") == cbs[0].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[1].state
-    expected_cbs1 = datetime.datetime(year=2024, month=5, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs1 = datetime.datetime(year=2024, month=12, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs1 == cbs[1].due_date
     assert (50000, "km") == cbs[1].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[2].state
-    expected_cbs2 = datetime.datetime(year=2024, month=5, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs2 = datetime.datetime(year=2024, month=12, day=1, tzinfo=datetime.timezone.utc)
     assert expected_cbs2 == cbs[2].due_date
     assert (50000, "km") == cbs[2].due_distance
 
@@ -384,21 +384,21 @@ async def test_check_control_messages(caplog):
     assert vehicle.check_control_messages.has_check_control_messages is True
 
     ccms = vehicle.check_control_messages.messages
-    assert 1 == len(ccms)
+    assert 2 == len(ccms)
 
-    assert CheckControlStatus.MEDIUM == ccms[0].state
-    assert "ENGINE_OIL" == ccms[0].description_short
-    assert None is ccms[0].description_long
+    assert CheckControlStatus.MEDIUM == ccms[1].state
+    assert "ENGINE_OIL" == ccms[1].description_short
+    assert None is ccms[1].description_long
 
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G20)
     assert vehicle.check_control_messages.has_check_control_messages is False
 
     ccms = vehicle.check_control_messages.messages
-    assert 1 == len(ccms)
+    assert 2 == len(ccms)
 
-    assert CheckControlStatus.LOW == ccms[0].state
-    assert "ENGINE_OIL" == ccms[0].description_short
-    assert None is ccms[0].description_long
+    assert CheckControlStatus.LOW == ccms[1].state
+    assert "ENGINE_OIL" == ccms[1].description_short
+    assert None is ccms[1].description_long
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 

@@ -2,40 +2,40 @@
     {
         "appVehicleType": "DEMO",
         "attributes": {
-            "a4aType": "NOT_SUPPORTED",
-            "bodyType": "G20",
+            "a4aType": "BLUETOOTH",
+            "bodyType": "G70",
             "brand": "BMW",
-            "color": 4280233344,
-            "countryOfOrigin": "PT",
-            "driveTrain": "COMBUSTION",
+            "color": 4284900182,
+            "countryOfOrigin": "DE",
+            "driveTrain": "ELECTRIC",
             "driverGuideInfo": {
                 "androidAppScheme": "com.bmwgroup.driversguide.row",
                 "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
                 "iosAppScheme": "bmwdriversguide:///open",
                 "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
             },
-            "headUnitRaw": "HU_MGU",
+            "headUnitRaw": "MGU_02_L",
             "headUnitType": "MGU",
-            "hmiVersion": "ID7",
-            "lastFetched": "2023-01-04T14:57:06.019Z",
-            "model": "M340i xDrive",
+            "hmiVersion": "ID8",
+            "lastFetched": "2023-01-04T15:03:07.150Z",
+            "model": "i7 xDrive60",
             "softwareVersionCurrent": {
-                "iStep": 470,
+                "iStep": 505,
                 "puStep": {
                     "month": 7,
-                    "year": 21
+                    "year": 22
                 },
-                "seriesCluster": "S18A"
+                "seriesCluster": "G070"
             },
             "softwareVersionExFactory": {
-                "iStep": 420,
+                "iStep": 450,
                 "puStep": {
                     "month": 7,
-                    "year": 20
+                    "year": 22
                 },
-                "seriesCluster": "S18A"
+                "seriesCluster": "G070"
             },
-            "telematicsUnit": "ATM2",
+            "telematicsUnit": "WAVE01",
             "year": 2022
         },
         "mappingInfo": {
@@ -45,6 +45,6 @@
             "lmmStatusReasons": [],
             "mappingStatus": "CONFIRMED"
         },
-        "vin": "WBA00000000DEMO03"
+        "vin": "WBA00000000DEMO05"
     }
 ]

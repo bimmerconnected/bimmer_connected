@@ -4,7 +4,17 @@ import pytest
 from bimmer_connected.const import CarBrands
 from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
 
-from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
+from . import (
+    VIN_F31,
+    VIN_G01,
+    VIN_G20,
+    VIN_G23,
+    VIN_G70,
+    VIN_I01_NOREX,
+    VIN_I01_REX,
+    VIN_I20,
+    get_deprecation_warning_count,
+)
 from .test_account import get_mocked_account
 
 ATTRIBUTE_MAPPING = {
@@ -53,6 +63,7 @@ async def test_drive_train_attributes(caplog):
         VIN_G01: (True, True, False),
         VIN_G20: (True, False, False),
         VIN_G23: (False, True, False),
+        VIN_G70: (False, True, False),
         VIN_I01_NOREX: (False, True, False),
         VIN_I01_REX: (True, True, False),
         VIN_I20: (False, True, False),
