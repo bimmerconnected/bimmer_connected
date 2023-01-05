@@ -188,7 +188,7 @@ async def test_vehicle_image(caplog):
     with account_mock() as mock_api:
         mock_api.get(
             path__regex=r"(.*)/eadrax-ics/v3/presentation/vehicles/\w*/images",
-            params={"carView": "VehicleInfo"},
+            params={"carView": "FrontView"},
             headers={"accept": "image/png"},
         ).respond(200, content="png_image")
         assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
