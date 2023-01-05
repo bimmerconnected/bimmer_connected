@@ -67,13 +67,13 @@ def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, json=ALL_FINGERPRINTS.get(brand, []))
 
 
-def vehicle_state_sideeffect(request: httpx.Request, vin: str) -> httpx.Response:
+def vehicle_state_sideeffect(request: httpx.Request) -> httpx.Response:
     """Returns /vehicles response based on x-user-agent."""
     x_user_agent = request.headers.get("x-user-agent", "").split(";")
     assert len(x_user_agent) == 4
 
     try:
-        return httpx.Response(200, json=ALL_STATES[vin])
+        return httpx.Response(200, json=ALL_STATES[request.headers["bmw-vin"]])
     except KeyError:
         return httpx.Response(404)
 
@@ -101,10 +101,10 @@ def account_mock():
     )
 
     # Get all vehicle fingerprints
-    router.get("/eadrax-vcs/v2/vehicles").mock(side_effect=vehicles_sideeffect)
+    router.get("/eadrax-vcs/v4/vehicles").mock(side_effect=vehicles_sideeffect)
 
     # router.get("/eadrax-vcs/v2/vehicles").mock(side_effect=vehicles_sideeffect)
-    router.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(side_effect=vehicle_state_sideeffect)
+    router.get("/eadrax-vcs/v4/vehicles/state").mock(side_effect=vehicle_state_sideeffect)
 
     return router
 
@@ -162,7 +162,7 @@ async def test_login_refresh_token_row_na_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
             wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(
+            mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -235,7 +235,7 @@ async def test_login_refresh_token_china_401():
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
             wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
         ) as mock_listener:
-            mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").mock(
+            mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
             )
             mock_listener.reset_mock()
@@ -364,7 +364,7 @@ async def test_get_fingerprints():
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
         await account.get_vehicles()
 
-        mock_api.get(path__regex=r"^/eadrax-vcs/v2/vehicles/(?P<vin>\w+)/state").respond(
+        mock_api.get("/eadrax-vcs/v4/vehicles/state").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
         with pytest.raises(httpx.HTTPStatusError):
@@ -374,7 +374,7 @@ async def test_get_fingerprints():
     json_files = [f for f in filenames if f.suffix == ".json"]
     txt_files = [f for f in filenames if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 2)
+    assert len(json_files) == (get_fingerprint_count() + 1)
     assert len(txt_files) == 1
 
 
@@ -518,7 +518,7 @@ async def test_429_retry_ok_vehicles(caplog):
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-vcs/v2/vehicles").mock(
+        mock_api.get("/eadrax-vcs/v4/vehicles").mock(
             side_effect=[
                 httpx.Response(429, json=json_429),
                 httpx.Response(429, json=json_429),
@@ -546,7 +546,7 @@ async def test_429_retry_raise_vehicles(caplog):
 
         json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-        mock_api.get("/eadrax-vcs/v2/vehicles").mock(return_value=httpx.Response(429, json=json_429))
+        mock_api.get("/eadrax-vcs/v4/vehicles").mock(return_value=httpx.Response(429, json=json_429))
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):

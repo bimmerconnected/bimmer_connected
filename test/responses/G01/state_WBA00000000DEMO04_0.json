@@ -1,7 +1,14 @@
 {
     "capabilities": {
+        "a4aType": "BLUETOOTH",
+        "checkSustainabilityDPP": false,
         "climateFunction": "AIR_CONDITIONING",
         "climateNow": true,
+        "digitalKey": {
+            "bookedServicePackage": "SMACC_1_5",
+            "readerGraphics": "readerGraphics",
+            "state": "ACTIVATED"
+        },
         "horn": true,
         "isBmwChargingSupported": true,
         "isCarSharingSupported": false,
@@ -13,6 +20,7 @@
         "isChargingPowerLimitEnabled": false,
         "isChargingSettingsEnabled": false,
         "isChargingTargetSocEnabled": false,
+        "isClimateTimerWeeklyActive": false,
         "isCustomerEsimSupported": false,
         "isDCSContractManagementSupported": true,
         "isDataPrivacyEnabled": false,
@@ -27,6 +35,7 @@
         "isRemoteServicesActivationRequired": false,
         "isRemoteServicesBookingRequired": false,
         "isScanAndChargeSupported": true,
+        "isSustainabilityAccumulatedViewEnabled": false,
         "isSustainabilitySupported": false,
         "isWifiHotspotServiceSupported": true,
         "lastStateCallState": "ACTIVATED",
@@ -36,7 +45,8 @@
         "remoteSoftwareUpgrade": true,
         "sendPoi": true,
         "specialThemeSupport": [],
-        "speechThirdPartyAlexa": true,
+        "speechThirdPartyAlexa": false,
+        "speechThirdPartyAlexaSDK": false,
         "unlock": true,
         "vehicleFinder": true,
         "vehicleStateSource": "LAST_STATE_CALL"
@@ -93,6 +103,10 @@
         },
         "checkControlMessages": [
             {
+                "severity": "LOW",
+                "type": "TIRE_PRESSURE"
+            },
+            {
                 "severity": "MEDIUM",
                 "type": "ENGINE_OIL"
             }
@@ -103,37 +117,30 @@
         "climateTimers": [
             {
                 "departureTime": {
-                    "hour": 6,
-                    "minute": 40
-                },
-                "isWeeklyTimer": true,
-                "timerAction": "ACTIVATE",
-                "timerWeekDays": [
-                    "THURSDAY",
-                    "SUNDAY"
-                ]
-            },
-            {
-                "departureTime": {
-                    "hour": 12,
-                    "minute": 50
+                    "hour": 0,
+                    "minute": 0
                 },
                 "isWeeklyTimer": false,
-                "timerAction": "ACTIVATE",
-                "timerWeekDays": [
-                    "MONDAY"
-                ]
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": []
             },
             {
                 "departureTime": {
-                    "hour": 18,
-                    "minute": 59
+                    "hour": 0,
+                    "minute": 0
                 },
                 "isWeeklyTimer": true,
                 "timerAction": "DEACTIVATE",
-                "timerWeekDays": [
-                    "WEDNESDAY"
-                ]
+                "timerWeekDays": []
+            },
+            {
+                "departureTime": {
+                    "hour": 0,
+                    "minute": 0
+                },
+                "isWeeklyTimer": true,
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": []
             }
         ],
         "combustionFuelLevel": {
@@ -166,8 +173,8 @@
         },
         "isLeftSteering": true,
         "isLscSupported": true,
-        "lastFetched": "2022-06-01T19:18:54.488Z",
-        "lastUpdatedAt": "2022-06-01T19:18:54.619Z",
+        "lastFetched": "2023-01-04T14:57:06.345Z",
+        "lastUpdatedAt": "2023-01-04T14:57:06.352Z",
         "location": {
             "address": {
                 "formatted": "Am Olympiapark 1, 80809 München"
@@ -181,34 +188,60 @@
         "range": 476,
         "requiredServices": [
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "OIL"
             },
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "BRAKE_FLUID"
             },
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "VEHICLE_TUV"
             },
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "VEHICLE_CHECK"
             }
         ],
+        "tireState": {
+            "frontLeft": {
+                "status": {
+                    "currentPressure": 270,
+                    "targetPressure": 260
+                }
+            },
+            "frontRight": {
+                "status": {
+                    "currentPressure": 270,
+                    "targetPressure": 260
+                }
+            },
+            "rearLeft": {
+                "status": {
+                    "currentPressure": 270,
+                    "targetPressure": 310
+                }
+            },
+            "rearRight": {
+                "status": {
+                    "currentPressure": 270,
+                    "targetPressure": 310
+                }
+            }
+        },
         "windowsState": {
             "combinedState": "CLOSED",
             "leftFront": "CLOSED",

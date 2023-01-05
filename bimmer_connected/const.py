@@ -44,14 +44,14 @@ AES_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "2.5.2(14945)",
-    Regions.REST_OF_WORLD: "2.5.2(14945)",
+    Regions.NORTH_AMERICA: "2.12.0(19883)",
+    Regions.REST_OF_WORLD: "2.12.0(19883)",
     Regions.CHINA: "2.3.0(13603)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
-USER_AGENT = "Dart/2.14 (dart:io)"
+USER_AGENT = "Dart/2.16 (dart:io)"
 X_USER_AGENT = "android(SP1A.210812.016.C1);{brand};{app_version};{region}"
 
 
@@ -61,10 +61,10 @@ AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v1/oauth/token"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 
-VEHICLES_URL = "/eadrax-vcs/v2/vehicles"
-VEHICLE_STATE_URL = VEHICLES_URL + "/{vin}/state"
+VEHICLES_URL = "/eadrax-vcs/v4/vehicles"
+VEHICLE_STATE_URL = VEHICLES_URL + "/state"
 
-REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v2/presentation/remote-commands"
+REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v3/presentation/remote-commands"
 REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + "/{vin}/{service_type}"
 REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_BASE_URL + "/eventStatus?eventId={event_id}"
 REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + "/eventPosition?eventId={event_id}"

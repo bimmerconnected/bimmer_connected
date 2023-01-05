@@ -1,7 +1,14 @@
 {
     "capabilities": {
+        "a4aType": "NOT_SUPPORTED",
+        "checkSustainabilityDPP": false,
         "climateFunction": "AIR_CONDITIONING",
         "climateNow": true,
+        "digitalKey": {
+            "bookedServicePackage": "SMACC_1_5",
+            "readerGraphics": "readerGraphics",
+            "state": "ACTIVATED"
+        },
         "horn": true,
         "isBmwChargingSupported": true,
         "isCarSharingSupported": false,
@@ -13,6 +20,7 @@
         "isChargingPowerLimitEnabled": true,
         "isChargingSettingsEnabled": true,
         "isChargingTargetSocEnabled": true,
+        "isClimateTimerWeeklyActive": false,
         "isCustomerEsimSupported": true,
         "isDCSContractManagementSupported": true,
         "isDataPrivacyEnabled": false,
@@ -27,6 +35,7 @@
         "isRemoteServicesActivationRequired": false,
         "isRemoteServicesBookingRequired": false,
         "isScanAndChargeSupported": true,
+        "isSustainabilityAccumulatedViewEnabled": false,
         "isSustainabilitySupported": false,
         "isWifiHotspotServiceSupported": false,
         "lastStateCallState": "ACTIVATED",
@@ -36,7 +45,8 @@
         "remoteSoftwareUpgrade": true,
         "sendPoi": true,
         "specialThemeSupport": [],
-        "speechThirdPartyAlexa": true,
+        "speechThirdPartyAlexa": false,
+        "speechThirdPartyAlexaSDK": false,
         "unlock": true,
         "vehicleFinder": true,
         "vehicleStateSource": "LAST_STATE_CALL"
@@ -91,51 +101,45 @@
                 }
             ]
         },
-        "checkControlMessages": [],
+        "checkControlMessages": [
+            {
+                "severity": "LOW",
+                "type": "TIRE_PRESSURE"
+            }
+        ],
         "climateControlState": {
             "activity": "STANDBY"
         },
         "climateTimers": [
             {
                 "departureTime": {
-                    "hour": 6,
-                    "minute": 40
-                },
-                "isWeeklyTimer": true,
-                "timerAction": "ACTIVATE",
-                "timerWeekDays": [
-                    "THURSDAY",
-                    "SUNDAY"
-                ]
-            },
-            {
-                "departureTime": {
-                    "hour": 12,
-                    "minute": 50
+                    "hour": 0,
+                    "minute": 0
                 },
                 "isWeeklyTimer": false,
-                "timerAction": "ACTIVATE",
-                "timerWeekDays": [
-                    "MONDAY"
-                ]
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": []
             },
             {
                 "departureTime": {
-                    "hour": 18,
-                    "minute": 59
+                    "hour": 0,
+                    "minute": 0
                 },
                 "isWeeklyTimer": true,
                 "timerAction": "DEACTIVATE",
-                "timerWeekDays": [
-                    "WEDNESDAY"
-                ]
+                "timerWeekDays": []
+            },
+            {
+                "departureTime": {
+                    "hour": 0,
+                    "minute": 0
+                },
+                "isWeeklyTimer": true,
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": []
             }
         ],
-        "combustionFuelLevel": {
-            "range": 0,
-            "remainingFuelLiters": 0,
-            "remainingFuelPercent": 0
-        },
+        "combustionFuelLevel": {},
         "currentMileage": 1121,
         "doorsState": {
             "combinedSecurityState": "LOCKED",
@@ -161,8 +165,8 @@
         },
         "isLeftSteering": true,
         "isLscSupported": true,
-        "lastFetched": "2022-06-01T19:18:54.498Z",
-        "lastUpdatedAt": "2022-06-01T19:18:54.621Z",
+        "lastFetched": "2023-01-04T14:57:06.386Z",
+        "lastUpdatedAt": "2023-01-04T14:57:06.407Z",
         "location": {
             "address": {
                 "formatted": "Am Olympiapark 1, 80809 München"
@@ -176,27 +180,125 @@
         "range": 472,
         "requiredServices": [
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "BRAKE_FLUID"
             },
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "VEHICLE_TUV"
             },
             {
-                "dateTime": "2024-05-01T00:00:00.000Z",
+                "dateTime": "2024-12-01T00:00:00.000Z",
                 "description": "",
                 "mileage": 50000,
                 "status": "OK",
                 "type": "VEHICLE_CHECK"
+            },
+            {
+                "status": "OK",
+                "type": "TIRE_WEAR_REAR"
+            },
+            {
+                "status": "OK",
+                "type": "TIRE_WEAR_FRONT"
             }
         ],
+        "tireState": {
+            "frontLeft": {
+                "details": {
+                    "dimension": "225/35 R20 90Y XL",
+                    "isOptimizedForOemBmw": true,
+                    "manufacturer": "Pirelli",
+                    "manufacturingWeek": 4021,
+                    "mountingDate": "2022-03-07T00:00:00.000Z",
+                    "partNumber": "2461756",
+                    "season": 2,
+                    "speedClassification": {
+                        "atLeast": false,
+                        "speedRating": 300
+                    },
+                    "treadDesign": "P-ZERO"
+                },
+                "status": {
+                    "currentPressure": 241,
+                    "pressureStatus": 0,
+                    "targetPressure": 269,
+                    "wearStatus": 0
+                }
+            },
+            "frontRight": {
+                "details": {
+                    "dimension": "225/35 R20 90Y XL",
+                    "isOptimizedForOemBmw": true,
+                    "manufacturer": "Pirelli",
+                    "manufacturingWeek": 2419,
+                    "mountingDate": "2022-03-07T00:00:00.000Z",
+                    "partNumber": "2461756",
+                    "season": 2,
+                    "speedClassification": {
+                        "atLeast": false,
+                        "speedRating": 300
+                    },
+                    "treadDesign": "P-ZERO"
+                },
+                "status": {
+                    "currentPressure": 255,
+                    "pressureStatus": 0,
+                    "targetPressure": 269,
+                    "wearStatus": 0
+                }
+            },
+            "rearLeft": {
+                "details": {
+                    "dimension": "255/30 R20 92Y XL",
+                    "isOptimizedForOemBmw": true,
+                    "manufacturer": "Pirelli",
+                    "manufacturingWeek": 1219,
+                    "mountingDate": "2022-03-07T00:00:00.000Z",
+                    "partNumber": "2461757",
+                    "season": 2,
+                    "speedClassification": {
+                        "atLeast": false,
+                        "speedRating": 300
+                    },
+                    "treadDesign": "P-ZERO"
+                },
+                "status": {
+                    "currentPressure": 324,
+                    "pressureStatus": 0,
+                    "targetPressure": 303,
+                    "wearStatus": 0
+                }
+            },
+            "rearRight": {
+                "details": {
+                    "dimension": "255/30 R20 92Y XL",
+                    "isOptimizedForOemBmw": true,
+                    "manufacturer": "Pirelli",
+                    "manufacturingWeek": 1219,
+                    "mountingDate": "2022-03-07T00:00:00.000Z",
+                    "partNumber": "2461757",
+                    "season": 2,
+                    "speedClassification": {
+                        "atLeast": false,
+                        "speedRating": 300
+                    },
+                    "treadDesign": "P-ZERO"
+                },
+                "status": {
+                    "currentPressure": 331,
+                    "pressureStatus": 0,
+                    "targetPressure": 303,
+                    "wearStatus": 0
+                }
+            }
+        },
         "windowsState": {
             "combinedState": "CLOSED",
             "leftFront": "CLOSED",
