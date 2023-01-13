@@ -106,10 +106,14 @@ class FuelAndBattery(VehicleDataBase):
                 )
 
         if drivetrain in set(COMBUSTION_ENGINE_DRIVE_TRAINS).intersection(HV_BATTERY_DRIVE_TRAINS):
+            # for hybrid vehicles the remaining_range_fuel returned by the API seems to be the total remaining range
+            # to calculate the correct remaining range on fuel, we have to subtract the remaining electric range
+            retval["remaining_range_total"] = retval["remaining_range_fuel"]
+
             fuel: ValueWithUnit = retval.get("remaining_range_fuel", ValueWithUnit(None, None))
             electric: ValueWithUnit = retval.get("remaining_range_electric", ValueWithUnit(None, None))
-            retval["remaining_range_total"] = ValueWithUnit(
-                (fuel.value or 0) + (electric.value or 0),
+            retval["remaining_range_fuel"] = ValueWithUnit(
+                (fuel.value or 0) - (electric.value or 0),
                 fuel.unit or electric.unit,
             )
         elif drivetrain in COMBUSTION_ENGINE_DRIVE_TRAINS and "remaining_range_fuel" in retval:
