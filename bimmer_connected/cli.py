@@ -15,6 +15,7 @@ import httpx
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
+from bimmer_connected.const import DEFAULT_POI_NAME
 from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
 
@@ -67,7 +68,7 @@ def main_parser() -> argparse.ArgumentParser:
     sendpoi_parser.add_argument("vin", help=TEXT_VIN)
     sendpoi_parser.add_argument("latitude", help="Latitude of the POI", type=float)
     sendpoi_parser.add_argument("longitude", help="Longitude of the POI", type=float)
-    sendpoi_parser.add_argument("--name", help="(optional, display only) Name of the POI", nargs="?", default=None)
+    sendpoi_parser.add_argument("--name", help="Name of the POI", nargs="?", default=DEFAULT_POI_NAME)
     sendpoi_parser.add_argument(
         "--street", help="(optional, display only) Street & House No. of the POI", nargs="?", default=None
     )

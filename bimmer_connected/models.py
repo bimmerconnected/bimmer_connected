@@ -5,6 +5,8 @@ from dataclasses import InitVar, dataclass, field
 from enum import Enum
 from typing import Dict, List, NamedTuple, Optional, Tuple, Union
 
+from bimmer_connected.const import DEFAULT_POI_NAME
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -104,7 +106,7 @@ class PointOfInterest:
 
     lat: InitVar[float]
     lon: InitVar[float]
-    name: Optional[str] = None
+    name: Optional[str] = DEFAULT_POI_NAME
     street: InitVar[str] = None
     postal_code: InitVar[str] = None
     city: InitVar[str] = None
