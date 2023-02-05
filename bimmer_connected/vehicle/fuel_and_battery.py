@@ -95,7 +95,7 @@ class FuelAndBattery(VehicleDataBase):
         ):
             return retval
 
-        state = vehicle_data.get("state", {})
+        state = vehicle_data["state"]
 
         if drivetrain in COMBUSTION_ENGINE_DRIVE_TRAINS:
             retval.update(cls._parse_fuel_data(state.get("combustionFuelLevel", {}), vehicle_data["is_metric"]))
