@@ -19,6 +19,7 @@ import httpx
 import pytest
 import time_machine
 
+from bimmer_connected.models import PointOfInterest
 from bimmer_connected.vehicle import remote_services
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
@@ -244,3 +245,20 @@ async def test_poi():
 
     with pytest.raises(TypeError):
         await vehicle.remote_services.trigger_send_poi({"lat": 12.34})
+
+
+def test_poi_parsing():
+    """Test correct parsing of PointOfInterest."""
+
+    poi_data = PointOfInterest(**POI_DATA)
+
+    # Check parsing of attributes required by API
+    assert poi_data.coordinates.latitude == POI_DATA["lat"]
+    assert poi_data.coordinates.longitude == POI_DATA["lon"]
+    assert poi_data.name == POI_DATA["name"]
+
+    # Check that default attributes
+    poi_data = PointOfInterest(lat=POI_DATA["lat"], lon=POI_DATA["lon"])
+    assert poi_data.coordinates.latitude == POI_DATA["lat"]
+    assert poi_data.coordinates.longitude == POI_DATA["lon"]
+    assert poi_data.name == "Sent with ♥ by bimmer_connected"

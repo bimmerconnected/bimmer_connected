@@ -83,3 +83,5 @@ SERVICE_CHARGING_PROFILE = "CHARGING_PROFILE"
 ATTR_STATE = "state"
 ATTR_CAPABILITIES = "capabilities"
 ATTR_ATTRIBUTES = "attributes"
+
+DEFAULT_POI_NAME = "Sent with ♥ by bimmer_connected"
