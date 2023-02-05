@@ -78,13 +78,13 @@ async def test_range_phev(caplog):
     status = (await get_mocked_account()).get_vehicle(VIN_G01).status
 
     assert (40, "L") == status.remaining_fuel
-    assert (476, "km") == status.remaining_range_fuel
+    assert (436, "km") == status.remaining_range_fuel
     assert 80 == status.fuel_percent
 
     assert 80 == status.charging_level_hv
     assert (40, "km") == status.remaining_range_electric
 
-    assert (516, "km") == status.remaining_range_total
+    assert (476, "km") == status.remaining_range_total
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
