@@ -12,7 +12,7 @@ jobs:
       # The 90 day stale policy
       # Used for: Everything (unless 30 day policy below beats it)
       - name: 90 days stale policy
-        uses: actions/stale@v3.0.13
+        uses: actions/stale@v7
         with:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           days-before-stale: 90

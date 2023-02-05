@@ -22,7 +22,7 @@ class ConditionBasedServiceStatus(StrEnum):
 
 
 @dataclass
-class ConditionBasedService:  # pylint: disable=too-few-public-methods
+class ConditionBasedService:
     """Entry in the list of condition based services."""
 
     service_type: str
@@ -30,7 +30,6 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
     due_date: Optional[datetime.datetime]
     due_distance: ValueWithUnit
 
-    # pylint:disable=invalid-name,redefined-builtin,too-many-arguments,unused-argument
     @classmethod
     def from_api_entry(
         cls,
@@ -49,13 +48,13 @@ class ConditionBasedService:  # pylint: disable=too-few-public-methods
 
 @dataclass
 class ConditionBasedServiceReport(VehicleDataBase):
-    """Parses and summarizes condition based services (e.g. next oil service)."""
+    """Parse and summarizes condition based services (e.g. next oil service)."""
 
     messages: List[ConditionBasedService] = field(default_factory=list)
     """List of the condition based services."""
 
     is_service_required: bool = False
-    """Indicates if a service is required."""
+    """Indicate if a service is required."""
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:
@@ -91,22 +90,21 @@ class CheckControlMessage:
     description_long: Optional[str]
     state: CheckControlStatus
 
-    # pylint:disable=invalid-name,redefined-builtin,unused-argument
     @classmethod
     def from_api_entry(cls, type: str, severity: str, longDescription: Optional[str] = None, **kwargs):
-        """Parses a check control entry from the API format to `CheckControlMessage`."""
+        """Parse a check control entry from the API format to `CheckControlMessage`."""
         return cls(type, longDescription, CheckControlStatus(severity))
 
 
 @dataclass
 class CheckControlMessageReport(VehicleDataBase):
-    """Parses and summarizes check control messages (e.g. low tire pressure)."""
+    """Parse and summarizes check control messages (e.g. low tire pressure)."""
 
     messages: List[CheckControlMessage] = field(default_factory=list)
     """List of check control messages."""
 
     has_check_control_messages: bool = False
-    """Indicates if check control messages are present."""
+    """Indicate if check control messages are present."""
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:

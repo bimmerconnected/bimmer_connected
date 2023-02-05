@@ -23,7 +23,7 @@ TEXT_VIN = "Vehicle Identification Number"
 
 
 def main_parser() -> argparse.ArgumentParser:
-    """Creates the ArgumentParser with all relevant subparsers."""
+    """Create the ArgumentParser with all relevant subparsers."""
     logging.basicConfig(level=logging.DEBUG)
 
     parser = argparse.ArgumentParser(description="A simple executable to use and test the library.")
@@ -295,7 +295,7 @@ def _add_position_arguments(parser: argparse.ArgumentParser):
 
 
 def main():
-    """Main function."""
+    """Get arguments from parser and run function in event loop."""
     parser = main_parser()
     args = parser.parse_args()
 

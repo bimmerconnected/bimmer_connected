@@ -112,7 +112,7 @@ async def test_parsing_of_lsc_type(caplog):
 
 
 def test_car_brand(caplog):
-    """Test CarBrand enum"""
+    """Test CarBrand enum."""
     assert CarBrands("BMW") == CarBrands("bmw")
 
     with pytest.raises(ValueError):
@@ -123,7 +123,7 @@ def test_car_brand(caplog):
 
 @pytest.mark.asyncio
 async def test_get_is_tracking_enabled(caplog):
-    """Test setting observer position"""
+    """Test setting observer position."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_REX)
     assert vehicle.is_vehicle_tracking_enabled is False
 
@@ -211,8 +211,8 @@ async def test_vehicle_image(caplog):
 async def test_no_timestamp():
     """Test no timestamp available."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
-    vehicle.data[ATTR_STATE].pop("lastFetched")  # pylint: disable=protected-access
-    vehicle.data[ATTR_ATTRIBUTES].pop("lastFetched")  # pylint: disable=protected-access
+    vehicle.data[ATTR_STATE].pop("lastFetched")
+    vehicle.data[ATTR_ATTRIBUTES].pop("lastFetched")
 
     assert vehicle.timestamp is None
 
@@ -248,7 +248,7 @@ def test_strenum(caplog):
 def test_vehiclebasedata():
     """Tests VehicleBaseData."""
     with pytest.raises(NotImplementedError):
-        VehicleDataBase._parse_vehicle_data({})  # pylint: disable=protected-access
+        VehicleDataBase._parse_vehicle_data({})
 
     # CheckControlMessageReport does not override parent methods from_vehicle_data()
     ccmr = CheckControlMessageReport.from_vehicle_data(

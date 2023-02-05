@@ -31,7 +31,7 @@ async def test_generic(caplog):
 
 @pytest.mark.asyncio
 async def test_range_combustion_no_info(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
     status = vehicle.fuel_and_battery
 
@@ -54,7 +54,7 @@ async def test_range_combustion_no_info(caplog):
 
 @pytest.mark.asyncio
 async def test_range_combustion(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     # Metric units
     status = (await get_mocked_account()).get_vehicle(VIN_G20).fuel_and_battery
 
@@ -86,7 +86,7 @@ async def test_range_combustion(caplog):
 
 @pytest.mark.asyncio
 async def test_range_phev(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     # Metric units
     status = (await get_mocked_account()).get_vehicle(VIN_G01).fuel_and_battery
 
@@ -122,7 +122,7 @@ async def test_range_phev(caplog):
 
 @pytest.mark.asyncio
 async def test_range_rex(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     # Metric units
     status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).fuel_and_battery
 
@@ -158,7 +158,7 @@ async def test_range_rex(caplog):
 
 @pytest.mark.asyncio
 async def test_range_electric(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     # Metric units
     status = (await get_mocked_account()).get_vehicle(VIN_I20).fuel_and_battery
 
@@ -191,7 +191,7 @@ async def test_range_electric(caplog):
 @time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_I01_NOREX)
 
@@ -405,7 +405,7 @@ async def test_check_control_messages(caplog):
 
 @pytest.mark.asyncio
 async def test_charging_profile(caplog):
-    """Test parsing of the charing profile"""
+    """Test parsing of the charing profile."""
 
     charging_profile = (await get_mocked_account()).get_vehicle(VIN_I01_REX).charging_profile
     assert charging_profile.is_pre_entry_climatization_enabled is False

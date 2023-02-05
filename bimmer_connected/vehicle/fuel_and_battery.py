@@ -32,7 +32,7 @@ class ChargingState(StrEnum):
 
 
 @dataclass
-class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
+class FuelAndBattery(VehicleDataBase):
     """Provides an accessible version of `status.FuelAndBattery`."""
 
     remaining_range_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
@@ -74,10 +74,9 @@ class FuelAndBattery(VehicleDataBase):  # pylint:disable=too-many-instance-attri
             return self.charging_start_time_no_tz.astimezone(self.account_timezone)
         return None
 
-    # pylint:disable=arguments-differ
     @classmethod
     def from_vehicle_data(cls, vehicle_data: Dict):
-        """Creates the class based on vehicle data from API."""
+        """Create the class based on vehicle data from API."""
         parsed = cls._parse_vehicle_data(vehicle_data) or {}
         if len(parsed) > 0:
             return cls(**parsed)

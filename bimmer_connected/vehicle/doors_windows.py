@@ -33,7 +33,7 @@ class LockState(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
-class Lid:  # pylint: disable=too-few-public-methods
+class Lid:
     """A lid of the vehicle.
 
     Lids are: Doors + Trunk + Hatch
@@ -50,7 +50,7 @@ class Lid:  # pylint: disable=too-few-public-methods
         return self.state == LidState.CLOSED
 
 
-class Window(Lid):  # pylint: disable=too-few-public-methods,no-member
+class Window(Lid):
     """A window of the vehicle.
 
     A window can be a normal window of the car or the sun roof.
@@ -58,7 +58,7 @@ class Window(Lid):  # pylint: disable=too-few-public-methods,no-member
 
 
 @dataclass
-class DoorsAndWindows(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
+class DoorsAndWindows(VehicleDataBase):
     """Provides an accessible version of `properties.doorsAndWindows`."""
 
     door_lock_state: LockState = LockState.UNKNOWN

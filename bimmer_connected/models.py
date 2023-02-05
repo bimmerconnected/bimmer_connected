@@ -33,14 +33,14 @@ class VehicleDataBase:
 
     @classmethod
     def from_vehicle_data(cls, vehicle_data: Dict):
-        """Creates the class based on vehicle data from API."""
+        """Create the class based on vehicle data from API."""
         parsed = cls._parse_vehicle_data(vehicle_data) or {}
         if len(parsed) > 0:
             return cls(**parsed)
         return None
 
     def update_from_vehicle_data(self, vehicle_data: Dict):
-        """Updates the attributes based on vehicle data from API."""
+        """Update the attributes based on vehicle data from API."""
         parsed = self._parse_vehicle_data(vehicle_data) or {}
         parsed.update(self._update_after_parse(parsed))
         if len(parsed) > 0:
@@ -48,11 +48,11 @@ class VehicleDataBase:
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Optional[Dict]:
-        """Parses desired attributes out of vehicle data from API."""
+        """Parse desired attributes out of vehicle data from API."""
         raise NotImplementedError()
 
     def _update_after_parse(self, parsed: Dict) -> Dict:
-        """Updates parsed vehicle data with attributes stored in class if needed."""
+        """Update parsed vehicle data with attributes stored in class if needed."""
         return parsed
 
 
@@ -64,11 +64,9 @@ class GPSPosition:
     longitude: Optional[float]
 
     def __post_init__(self):
-        # pylint: disable=no-member
         if len([v for v in self.__dict__.values() if v is None]) not in [0, len(self.__dataclass_fields__)]:
             raise TypeError("Either none or all arguments must be 'None'.")
 
-        # pylint: disable=no-member
         for field_name in self.__dataclass_fields__:
             value = getattr(self, field_name)
             if value is not None and not isinstance(value, (float, int)):
@@ -95,7 +93,7 @@ class PointOfInterestAddress:
     """Address data of a PointOfInterest."""
 
     street: Optional[str] = None
-    postalCode: Optional[str] = None  # pylint: disable=invalid-name
+    postalCode: Optional[str] = None
     city: Optional[str] = None
     country: Optional[str] = None
 
@@ -113,12 +111,12 @@ class PointOfInterest:
     country: InitVar[str] = None
 
     coordinates: GPSPosition = field(init=False)
-    locationAddress: Optional[PointOfInterestAddress] = field(init=False)  # pylint: disable=invalid-name
-    entryPoints: List = field(init=False, default_factory=list)  # pylint: disable=invalid-name
+    locationAddress: Optional[PointOfInterestAddress] = field(init=False)
+    entryPoints: List = field(init=False, default_factory=list)
 
-    def __post_init__(self, lat, lon, street, postal_code, city, country):  # pylint: disable=too-many-arguments
+    def __post_init__(self, lat, lon, street, postal_code, city, country):
         self.coordinates = GPSPosition(lat, lon)
-        # pylint: disable=invalid-name
+
         self.locationAddress = PointOfInterestAddress(street, postal_code, city, country)
 
 

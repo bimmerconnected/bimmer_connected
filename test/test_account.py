@@ -12,7 +12,7 @@ try:
         # AsyncMock was only introduced with Python3.8, so we have to use the backported module
         raise ImportError()
 except ImportError:
-    import mock  # type: ignore[import,no-redef]
+    import mock  # type: ignore[import,no-redef]  # noqa: UP026
 
 import httpx
 import pytest
@@ -41,7 +41,7 @@ from . import (
 
 
 def authenticate_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Returns /oauth/authentication response based on request."""
+    """Return /oauth/authentication response based on request."""
     request_text = request.read().decode("UTF-8")
     if "username" in request_text and "password" in request_text and "grant_type" in request_text:
         return httpx.Response(200, json=load_response(RESPONSE_DIR / "auth" / "authorization_response.json"))
@@ -54,7 +54,7 @@ def authenticate_sideeffect(request: httpx.Request) -> httpx.Response:
 
 
 def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Returns /vehicles response based on x-user-agent."""
+    """Return /vehicles response based on x-user-agent."""
     x_user_agent = request.headers.get("x-user-agent", "").split(";")
     if len(x_user_agent) == 4:
         brand = x_user_agent[1]
@@ -68,7 +68,7 @@ def vehicles_sideeffect(request: httpx.Request) -> httpx.Response:
 
 
 def vehicle_state_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Returns /vehicles response based on x-user-agent."""
+    """Return /vehicles response based on x-user-agent."""
     x_user_agent = request.headers.get("x-user-agent", "").split(";")
     assert len(x_user_agent) == 4
 
@@ -79,7 +79,7 @@ def vehicle_state_sideeffect(request: httpx.Request) -> httpx.Response:
 
 
 def account_mock():
-    """Returns mocked adapter for auth."""
+    """Return mocked adapter for auth."""
     router = respx.mock(assert_all_called=False)
 
     # Login to north_america and rest_of_world
@@ -110,12 +110,12 @@ def account_mock():
 
 
 def get_account(region: Optional[Regions] = None, metric: bool = True):
-    """Returns account without token and vehicles (sync)."""
+    """Return account without token and vehicles (sync)."""
     return MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION, use_metric_units=metric)
 
 
 async def get_mocked_account(region: Optional[Regions] = None, metric: bool = True):
-    """Returns pre-mocked account."""
+    """Return pre-mocked account."""
     with account_mock():
         account = get_account(region, metric)
         await account.get_vehicles()
@@ -141,7 +141,7 @@ async def test_login_refresh_token_row_na_expired():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
-            wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_row_na,
         ) as mock_listener:
             mock_listener.reset_mock()
             await account.get_vehicles()
@@ -160,7 +160,7 @@ async def test_login_refresh_token_row_na_401():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
-            wraps=account.config.authentication._refresh_token_row_na,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_row_na,
         ) as mock_listener:
             mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
@@ -214,7 +214,7 @@ async def test_login_refresh_token_china_expired():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
-            wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_china,
         ) as mock_listener:
             mock_listener.reset_mock()
             await account.get_vehicles()
@@ -233,7 +233,7 @@ async def test_login_refresh_token_china_401():
 
         with mock.patch(
             "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_china",
-            wraps=account.config.authentication._refresh_token_china,  # pylint: disable=protected-access
+            wraps=account.config.authentication._refresh_token_china,
         ) as mock_listener:
             mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
                 side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
@@ -291,7 +291,7 @@ async def test_vehicle_init():
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
     with mock.patch(
         "bimmer_connected.account.MyBMWAccount._init_vehicles",
-        wraps=account._init_vehicles,  # pylint: disable=protected-access
+        wraps=account._init_vehicles,
     ) as mock_listener:
         mock_listener.reset_mock()
 

@@ -27,10 +27,9 @@ class VehicleLocation(VehicleDataBase):
     account_region: Optional[Regions] = None
     remote_service_position: Optional[Dict] = None
 
-    # pylint:disable=arguments-differ
     @classmethod
     def from_vehicle_data(cls, vehicle_data: Dict):
-        """Creates the class based on vehicle data from API."""
+        """Create the class based on vehicle data from API."""
         parsed = cls._parse_vehicle_data(vehicle_data) or {}
         if len(parsed) > 1:  # must be greater than 1 due to timestamp dummy
             return cls(**parsed)
@@ -52,7 +51,7 @@ class VehicleLocation(VehicleDataBase):
         return retval
 
     def _update_after_parse(self, parsed: Dict) -> Dict:
-        """Updates parsed vehicle data with attributes stored in class if needed."""
+        """Update parsed vehicle data with attributes stored in class if needed."""
         retval = parsed
         # Overwrite vehicle data with remote service position if available & newer
         if self.remote_service_position is not None:

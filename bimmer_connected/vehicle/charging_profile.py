@@ -84,7 +84,7 @@ class DepartureTimer:
 
 
 @dataclass
-class ChargingProfile(VehicleDataBase):  # pylint:disable=too-many-instance-attributes
+class ChargingProfile(VehicleDataBase):
     """Models the charging profile of a vehicle."""
 
     is_pre_entry_climatization_enabled: bool

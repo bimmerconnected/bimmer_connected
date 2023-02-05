@@ -40,7 +40,6 @@ _LOGGER = logging.getLogger(__name__)
 class MyBMWAuthentication(httpx.Auth):
     """Authentication for MyBMW API."""
 
-    # pylint: disable=too-many-arguments,too-many-instance-attributes
     def __init__(
         self,
         username: str,
@@ -61,7 +60,7 @@ class MyBMWAuthentication(httpx.Auth):
 
     @property
     def login_lock(self) -> asyncio.Lock:
-        """Makes sure that there is a lock in the current event loop."""
+        """Make sure that there is a lock in the current event loop."""
         if not self._lock:
             self._lock = asyncio.Lock()
         return self._lock
@@ -123,7 +122,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.expires_at = token_data["expires_at"]
         self.refresh_token = token_data["refresh_token"]
 
-    async def _login_row_na(self):  # pylint: disable=too-many-locals
+    async def _login_row_na(self):
         """Login to Rest of World and North America."""
         try:
             async with MyBMWLoginClient(region=self.region) as client:
