@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, Optional
 
-from bimmer_connected.const import ATTR_ATTRIBUTES
+from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE
 from bimmer_connected.models import StrEnum, ValueWithUnit, VehicleDataBase
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 
@@ -88,6 +88,13 @@ class FuelAndBattery(VehicleDataBase):
         retval: Dict[str, Any] = {}
         drivetrain = DriveTrainType(vehicle_data.get(ATTR_ATTRIBUTES, {}).get("driveTrain") or DriveTrainType.UNKNOWN)
 
+        # return early if state data hasn't been loaded or no combustion/electric data is available
+        if (
+            ATTR_STATE not in vehicle_data
+            or len({"combustionFuelLevel", "electricChargingState"}.intersection(set(vehicle_data[ATTR_STATE]))) == 0
+        ):
+            return retval
+
         state = vehicle_data.get("state", {})
 
         if drivetrain in COMBUSTION_ENGINE_DRIVE_TRAINS:
@@ -108,14 +115,22 @@ class FuelAndBattery(VehicleDataBase):
         if drivetrain in set(COMBUSTION_ENGINE_DRIVE_TRAINS).intersection(HV_BATTERY_DRIVE_TRAINS):
             # for hybrid vehicles the remaining_range_fuel returned by the API seems to be the total remaining range
             # to calculate the correct remaining range on fuel, we have to subtract the remaining electric range
-            retval["remaining_range_total"] = retval["remaining_range_fuel"]
+            # this does not seem to apply for the old I3 with range extender
 
             fuel: ValueWithUnit = retval.get("remaining_range_fuel", ValueWithUnit(None, None))
             electric: ValueWithUnit = retval.get("remaining_range_electric", ValueWithUnit(None, None))
-            retval["remaining_range_fuel"] = ValueWithUnit(
-                (fuel.value or 0) - (electric.value or 0),
-                fuel.unit or electric.unit,
-            )
+
+            if drivetrain == DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER:
+                retval["remaining_range_total"] = ValueWithUnit(
+                    (fuel.value or 0) + (electric.value or 0),
+                    fuel.unit or electric.unit,
+                )
+            else:
+                retval["remaining_range_total"] = retval["remaining_range_fuel"]
+                retval["remaining_range_fuel"] = ValueWithUnit(
+                    (fuel.value or 0) - (electric.value or 0),
+                    fuel.unit or electric.unit,
+                )
         elif drivetrain in COMBUSTION_ENGINE_DRIVE_TRAINS and "remaining_range_fuel" in retval:
             retval["remaining_range_total"] = retval["remaining_range_fuel"]
         elif drivetrain in HV_BATTERY_DRIVE_TRAINS and "remaining_range_electric" in retval:
