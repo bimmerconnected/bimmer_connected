@@ -40,7 +40,7 @@ async def test_generic(caplog):
 
 @pytest.mark.asyncio
 async def test_range_combustion_no_info(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     status = (await get_mocked_account()).get_vehicle(VIN_F31).status
 
     assert (14, "L") == status.remaining_fuel
@@ -57,7 +57,7 @@ async def test_range_combustion_no_info(caplog):
 
 @pytest.mark.asyncio
 async def test_range_combustion(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     status = (await get_mocked_account()).get_vehicle(VIN_G20).status
 
     assert (40, "L") == status.remaining_fuel
@@ -74,7 +74,7 @@ async def test_range_combustion(caplog):
 
 @pytest.mark.asyncio
 async def test_range_phev(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     status = (await get_mocked_account()).get_vehicle(VIN_G01).status
 
     assert (40, "L") == status.remaining_fuel
@@ -93,7 +93,7 @@ async def test_range_phev(caplog):
 
 @pytest.mark.asyncio
 async def test_range_rex(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).status
 
     assert (6, "L") == status.remaining_fuel
@@ -112,7 +112,7 @@ async def test_range_rex(caplog):
 
 @pytest.mark.asyncio
 async def test_range_electric(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     status = (await get_mocked_account()).get_vehicle(VIN_G23).status
 
     assert status.remaining_fuel == (None, None)
@@ -130,7 +130,7 @@ async def test_range_electric(caplog):
 @time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     account = await get_mocked_account()
     status = account.get_vehicle(VIN_I01_NOREX).status
     assert datetime.datetime(2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc) == status.charging_end_time
@@ -141,7 +141,7 @@ async def test_charging_end_time(caplog):
 
 @pytest.mark.asyncio
 async def test_charging_time_label(caplog):
-    """Test if the parsing of mileage and range is working"""
+    """Test if the parsing of mileage and range is working."""
     account = await get_mocked_account()
     status = account.get_vehicle(VIN_I20).status
     assert None is status.charging_time_label

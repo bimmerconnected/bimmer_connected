@@ -53,7 +53,7 @@ class Services(StrEnum):
     CHARGE_NOW = "CHARGE_NOW"
 
 
-class RemoteServiceStatus:  # pylint: disable=too-few-public-methods
+class RemoteServiceStatus:
     """Wraps the status of the execution of a remote service."""
 
     def __init__(self, response: dict):
@@ -70,7 +70,6 @@ class RemoteServices:
     """Trigger remote services on a vehicle."""
 
     def __init__(self, vehicle: "MyBMWVehicle"):
-        """Constructor."""
         self._account = vehicle.account
         self._vehicle = vehicle
 
@@ -174,7 +173,7 @@ class RemoteServices:
         )
 
     async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
-        """The execution status of the last remote service that was triggered."""
+        """Return execution status of the last remote service that was triggered."""
         _LOGGER.debug("getting remote service status for '%s'", event_id)
         url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:

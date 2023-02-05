@@ -9,9 +9,6 @@ Author: sshuair
 License: MIT License
 """
 
-# pylint: skip-file
-# flake8: noqa
-
 # -*- coding: utf-8 -*-
 from math import atan2, cos, fabs
 from math import pi as PI

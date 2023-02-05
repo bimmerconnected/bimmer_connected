@@ -53,7 +53,6 @@ class LscType(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
-# pylint: disable=too-many-public-methods,too-many-instance-attributes
 class MyBMWVehicle:
     """Models state and remote services of one vehicle.
 
@@ -68,7 +67,7 @@ class MyBMWVehicle:
         vehicle_state: dict,
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
-        """Initializes a MyBMWVehicle."""
+        """Initialize a MyBMWVehicle."""
         self.account = account
         self.data = self.combine_data(account, vehicle_base, vehicle_state, fetched_at)
         self.status = VehicleStatus(self)
@@ -176,7 +175,8 @@ class MyBMWVehicle:
     def has_combustion_drivetrain(self) -> bool:
         """Return True if vehicle is equipped with an internal combustion engine.
 
-        In this case we can get the state of the gas tank."""
+        In this case we can get the state of the gas tank.
+        """
         return self.drive_train in COMBUSTION_ENGINE_DRIVE_TRAINS
 
     @property
@@ -278,26 +278,22 @@ class MyBMWVehicle:
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.has_electric_drivetrain")
-    def has_hv_battery(self) -> bool:
-        # pylint:disable=missing-function-docstring
+    def has_hv_battery(self) -> bool:  # noqa: D102
         return self.has_electric_drivetrain
 
     @property  # type: ignore[misc]
     @deprecated()
-    def has_range_extender(self) -> bool:
-        # pylint:disable=missing-function-docstring
+    def has_range_extender(self) -> bool:  # noqa: D102
         return False
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.has_combustion_drivetrain")
-    def has_internal_combustion_engine(self) -> bool:
-        # pylint:disable=missing-function-docstring
+    def has_internal_combustion_engine(self) -> bool:  # noqa: D102
         return self.has_combustion_drivetrain
 
     @property  # type: ignore[misc]
     @deprecated("vehicle.is_charging_plan_supported")
-    def has_weekly_planner_service(self) -> bool:
-        # pylint:disable=missing-function-docstring
+    def has_weekly_planner_service(self) -> bool:  # noqa: D102
         return self.is_charging_plan_supported
 
 
@@ -306,7 +302,7 @@ class ConnectedDriveVehicle(MyBMWVehicle):
     """Deprecated class name for compatibility."""
 
     def __init__(self, account: "MyBMWAccount", vehicle_dict: dict) -> None:
-        """Initializes a ConnectedDriveVehicle (deprecated)."""
+        """Initialize a ConnectedDriveVehicle (deprecated)."""
         super().__init__(account, vehicle_dict, {})
 
     def update_state(

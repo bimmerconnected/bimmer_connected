@@ -11,7 +11,7 @@ try:
         # AsyncMock was only introduced with Python3.8, so we have to use the backported module
         raise ImportError()
 except ImportError:
-    import mock  # type: ignore[import,no-redef]
+    import mock  # type: ignore[import,no-redef]  # noqa: UP026
 
 from uuid import uuid4
 
@@ -47,21 +47,21 @@ STATUS_RESPONSE_ORDER = [_RESPONSE_PENDING, _RESPONSE_DELIVERED, _RESPONSE_EXECU
 STATUS_RESPONSE_DICT: Dict[str, List[Path]] = defaultdict(lambda: deepcopy(STATUS_RESPONSE_ORDER))
 
 
-def service_trigger_sideeffect(request: httpx.Request) -> httpx.Response:  # pylint: disable=unused-argument
-    """Returns specific eventId for each remote function."""
+def service_trigger_sideeffect(request: httpx.Request) -> httpx.Response:
+    """Return specific eventId for each remote function."""
     json_data = load_response(_RESPONSE_INITIATED)
     json_data["eventId"] = str(uuid4())
     return httpx.Response(200, json=json_data)
 
 
 def service_status_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Returns all 3 eventStatus responses per function."""
+    """Return all 3 eventStatus responses per function."""
     response_data = STATUS_RESPONSE_DICT[request.url.params["eventId"]].pop(0)
     return httpx.Response(200, json=load_response(response_data))
 
 
 def remote_services_mock():
-    """Returns mocked adapter for auth."""
+    """Return mocked adapter for auth."""
     router = account_mock()
 
     router.post(path__regex=r"/eadrax-vrccs/v3/presentation/remote-commands/.+/.+$").mock(
@@ -96,7 +96,7 @@ def test_states():
 @pytest.mark.filterwarnings("ignore:coroutine 'AsyncMockMixin._execute_mock_call' was never awaited:RuntimeWarning")
 async def test_trigger_remote_services():
     """Test executing a remote light flash."""
-    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 0
 
     services = [
         ("LIGHT_FLASH", "trigger_remote_light_flash", False),
@@ -134,7 +134,7 @@ async def test_trigger_remote_services():
 @pytest.mark.asyncio
 async def test_get_remote_service_status():
     """Test get_remove_service_status method."""
-    # pylint: disable=protected-access
+
     remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
@@ -161,7 +161,7 @@ async def test_get_remote_service_status():
 @pytest.mark.asyncio
 async def test_get_remote_position():
     """Test getting position from remote service."""
-    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     account.set_observer_position(1.0, 0.0)
@@ -187,7 +187,7 @@ async def test_get_remote_position():
 @pytest.mark.asyncio
 async def test_get_remote_position_fail_without_observer(caplog):
     """Test getting position from remote service."""
-    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
@@ -206,8 +206,8 @@ async def test_get_remote_position_fail_without_observer(caplog):
 @pytest.mark.asyncio
 async def test_fail_with_timeout():
     """Test failing after timeout was reached."""
-    remote_services._POLLING_CYCLE = 1  # pylint: disable=protected-access
-    remote_services._POLLING_TIMEOUT = 2  # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 1
+    remote_services._POLLING_TIMEOUT = 2
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
@@ -221,7 +221,7 @@ async def test_fail_with_timeout():
 @pytest.mark.asyncio
 async def test_get_remote_position_too_old():
     """Test remote service position being ignored as vehicle status is newer."""
-    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
@@ -237,7 +237,7 @@ async def test_get_remote_position_too_old():
 @pytest.mark.asyncio
 async def test_poi():
     """Test get_remove_service_status method."""
-    remote_services._POLLING_CYCLE = 0  # pylint: disable=protected-access
+    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)

@@ -1,5 +1,0 @@
-[flake8]
-max-complexity = 10
-install-hook=git
-ignore=D,W503
-max-line-length=120

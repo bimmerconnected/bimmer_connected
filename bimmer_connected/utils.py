@@ -1,5 +1,6 @@
 """General utils and base classes used in the library."""
 
+
 import datetime
 import inspect
 import json
@@ -33,7 +34,7 @@ JSON_DEPRECATED_KEYS = [
 
 
 def get_class_property_names(obj: object):
-    """Returns the names of all properties of a class."""
+    """Return the names of all properties of a class."""
     return [p[0] for p in inspect.getmembers(type(obj), inspect.isdatadescriptor) if not p[0].startswith("_")]
 
 
@@ -61,7 +62,7 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
 class MyBMWJSONEncoder(json.JSONEncoder):
     """JSON Encoder that handles data classes, properties and additional data types."""
 
-    def default(self, o):
+    def default(self, o):  # noqa: D102
         if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
             return o.isoformat()
         if not isinstance(o, Enum) and hasattr(o, "__dict__") and isinstance(o.__dict__, Dict):
@@ -93,7 +94,7 @@ def deprecated(replacement: Optional[str] = None) -> "Callable[[Callable[_P, _R]
 
 
 def to_camel_case(input_str: str) -> str:
-    """Converts SNAKE_CASE or snake_case to camelCase."""
+    """Convert SNAKE_CASE or snake_case to camelCase."""
 
     retval = ""
     flag_upper = False
@@ -118,4 +119,4 @@ def log_response_store_to_file(response_store: List[AnonymizedResponse], logfile
             if output_path.suffix == ".json" or not isinstance(content, str):
                 json.dump(content or [], logfile, indent=4, sort_keys=True)
             else:
-                logfile.write((content or "NO CONTENT"))
+                logfile.write(content or "NO CONTENT")
