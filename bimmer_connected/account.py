@@ -21,7 +21,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 @dataclass
-class MyBMWAccount:  # pylint: disable=too-many-instance-attributes
+class MyBMWAccount: 
     """Create a new connection to the MyBMW web service."""
 
     username: str
