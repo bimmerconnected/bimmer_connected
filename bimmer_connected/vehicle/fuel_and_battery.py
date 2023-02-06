@@ -174,7 +174,7 @@ class FuelAndBattery(VehicleDataBase):
                 minutes=electric_data["remainingChargingMinutes"]
             )
         if "chargingTarget" in electric_data:
-            retval["charging_target"] = electric_data["chargingTarget"]
+            retval["charging_target"] = int(electric_data["chargingTarget"])
 
         if retval["charging_status"] == ChargingState.WAITING_FOR_CHARGING and isinstance(charging_window, Dict):
             retval["charging_start_time_no_tz"] = datetime.datetime.combine(
