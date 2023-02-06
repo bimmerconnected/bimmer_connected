@@ -191,7 +191,7 @@ async def test_range_electric(caplog):
 @time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog):
-    """Test if the parsing of mileage and range is working."""
+    """Test charging end time."""
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_I01_NOREX)
 
@@ -218,6 +218,7 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
     assert vehicle.fuel_and_battery.charging_start_time == datetime.datetime(
         2021, 11, 28, 18, 1, tzinfo=account.timezone
     )
+    assert vehicle.fuel_and_battery.charging_target == 100
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -405,7 +406,7 @@ async def test_check_control_messages(caplog):
 
 @pytest.mark.asyncio
 async def test_charging_profile(caplog):
-    """Test parsing of the charing profile."""
+    """Test parsing of the charging profile."""
 
     charging_profile = (await get_mocked_account()).get_vehicle(VIN_I01_REX).charging_profile
     assert charging_profile.is_pre_entry_climatization_enabled is False
