@@ -64,6 +64,9 @@ class FuelAndBattery(VehicleDataBase):
 
     is_charger_connected: bool = False
     """Get status of the connection"""
+    
+    charging_target: Optional[int] = None
+    """State of charging target in percent."""
 
     account_timezone: datetime.timezone = datetime.timezone.utc
 
@@ -170,6 +173,8 @@ class FuelAndBattery(VehicleDataBase):
             retval["charging_end_time"] = fetched_at + datetime.timedelta(
                 minutes=electric_data["remainingChargingMinutes"]
             )
+        if "chargingTarget" in electric_data:
+            retval["charging_target"] = electric_data["chargingTarget"]
 
         if retval["charging_status"] == ChargingState.WAITING_FOR_CHARGING and isinstance(charging_window, Dict):
             retval["charging_start_time_no_tz"] = datetime.datetime.combine(
