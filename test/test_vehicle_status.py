@@ -422,4 +422,7 @@ async def test_charging_profile(caplog):
     assert charging_window.start_time == datetime.time(18, 1)
     assert charging_window.end_time == datetime.time(1, 30)
 
+    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G01).charging_profile
+    assert charging_settings.ac_current_limit == 16
+
     assert len(get_deprecation_warning_count(caplog)) == 0
