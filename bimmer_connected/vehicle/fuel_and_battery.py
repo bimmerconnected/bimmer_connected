@@ -64,7 +64,7 @@ class FuelAndBattery(VehicleDataBase):
 
     is_charger_connected: bool = False
     """Get status of the connection"""
-    
+
     charging_target: Optional[int] = None
     """State of charging target in percent."""
 
