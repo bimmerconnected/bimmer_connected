@@ -105,9 +105,6 @@ class ChargingProfile(VehicleDataBase):
     charging_mode: ChargingMode
     """Returns the preferred charging mode."""
 
-    ac_current_limit: Optional[int] = None
-    """Returns the ac current limit."""
-
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
         """Parse charging data."""
@@ -122,7 +119,5 @@ class ChargingProfile(VehicleDataBase):
             retval["timer_type"] = TimerTypes(charging_profile.get("chargingControlType", "UNKNOWN"))
             retval["charging_preferences"] = ChargingPreferences(charging_profile.get("chargingPreference", "UNKNOWN"))
             retval["charging_mode"] = ChargingMode(charging_profile.get("chargingMode", "UNKNOWN"))
-            if "acCurrentLimit" in charging_profile["chargingSettings"]:
-                retval["ac_current_limit"] = charging_profile["chargingSettings"]["acCurrentLimit]
 
         return retval
