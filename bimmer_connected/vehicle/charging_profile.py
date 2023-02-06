@@ -107,7 +107,7 @@ class ChargingProfile(VehicleDataBase):
 
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
-        """Parse doors and windows."""
+        """Parse charging data."""
         retval: Dict[str, Any] = {}
 
         if ATTR_STATE in vehicle_data and "chargingProfile" in vehicle_data[ATTR_STATE]:
