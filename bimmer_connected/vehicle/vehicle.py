@@ -236,6 +236,7 @@ class MyBMWVehicle:
                 "charging_target",
                 "charging_mode",
                 "charging_preferences",
+                "is_pre_entry_climatization_enabled",
             ]
         if self.has_combustion_drivetrain:
             result += ["remaining_fuel", "remaining_range_fuel", "remaining_fuel_percent"]
