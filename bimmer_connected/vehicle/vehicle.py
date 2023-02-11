@@ -224,6 +224,7 @@ class MyBMWVehicle:
         if self.has_electric_drivetrain:
             result += [
                 "charging_time_remaining",
+                "charging_start_time",
                 "charging_end_time",
                 "charging_time_label",
                 "charging_status",
@@ -231,6 +232,10 @@ class MyBMWVehicle:
                 "remaining_battery_percent",
                 "remaining_range_electric",
                 "last_charging_end_result",
+                "ac_current_limit",
+                "charging_target",
+                "charging_mode",
+                "charging_preferences",
             ]
         if self.has_combustion_drivetrain:
             result += ["remaining_fuel", "remaining_range_fuel", "remaining_fuel_percent"]
