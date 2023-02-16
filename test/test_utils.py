@@ -10,7 +10,7 @@ except ImportError:
 import pytest
 import time_machine
 
-from bimmer_connected.models import ValueWithUnit
+from bimmer_connected.models import ChargingSettings, ValueWithUnit
 from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
 from . import VIN_G23
@@ -33,6 +33,7 @@ async def test_drive_train():
         "has_range_extender",
         "has_weekly_planner_service",
         "is_charging_plan_supported",
+        "is_charging_settings_enabled",
         "is_lsc_enabled",
         "is_vehicle_active",
         "is_vehicle_tracking_enabled",
@@ -94,3 +95,25 @@ def test_json_encoder():
         '{"datetime": "2022-06-02T22:19:34.123456", "date": "2022-06-02", "value": [17, "mi"],'
         ' "list": [{"value_int": 1, "value_str": "string"}, "America/Los_Angeles"]}'
     ) == encoded
+
+
+def test_charging_settings():
+    """Test parsing and validation of charging settings."""
+
+    cs = ChargingSettings(chargingTarget=90)
+    assert cs.acLimitValue is None
+    assert cs.chargingTarget == 90
+    assert cs.dcLoudness is None
+    assert cs.isUnlockCableActive is None
+
+    with pytest.raises(TypeError):
+        _ = ChargingSettings(**{"chargingTarget": 90, "acLimitValue": 8})
+
+    with pytest.raises(ValueError):
+        _ = ChargingSettings(chargingTarget=19)
+    with pytest.raises(ValueError):
+        _ = ChargingSettings(chargingTarget=21)
+    with pytest.raises(ValueError):
+        _ = ChargingSettings(chargingTarget=101)
+    with pytest.raises(ValueError):
+        _ = ChargingSettings(chargingTarget="asdf")

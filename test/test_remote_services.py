@@ -1,4 +1,5 @@
 """Test for remote_services."""
+import json
 from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
@@ -19,11 +20,11 @@ import httpx
 import pytest
 import time_machine
 
-from bimmer_connected.models import PointOfInterest
+from bimmer_connected.models import ChargingSettings, PointOfInterest
 from bimmer_connected.vehicle import remote_services
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
-from . import RESPONSE_DIR, VIN_G23, load_response
+from . import RESPONSE_DIR, VIN_G23, VIN_I01_NOREX, load_response
 from .test_account import account_mock, get_mocked_account
 
 _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
@@ -44,6 +45,8 @@ POI_DATA = {
     "country": "United States",
 }
 
+CHARGING_SETTINGS = {"chargingTarget": 75}
+
 STATUS_RESPONSE_ORDER = [_RESPONSE_PENDING, _RESPONSE_DELIVERED, _RESPONSE_EXECUTED]
 STATUS_RESPONSE_DICT: Dict[str, List[Path]] = defaultdict(lambda: deepcopy(STATUS_RESPONSE_ORDER))
 
@@ -53,6 +56,12 @@ def service_trigger_sideeffect(request: httpx.Request) -> httpx.Response:
     json_data = load_response(_RESPONSE_INITIATED)
     json_data["eventId"] = str(uuid4())
     return httpx.Response(200, json=json_data)
+
+
+def charging_settings_sideeffect(request: httpx.Request) -> httpx.Response:
+    """Check if payload is a valid charging settings payload and return evendId."""
+    _ = ChargingSettings(**json.loads(request.content))
+    return service_trigger_sideeffect(request)
 
 
 def service_status_sideeffect(request: httpx.Request) -> httpx.Response:
@@ -66,6 +75,9 @@ def remote_services_mock():
     router = account_mock()
 
     router.post(path__regex=r"/eadrax-vrccs/v3/presentation/remote-commands/.+/.+$").mock(
+        side_effect=service_trigger_sideeffect
+    )
+    router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-settings$").mock(
         side_effect=service_trigger_sideeffect
     )
     router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
@@ -109,6 +121,7 @@ async def test_trigger_remote_services():
         ("HORN_BLOW", "trigger_remote_horn", False),
         ("SEND_POI", "trigger_send_poi", False),
         ("CHARGE_NOW", "trigger_charge_now", True),
+        ("CHARGING_SETTINGS", "trigger_charging_settings_update", True),
     ]
 
     account = await get_mocked_account()
@@ -123,7 +136,10 @@ async def test_trigger_remote_services():
             if service == "SEND_POI":
                 response = await getattr(vehicle.remote_services, call)(POI_DATA)
             else:
-                response = await getattr(vehicle.remote_services, call)()
+                if service == "CHARGING_SETTINGS":
+                    response = await getattr(vehicle.remote_services, call)(ChargingSettings(**CHARGING_SETTINGS))
+                else:
+                    response = await getattr(vehicle.remote_services, call)()
                 assert ExecutionState.EXECUTED == response.state
 
                 if triggers_update:
@@ -156,6 +172,18 @@ async def test_get_remote_service_status():
             await vehicle.remote_services._block_until_done(uuid4())
         with pytest.raises(Exception):
             await vehicle.remote_services._block_until_done(uuid4())
+
+
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_set_charging_status_not_enabled(caplog):
+    """Test setting the charging status on a car not enabled for it."""
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_I01_NOREX)
+    result = await vehicle.remote_services.trigger_charging_settings_update(ChargingSettings(chargingTarget=80))
+    assert result.state == ExecutionState.ERROR
+    assert "Vehicle does not support changing charging settings." not in result.details
+    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
 
 
 @remote_services_mock()

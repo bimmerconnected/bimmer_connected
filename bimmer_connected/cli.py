@@ -16,6 +16,7 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
+from bimmer_connected.models import ChargingSettings
 from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
 
@@ -57,6 +58,12 @@ def main_parser() -> argparse.ArgumentParser:
     finder_parser.add_argument("vin", help=TEXT_VIN)
     _add_position_arguments(finder_parser)
     finder_parser.set_defaults(func=vehicle_finder)
+
+    chargingsettings_parser = subparsers.add_parser("chargingsettings", description="Set vehicle charging settings.")
+    _add_default_arguments(chargingsettings_parser)
+    chargingsettings_parser.add_argument("vin", help=TEXT_VIN)
+    chargingsettings_parser.add_argument("charging_target", help="Desired charging target", type=int)
+    chargingsettings_parser.set_defaults(func=chargingsettings)
 
     image_parser = subparsers.add_parser("image", description="Download a vehicle image.")
     _add_default_arguments(image_parser)
@@ -201,6 +208,19 @@ async def vehicle_finder(args) -> None:
     status = await vehicle.remote_services.trigger_remote_vehicle_finder()
     print(status.state)
     print({"gps_position": vehicle.status.gps_position, "heading": vehicle.status.gps_heading})
+
+
+async def chargingsettings(args, charging_target: int) -> None:
+    """Trigger the vehicle to horn."""
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_charging_settings_update(
+        ChargingSettings(chargingTarget=charging_target)
+    )
+    print(status.state)
 
 
 async def image(args) -> None:

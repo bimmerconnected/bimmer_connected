@@ -43,18 +43,23 @@ async def test_drive_train(caplog):
     """Tests around drive_train attribute."""
     vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
     assert DriveTrainType.COMBUSTION == vehicle.drive_train
+    assert vehicle.is_charging_settings_enabled is False
 
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
     assert DriveTrainType.PLUGIN_HYBRID == vehicle.drive_train
+    assert vehicle.is_charging_settings_enabled is False
 
     vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
     assert DriveTrainType.ELECTRIC == vehicle.drive_train
+    assert vehicle.is_charging_settings_enabled is True
 
     vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_NOREX)
     assert DriveTrainType.ELECTRIC == vehicle.drive_train
+    assert vehicle.is_charging_settings_enabled is False
 
     vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_REX)
     assert DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER == vehicle.drive_train
+    assert vehicle.is_charging_settings_enabled is False
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 

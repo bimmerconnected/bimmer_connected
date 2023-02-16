@@ -11,9 +11,10 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_POSITION_URL,
     REMOTE_SERVICE_STATUS_URL,
     REMOTE_SERVICE_URL,
+    VEHICLE_CHARGING_SETTINGS_URL,
     VEHICLE_POI_URL,
 )
-from bimmer_connected.models import PointOfInterest, StrEnum
+from bimmer_connected.models import ChargingSettings, PointOfInterest, StrEnum
 from bimmer_connected.utils import MyBMWJSONEncoder
 
 if TYPE_CHECKING:
@@ -184,6 +185,34 @@ class RemoteServices:
         """Sleep for 2x POLLING_CYCLE and force-refresh vehicles from BMW servers."""
         await asyncio.sleep(_POLLING_CYCLE * 2)
         await self._account.get_vehicles()
+
+    async def trigger_charging_settings_update(self, charging_settings: ChargingSettings) -> RemoteServiceStatus:
+        """Update the charging settings on the vehicle.
+
+        A state update is triggered after this, as the charging state of the vehicle might change.
+        """
+        _LOGGER.debug("Triggering charging settings update")
+
+        if not self._vehicle.is_charging_settings_enabled:
+            _LOGGER.warning("Vehicle does not support changing charging settings.")
+            return RemoteServiceStatus(
+                {"eventStatus": "ERROR", "details": "Vehicle does not support changing charging settings."}
+            )
+
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
+            response = await client.post(
+                VEHICLE_CHARGING_SETTINGS_URL.format(vin=self._vehicle.vin),
+                headers={"content-type": "application/json"},
+                content=json.dumps(
+                    charging_settings,
+                    cls=MyBMWJSONEncoder,
+                ),
+            )
+
+        event_id = response.json().get("eventId")
+        status = await self._block_until_done(event_id)
+        await self._trigger_state_update()
+        return status
 
     async def trigger_send_poi(self, poi: Union[PointOfInterest, Dict]) -> RemoteServiceStatus:
         """Send a PointOfInterest to the vehicle.

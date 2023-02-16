@@ -133,3 +133,22 @@ class AnonymizedResponse:
 
     filename: str
     content: Optional[Union[List, Dict, str]] = None
+
+
+@dataclass
+class ChargingSettings:
+    """Charging settings to control the vehicle."""
+
+    chargingTarget: Optional[int]
+    isUnlockCableActive = None
+    acLimitValue = None
+    dcLoudness = None
+
+    def __post_init__(self):
+        if (
+            not isinstance(self.chargingTarget, int)
+            or self.chargingTarget < 20
+            or self.chargingTarget > 100
+            or self.chargingTarget % 5 != 0
+        ):
+            raise ValueError("'chargingTarget' must be an integer between 20 and 100 that is a multiple of 5.")
