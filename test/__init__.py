@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Union
 
 from bimmer_connected.api.regions import Regions
+from bimmer_connected.const import CarBrands
 
 RESPONSE_DIR = Path(__file__).parent / "responses"
 
@@ -22,13 +23,13 @@ VIN_I01_NOREX = "WBY000000NOREXI01"
 VIN_I01_REX = "WBY00000000REXI01"
 VIN_I20 = "WBA00000000DEMO01"
 
-ALL_FINGERPRINTS: Dict[str, List[Dict]] = {}
+ALL_FINGERPRINTS: Dict[str, List[Dict]] = {brand.value: [] for brand in CarBrands}
 ALL_STATES: Dict[str, Dict] = {}
 
 
 def get_fingerprint_count() -> int:
     """Return number of loaded vehicles."""
-    return len(*ALL_FINGERPRINTS.values())
+    return sum([len(vehicles) for vehicles in ALL_FINGERPRINTS.values()])
 
 
 def load_response(path: Union[Path, str]) -> Any:
@@ -39,14 +40,14 @@ def load_response(path: Union[Path, str]) -> Any:
         return file.read().decode("UTF-8")
 
 
-for fingerprint in RESPONSE_DIR.rglob("vehicles_v2_*.json"):
-    brand = fingerprint.stem.split("_")[-2]
-    if brand not in ALL_FINGERPRINTS:
-        ALL_FINGERPRINTS[brand] = []
-    ALL_FINGERPRINTS[brand].extend(load_response(fingerprint))
+for fingerprint in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles.json"):
+    for vehicle in load_response(fingerprint):
+        brand: str = vehicle["attributes"]["brand"]
+        brand = "bmw" if brand == "BMW_I" else brand.lower()
+        ALL_FINGERPRINTS[brand].append(vehicle)
 
-for state in RESPONSE_DIR.rglob("state_*.json"):
-    ALL_STATES[state.stem.split("_")[-2]] = load_response(state)
+for state in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles_state_*.json"):
+    ALL_STATES[state.stem.split("_")[-1]] = load_response(state)
 
 
 def get_deprecation_warning_count(caplog):
