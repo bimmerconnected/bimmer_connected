@@ -210,7 +210,7 @@ async def vehicle_finder(args) -> None:
     print({"gps_position": vehicle.status.gps_position, "heading": vehicle.status.gps_heading})
 
 
-async def chargingsettings(args, charging_target: int) -> None:
+async def chargingsettings(args) -> None:
     """Trigger the vehicle to horn."""
     account = MyBMWAccount(
         args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
@@ -218,7 +218,7 @@ async def chargingsettings(args, charging_target: int) -> None:
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_charging_settings_update(
-        ChargingSettings(chargingTarget=charging_target)
+        ChargingSettings(chargingTarget=args.charging_target)
     )
     print(status.state)
 
