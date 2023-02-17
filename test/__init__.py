@@ -25,6 +25,7 @@ VIN_I20 = "WBA00000000DEMO01"
 
 ALL_FINGERPRINTS: Dict[str, List[Dict]] = {brand.value: [] for brand in CarBrands}
 ALL_STATES: Dict[str, Dict] = {}
+ALL_CHARGING_SETTINGS: Dict[str, Dict] = {}
 
 
 def get_fingerprint_count() -> int:
@@ -48,6 +49,9 @@ for fingerprint in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles.json"):
 
 for state in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles_state_*.json"):
     ALL_STATES[state.stem.split("_")[-1]] = load_response(state)
+
+for charging_setting in RESPONSE_DIR.rglob("eadrax-crccs_v2_vehicles_*.json"):
+    ALL_CHARGING_SETTINGS[charging_setting.stem.split("_")[-1]] = load_response(state)
 
 
 def get_deprecation_warning_count(caplog):

@@ -1,0 +1,46 @@
+{
+    "chargeAndClimateSettings": {
+        "chargeAndClimateTimer": {
+            "showDepartureTimers": false
+        }
+    },
+    "chargeAndClimateTimerDetail": {
+        "chargingMode": {
+            "chargingPreference": "NO_PRESELECTION",
+            "endTimeSlot": "0001-01-01T00:00:00",
+            "startTimeSlot": "0001-01-01T00:00:00",
+            "type": "CHARGING_IMMEDIATELY"
+        },
+        "departureTimer": {
+            "type": "WEEKLY_DEPARTURE_TIMER",
+            "weeklyTimers": [
+                {
+                    "daysOfTheWeek": [],
+                    "id": 1,
+                    "time": "0001-01-01T00:00:00",
+                    "timerAction": "DEACTIVATE"
+                },
+                {
+                    "daysOfTheWeek": [],
+                    "id": 2,
+                    "time": "0001-01-01T00:00:00",
+                    "timerAction": "DEACTIVATE"
+                },
+                {
+                    "daysOfTheWeek": [],
+                    "id": 3,
+                    "time": "0001-01-01T00:00:00",
+                    "timerAction": "DEACTIVATE"
+                },
+                {
+                    "daysOfTheWeek": [],
+                    "id": 4,
+                    "time": "0001-01-01T00:00:00",
+                    "timerAction": "DEACTIVATE"
+                }
+            ]
+        },
+        "isPreconditionForDepartureActive": false
+    },
+    "servicePack": "ATM2"
+}

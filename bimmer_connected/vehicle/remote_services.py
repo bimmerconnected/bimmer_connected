@@ -11,7 +11,7 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_POSITION_URL,
     REMOTE_SERVICE_STATUS_URL,
     REMOTE_SERVICE_URL,
-    VEHICLE_CHARGING_SETTINGS_URL,
+    VEHICLE_CHARGING_SETTINGS_SET_URL,
     VEHICLE_POI_URL,
 )
 from bimmer_connected.models import ChargingSettings, PointOfInterest, StrEnum
@@ -201,7 +201,7 @@ class RemoteServices:
 
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(
-                VEHICLE_CHARGING_SETTINGS_URL.format(vin=self._vehicle.vin),
+                VEHICLE_CHARGING_SETTINGS_SET_URL.format(vin=self._vehicle.vin),
                 headers={"content-type": "application/json"},
                 content=json.dumps(
                     ChargingSettings(chargingTarget=charging_target_soc),

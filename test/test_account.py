@@ -22,10 +22,11 @@ from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.const import Regions
+from bimmer_connected.const import ATTR_CAPABILITIES, Regions
 from bimmer_connected.models import GPSPosition
 
 from . import (
+    ALL_CHARGING_SETTINGS,
     ALL_FINGERPRINTS,
     ALL_STATES,
     RESPONSE_DIR,
@@ -78,6 +79,19 @@ def vehicle_state_sideeffect(request: httpx.Request) -> httpx.Response:
         return httpx.Response(404)
 
 
+def vehicle_charging_settings_sideeffect(request: httpx.Request) -> httpx.Response:
+    """Return /vehicles response based on x-user-agent."""
+    x_user_agent = request.headers.get("x-user-agent", "").split(";")
+    assert len(x_user_agent) == 4
+    assert "fields" in request.url.params
+    assert "has_charging_settings_capabilities" in request.url.params
+
+    try:
+        return httpx.Response(200, json=ALL_CHARGING_SETTINGS[request.headers["bmw-vin"]])
+    except KeyError:
+        return httpx.Response(404)
+
+
 def account_mock():
     """Return mocked adapter for auth."""
     router = respx.mock(assert_all_called=False)
@@ -102,9 +116,8 @@ def account_mock():
 
     # Get all vehicle fingerprints
     router.get("/eadrax-vcs/v4/vehicles").mock(side_effect=vehicles_sideeffect)
-
-    # router.get("/eadrax-vcs/v2/vehicles").mock(side_effect=vehicles_sideeffect)
     router.get("/eadrax-vcs/v4/vehicles/state").mock(side_effect=vehicle_state_sideeffect)
+    router.get("/eadrax-crccs/v2/vehicles").mock(side_effect=vehicle_charging_settings_sideeffect)
 
     return router
 
@@ -163,7 +176,7 @@ async def test_login_refresh_token_row_na_401():
             wraps=account.config.authentication._refresh_token_row_na,
         ) as mock_listener:
             mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
-                side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
+                side_effect=[httpx.Response(401), *([httpx.Response(200, json={ATTR_CAPABILITIES: {}})] * 10)]
             )
             mock_listener.reset_mock()
             await account.get_vehicles()
@@ -236,7 +249,7 @@ async def test_login_refresh_token_china_401():
             wraps=account.config.authentication._refresh_token_china,
         ) as mock_listener:
             mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
-                side_effect=[httpx.Response(401), *([httpx.Response(200, json=[])] * 10)]
+                side_effect=[httpx.Response(401), *([httpx.Response(200, json={ATTR_CAPABILITIES: {}})] * 10)]
             )
             mock_listener.reset_mock()
             await account.get_vehicles()

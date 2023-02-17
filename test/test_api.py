@@ -86,7 +86,7 @@ async def test_fingerprint_deque():
 
         # More than 10 calls were made, but only last 10 are stored
         assert len([c for c in mock_api.calls if c.request.url.path.startswith("/eadrax-vcs")]) > 10
-        assert len(account.get_stored_responses()) == min(2 + get_fingerprint_count() * 2, 10)
+        assert len(account.get_stored_responses()) == 10
 
         # Stored responses are reset
         account.config.set_log_responses(False)
@@ -99,4 +99,4 @@ async def test_fingerprint_deque():
         # Get responses again
         account.config.set_log_responses(True)
         await account.get_vehicles()
-        assert len(account.get_stored_responses()) == min(get_fingerprint_count(), 10)
+        assert len(account.get_stored_responses()) == 10

@@ -10,7 +10,13 @@ import httpx
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
-from bimmer_connected.const import VEHICLE_STATE_URL, VEHICLES_URL, CarBrands
+from bimmer_connected.const import (
+    ATTR_CAPABILITIES,
+    VEHICLE_CHARGING_SETTINGS_GET_URL,
+    VEHICLE_STATE_URL,
+    VEHICLES_URL,
+    CarBrands,
+)
 from bimmer_connected.models import AnonymizedResponse, GPSPosition
 from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
@@ -76,7 +82,7 @@ class MyBMWAccount:
 
             for response in vehicles_responses:
                 for vehicle_base in response.json():
-                    self.add_vehicle(vehicle_base, {}, fetched_at)
+                    self.add_vehicle(vehicle_base, None, None, fetched_at)
 
     async def get_vehicles(self, force_init: bool = False) -> None:
         """Retrieve vehicle data from BMW servers."""
@@ -99,10 +105,36 @@ class MyBMWAccount:
                     },
                 )
                 vehicle_state = state_response.json()
-                self.add_vehicle(vehicle.data, vehicle_state, fetched_at)
+
+                # Get detailed charging settings if supported by vehicle
+                charging_settings = None
+                if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
+                    ATTR_CAPABILITIES
+                ].get("isChargingSettingsEnabled", False):
+                    charging_settings_response = await client.get(
+                        VEHICLE_CHARGING_SETTINGS_GET_URL,
+                        params={
+                            "fields": "charging-profile",
+                            "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
+                                "isChargingSettingsEnabled"
+                            ],
+                        },
+                        headers={
+                            **client.generate_default_header(vehicle.brand),
+                            "bmw-current-date": fetched_at.isoformat(),
+                            "bmw-vin": vehicle.vin,
+                        },
+                    )
+                    charging_settings = charging_settings_response.json()
+
+                self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
 
     def add_vehicle(
-        self, vehicle_base: dict, vehicle_state: dict, fetched_at: Optional[datetime.datetime] = None
+        self,
+        vehicle_base: dict,
+        vehicle_state: Optional[dict],
+        charging_settings: Optional[dict],
+        fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Add or update a vehicle from the API responses."""
 
@@ -110,9 +142,9 @@ class MyBMWAccount:
 
         # If vehicle already exists, just update it's state
         if existing_vehicle:
-            existing_vehicle.update_state(vehicle_base, vehicle_state, fetched_at)
+            existing_vehicle.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
         else:
-            self.vehicles.append(MyBMWVehicle(self, vehicle_base, vehicle_state, fetched_at))
+            self.vehicles.append(MyBMWVehicle(self, vehicle_base, vehicle_state, charging_settings, fetched_at))
 
     def get_vehicle(self, vin: str) -> Optional[MyBMWVehicle]:
         """Get vehicle with given VIN.
