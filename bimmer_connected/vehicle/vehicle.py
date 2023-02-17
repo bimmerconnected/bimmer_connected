@@ -212,9 +212,9 @@ class MyBMWVehicle:
         return self.data[ATTR_STATE]["isLscSupported"]
 
     @property
-    def is_charging_settings_enabled(self) -> bool:
-        """Return True if LastStateCall is enabled (vehicle automatically updates API)."""
-        return self.data[ATTR_CAPABILITIES].get("isChargingSettingsEnabled", False)
+    def is_charging_target_soc_enabled(self) -> bool:
+        """Return True if Target SoC can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
 
     @property
     def drive_train_attributes(self) -> List[str]:

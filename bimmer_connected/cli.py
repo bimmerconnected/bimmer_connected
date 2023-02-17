@@ -16,7 +16,6 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
-from bimmer_connected.models import ChargingSettings
 from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
 
@@ -217,9 +216,7 @@ async def chargingsettings(args) -> None:
     )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
-    status = await vehicle.remote_services.trigger_charging_settings_update(
-        ChargingSettings(chargingTarget=args.charging_target)
-    )
+    status = await vehicle.remote_services.trigger_charging_settings_update(charging_target_soc=args.charging_target)
     print(status.state)
 
 

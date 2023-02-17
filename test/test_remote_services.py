@@ -45,7 +45,7 @@ POI_DATA = {
     "country": "United States",
 }
 
-CHARGING_SETTINGS = {"chargingTarget": 75}
+CHARGING_SETTINGS = {"charging_target_soc": 75}
 
 STATUS_RESPONSE_ORDER = [_RESPONSE_PENDING, _RESPONSE_DELIVERED, _RESPONSE_EXECUTED]
 STATUS_RESPONSE_DICT: Dict[str, List[Path]] = defaultdict(lambda: deepcopy(STATUS_RESPONSE_ORDER))
@@ -137,7 +137,7 @@ async def test_trigger_remote_services():
                 response = await getattr(vehicle.remote_services, call)(POI_DATA)
             else:
                 if service == "CHARGING_SETTINGS":
-                    response = await getattr(vehicle.remote_services, call)(ChargingSettings(**CHARGING_SETTINGS))
+                    response = await getattr(vehicle.remote_services, call)(**CHARGING_SETTINGS)
                 else:
                     response = await getattr(vehicle.remote_services, call)()
                 assert ExecutionState.EXECUTED == response.state

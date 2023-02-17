@@ -186,14 +186,14 @@ class RemoteServices:
         await asyncio.sleep(_POLLING_CYCLE * 2)
         await self._account.get_vehicles()
 
-    async def trigger_charging_settings_update(self, charging_settings: ChargingSettings) -> RemoteServiceStatus:
+    async def trigger_charging_settings_update(self, charging_target_soc: Optional[int]) -> RemoteServiceStatus:
         """Update the charging settings on the vehicle.
 
         A state update is triggered after this, as the charging state of the vehicle might change.
         """
         _LOGGER.debug("Triggering charging settings update")
 
-        if not self._vehicle.is_charging_settings_enabled:
+        if not self._vehicle.is_charging_target_soc_enabled:
             _LOGGER.warning("Vehicle does not support changing charging settings.")
             return RemoteServiceStatus(
                 {"eventStatus": "ERROR", "details": "Vehicle does not support changing charging settings."}
@@ -204,7 +204,7 @@ class RemoteServices:
                 VEHICLE_CHARGING_SETTINGS_URL.format(vin=self._vehicle.vin),
                 headers={"content-type": "application/json"},
                 content=json.dumps(
-                    charging_settings,
+                    ChargingSettings(chargingTarget=charging_target_soc),
                     cls=MyBMWJSONEncoder,
                 ),
             )

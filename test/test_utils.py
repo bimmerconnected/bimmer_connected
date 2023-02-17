@@ -33,7 +33,7 @@ async def test_drive_train():
         "has_range_extender",
         "has_weekly_planner_service",
         "is_charging_plan_supported",
-        "is_charging_settings_enabled",
+        "is_charging_target_soc_enabled",
         "is_lsc_enabled",
         "is_vehicle_active",
         "is_vehicle_tracking_enabled",
