@@ -232,6 +232,8 @@ async def image(args) -> None:
     vehicle = get_vehicle_or_return(account, args.vin)
 
     for viewdirection in VehicleViewDirection:
+        if viewdirection == VehicleViewDirection.UNKNOWN:
+            continue
         filename = str(viewdirection.name).lower() + ".png"
         with open(filename, "wb") as output_file:
             image_data = await vehicle.get_vehicle_image(viewdirection)
