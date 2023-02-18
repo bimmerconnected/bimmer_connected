@@ -51,7 +51,7 @@ for state in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles_state_*.json"):
     ALL_STATES[state.stem.split("_")[-1]] = load_response(state)
 
 for charging_setting in RESPONSE_DIR.rglob("eadrax-crccs_v2_vehicles_*.json"):
-    ALL_CHARGING_SETTINGS[charging_setting.stem.split("_")[-1]] = load_response(state)
+    ALL_CHARGING_SETTINGS[charging_setting.stem.split("_")[-1]] = load_response(charging_setting)
 
 
 def get_deprecation_warning_count(caplog):

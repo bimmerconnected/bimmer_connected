@@ -39,7 +39,9 @@
                     "timerAction": "DEACTIVATE"
                 },
                 {
-                    "daysOfTheWeek": [],
+                    "daysOfTheWeek": [
+                        "THURSDAY"
+                    ],
                     "id": 4,
                     "time": "0001-01-01T07:40:00",
                     "timerAction": "DEACTIVATE"

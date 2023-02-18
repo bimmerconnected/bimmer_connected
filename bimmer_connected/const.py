@@ -71,6 +71,7 @@ REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + "/eventPosition?eventId=
 
 VEHICLE_CHARGING_SETTINGS_GET_URL = "/eadrax-crccs/v2/vehicles"
 VEHICLE_CHARGING_SETTINGS_SET_URL = "/eadrax-crccs/v1/vehicles/{vin}/charging-settings"
+VEHICLE_CHARGING_PROFILE_POST_URL = "/eadrax-crccs/v1/vehicles/{vin}/charging-profile"
 
 VEHICLE_IMAGE_URL = "/eadrax-ics/v3/presentation/vehicles/{vin}/images?carView={view}"
 VEHICLE_POI_URL = "/eadrax-dcs/v1/send-to-car/send-to-car"
@@ -86,5 +87,6 @@ SERVICE_CHARGING_PROFILE = "CHARGING_PROFILE"
 ATTR_STATE = "state"
 ATTR_CAPABILITIES = "capabilities"
 ATTR_ATTRIBUTES = "attributes"
+ATTR_CHARGING_SETTINGS = "charging_settings"
 
 DEFAULT_POI_NAME = "Sent with ♥ by bimmer_connected"

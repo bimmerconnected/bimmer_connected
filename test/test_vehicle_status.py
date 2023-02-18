@@ -11,7 +11,17 @@ from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBatt
 from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
-from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
+from . import (
+    ALL_CHARGING_SETTINGS,
+    VIN_F31,
+    VIN_G01,
+    VIN_G20,
+    VIN_G23,
+    VIN_I01_NOREX,
+    VIN_I01_REX,
+    VIN_I20,
+    get_deprecation_warning_count,
+)
 from .test_account import get_mocked_account
 
 
@@ -423,7 +433,23 @@ async def test_charging_profile(caplog):
     assert charging_window.start_time == datetime.time(18, 1)
     assert charging_window.end_time == datetime.time(1, 30)
 
-    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G01).charging_profile
+    assert charging_profile.ac_available_limits is None
+
+    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G23).charging_profile
     assert charging_settings.ac_current_limit == 16
+    assert charging_settings.ac_available_limits == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 32]
 
     assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_charging_profile_format_for_remote_service(caplog):
+    """Test formatting of the charging profile."""
+    account = await get_mocked_account()
+
+    for vin in ALL_CHARGING_SETTINGS:
+        vehicle = account.get_vehicle(vin)
+        assert (
+            vehicle.charging_profile.format_for_remote_service()["chargeAndClimateTimerDetail"]
+            == ALL_CHARGING_SETTINGS[vin]["chargeAndClimateTimerDetail"]
+        )

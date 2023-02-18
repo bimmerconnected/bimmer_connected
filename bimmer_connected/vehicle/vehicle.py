@@ -4,7 +4,14 @@ import logging
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_CAPABILITIES, ATTR_STATE, VEHICLE_IMAGE_URL, CarBrands
+from bimmer_connected.const import (
+    ATTR_ATTRIBUTES,
+    ATTR_CAPABILITIES,
+    ATTR_CHARGING_SETTINGS,
+    ATTR_STATE,
+    VEHICLE_IMAGE_URL,
+    CarBrands,
+)
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
@@ -120,7 +127,7 @@ class MyBMWVehicle:
         return {
             **vehicle_base,
             **(vehicle_state or {}),
-            "charging_settings": charging_settings or {},
+            ATTR_CHARGING_SETTINGS: charging_settings or {},
             "is_metric": account.config.use_metric_units,
             "fetched_at": fetched_at or datetime.datetime.now(datetime.timezone.utc),
         }

@@ -43,7 +43,7 @@
         "chargingProfile": {
             "chargingControlType": "WEEKLY_PLANNER",
             "chargingMode": "IMMEDIATE_CHARGING",
-            "chargingPreference": "CHARGING_WINDOW",
+            "chargingPreference": "NO_PRESELECTION",
             "chargingSettings": {
                 "hospitality": "NO_ACTION",
                 "idcc": "NO_ACTION",

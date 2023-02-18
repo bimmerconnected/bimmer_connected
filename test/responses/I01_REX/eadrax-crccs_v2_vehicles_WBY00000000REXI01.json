@@ -6,10 +6,10 @@
     },
     "chargeAndClimateTimerDetail": {
         "chargingMode": {
-            "chargingPreference": "NO_PRESELECTION",
+            "chargingPreference": "CHARGING_WINDOW",
             "endTimeSlot": "0001-01-01T01:30:00",
             "startTimeSlot": "0001-01-01T18:01:00",
-            "type": "CHARGING_IMMEDIATELY"
+            "type": "TIME_SLOT"
         },
         "departureTimer": {
             "type": "WEEKLY_DEPARTURE_TIMER",
