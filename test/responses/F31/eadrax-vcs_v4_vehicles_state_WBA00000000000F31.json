@@ -1,8 +1,14 @@
 {
     "capabilities": {
+        "a4aType": "USB_ONLY",
+        "checkSustainabilityDPP": false,
         "climateFunction": "VENTILATION",
         "climateNow": true,
         "climateTimerTrigger": "START_TIMER",
+        "digitalKey": {
+            "bookedServicePackage": "NONE",
+            "state": "NOT_AVAILABLE"
+        },
         "horn": true,
         "isBmwChargingSupported": false,
         "isCarSharingSupported": false,
@@ -15,6 +21,7 @@
         "isChargingSettingsEnabled": false,
         "isChargingTargetSocEnabled": false,
         "isClimateTimerSupported": true,
+        "isClimateTimerWeeklyActive": false,
         "isCustomerEsimSupported": false,
         "isDCSContractManagementSupported": false,
         "isDataPrivacyEnabled": false,
@@ -22,6 +29,7 @@
         "isEvGoChargingSupported": false,
         "isMiniChargingSupported": false,
         "isNonLscFeatureEnabled": true,
+        "isPersonalPictureUploadSupported": false,
         "isRemoteEngineStartSupported": false,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
@@ -29,6 +37,7 @@
         "isRemoteServicesActivationRequired": false,
         "isRemoteServicesBookingRequired": false,
         "isScanAndChargeSupported": false,
+        "isSustainabilityAccumulatedViewEnabled": false,
         "isSustainabilitySupported": false,
         "isWifiHotspotServiceSupported": false,
         "lights": true,

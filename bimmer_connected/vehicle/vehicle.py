@@ -274,6 +274,16 @@ class MyBMWVehicle:
         return "climateControlState" in self.data[ATTR_STATE]
 
     @property
+    def is_remote_charge_start_enabled(self) -> bool:
+        """Return True if charging can be started via the API."""
+        return "START" in self.data[ATTR_CAPABILITIES].get("remoteChargingCommands", {}).get("chargingControl", [])
+
+    @property
+    def is_remote_charge_stop_enabled(self) -> bool:
+        """Return True if charging can be stop via the API."""
+        return "STOP" in self.data[ATTR_CAPABILITIES].get("remoteChargingCommands", {}).get("chargingControl", [])
+
+    @property
     def drive_train_attributes(self) -> List[str]:
         """Get list of attributes available for the drive train of the vehicle.
 

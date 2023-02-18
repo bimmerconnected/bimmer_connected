@@ -29,6 +29,7 @@
         "isEvGoChargingSupported": false,
         "isMiniChargingSupported": false,
         "isNonLscFeatureEnabled": false,
+        "isPersonalPictureUploadSupported": false,
         "isRemoteEngineStartSupported": false,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
@@ -43,6 +44,18 @@
         "lights": true,
         "lock": true,
         "remote360": true,
+        "remoteChargingCommands": {
+            "chargingControl": [
+                "START",
+                "STOP"
+            ],
+            "flapControl": [
+                "NOT_SUPPORTED"
+            ],
+            "plugControl": [
+                "NOT_SUPPORTED"
+            ]
+        },
         "remoteSoftwareUpgrade": true,
         "sendPoi": true,
         "specialThemeSupport": [],
