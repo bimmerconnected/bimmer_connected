@@ -157,18 +157,26 @@ class RemoteServices:
 
     async def trigger_remote_light_flash(self) -> RemoteServiceStatus:
         """Trigger the vehicle to flash its headlights."""
+        if not self._vehicle.is_remote_lights_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.LIGHT_FLASH)}.")
         return await self.trigger_remote_service(Services.LIGHT_FLASH)
 
     async def trigger_remote_door_lock(self) -> RemoteServiceStatus:
         """Trigger the vehicle to lock its doors."""
+        if not self._vehicle.is_remote_lock_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.DOOR_LOCK)}.")
         return await self.trigger_remote_service(Services.DOOR_LOCK, refresh=True)
 
     async def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
         """Trigger the vehicle to unlock its doors."""
+        if not self._vehicle.is_remote_unlock_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.DOOR_UNLOCK)}.")
         return await self.trigger_remote_service(Services.DOOR_UNLOCK, refresh=True)
 
     async def trigger_remote_horn(self) -> RemoteServiceStatus:
         """Trigger the vehicle to sound its horn."""
+        if not self._vehicle.is_remote_horn_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.HORN)}.")
         return await self.trigger_remote_service(Services.HORN)
 
     async def trigger_charge_now(self) -> RemoteServiceStatus:
@@ -177,10 +185,18 @@ class RemoteServices:
 
     async def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
         """Trigger the air conditioning to start."""
+        if not self._vehicle.is_remote_climate_start_enabled:
+            raise ValueError(
+                f"Vehicle does not support remote service {repr(Services.AIR_CONDITIONING)} action 'START'."
+            )
         return await self.trigger_remote_service(Services.AIR_CONDITIONING, params={"action": "START"}, refresh=True)
 
     async def trigger_remote_air_conditioning_stop(self) -> RemoteServiceStatus:
         """Trigger the air conditioning to stop."""
+        if not self._vehicle.is_remote_climate_stop_enabled:
+            raise ValueError(
+                f"Vehicle does not support remote service {repr(Services.AIR_CONDITIONING)} action 'STOP'."
+            )
         return await self.trigger_remote_service(Services.AIR_CONDITIONING, params={"action": "STOP"}, refresh=True)
 
     async def trigger_charging_settings_update(
@@ -188,7 +204,7 @@ class RemoteServices:
     ) -> RemoteServiceStatus:
         """Update the charging settings on the vehicle."""
 
-        if target_soc and not self._vehicle.is_charging_target_soc_enabled:
+        if target_soc and not self._vehicle.is_remote_set_target_soc_enabled:
             raise ValueError("Vehicle does not support setting target SoC.")
         if target_soc and (
             not isinstance(target_soc, int) or target_soc < 20 or target_soc > 100 or target_soc % 5 != 0
@@ -196,7 +212,7 @@ class RemoteServices:
             raise ValueError("Target SoC must be an integer between 20 and 100 that is a multiple of 5.")
         if ac_limit:
             if (
-                not self._vehicle.is_charging_ac_limit_enabled
+                not self._vehicle.is_remote_set_ac_limit_enabled
                 or not self._vehicle.charging_profile
                 or not self._vehicle.charging_profile.ac_available_limits
             ):
@@ -244,6 +260,9 @@ class RemoteServices:
         :param poi: A PointOfInterest containing at least 'lat' and 'lon' and optionally
             'name', 'street', 'city', 'postalCode', 'country'
         """
+        if not self._vehicle.is_remote_sendpoi_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.SEND_POI)}.")
+
         if isinstance(poi, Dict):
             poi = PointOfInterest(**poi)
 
@@ -257,6 +276,9 @@ class RemoteServices:
 
     async def trigger_remote_vehicle_finder(self) -> RemoteServiceStatus:
         """Trigger the vehicle finder."""
+        if not self._vehicle.is_vehicle_tracking_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.VEHICLE_FINDER)}.")
+
         status = await self.trigger_remote_service(Services.VEHICLE_FINDER)
         result = await self._get_event_position(status.event_id)
         self._vehicle.vehicle_location.set_remote_service_position(result)

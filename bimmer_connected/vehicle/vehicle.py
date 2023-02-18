@@ -229,14 +229,49 @@ class MyBMWVehicle:
         return self.data[ATTR_STATE]["isLscSupported"]
 
     @property
-    def is_charging_target_soc_enabled(self) -> bool:
+    def is_remote_set_target_soc_enabled(self) -> bool:
         """Return True if Target SoC can be set via the API."""
         return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
 
     @property
-    def is_charging_ac_limit_enabled(self) -> bool:
+    def is_remote_set_ac_limit_enabled(self) -> bool:
         """Return True if Target SoC can be set via the API."""
         return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
+
+    @property
+    def is_remote_sendpoi_enabled(self) -> bool:
+        """Return True if POIs can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("sendPoi", False)
+
+    @property
+    def is_remote_horn_enabled(self) -> bool:
+        """Return True if the horn can be activated via the API."""
+        return self.data[ATTR_CAPABILITIES].get("horn", False)
+
+    @property
+    def is_remote_lights_enabled(self) -> bool:
+        """Return True if the lights can be activated via the API."""
+        return self.data[ATTR_CAPABILITIES].get("lights", False)
+
+    @property
+    def is_remote_lock_enabled(self) -> bool:
+        """Return True if vehicle can be locked via the API."""
+        return self.data[ATTR_CAPABILITIES].get("lock", False)
+
+    @property
+    def is_remote_unlock_enabled(self) -> bool:
+        """Return True if POIs can be unlocked via the API."""
+        return self.data[ATTR_CAPABILITIES].get("unlock", False)
+
+    @property
+    def is_remote_climate_start_enabled(self) -> bool:
+        """Return True if AC/ventilation can be started via the API."""
+        return self.data[ATTR_CAPABILITIES].get("climateNow", False)
+
+    @property
+    def is_remote_climate_stop_enabled(self) -> bool:
+        """Return True if AC/ventilation can be stopped via the API."""
+        return "climateControlState" in self.data[ATTR_STATE]
 
     @property
     def drive_train_attributes(self) -> List[str]:
