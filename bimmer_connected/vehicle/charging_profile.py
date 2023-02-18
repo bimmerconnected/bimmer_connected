@@ -128,7 +128,7 @@ class ChargingProfile(VehicleDataBase):
     ac_current_limit: Optional[int] = None
     """Returns the ac current limit."""
 
-    ac_available_limits: Optional[list[int]] = None
+    ac_available_limits: Optional[list] = None
     """Available AC limits to be selected."""
 
     charging_preferences_service_pack: Optional[str] = None
