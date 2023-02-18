@@ -4,13 +4,14 @@ import asyncio
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import (
     REMOTE_SERVICE_POSITION_URL,
     REMOTE_SERVICE_STATUS_URL,
     REMOTE_SERVICE_URL,
+    VEHICLE_CHARGING_PROFILE_POST_URL,
     VEHICLE_CHARGING_SETTINGS_SET_URL,
     VEHICLE_POI_URL,
 )
@@ -52,12 +53,23 @@ class Services(StrEnum):
     HORN = "horn-blow"
     AIR_CONDITIONING = "climate-now"
     CHARGE_NOW = "CHARGE_NOW"
+    CHARGING_SETTINGS = "CHARGING_SETTINGS"
+    CHARGING_PROFILE = "CHARGING_PROFILE"
+    SEND_POI = "SEND_POI"
+
+
+# Non-default remote services URLs
+SERVICE_URLS = {
+    Services.CHARGING_SETTINGS: VEHICLE_CHARGING_SETTINGS_SET_URL,
+    Services.CHARGING_PROFILE: VEHICLE_CHARGING_PROFILE_POST_URL,
+    Services.SEND_POI: VEHICLE_POI_URL,
+}
 
 
 class RemoteServiceStatus:
     """Wraps the status of the execution of a remote service."""
 
-    def __init__(self, response: dict):
+    def __init__(self, response: dict, event_id: Optional[str] = None):
         """Construct a new object from a dict."""
         status = None
         if "eventStatus" in response:
@@ -65,6 +77,7 @@ class RemoteServiceStatus:
 
         self.state = ExecutionState(status or "UNKNOWN")
         self.details = response
+        self.event_id = event_id
 
 
 class RemoteServices:
@@ -74,91 +87,49 @@ class RemoteServices:
         self._account = vehicle.account
         self._vehicle = vehicle
 
-    async def trigger_remote_light_flash(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to flash its headlights.
+    async def trigger_remote_service(
+        self, service_id: Services, params: Optional[Dict] = None, data: Any = None, refresh: bool = False
+    ) -> RemoteServiceStatus:
+        """Trigger a remote service and wait for the result."""
 
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote light flash")
-        return await self.trigger_remote_service(Services.LIGHT_FLASH)
+        _LOGGER.debug("Triggering remote service %s", repr(service_id))
 
-    async def trigger_remote_door_lock(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to lock its doors.
+        # Check if service requires a specific url and add all required parameters
+        url = SERVICE_URLS.get(service_id, REMOTE_SERVICE_URL)
+        url = url.format(vin=self._vehicle.vin, service_type=service_id.value)
 
-        A state update is triggered after this, as the lock state of the vehicle changes.
-        """
-        _LOGGER.debug("Triggering remote door lock")
-        result = await self.trigger_remote_service(Services.DOOR_LOCK)
-        await self._trigger_state_update()
-        return result
+        # Trigger service and get event id
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
+            response = await client.post(url, params=params, json=json.dumps(data, cls=MyBMWJSONEncoder))
+        event_id = response.json().get("eventId")
 
-    async def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to unlock its doors.
+        # Get status via event_id or assume successful execution as HTTP errors would raise exceptions before
+        status = (
+            await self._block_until_done(event_id) if event_id else RemoteServiceStatus({"eventStatus": "EXECUTED"})
+        )
 
-        A state update is triggered after this, as the lock state of the vehicle changes.
-        """
-        _LOGGER.debug("Triggering remote door unlock")
-        result = await self.trigger_remote_service(Services.DOOR_UNLOCK)
-        await self._trigger_state_update()
-        return result
+        # If vehicle data needs to be refresh, wait 2 times polling cycle and refresh completely
+        if refresh:
+            await asyncio.sleep(_POLLING_CYCLE * 2)
+            await self._account.get_vehicles()
 
-    async def trigger_remote_horn(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to sound its horn.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote horn sound")
-        return await self.trigger_remote_service(Services.HORN)
-
-    async def trigger_charge_now(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to start charging.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering charge now")
-        result = await self.trigger_remote_service(Services.CHARGE_NOW)
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
-        """Trigger the air conditioning to start.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote air conditioning")
-        result = await self.trigger_remote_service(Services.AIR_CONDITIONING, {"action": "START"})
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_air_conditioning_stop(self) -> RemoteServiceStatus:
-        """Trigger the air conditioning to stop.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote air conditioning")
-        result = await self.trigger_remote_service(Services.AIR_CONDITIONING, {"action": "STOP"})
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_service(self, service_id: Services, params: Optional[Dict] = None) -> RemoteServiceStatus:
-        """Trigger a generic remote service and wait for the result."""
-        event_id = await self._start_remote_service(service_id, params)
-        status = await self._block_until_done(event_id)
         return status
 
-    async def _start_remote_service(self, service_id: Services, params: Optional[Dict] = None) -> str:
-        """Start a generic remote service."""
+    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
+        """Return execution status of the last remote service that was triggered."""
 
-        url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service_type=service_id.value)
+        _LOGGER.debug("getting remote service status for '%s'", event_id)
+        url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            response = await client.post(url, params=params)
-        return response.json().get("eventId")
+            response = await client.post(url)
+        return RemoteServiceStatus(response.json(), event_id=event_id)
 
     async def _block_until_done(self, event_id: str) -> RemoteServiceStatus:
         """Keep polling the server until we get a final answer.
 
         :raises TimeoutError: if there is no final answer before _POLLING_TIMEOUT
         """
+
         fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
         while datetime.datetime.now() < fail_after:
             await asyncio.sleep(_POLLING_CYCLE)
@@ -173,27 +144,38 @@ class RemoteServices:
             f"Current state: {status.state.value}"
         )
 
-    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
-        """Return execution status of the last remote service that was triggered."""
-        _LOGGER.debug("getting remote service status for '%s'", event_id)
-        url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)
-        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            response = await client.post(url)
-        return RemoteServiceStatus(response.json())
+    async def trigger_remote_light_flash(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to flash its headlights."""
+        return await self.trigger_remote_service(Services.LIGHT_FLASH)
 
-    async def _trigger_state_update(self) -> None:
-        """Sleep for 2x POLLING_CYCLE and force-refresh vehicles from BMW servers."""
-        await asyncio.sleep(_POLLING_CYCLE * 2)
-        await self._account.get_vehicles()
+    async def trigger_remote_door_lock(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to lock its doors."""
+        return await self.trigger_remote_service(Services.DOOR_LOCK, refresh=True)
+
+    async def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to unlock its doors."""
+        return await self.trigger_remote_service(Services.DOOR_UNLOCK, refresh=True)
+
+    async def trigger_remote_horn(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to sound its horn."""
+        return await self.trigger_remote_service(Services.HORN)
+
+    async def trigger_charge_now(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to start charging."""
+        return await self.trigger_remote_service(Services.CHARGE_NOW, refresh=True)
+
+    async def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
+        """Trigger the air conditioning to start."""
+        return await self.trigger_remote_service(Services.AIR_CONDITIONING, params={"action": "START"}, refresh=True)
+
+    async def trigger_remote_air_conditioning_stop(self) -> RemoteServiceStatus:
+        """Trigger the air conditioning to stop."""
+        return await self.trigger_remote_service(Services.AIR_CONDITIONING, params={"action": "STOP"}, refresh=True)
 
     async def trigger_charging_settings_update(
         self, target_soc: Optional[int] = None, ac_limit: Optional[int] = None
     ) -> RemoteServiceStatus:
-        """Update the charging settings on the vehicle.
-
-        A state update is triggered after this, as the charging state of the vehicle might change.
-        """
-        _LOGGER.debug("Triggering charging settings update")
+        """Update the charging settings on the vehicle."""
 
         if target_soc and not self._vehicle.is_charging_target_soc_enabled:
             raise ValueError("Vehicle does not support setting target SoC.")
@@ -211,59 +193,33 @@ class RemoteServices:
             if not isinstance(ac_limit, int) or ac_limit not in self._vehicle.charging_profile.ac_available_limits:
                 raise ValueError("AC Limit must be an integer and in `charging_profile.ac_available_limits`.")
 
-        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            response = await client.post(
-                VEHICLE_CHARGING_SETTINGS_SET_URL.format(vin=self._vehicle.vin),
-                headers={"content-type": "application/json"},
-                content=json.dumps(
-                    ChargingSettings(chargingTarget=target_soc, acLimitValue=ac_limit),
-                    cls=MyBMWJSONEncoder,
-                ),
-            )
-
-        event_id = response.json().get("eventId")
-        status = await self._block_until_done(event_id)
-        await self._trigger_state_update()
-        return status
+        return await self.trigger_remote_service(
+            Services.CHARGING_SETTINGS,
+            data=ChargingSettings(chargingTarget=target_soc, acLimitValue=ac_limit),
+            refresh=True,
+        )
 
     async def trigger_send_poi(self, poi: Union[PointOfInterest, Dict]) -> RemoteServiceStatus:
         """Send a PointOfInterest to the vehicle.
 
         :param poi: A PointOfInterest containing at least 'lat' and 'lon' and optionally
             'name', 'street', 'city', 'postalCode', 'country'
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-        _LOGGER.debug("Sending PointOfInterest to car")
-
         if isinstance(poi, Dict):
             poi = PointOfInterest(**poi)
 
-        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            await client.post(
-                VEHICLE_POI_URL,
-                headers={"content-type": "application/json"},
-                content=json.dumps(
-                    {
-                        "location": poi.__dict__,
-                        "vin": self._vehicle.vin,
-                    },
-                    cls=MyBMWJSONEncoder,
-                ),
-            )
-
-        # send-to-car has no separate ExecutionStates
-        return RemoteServiceStatus({"eventStatus": "EXECUTED"})
+        return await self.trigger_remote_service(
+            Services.VEHICLE_FINDER,
+            data={
+                "location": poi,
+                "vin": self._vehicle.vin,
+            },
+        )
 
     async def trigger_remote_vehicle_finder(self) -> RemoteServiceStatus:
-        """Trigger the vehicle finder.
-
-        A state update is triggered after this, as the location state of the vehicle changes.
-        """
-        _LOGGER.debug("Triggering remote vehicle finder")
-        event_id = await self._start_remote_service(Services.VEHICLE_FINDER)
-        status = await self._block_until_done(event_id)
-        result = await self._get_event_position(event_id)
+        """Trigger the vehicle finder."""
+        status = await self.trigger_remote_service(Services.VEHICLE_FINDER)
+        result = await self._get_event_position(status.event_id)
         self._vehicle.vehicle_location.set_remote_service_position(result)
         return status
 
