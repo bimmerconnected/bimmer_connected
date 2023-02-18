@@ -11,14 +11,14 @@ from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
 
-from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
+from . import VIN_F31, VIN_G01, VIN_G20, VIN_G26, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
 from .test_account import get_mocked_account
 
 
 @pytest.mark.asyncio
 async def test_generic(caplog):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
 
     expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=datetime.timezone.utc)
     assert expected == status.timestamp
@@ -113,7 +113,7 @@ async def test_range_rex(caplog):
 @pytest.mark.asyncio
 async def test_range_electric(caplog):
     """Test if the parsing of mileage and range is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
 
     assert status.remaining_fuel == (None, None)
     assert status.remaining_range_fuel == (None, None)
@@ -166,7 +166,7 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
 @pytest.mark.asyncio
 async def test_condition_based_services(caplog):
     """Test condition based service messages."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
 
     cbs = status.condition_based_services
     assert 5 == len(cbs)
@@ -236,7 +236,7 @@ async def test_lids(caplog):
     # assert 3 == len(list(status.open_lids))
     # assert status.all_lids_closed is False
 
-    status = (await get_mocked_account()).get_vehicle(VIN_G23).status
+    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
 
     for lid in status.lids:
         assert LidState.CLOSED == lid.state

@@ -16,7 +16,7 @@ from . import (
     VIN_F31,
     VIN_G01,
     VIN_G20,
-    VIN_G23,
+    VIN_G26,
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
@@ -28,7 +28,7 @@ from .test_account import get_mocked_account
 @pytest.mark.asyncio
 async def test_generic(caplog):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23)
+    status = (await get_mocked_account()).get_vehicle(VIN_G26)
 
     expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=datetime.timezone.utc)
     assert expected == status.timestamp
@@ -236,7 +236,7 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
 @pytest.mark.asyncio
 async def test_condition_based_services(caplog):
     """Test condition based service messages."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G26)
 
     cbs = vehicle.condition_based_services.messages
     assert 5 == len(cbs)
@@ -263,7 +263,7 @@ async def test_condition_based_services(caplog):
 @pytest.mark.asyncio
 async def test_position_generic(caplog):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23)
+    status = (await get_mocked_account()).get_vehicle(VIN_G26)
 
     assert (48.177334, 11.556274) == status.vehicle_location.location
     assert 180 == status.vehicle_location.heading
@@ -336,7 +336,7 @@ async def test_lids(caplog):
     # assert 3 == len(list(status.open_lids))
     # assert status.all_lids_closed is False
 
-    status = (await get_mocked_account()).get_vehicle(VIN_G23).doors_and_windows
+    status = (await get_mocked_account()).get_vehicle(VIN_G26).doors_and_windows
 
     for lid in status.lids:
         assert LidState.CLOSED == lid.state
@@ -435,7 +435,7 @@ async def test_charging_profile(caplog):
 
     assert charging_profile.ac_available_limits is None
 
-    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G23).charging_profile
+    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G26).charging_profile
     assert charging_settings.ac_current_limit == 16
     assert charging_settings.ac_available_limits == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 32]
 

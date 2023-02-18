@@ -11,7 +11,7 @@ from . import (
     VIN_F31,
     VIN_G01,
     VIN_G20,
-    VIN_G23,
+    VIN_G26,
     VIN_G70,
     VIN_I01_NOREX,
     VIN_I01_REX,
@@ -49,7 +49,7 @@ async def test_drive_train(caplog):
     assert DriveTrainType.PLUGIN_HYBRID == vehicle.drive_train
     assert vehicle.is_charging_target_soc_enabled is False
 
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G26)
     assert DriveTrainType.ELECTRIC == vehicle.drive_train
     assert vehicle.is_charging_target_soc_enabled is True
 
@@ -91,7 +91,7 @@ async def test_drive_train_attributes(caplog):
         VIN_F31: (True, False),
         VIN_G01: (True, True),
         VIN_G20: (True, False),
-        VIN_G23: (False, True),
+        VIN_G26: (False, True),
         VIN_G70: (False, True),
         VIN_I01_NOREX: (False, True),
         VIN_I01_REX: (True, True),
@@ -177,7 +177,7 @@ async def test_available_attributes(caplog):
         "windows",
     ] == vehicle.available_attributes
 
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
     assert [
         "gps_position",
         "vin",

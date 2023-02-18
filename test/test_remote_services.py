@@ -24,7 +24,7 @@ from bimmer_connected.models import ChargingSettings, PointOfInterest
 from bimmer_connected.vehicle import remote_services
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
-from . import RESPONSE_DIR, VIN_G23, VIN_I01_NOREX, load_response
+from . import RESPONSE_DIR, VIN_G26, VIN_I01_NOREX, load_response
 from .test_account import account_mock, get_mocked_account
 
 _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
@@ -125,7 +125,7 @@ async def test_trigger_remote_services():
     ]
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
 
     for service, call, triggers_update in services:
         with mock.patch(
@@ -153,7 +153,7 @@ async def test_get_remote_service_status():
     """Test get_remove_service_status method."""
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
 
     with remote_services_mock() as mock_api:
         mock_api.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
@@ -187,7 +187,7 @@ async def test_set_charging_settings(caplog):
         await vehicle.remote_services.trigger_charging_settings_update(ac_limit=16)
 
     # This shouldn't fail
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
     await vehicle.remote_services.trigger_charging_settings_update(target_soc=80, ac_limit=16)
 
     # But these are not allowed
@@ -212,7 +212,7 @@ async def test_get_remote_position():
 
     account = await get_mocked_account()
     account.set_observer_position(1.0, 0.0)
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
     status = vehicle.status
 
     # Check original position
@@ -236,7 +236,7 @@ async def test_get_remote_position_fail_without_observer(caplog):
     """Test getting position from remote service."""
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
     errors = [
@@ -256,7 +256,7 @@ async def test_fail_with_timeout():
     remote_services._POLLING_TIMEOUT = 2
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
 
     with pytest.raises(TimeoutError):
         await vehicle.remote_services.trigger_remote_light_flash()
@@ -269,7 +269,7 @@ async def test_get_remote_position_too_old():
     """Test remote service position being ignored as vehicle status is newer."""
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
     status = vehicle.status
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
@@ -284,7 +284,7 @@ async def test_poi():
     """Test get_remove_service_status method."""
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G23)
+    vehicle = account.get_vehicle(VIN_G26)
 
     with pytest.raises(TypeError):
         await vehicle.remote_services.trigger_send_poi({"lat": 12.34})

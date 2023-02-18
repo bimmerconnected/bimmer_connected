@@ -34,7 +34,7 @@ from . import (
     TEST_REGION,
     TEST_REGION_STRING,
     TEST_USERNAME,
-    VIN_G23,
+    VIN_G26,
     get_deprecation_warning_count,
     get_fingerprint_count,
     load_response,
@@ -291,8 +291,8 @@ async def test_vehicles():
     assert account.config.authentication.access_token is not None
     assert get_fingerprint_count() == len(account.vehicles)
 
-    vehicle = account.get_vehicle(VIN_G23)
-    assert VIN_G23 == vehicle.vin
+    vehicle = account.get_vehicle(VIN_G26)
+    assert VIN_G26 == vehicle.vin
 
     assert account.get_vehicle("invalid_vin") is None
 

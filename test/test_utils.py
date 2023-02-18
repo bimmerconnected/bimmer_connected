@@ -13,14 +13,14 @@ import time_machine
 from bimmer_connected.models import ChargingSettings, ValueWithUnit
 from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
-from . import VIN_G23
+from . import VIN_G26
 from .test_account import get_mocked_account
 
 
 @pytest.mark.asyncio
 async def test_drive_train():
     """Tests available attribute."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G26)
     assert [
         "available_attributes",
         "brand",
