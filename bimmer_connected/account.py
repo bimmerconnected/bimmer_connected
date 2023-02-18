@@ -12,7 +12,7 @@ from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClient
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import (
     ATTR_CAPABILITIES,
-    VEHICLE_CHARGING_SETTINGS_GET_URL,
+    VEHICLE_CHARGING_DETAILS_URL,
     VEHICLE_STATE_URL,
     VEHICLES_URL,
     CarBrands,
@@ -112,7 +112,7 @@ class MyBMWAccount:
                     ATTR_CAPABILITIES
                 ].get("isChargingSettingsEnabled", False):
                     charging_settings_response = await client.get(
-                        VEHICLE_CHARGING_SETTINGS_GET_URL,
+                        VEHICLE_CHARGING_DETAILS_URL,
                         params={
                             "fields": "charging-profile",
                             "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
