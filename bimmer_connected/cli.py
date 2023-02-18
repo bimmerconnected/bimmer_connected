@@ -18,6 +18,7 @@ from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
 from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
+from bimmer_connected.vehicle.charging_profile import ChargingMode
 
 TEXT_VIN = "Vehicle Identification Number"
 
@@ -64,6 +65,21 @@ def main_parser() -> argparse.ArgumentParser:
     chargingsettings_parser.add_argument("--target-soc", help="Desired charging target SoC", nargs="?", type=int)
     chargingsettings_parser.add_argument("--ac-limit", help="Maximum AC limit", nargs="?", type=int)
     chargingsettings_parser.set_defaults(func=chargingsettings)
+
+    chargingprofile_parser = subparsers.add_parser("chargingprofile", description="Set vehicle charging profile.")
+    _add_default_arguments(chargingprofile_parser)
+    chargingprofile_parser.add_argument("vin", help=TEXT_VIN)
+    chargingprofile_parser.add_argument(
+        "--charging-mode",
+        help="Desired charging mode",
+        nargs="?",
+        type=ChargingMode,
+        choices=[cm.value for cm in ChargingMode if cm != ChargingMode.UNKNOWN],
+    )
+    chargingprofile_parser.add_argument(
+        "--precondition-climate", help="Precondition climate on charging windows", nargs="?", type=bool
+    )
+    chargingprofile_parser.set_defaults(func=chargingprofile)
 
     image_parser = subparsers.add_parser("image", description="Download a vehicle image.")
     _add_default_arguments(image_parser)
@@ -221,6 +237,21 @@ async def chargingsettings(args) -> None:
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_charging_settings_update(
         target_soc=args.target_soc, ac_limit=args.ac_limit
+    )
+    print(status.state)
+
+
+async def chargingprofile(args) -> None:
+    """Trigger a change to charging settings."""
+    if not args.charging_mode and not args.precondition_climate:
+        raise ValueError("At least one of 'charging-mode' and 'precondition-climate' has to be provided.")
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_charging_profile_update(
+        charging_mode=args.charging_mode, precondition_climate=args.precondition_climate
     )
     print(status.state)
 
