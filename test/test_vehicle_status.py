@@ -449,7 +449,9 @@ async def test_charging_profile_format_for_remote_service(caplog):
 
     for vin in ALL_CHARGING_SETTINGS:
         vehicle = account.get_vehicle(vin)
-        assert (
-            vehicle.charging_profile.format_for_remote_service()["chargeAndClimateTimerDetail"]
-            == ALL_CHARGING_SETTINGS[vin]["chargeAndClimateTimerDetail"]
-        )
+
+        fixture_data = {
+            **ALL_CHARGING_SETTINGS[vin]["chargeAndClimateTimerDetail"],
+            "servicePack": ALL_CHARGING_SETTINGS[vin]["servicePack"],
+        }
+        assert vehicle.charging_profile.format_for_remote_service() == fixture_data

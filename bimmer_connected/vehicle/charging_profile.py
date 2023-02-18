@@ -167,27 +167,25 @@ class ChargingProfile(VehicleDataBase):
         """Format current charging profile as base to be sent to remote service."""
 
         return {
-            "chargeAndClimateTimerDetail": {
-                "chargingMode": {
-                    "chargingPreference": MAP_CHARGING_PREFERENCES_TO_REMOTE_SERVICE[self.charging_preferences],
-                    "endTimeSlot": self._format_time(self.preferred_charging_window.end_time),
-                    "startTimeSlot": self._format_time(self.preferred_charging_window.start_time),
-                    "type": MAP_CHARGING_MODE_TO_REMOTE_SERVICE[self.charging_mode],
-                },
-                "departureTimer": {
-                    "type": MAP_TIMER_TYPES_TO_REMOTE_SERVICE[self.timer_type],
-                    "weeklyTimers": [
-                        {
-                            "daysOfTheWeek": t.weekdays,
-                            "id": t.timer_id,
-                            "time": self._format_time(t.start_time),
-                            "timerAction": t.action,
-                        }
-                        for t in self.departure_times
-                    ],
-                },
-                "isPreconditionForDepartureActive": self.is_pre_entry_climatization_enabled,
+            "chargingMode": {
+                "chargingPreference": MAP_CHARGING_PREFERENCES_TO_REMOTE_SERVICE[self.charging_preferences],
+                "endTimeSlot": self._format_time(self.preferred_charging_window.end_time),
+                "startTimeSlot": self._format_time(self.preferred_charging_window.start_time),
+                "type": MAP_CHARGING_MODE_TO_REMOTE_SERVICE[self.charging_mode],
             },
+            "departureTimer": {
+                "type": MAP_TIMER_TYPES_TO_REMOTE_SERVICE[self.timer_type],
+                "weeklyTimers": [
+                    {
+                        "daysOfTheWeek": t.weekdays,
+                        "id": t.timer_id,
+                        "time": self._format_time(t.start_time),
+                        "timerAction": t.action,
+                    }
+                    for t in self.departure_times
+                ],
+            },
+            "isPreconditionForDepartureActive": self.is_pre_entry_climatization_enabled,
             "servicePack": self.charging_preferences_service_pack,
         }
 

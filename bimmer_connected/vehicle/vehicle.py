@@ -198,7 +198,7 @@ class MyBMWVehicle:
 
     @property
     def is_charging_plan_supported(self) -> bool:
-        """Return True if charging control (weekly planner) is available."""
+        """Return True if charging profile is available and can be set via API."""
         return self.data[ATTR_CAPABILITIES].get("isChargingPlanSupported", False)
 
     @property

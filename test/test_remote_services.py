@@ -5,6 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List
 
+from bimmer_connected.vehicle.charging_profile import ChargingMode
+
 try:
     from unittest import mock
 
@@ -24,7 +26,7 @@ from bimmer_connected.models import ChargingSettings, PointOfInterest
 from bimmer_connected.vehicle import remote_services
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
-from . import RESPONSE_DIR, VIN_G26, VIN_I01_NOREX, load_response
+from . import RESPONSE_DIR, VIN_F31, VIN_G01, VIN_G26, VIN_I01_NOREX, load_response
 from .test_account import account_mock, get_mocked_account
 
 _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
@@ -65,6 +67,27 @@ def charging_settings_sideeffect(request: httpx.Request) -> httpx.Response:
     return service_trigger_sideeffect(request)
 
 
+def charging_profile_sideeffect(request: httpx.Request) -> httpx.Response:
+    """Check if payload is a valid charging settings payload and return evendId."""
+
+    data = json.loads(request.content)
+
+    if {"chargingMode", "departureTimer", "isPreconditionForDepartureActive", "servicePack"} != set(data):
+        return httpx.Response(500)
+    if (
+        data["chargingMode"]["chargingPreference"] == "NO_PRESELECTION"
+        and data["chargingMode"]["type"] != "CHARGING_IMMEDIATELY"
+    ):
+        return httpx.Response(500)
+    if data["chargingMode"]["chargingPreference"] == "CHARGING_WINDOW" and data["chargingMode"]["type"] != "TIME_SLOT":
+        return httpx.Response(500)
+
+    if not isinstance(data["isPreconditionForDepartureActive"], bool):
+        return httpx.Response(500)
+
+    return service_trigger_sideeffect(request)
+
+
 def service_status_sideeffect(request: httpx.Request) -> httpx.Response:
     """Return all 3 eventStatus responses per function."""
     response_data = STATUS_RESPONSE_DICT[request.url.params["eventId"]].pop(0)
@@ -79,6 +102,9 @@ def remote_services_mock():
         side_effect=service_trigger_sideeffect
     )
     router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-settings$").mock(
+        side_effect=service_trigger_sideeffect
+    )
+    router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-profile$").mock(
         side_effect=service_trigger_sideeffect
     )
     router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
@@ -174,17 +200,18 @@ async def test_get_remote_service_status():
 
 @remote_services_mock()
 @pytest.mark.asyncio
-async def test_set_charging_settings(caplog):
+async def test_set_charging_settings():
     """Test setting the charging settings on a car."""
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_I01_NOREX)
 
-    # Errors on old electric vehicles
-    with pytest.raises(ValueError):
-        await vehicle.remote_services.trigger_charging_settings_update(target_soc=80)
-    with pytest.raises(ValueError):
-        await vehicle.remote_services.trigger_charging_settings_update(ac_limit=16)
+    # Errors on old electric vehicles, combustion engines and PHEV
+    for vin in [VIN_I01_NOREX, VIN_F31, VIN_G01]:
+        vehicle = account.get_vehicle(vin)
+        with pytest.raises(ValueError):
+            await vehicle.remote_services.trigger_charging_settings_update(target_soc=80)
+        with pytest.raises(ValueError):
+            await vehicle.remote_services.trigger_charging_settings_update(ac_limit=16)
 
     # This shouldn't fail
     vehicle = account.get_vehicle(VIN_G26)
@@ -203,6 +230,28 @@ async def test_set_charging_settings(caplog):
         await vehicle.remote_services.trigger_charging_settings_update(ac_limit=17)
     with pytest.raises(ValueError):
         await vehicle.remote_services.trigger_charging_settings_update(ac_limit="asdf")
+
+
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_set_charging_profile():
+    """Test setting the charging profile on a car."""
+
+    account = await get_mocked_account()
+
+    # Errors on combustion engines
+    vehicle = account.get_vehicle(VIN_F31)
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_profile_update(precondition_climate=True)
+
+    # This shouldn't fail even on older EV
+    vehicle = account.get_vehicle(VIN_I01_NOREX)
+    await vehicle.remote_services.trigger_charging_profile_update(
+        charging_mode=ChargingMode.IMMEDIATE_CHARGING, precondition_climate=True
+    )
+
+    await vehicle.remote_services.trigger_charging_profile_update(charging_mode=ChargingMode.IMMEDIATE_CHARGING)
+    await vehicle.remote_services.trigger_charging_profile_update(precondition_climate=True)
 
 
 @remote_services_mock()
