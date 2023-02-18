@@ -234,6 +234,11 @@ class MyBMWVehicle:
         return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
 
     @property
+    def is_charging_ac_limit_enabled(self) -> bool:
+        """Return True if Target SoC can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
+
+    @property
     def drive_train_attributes(self) -> List[str]:
         """Get list of attributes available for the drive train of the vehicle.
 

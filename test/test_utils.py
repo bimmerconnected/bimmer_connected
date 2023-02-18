@@ -32,6 +32,7 @@ async def test_drive_train():
         "has_internal_combustion_engine",
         "has_range_extender",
         "has_weekly_planner_service",
+        "is_charging_ac_limit_enabled",
         "is_charging_plan_supported",
         "is_charging_target_soc_enabled",
         "is_lsc_enabled",
@@ -100,20 +101,8 @@ def test_json_encoder():
 def test_charging_settings():
     """Test parsing and validation of charging settings."""
 
-    cs = ChargingSettings(chargingTarget=90)
-    assert cs.acLimitValue is None
+    cs = ChargingSettings(chargingTarget=90, acLimitValue=32)
+    assert cs.acLimitValue == 32
     assert cs.chargingTarget == 90
     assert cs.dcLoudness is None
     assert cs.isUnlockCableActive is None
-
-    with pytest.raises(TypeError):
-        _ = ChargingSettings(**{"chargingTarget": 90, "acLimitValue": 8})
-
-    with pytest.raises(ValueError):
-        _ = ChargingSettings(chargingTarget=19)
-    with pytest.raises(ValueError):
-        _ = ChargingSettings(chargingTarget=21)
-    with pytest.raises(ValueError):
-        _ = ChargingSettings(chargingTarget=101)
-    with pytest.raises(ValueError):
-        _ = ChargingSettings(chargingTarget="asdf")

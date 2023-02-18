@@ -186,25 +186,37 @@ class RemoteServices:
         await asyncio.sleep(_POLLING_CYCLE * 2)
         await self._account.get_vehicles()
 
-    async def trigger_charging_settings_update(self, charging_target_soc: Optional[int]) -> RemoteServiceStatus:
+    async def trigger_charging_settings_update(
+        self, target_soc: Optional[int] = None, ac_limit: Optional[int] = None
+    ) -> RemoteServiceStatus:
         """Update the charging settings on the vehicle.
 
         A state update is triggered after this, as the charging state of the vehicle might change.
         """
         _LOGGER.debug("Triggering charging settings update")
 
-        if not self._vehicle.is_charging_target_soc_enabled:
-            _LOGGER.warning("Vehicle does not support changing charging settings.")
-            return RemoteServiceStatus(
-                {"eventStatus": "ERROR", "details": "Vehicle does not support changing charging settings."}
-            )
+        if target_soc and not self._vehicle.is_charging_target_soc_enabled:
+            raise ValueError("Vehicle does not support setting target SoC.")
+        if target_soc and (
+            not isinstance(target_soc, int) or target_soc < 20 or target_soc > 100 or target_soc % 5 != 0
+        ):
+            raise ValueError("Target SoC must be an integer between 20 and 100 that is a multiple of 5.")
+        if ac_limit:
+            if (
+                not self._vehicle.is_charging_ac_limit_enabled
+                or not self._vehicle.charging_profile
+                or not self._vehicle.charging_profile.ac_available_limits
+            ):
+                raise ValueError("Vehicle does not support setting AC Limit.")
+            if not isinstance(ac_limit, int) or ac_limit not in self._vehicle.charging_profile.ac_available_limits:
+                raise ValueError("AC Limit must be an integer and in `charging_profile.ac_available_limits`.")
 
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(
                 VEHICLE_CHARGING_SETTINGS_SET_URL.format(vin=self._vehicle.vin),
                 headers={"content-type": "application/json"},
                 content=json.dumps(
-                    ChargingSettings(chargingTarget=charging_target_soc),
+                    ChargingSettings(chargingTarget=target_soc, acLimitValue=ac_limit),
                     cls=MyBMWJSONEncoder,
                 ),
             )

@@ -61,7 +61,8 @@ def main_parser() -> argparse.ArgumentParser:
     chargingsettings_parser = subparsers.add_parser("chargingsettings", description="Set vehicle charging settings.")
     _add_default_arguments(chargingsettings_parser)
     chargingsettings_parser.add_argument("vin", help=TEXT_VIN)
-    chargingsettings_parser.add_argument("charging_target", help="Desired charging target", type=int)
+    chargingsettings_parser.add_argument("--target-soc", help="Desired charging target SoC", nargs="?", type=int)
+    chargingsettings_parser.add_argument("--ac-limit", help="Maximum AC limit", nargs="?", type=int)
     chargingsettings_parser.set_defaults(func=chargingsettings)
 
     image_parser = subparsers.add_parser("image", description="Download a vehicle image.")
@@ -210,13 +211,17 @@ async def vehicle_finder(args) -> None:
 
 
 async def chargingsettings(args) -> None:
-    """Trigger the vehicle to horn."""
+    """Trigger a change to charging settings."""
+    if not args.target_soc and not args.ac_limit:
+        raise ValueError("At least one of 'charging-target' and 'ac-limit' has to be provided.")
     account = MyBMWAccount(
         args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
     )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
-    status = await vehicle.remote_services.trigger_charging_settings_update(charging_target_soc=args.charging_target)
+    status = await vehicle.remote_services.trigger_charging_settings_update(
+        target_soc=args.target_soc, ac_limit=args.ac_limit
+    )
     print(status.state)
 
 

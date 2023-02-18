@@ -34,6 +34,7 @@ _RESPONSE_EXECUTED = RESPONSE_DIR / "remote_services" / "eadrax_service_executed
 _RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_service_error.json"
 _RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
+remote_services._POLLING_CYCLE = 0
 
 POI_DATA = {
     "lat": 37.4028943,
@@ -45,7 +46,7 @@ POI_DATA = {
     "country": "United States",
 }
 
-CHARGING_SETTINGS = {"charging_target_soc": 75}
+CHARGING_SETTINGS = {"target_soc": 75, "ac_limit": 16}
 
 STATUS_RESPONSE_ORDER = [_RESPONSE_PENDING, _RESPONSE_DELIVERED, _RESPONSE_EXECUTED]
 STATUS_RESPONSE_DICT: Dict[str, List[Path]] = defaultdict(lambda: deepcopy(STATUS_RESPONSE_ORDER))
@@ -109,7 +110,6 @@ def test_states():
 @pytest.mark.filterwarnings("ignore:coroutine 'AsyncMockMixin._execute_mock_call' was never awaited:RuntimeWarning")
 async def test_trigger_remote_services():
     """Test executing a remote light flash."""
-    remote_services._POLLING_CYCLE = 0
 
     services = [
         ("LIGHT_FLASH", "trigger_remote_light_flash", False),
@@ -152,8 +152,6 @@ async def test_trigger_remote_services():
 async def test_get_remote_service_status():
     """Test get_remove_service_status method."""
 
-    remote_services._POLLING_CYCLE = 0
-
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
 
@@ -176,21 +174,41 @@ async def test_get_remote_service_status():
 
 @remote_services_mock()
 @pytest.mark.asyncio
-async def test_set_charging_status_not_enabled(caplog):
-    """Test setting the charging status on a car not enabled for it."""
+async def test_set_charging_settings(caplog):
+    """Test setting the charging settings on a car."""
+
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_I01_NOREX)
-    result = await vehicle.remote_services.trigger_charging_settings_update(ChargingSettings(chargingTarget=80))
-    assert result.state == ExecutionState.ERROR
-    assert "Vehicle does not support changing charging settings." not in result.details
-    assert len([r for r in caplog.records if r.levelname == "WARNING"]) == 1
+
+    # Errors on old electric vehicles
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(target_soc=80)
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(ac_limit=16)
+
+    # This shouldn't fail
+    vehicle = account.get_vehicle(VIN_G23)
+    await vehicle.remote_services.trigger_charging_settings_update(target_soc=80, ac_limit=16)
+
+    # But these are not allowed
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(target_soc=19)
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(target_soc=21)
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(target_soc=101)
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(target_soc="asdf")
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(ac_limit=17)
+    with pytest.raises(ValueError):
+        await vehicle.remote_services.trigger_charging_settings_update(ac_limit="asdf")
 
 
 @remote_services_mock()
 @pytest.mark.asyncio
 async def test_get_remote_position():
     """Test getting position from remote service."""
-    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     account.set_observer_position(1.0, 0.0)
@@ -216,7 +234,6 @@ async def test_get_remote_position():
 @pytest.mark.asyncio
 async def test_get_remote_position_fail_without_observer(caplog):
     """Test getting position from remote service."""
-    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
@@ -250,7 +267,6 @@ async def test_fail_with_timeout():
 @pytest.mark.asyncio
 async def test_get_remote_position_too_old():
     """Test remote service position being ignored as vehicle status is newer."""
-    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
@@ -266,7 +282,6 @@ async def test_get_remote_position_too_old():
 @pytest.mark.asyncio
 async def test_poi():
     """Test get_remove_service_status method."""
-    remote_services._POLLING_CYCLE = 0
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G23)
