@@ -33,12 +33,6 @@ class ChargingPreferences(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
-MAP_CHARGING_PREFERENCES_TO_REMOTE_SERVICE = {
-    ChargingPreferences.NO_PRESELECTION: "NO_PRESELECTION",
-    ChargingPreferences.CHARGING_WINDOW: "CHARGING_WINDOW",
-}
-
-
 class TimerTypes(StrEnum):
     """Different timer types."""
 
@@ -168,10 +162,11 @@ class ChargingProfile(VehicleDataBase):
 
         return {
             "chargingMode": {
-                "chargingPreference": MAP_CHARGING_PREFERENCES_TO_REMOTE_SERVICE[self.charging_preferences],
+                "chargingPreference": self.charging_preferences.value,
                 "endTimeSlot": self._format_time(self.preferred_charging_window.end_time),
                 "startTimeSlot": self._format_time(self.preferred_charging_window.start_time),
                 "type": MAP_CHARGING_MODE_TO_REMOTE_SERVICE[self.charging_mode],
+                "timerChange": "NO_CHANGE",
             },
             "departureTimer": {
                 "type": MAP_TIMER_TYPES_TO_REMOTE_SERVICE[self.timer_type],

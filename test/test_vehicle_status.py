@@ -454,4 +454,5 @@ async def test_charging_profile_format_for_remote_service(caplog):
             **ALL_CHARGING_SETTINGS[vin]["chargeAndClimateTimerDetail"],
             "servicePack": ALL_CHARGING_SETTINGS[vin]["servicePack"],
         }
+        fixture_data["chargingMode"]["timerChange"] = "NO_CHANGE"
         assert vehicle.charging_profile.format_for_remote_service() == fixture_data

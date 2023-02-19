@@ -20,7 +20,6 @@ from bimmer_connected.models import ChargingSettings, PointOfInterest, StrEnum
 from bimmer_connected.utils import MyBMWJSONEncoder
 from bimmer_connected.vehicle.charging_profile import (
     MAP_CHARGING_MODE_TO_REMOTE_SERVICE,
-    MAP_CHARGING_PREFERENCES_TO_REMOTE_SERVICE,
     ChargingMode,
     ChargingPreferences,
 )
@@ -109,7 +108,12 @@ class RemoteServices:
     ) -> RemoteServiceStatus:
         """Trigger a remote service and wait for the result."""
 
-        _LOGGER.debug("Triggering remote service %s", repr(service_id))
+        _LOGGER.debug(
+            "Triggering remote service %s with params %s and data %s",
+            repr(service_id),
+            params,
+            json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
+        )
 
         # Check if service requires a specific url and add all required parameters
         url = SERVICE_URLS.get(service_id, REMOTE_SERVICE_URL)
@@ -117,7 +121,9 @@ class RemoteServices:
 
         # Trigger service and get event id
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            response = await client.post(url, params=params, json=json.dumps(data, cls=MyBMWJSONEncoder))
+            response = await client.post(
+                url, params=params, json=json.dumps(data, cls=MyBMWJSONEncoder) if data else None
+            )
         event_id = response.json().get("eventId")
 
         # Get status via event_id or assume successful execution as HTTP errors would raise exceptions before
@@ -265,15 +271,12 @@ class RemoteServices:
 
         if charging_mode and not charging_mode == ChargingMode.UNKNOWN:
             target_charging_profile["chargingMode"]["type"] = MAP_CHARGING_MODE_TO_REMOTE_SERVICE[charging_mode]
-            target_charging_profile["chargingMode"]["chargingPreference"] = MAP_CHARGING_PREFERENCES_TO_REMOTE_SERVICE[
-                CHARGING_MODE_TO_CHARGING_PREFERENCE[charging_mode]
-            ]
+            target_charging_profile["chargingMode"]["chargingPreference"] = CHARGING_MODE_TO_CHARGING_PREFERENCE[
+                charging_mode
+            ].value
 
         if precondition_climate:
             target_charging_profile["isPreconditionForDepartureActive"] = precondition_climate
-
-        # Always set timerChange to NO_CHANGE for now (until we start adjusting timers...)
-        target_charging_profile["chargingMode"]["timerChange"] = "NO_CHANGE"
 
         return await self.trigger_remote_service(
             Services.CHARGING_PROFILE,
