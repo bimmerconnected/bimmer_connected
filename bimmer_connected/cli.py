@@ -81,6 +81,12 @@ def main_parser() -> argparse.ArgumentParser:
     )
     chargingprofile_parser.set_defaults(func=chargingprofile)
 
+    charge_parser = subparsers.add_parser("charge", description="Start/stop charging on enabled vehicles.")
+    _add_default_arguments(charge_parser)
+    charge_parser.add_argument("vin", help=TEXT_VIN)
+    charge_parser.add_argument("action", type=str, choices=["start", "stop"])
+    charge_parser.set_defaults(func=charge)
+
     image_parser = subparsers.add_parser("image", description="Download a vehicle image.")
     _add_default_arguments(image_parser)
     image_parser.add_argument("vin", help=TEXT_VIN)
@@ -253,6 +259,17 @@ async def chargingprofile(args) -> None:
     status = await vehicle.remote_services.trigger_charging_profile_update(
         charging_mode=args.charging_mode, precondition_climate=args.precondition_climate
     )
+    print(status.state)
+
+
+async def charge(args) -> None:
+    """Trigger a vehicle to start or stop charging."""
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await getattr(vehicle.remote_services, f"trigger_charge_{args.action.lower()}")()
     print(status.state)
 
 
