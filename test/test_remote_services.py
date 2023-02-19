@@ -131,47 +131,44 @@ def test_states():
     assert ExecutionState.EXECUTED == rss.state
 
 
+ALL_SERVICES = {
+    "LIGHT_FLASH": {"call": "trigger_remote_light_flash", "refresh": False},
+    "DOOR_LOCK": {"call": "trigger_remote_door_lock", "refresh": True},
+    "DOOR_UNLOCK": {"call": "trigger_remote_door_unlock", "refresh": True},
+    "CLIMATE_NOW": {"call": "trigger_remote_air_conditioning", "refresh": True},
+    "CLIMATE_STOP": {"call": "trigger_remote_air_conditioning_stop", "refresh": True},
+    "VEHICLE_FINDER": {"call": "trigger_remote_vehicle_finder", "refresh": False},
+    "HORN_BLOW": {"call": "trigger_remote_horn", "refresh": False},
+    "SEND_POI": {"call": "trigger_send_poi", "refresh": False, "args": [POI_DATA]},
+    "CHARGE_NOW": {"call": "trigger_charge_now", "refresh": True},
+    "CHARGING_SETTINGS": {"call": "trigger_charging_settings_update", "refresh": True, "kwargs": CHARGING_SETTINGS},
+}
+
+
 @remote_services_mock()
 @pytest.mark.asyncio
 @pytest.mark.filterwarnings("ignore:coroutine 'AsyncMockMixin._execute_mock_call' was never awaited:RuntimeWarning")
 async def test_trigger_remote_services():
     """Test executing a remote light flash."""
 
-    services = [
-        ("LIGHT_FLASH", "trigger_remote_light_flash", False),
-        ("DOOR_LOCK", "trigger_remote_door_lock", True),
-        ("DOOR_UNLOCK", "trigger_remote_door_unlock", True),
-        ("CLIMATE_NOW", "trigger_remote_air_conditioning", True),
-        ("CLIMATE_STOP", "trigger_remote_air_conditioning_stop", True),
-        ("VEHICLE_FINDER", "trigger_remote_vehicle_finder", False),
-        ("HORN_BLOW", "trigger_remote_horn", False),
-        ("SEND_POI", "trigger_send_poi", False),
-        ("CHARGE_NOW", "trigger_charge_now", True),
-        ("CHARGING_SETTINGS", "trigger_charging_settings_update", True),
-    ]
-
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G26)
 
-    for service, call, triggers_update in services:
+    for service in ALL_SERVICES.values():
         with mock.patch(
             "bimmer_connected.account.MyBMWAccount.get_vehicles", new_callable=mock.AsyncMock
         ) as mock_listener:
             mock_listener.reset_mock()
 
-            if service == "SEND_POI":
-                response = await getattr(vehicle.remote_services, call)(POI_DATA)
-            else:
-                if service == "CHARGING_SETTINGS":
-                    response = await getattr(vehicle.remote_services, call)(**CHARGING_SETTINGS)
-                else:
-                    response = await getattr(vehicle.remote_services, call)()
-                assert ExecutionState.EXECUTED == response.state
+            response = await getattr(vehicle.remote_services, service["call"])(
+                *service.get("args", []), **service.get("kwargs", {})
+            )
+            assert ExecutionState.EXECUTED == response.state
 
-                if triggers_update:
-                    mock_listener.assert_called_once_with()
-                else:
-                    mock_listener.assert_not_called()
+            if service["refresh"]:
+                mock_listener.assert_called_once_with()
+            else:
+                mock_listener.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -252,6 +249,26 @@ async def test_set_charging_profile():
 
     await vehicle.remote_services.trigger_charging_profile_update(charging_mode=ChargingMode.IMMEDIATE_CHARGING)
     await vehicle.remote_services.trigger_charging_profile_update(precondition_climate=True)
+
+
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_vehicles_without_enabled():
+    """Test setting the charging profile on a car."""
+
+    account = await get_mocked_account()
+
+    # Errors on combustion engines
+    vehicle = account.get_vehicle(VIN_F31)
+
+    vehicle.update_state(vehicle.data, {"capabilities": {}})
+
+    for service in ALL_SERVICES.values():
+        with pytest.raises(ValueError):
+
+            await getattr(vehicle.remote_services, service["call"])(
+                *service.get("args", []), **service.get("kwargs", {})
+            )
 
 
 @remote_services_mock()
