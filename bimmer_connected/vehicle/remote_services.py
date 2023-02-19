@@ -13,6 +13,7 @@ from bimmer_connected.const import (
     REMOTE_SERVICE_URL,
     VEHICLE_CHARGING_PROFILE_SET_URL,
     VEHICLE_CHARGING_SETTINGS_SET_URL,
+    VEHICLE_CHARGING_START_STOP_URL,
     VEHICLE_POI_URL,
 )
 from bimmer_connected.models import ChargingSettings, PointOfInterest, StrEnum
@@ -23,6 +24,7 @@ from bimmer_connected.vehicle.charging_profile import (
     ChargingMode,
     ChargingPreferences,
 )
+from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import MyBMWVehicle
@@ -46,6 +48,7 @@ class ExecutionState(StrEnum):
     DELIVERED = "DELIVERED"
     EXECUTED = "EXECUTED"
     ERROR = "ERROR"
+    IGNORED = "IGNORED"
     UNKNOWN = "UNKNOWN"
 
 
@@ -58,7 +61,8 @@ class Services(StrEnum):
     DOOR_UNLOCK = "door-unlock"
     HORN = "horn-blow"
     AIR_CONDITIONING = "climate-now"
-    CHARGE_NOW = "CHARGE_NOW"
+    CHARGE_START = "start-charging"
+    CHARGE_STOP = "stop-charging"
     CHARGING_SETTINGS = "CHARGING_SETTINGS"
     CHARGING_PROFILE = "CHARGING_PROFILE"
     SEND_POI = "SEND_POI"
@@ -69,6 +73,8 @@ SERVICE_URLS = {
     Services.CHARGING_SETTINGS: VEHICLE_CHARGING_SETTINGS_SET_URL,
     Services.CHARGING_PROFILE: VEHICLE_CHARGING_PROFILE_SET_URL,
     Services.SEND_POI: VEHICLE_POI_URL,
+    Services.CHARGE_START: VEHICLE_CHARGING_START_STOP_URL,
+    Services.CHARGE_STOP: VEHICLE_CHARGING_START_STOP_URL,
 }
 
 CHARGING_MODE_TO_CHARGING_PREFERENCE = {
@@ -179,9 +185,30 @@ class RemoteServices:
             raise ValueError(f"Vehicle does not support remote service {repr(Services.HORN)}.")
         return await self.trigger_remote_service(Services.HORN)
 
-    async def trigger_charge_now(self) -> RemoteServiceStatus:
+    async def trigger_charge_start(self) -> RemoteServiceStatus:
         """Trigger the vehicle to start charging."""
-        return await self.trigger_remote_service(Services.CHARGE_NOW, refresh=True)
+        if not self._vehicle.is_remote_charge_start_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.CHARGE_START)}.")
+
+        if not self._vehicle.fuel_and_battery.is_charger_connected:
+            _LOGGER.warning("Charger not connected, cannot start charging.")
+            return RemoteServiceStatus({"eventStatus": "IGNORED"})
+
+        return await self.trigger_remote_service(Services.CHARGE_START, refresh=True)
+
+    async def trigger_charge_stop(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to start charging."""
+        if not self._vehicle.is_remote_charge_stop_enabled:
+            raise ValueError(f"Vehicle does not support remote service {repr(Services.CHARGE_STOP)}.")
+
+        if not self._vehicle.fuel_and_battery.is_charger_connected:
+            _LOGGER.warning("Charger not connected, cannot stop charging.")
+            return RemoteServiceStatus({"eventStatus": "IGNORED"})
+        if self._vehicle.fuel_and_battery.charging_status != ChargingState.CHARGING:
+            _LOGGER.warning("Vehicle not charging, cannot stop charging.")
+            return RemoteServiceStatus({"eventStatus": "IGNORED"})
+
+        return await self.trigger_remote_service(Services.CHARGE_STOP, refresh=True)
 
     async def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
         """Trigger the air conditioning to start."""

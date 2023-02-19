@@ -26,7 +26,7 @@ from bimmer_connected.models import ChargingSettings, PointOfInterest
 from bimmer_connected.vehicle import remote_services
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
-from . import RESPONSE_DIR, VIN_F31, VIN_G01, VIN_G26, VIN_I01_NOREX, load_response
+from . import RESPONSE_DIR, VIN_F31, VIN_G01, VIN_G26, VIN_I01_NOREX, VIN_I20, load_response
 from .test_account import account_mock, get_mocked_account
 
 _RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
@@ -101,6 +101,9 @@ def remote_services_mock():
     router.post(path__regex=r"/eadrax-vrccs/v3/presentation/remote-commands/.+/.+$").mock(
         side_effect=service_trigger_sideeffect
     )
+    router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/(start|stop)-charging$").mock(
+        side_effect=service_trigger_sideeffect
+    )
     router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-settings$").mock(
         side_effect=service_trigger_sideeffect
     )
@@ -140,7 +143,8 @@ ALL_SERVICES = {
     "VEHICLE_FINDER": {"call": "trigger_remote_vehicle_finder", "refresh": False},
     "HORN_BLOW": {"call": "trigger_remote_horn", "refresh": False},
     "SEND_POI": {"call": "trigger_send_poi", "refresh": False, "args": [POI_DATA]},
-    "CHARGE_NOW": {"call": "trigger_charge_now", "refresh": True},
+    "CHARGE_START": {"call": "trigger_charge_start", "refresh": True},
+    "CHARGE_STOP": {"call": "trigger_charge_stop", "refresh": True},
     "CHARGING_SETTINGS": {"call": "trigger_charging_settings_update", "refresh": True, "kwargs": CHARGING_SETTINGS},
 }
 
@@ -152,7 +156,7 @@ async def test_trigger_remote_services():
     """Test executing a remote light flash."""
 
     account = await get_mocked_account()
-    vehicle = account.get_vehicle(VIN_G26)
+    vehicle = account.get_vehicle(VIN_I20)
 
     for service in ALL_SERVICES.values():
         with mock.patch(
@@ -253,7 +257,7 @@ async def test_set_charging_profile():
 
 @remote_services_mock()
 @pytest.mark.asyncio
-async def test_vehicles_without_enabled():
+async def test_vehicles_without_enabled_services():
     """Test setting the charging profile on a car."""
 
     account = await get_mocked_account()
@@ -265,10 +269,47 @@ async def test_vehicles_without_enabled():
 
     for service in ALL_SERVICES.values():
         with pytest.raises(ValueError):
-
             await getattr(vehicle.remote_services, service["call"])(
                 *service.get("args", []), **service.get("kwargs", {})
             )
+
+
+@remote_services_mock()
+@pytest.mark.asyncio
+async def test_trigger_charge_start_stop_warnings(caplog):
+    """Test if warnings are produced correctly with the charge start/stop services."""
+
+    account = await get_mocked_account()
+    vehicle = account.get_vehicle(VIN_I20)
+
+    fixture_not_connected = {
+        **vehicle.data["state"]["electricChargingState"],
+        "chargingStatus": "INVALID",
+        "isChargerConnected": False,
+    }
+    vehicle.update_state(vehicle.data, {"state": {"electricChargingState": fixture_not_connected}})
+
+    result = await vehicle.remote_services.trigger_charge_start()
+    assert result.state == ExecutionState.IGNORED
+    assert len([r for r in caplog.records if r.levelname == "WARNING" and "Charger not connected" in r.message]) == 1
+    caplog.clear()
+
+    result = await vehicle.remote_services.trigger_charge_stop()
+    assert result.state == ExecutionState.IGNORED
+    assert len([r for r in caplog.records if r.levelname == "WARNING" and "Charger not connected" in r.message]) == 1
+    caplog.clear()
+
+    fixture_connected_not_charging = {
+        **vehicle.data["state"]["electricChargingState"],
+        "chargingStatus": "WAITING_FOR_CHARGING",
+        "isChargerConnected": True,
+    }
+    vehicle.update_state(vehicle.data, {"state": {"electricChargingState": fixture_connected_not_charging}})
+
+    result = await vehicle.remote_services.trigger_charge_stop()
+    assert result.state == ExecutionState.IGNORED
+    assert len([r for r in caplog.records if r.levelname == "WARNING" and "Vehicle not charging" in r.message]) == 1
+    caplog.clear()
 
 
 @remote_services_mock()
