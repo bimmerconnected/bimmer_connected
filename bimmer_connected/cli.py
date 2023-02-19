@@ -176,23 +176,6 @@ async def fingerprint(args) -> None:
         account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
 
-    # Patching in new My BMW endpoints for fingerprinting
-    async with MyBMWClient(account.config) as client:
-        for vehicle in account.vehicles:
-            try:
-                if vehicle.has_electric_drivetrain:
-                    await client.get(
-                        f"/eadrax-crccs/v1/vehicles/{vehicle.vin}",
-                        params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
-                        headers={
-                            **client.generate_default_header(vehicle.brand),
-                            "bmw-current-date": datetime.utcnow().isoformat(),
-                            "24-hour-format": "true",
-                        },
-                    )
-            except httpx.HTTPStatusError:
-                pass
-
     log_response_store_to_file(account.get_stored_responses(), time_dir)
     print(f"fingerprint of the vehicles written to {time_dir}")
 
