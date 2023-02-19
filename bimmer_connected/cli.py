@@ -7,13 +7,11 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 import httpx
 
 from bimmer_connected.account import MyBMWAccount
-from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
 from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
