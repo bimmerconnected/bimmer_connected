@@ -187,5 +187,5 @@ class ChargingProfile(VehicleDataBase):
     @staticmethod
     def _format_time(time: Optional[datetime.time] = None) -> str:
         if not time:
-            return "0001-01-01T00:00:00"
-        return time.strftime("0001-01-01T%H:%M:00")
+            return "0001-01-01T00:00:00.000"
+        return time.strftime("0001-01-01T%H:%M:00.000")
