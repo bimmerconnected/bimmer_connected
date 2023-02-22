@@ -455,4 +455,11 @@ async def test_charging_profile_format_for_remote_service(caplog):
             "servicePack": ALL_CHARGING_SETTINGS[vin]["servicePack"],
         }
         fixture_data["chargingMode"]["timerChange"] = "NO_CHANGE"
+
+        # Add milliseconds to data because BMW has different formats to set & get
+        fixture_data["chargingMode"]["startTimeSlot"] = f"{fixture_data['chargingMode']['startTimeSlot']}.000"
+        fixture_data["chargingMode"]["endTimeSlot"] = f"{fixture_data['chargingMode']['endTimeSlot']}.000"
+        for w in fixture_data["departureTimer"]["weeklyTimers"]:
+            w["time"] = f"{w['time']}.000"
+
         assert vehicle.charging_profile.format_for_remote_service() == fixture_data
