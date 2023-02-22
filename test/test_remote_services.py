@@ -105,10 +105,10 @@ def remote_services_mock():
         side_effect=service_trigger_sideeffect
     )
     router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-settings$").mock(
-        side_effect=service_trigger_sideeffect
+        side_effect=charging_settings_sideeffect
     )
     router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-profile$").mock(
-        side_effect=service_trigger_sideeffect
+        side_effect=charging_profile_sideeffect
     )
     router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
         side_effect=service_status_sideeffect
