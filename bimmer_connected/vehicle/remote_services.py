@@ -120,7 +120,7 @@ class RemoteServices:
                 params=params,
                 data=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
             )
-        event_id = response.json().get("eventId")
+        event_id = response.json().get("eventId") if response.content else None
 
         # Get status via event_id or assume successful execution as HTTP errors would raise exceptions before
         status = (
