@@ -118,7 +118,7 @@ class RemoteServices:
                 url,
                 headers={"content-type": "application/json"} if data else None,
                 params=params,
-                data=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
+                content=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
             )
         event_id = response.json().get("eventId") if response.content else None
 
