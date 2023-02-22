@@ -108,13 +108,6 @@ class RemoteServices:
     ) -> RemoteServiceStatus:
         """Trigger a remote service and wait for the result."""
 
-        _LOGGER.debug(
-            "Triggering remote service %s with params %s and data %s",
-            repr(service_id),
-            params,
-            json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
-        )
-
         # Check if service requires a specific url and add all required parameters
         url = SERVICE_URLS.get(service_id, REMOTE_SERVICE_URL)
         url = url.format(vin=self._vehicle.vin, service_type=service_id.value)
@@ -122,7 +115,10 @@ class RemoteServices:
         # Trigger service and get event id
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(
-                url, params=params, json=json.dumps(data, cls=MyBMWJSONEncoder) if data else None
+                url,
+                headers={"content-type": "application/json"} if data else None,
+                params=params,
+                data=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
             )
         event_id = response.json().get("eventId")
 
