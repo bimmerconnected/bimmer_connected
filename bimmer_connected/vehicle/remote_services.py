@@ -297,7 +297,7 @@ class RemoteServices:
             poi = PointOfInterest(**poi)
 
         return await self.trigger_remote_service(
-            Services.VEHICLE_FINDER,
+            Services.SEND_POI,
             data={
                 "location": poi,
                 "vin": self._vehicle.vin,

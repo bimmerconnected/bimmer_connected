@@ -94,6 +94,22 @@ def service_status_sideeffect(request: httpx.Request) -> httpx.Response:
     return httpx.Response(200, json=load_response(response_data))
 
 
+def poi_sideeffect(request: httpx.Request) -> httpx.Response:
+    """Check if payload is a valid POI."""
+    data = json.loads(request.content)
+    tests = all(
+        [
+            len(data["vin"]) == 17,
+            isinstance(data["location"]["coordinates"]["latitude"], float),
+            isinstance(data["location"]["coordinates"]["longitude"], float),
+            len(data["location"]["name"]) > 0,
+        ]
+    )
+    if not tests:
+        return httpx.Response(400)
+    return httpx.Response(201)
+
+
 def remote_services_mock():
     """Return mocked adapter for auth."""
     router = account_mock()
@@ -114,7 +130,7 @@ def remote_services_mock():
         side_effect=service_status_sideeffect
     )
 
-    router.post("/eadrax-dcs/v1/send-to-car/send-to-car").respond(201)
+    router.post("/eadrax-dcs/v1/send-to-car/send-to-car").mock(side_effect=poi_sideeffect)
     router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
         200,
         json=load_response(_RESPONSE_EVENTPOSITION),
@@ -392,6 +408,8 @@ async def test_poi():
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G26)
+
+    await vehicle.remote_services.trigger_send_poi({"lat": 12.34, "lon": 12.34})
 
     with pytest.raises(TypeError):
         await vehicle.remote_services.trigger_send_poi({"lat": 12.34})
