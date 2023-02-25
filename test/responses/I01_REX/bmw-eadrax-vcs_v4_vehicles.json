@@ -1,0 +1,45 @@
+[
+    {
+        "vin": "WBY00000000REXI01",
+        "mappingInfo": {
+            "mappingStatus": "CONFIRMED",
+            "isPrimaryUser": true
+        },
+        "appVehicleType": "CONNECTED",
+        "attributes": {
+            "lastFetched": "2022-06-01T19:48:46.540Z",
+            "model": "i3 (+ REX)",
+            "year": 2015,
+            "color": 4284110934,
+            "brand": "BMW_I",
+            "driveTrain": "ELECTRIC_WITH_RANGE_EXTENDER",
+            "headUnitType": "NBT",
+            "hmiVersion": "ID4",
+            "softwareVersionCurrent": {
+                "puStep": {
+                    "month": 11,
+                    "year": 21
+                },
+                "iStep": 510,
+                "seriesCluster": "I001"
+            },
+            "softwareVersionExFactory": {
+                "puStep": {
+                    "month": 3,
+                    "year": 15
+                },
+                "iStep": 502,
+                "seriesCluster": "I001"
+            },
+            "bodyType": "I01",
+            "countryOfOrigin": "CZ",
+            "a4aType": "USB_ONLY",
+            "driverGuideInfo": {
+                "androidAppScheme": "com.bmwgroup.driversguide.row",
+                "iosAppScheme": "bmwdriversguide:///open",
+                "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
+                "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
+            }
+        }
+    }
+]

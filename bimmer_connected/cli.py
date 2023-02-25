@@ -7,17 +7,16 @@ import json
 import logging
 import sys
 import time
-from datetime import datetime
 from pathlib import Path
 
 import httpx
 
 from bimmer_connected.account import MyBMWAccount
-from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
 from bimmer_connected.utils import MyBMWJSONEncoder, log_response_store_to_file
 from bimmer_connected.vehicle import MyBMWVehicle, VehicleViewDirection
+from bimmer_connected.vehicle.charging_profile import ChargingMode
 
 TEXT_VIN = "Vehicle Identification Number"
 
@@ -57,6 +56,34 @@ def main_parser() -> argparse.ArgumentParser:
     finder_parser.add_argument("vin", help=TEXT_VIN)
     _add_position_arguments(finder_parser)
     finder_parser.set_defaults(func=vehicle_finder)
+
+    chargingsettings_parser = subparsers.add_parser("chargingsettings", description="Set vehicle charging settings.")
+    _add_default_arguments(chargingsettings_parser)
+    chargingsettings_parser.add_argument("vin", help=TEXT_VIN)
+    chargingsettings_parser.add_argument("--target-soc", help="Desired charging target SoC", nargs="?", type=int)
+    chargingsettings_parser.add_argument("--ac-limit", help="Maximum AC limit", nargs="?", type=int)
+    chargingsettings_parser.set_defaults(func=chargingsettings)
+
+    chargingprofile_parser = subparsers.add_parser("chargingprofile", description="Set vehicle charging profile.")
+    _add_default_arguments(chargingprofile_parser)
+    chargingprofile_parser.add_argument("vin", help=TEXT_VIN)
+    chargingprofile_parser.add_argument(
+        "--charging-mode",
+        help="Desired charging mode",
+        nargs="?",
+        type=ChargingMode,
+        choices=[cm.value for cm in ChargingMode if cm != ChargingMode.UNKNOWN],
+    )
+    chargingprofile_parser.add_argument(
+        "--precondition-climate", help="Precondition climate on charging windows", nargs="?", type=bool
+    )
+    chargingprofile_parser.set_defaults(func=chargingprofile)
+
+    charge_parser = subparsers.add_parser("charge", description="Start/stop charging on enabled vehicles.")
+    _add_default_arguments(charge_parser)
+    charge_parser.add_argument("vin", help=TEXT_VIN)
+    charge_parser.add_argument("action", type=str, choices=["start", "stop"])
+    charge_parser.set_defaults(func=charge)
 
     image_parser = subparsers.add_parser("image", description="Download a vehicle image.")
     _add_default_arguments(image_parser)
@@ -147,23 +174,6 @@ async def fingerprint(args) -> None:
         account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
 
-    # Patching in new My BMW endpoints for fingerprinting
-    async with MyBMWClient(account.config) as client:
-        for vehicle in account.vehicles:
-            try:
-                if vehicle.has_electric_drivetrain:
-                    await client.get(
-                        f"/eadrax-crccs/v1/vehicles/{vehicle.vin}",
-                        params={"fields": "charging-profile", "has_charging_settings_capabilities": True},
-                        headers={
-                            **client.generate_default_header(vehicle.brand),
-                            "bmw-current-date": datetime.utcnow().isoformat(),
-                            "24-hour-format": "true",
-                        },
-                    )
-            except httpx.HTTPStatusError:
-                pass
-
     log_response_store_to_file(account.get_stored_responses(), time_dir)
     print(f"fingerprint of the vehicles written to {time_dir}")
 
@@ -203,6 +213,47 @@ async def vehicle_finder(args) -> None:
     print({"gps_position": vehicle.status.gps_position, "heading": vehicle.status.gps_heading})
 
 
+async def chargingsettings(args) -> None:
+    """Trigger a change to charging settings."""
+    if not args.target_soc and not args.ac_limit:
+        raise ValueError("At least one of 'charging-target' and 'ac-limit' has to be provided.")
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_charging_settings_update(
+        target_soc=args.target_soc, ac_limit=args.ac_limit
+    )
+    print(status.state)
+
+
+async def chargingprofile(args) -> None:
+    """Trigger a change to charging profile."""
+    if not args.charging_mode and not args.precondition_climate:
+        raise ValueError("At least one of 'charging-mode' and 'precondition-climate' has to be provided.")
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_charging_profile_update(
+        charging_mode=args.charging_mode, precondition_climate=args.precondition_climate
+    )
+    print(status.state)
+
+
+async def charge(args) -> None:
+    """Trigger a vehicle to start or stop charging."""
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), use_metric_units=(not args.imperial)
+    )
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await getattr(vehicle.remote_services, f"trigger_charge_{args.action.lower()}")()
+    print(status.state)
+
+
 async def image(args) -> None:
     """Download a rendered image of the vehicle."""
     account = MyBMWAccount(
@@ -212,6 +263,8 @@ async def image(args) -> None:
     vehicle = get_vehicle_or_return(account, args.vin)
 
     for viewdirection in VehicleViewDirection:
+        if viewdirection == VehicleViewDirection.UNKNOWN:
+            continue
         filename = str(viewdirection.name).lower() + ".png"
         with open(filename, "wb") as output_file:
             image_data = await vehicle.get_vehicle_image(viewdirection)

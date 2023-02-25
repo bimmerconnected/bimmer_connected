@@ -107,7 +107,7 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     brand = response.request.headers.get("x-user-agent", ";").split(";")[1]
     brand = f"{brand}-" if brand else ""
 
-    url_parts = response.url.path.split("/")[3:]
+    url_parts = response.url.path.split("/")[1:]
     if "bmw-vin" in response.request.headers:
         url_parts.append(response.request.headers["bmw-vin"])
     url_path = RE_VIN.sub(anonymize_vin, "_".join(url_parts))

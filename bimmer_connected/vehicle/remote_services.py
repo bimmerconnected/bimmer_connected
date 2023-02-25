@@ -4,17 +4,26 @@ import asyncio
 import datetime
 import json
 import logging
-from typing import TYPE_CHECKING, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import (
     REMOTE_SERVICE_POSITION_URL,
     REMOTE_SERVICE_STATUS_URL,
     REMOTE_SERVICE_URL,
+    VEHICLE_CHARGING_PROFILE_SET_URL,
+    VEHICLE_CHARGING_SETTINGS_SET_URL,
+    VEHICLE_CHARGING_START_STOP_URL,
     VEHICLE_POI_URL,
 )
-from bimmer_connected.models import PointOfInterest, StrEnum
+from bimmer_connected.models import ChargingSettings, PointOfInterest, StrEnum
 from bimmer_connected.utils import MyBMWJSONEncoder
+from bimmer_connected.vehicle.charging_profile import (
+    MAP_CHARGING_MODE_TO_REMOTE_SERVICE,
+    ChargingMode,
+    ChargingPreferences,
+)
+from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 
 if TYPE_CHECKING:
     from bimmer_connected.vehicle import MyBMWVehicle
@@ -38,6 +47,7 @@ class ExecutionState(StrEnum):
     DELIVERED = "DELIVERED"
     EXECUTED = "EXECUTED"
     ERROR = "ERROR"
+    IGNORED = "IGNORED"
     UNKNOWN = "UNKNOWN"
 
 
@@ -50,13 +60,32 @@ class Services(StrEnum):
     DOOR_UNLOCK = "door-unlock"
     HORN = "horn-blow"
     AIR_CONDITIONING = "climate-now"
-    CHARGE_NOW = "CHARGE_NOW"
+    CHARGE_START = "start-charging"
+    CHARGE_STOP = "stop-charging"
+    CHARGING_SETTINGS = "CHARGING_SETTINGS"
+    CHARGING_PROFILE = "CHARGING_PROFILE"
+    SEND_POI = "SEND_POI"
+
+
+# Non-default remote services URLs
+SERVICE_URLS = {
+    Services.CHARGING_SETTINGS: VEHICLE_CHARGING_SETTINGS_SET_URL,
+    Services.CHARGING_PROFILE: VEHICLE_CHARGING_PROFILE_SET_URL,
+    Services.SEND_POI: VEHICLE_POI_URL,
+    Services.CHARGE_START: VEHICLE_CHARGING_START_STOP_URL,
+    Services.CHARGE_STOP: VEHICLE_CHARGING_START_STOP_URL,
+}
+
+CHARGING_MODE_TO_CHARGING_PREFERENCE = {
+    ChargingMode.IMMEDIATE_CHARGING: ChargingPreferences.NO_PRESELECTION,
+    ChargingMode.DELAYED_CHARGING: ChargingPreferences.CHARGING_WINDOW,
+}
 
 
 class RemoteServiceStatus:
     """Wraps the status of the execution of a remote service."""
 
-    def __init__(self, response: dict):
+    def __init__(self, response: dict, event_id: Optional[str] = None):
         """Construct a new object from a dict."""
         status = None
         if "eventStatus" in response:
@@ -64,6 +93,7 @@ class RemoteServiceStatus:
 
         self.state = ExecutionState(status or "UNKNOWN")
         self.details = response
+        self.event_id = event_id
 
 
 class RemoteServices:
@@ -73,91 +103,52 @@ class RemoteServices:
         self._account = vehicle.account
         self._vehicle = vehicle
 
-    async def trigger_remote_light_flash(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to flash its headlights.
+    async def trigger_remote_service(
+        self, service_id: Services, params: Optional[Dict] = None, data: Any = None, refresh: bool = False
+    ) -> RemoteServiceStatus:
+        """Trigger a remote service and wait for the result."""
 
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote light flash")
-        return await self.trigger_remote_service(Services.LIGHT_FLASH)
+        # Check if service requires a specific url and add all required parameters
+        url = SERVICE_URLS.get(service_id, REMOTE_SERVICE_URL)
+        url = url.format(vin=self._vehicle.vin, service_type=service_id.value)
 
-    async def trigger_remote_door_lock(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to lock its doors.
+        # Trigger service and get event id
+        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
+            response = await client.post(
+                url,
+                headers={"content-type": "application/json"} if data else None,
+                params=params,
+                content=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
+            )
+        event_id = response.json().get("eventId") if response.content else None
 
-        A state update is triggered after this, as the lock state of the vehicle changes.
-        """
-        _LOGGER.debug("Triggering remote door lock")
-        result = await self.trigger_remote_service(Services.DOOR_LOCK)
-        await self._trigger_state_update()
-        return result
+        # Get status via event_id or assume successful execution as HTTP errors would raise exceptions before
+        status = (
+            await self._block_until_done(event_id) if event_id else RemoteServiceStatus({"eventStatus": "EXECUTED"})
+        )
 
-    async def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to unlock its doors.
+        # If vehicle data needs to be refresh, wait 2 times polling cycle and refresh completely
+        if refresh:
+            await asyncio.sleep(_POLLING_CYCLE * 2)
+            await self._account.get_vehicles()
 
-        A state update is triggered after this, as the lock state of the vehicle changes.
-        """
-        _LOGGER.debug("Triggering remote door unlock")
-        result = await self.trigger_remote_service(Services.DOOR_UNLOCK)
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_horn(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to sound its horn.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote horn sound")
-        return await self.trigger_remote_service(Services.HORN)
-
-    async def trigger_charge_now(self) -> RemoteServiceStatus:
-        """Trigger the vehicle to start charging.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering charge now")
-        result = await self.trigger_remote_service(Services.CHARGE_NOW)
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
-        """Trigger the air conditioning to start.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote air conditioning")
-        result = await self.trigger_remote_service(Services.AIR_CONDITIONING, {"action": "START"})
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_air_conditioning_stop(self) -> RemoteServiceStatus:
-        """Trigger the air conditioning to stop.
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
-        """
-        _LOGGER.debug("Triggering remote air conditioning")
-        result = await self.trigger_remote_service(Services.AIR_CONDITIONING, {"action": "STOP"})
-        await self._trigger_state_update()
-        return result
-
-    async def trigger_remote_service(self, service_id: Services, params: Optional[Dict] = None) -> RemoteServiceStatus:
-        """Trigger a generic remote service and wait for the result."""
-        event_id = await self._start_remote_service(service_id, params)
-        status = await self._block_until_done(event_id)
         return status
 
-    async def _start_remote_service(self, service_id: Services, params: Optional[Dict] = None) -> str:
-        """Start a generic remote service."""
+    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
+        """Return execution status of the last remote service that was triggered."""
 
-        url = REMOTE_SERVICE_URL.format(vin=self._vehicle.vin, service_type=service_id.value)
+        _LOGGER.debug("getting remote service status for '%s'", event_id)
+        url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            response = await client.post(url, params=params)
-        return response.json().get("eventId")
+            response = await client.post(url)
+        return RemoteServiceStatus(response.json(), event_id=event_id)
 
     async def _block_until_done(self, event_id: str) -> RemoteServiceStatus:
         """Keep polling the server until we get a final answer.
 
         :raises TimeoutError: if there is no final answer before _POLLING_TIMEOUT
         """
+
         fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
         while datetime.datetime.now() < fail_after:
             await asyncio.sleep(_POLLING_CYCLE)
@@ -172,57 +163,150 @@ class RemoteServices:
             f"Current state: {status.state.value}"
         )
 
-    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
-        """Return execution status of the last remote service that was triggered."""
-        _LOGGER.debug("getting remote service status for '%s'", event_id)
-        url = REMOTE_SERVICE_STATUS_URL.format(vin=self._vehicle.vin, event_id=event_id)
-        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            response = await client.post(url)
-        return RemoteServiceStatus(response.json())
+    async def trigger_remote_light_flash(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to flash its headlights."""
+        if not self._vehicle.is_remote_lights_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.LIGHT_FLASH.value}'.")
+        return await self.trigger_remote_service(Services.LIGHT_FLASH)
 
-    async def _trigger_state_update(self) -> None:
-        """Sleep for 2x POLLING_CYCLE and force-refresh vehicles from BMW servers."""
-        await asyncio.sleep(_POLLING_CYCLE * 2)
-        await self._account.get_vehicles()
+    async def trigger_remote_door_lock(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to lock its doors."""
+        if not self._vehicle.is_remote_lock_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.DOOR_LOCK.value}'.")
+        return await self.trigger_remote_service(Services.DOOR_LOCK, refresh=True)
+
+    async def trigger_remote_door_unlock(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to unlock its doors."""
+        if not self._vehicle.is_remote_unlock_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.DOOR_UNLOCK.value}'.")
+        return await self.trigger_remote_service(Services.DOOR_UNLOCK, refresh=True)
+
+    async def trigger_remote_horn(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to sound its horn."""
+        if not self._vehicle.is_remote_horn_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.HORN.value}'.")
+        return await self.trigger_remote_service(Services.HORN)
+
+    async def trigger_charge_start(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to start charging."""
+        if not self._vehicle.is_remote_charge_start_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.CHARGE_START.value}'.")
+
+        if not self._vehicle.fuel_and_battery.is_charger_connected:
+            _LOGGER.warning("Charger not connected, cannot start charging.")
+            return RemoteServiceStatus({"eventStatus": "IGNORED"})
+
+        return await self.trigger_remote_service(Services.CHARGE_START, refresh=True)
+
+    async def trigger_charge_stop(self) -> RemoteServiceStatus:
+        """Trigger the vehicle to stop charging."""
+        if not self._vehicle.is_remote_charge_stop_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.CHARGE_STOP.value}'.")
+
+        if not self._vehicle.fuel_and_battery.is_charger_connected:
+            _LOGGER.warning("Charger not connected, cannot stop charging.")
+            return RemoteServiceStatus({"eventStatus": "IGNORED"})
+        if self._vehicle.fuel_and_battery.charging_status != ChargingState.CHARGING:
+            _LOGGER.warning("Vehicle not charging, cannot stop charging.")
+            return RemoteServiceStatus({"eventStatus": "IGNORED"})
+
+        return await self.trigger_remote_service(Services.CHARGE_STOP, refresh=True)
+
+    async def trigger_remote_air_conditioning(self) -> RemoteServiceStatus:
+        """Trigger the air conditioning to start."""
+        if not self._vehicle.is_remote_climate_start_enabled:
+            raise ValueError(
+                f"Vehicle does not support remote service '{Services.AIR_CONDITIONING.value}' action 'START'."
+            )
+        return await self.trigger_remote_service(Services.AIR_CONDITIONING, params={"action": "START"}, refresh=True)
+
+    async def trigger_remote_air_conditioning_stop(self) -> RemoteServiceStatus:
+        """Trigger the air conditioning to stop."""
+        if not self._vehicle.is_remote_climate_stop_enabled:
+            raise ValueError(
+                f"Vehicle does not support remote service '{Services.AIR_CONDITIONING.value}' action 'STOP'."
+            )
+        return await self.trigger_remote_service(Services.AIR_CONDITIONING, params={"action": "STOP"}, refresh=True)
+
+    async def trigger_charging_settings_update(
+        self, target_soc: Optional[int] = None, ac_limit: Optional[int] = None
+    ) -> RemoteServiceStatus:
+        """Update the charging settings on the vehicle."""
+
+        if target_soc and not self._vehicle.is_remote_set_target_soc_enabled:
+            raise ValueError("Vehicle does not support setting target SoC.")
+        if target_soc and (
+            not isinstance(target_soc, int) or target_soc < 20 or target_soc > 100 or target_soc % 5 != 0
+        ):
+            raise ValueError("Target SoC must be an integer between 20 and 100 that is a multiple of 5.")
+        if ac_limit:
+            if (
+                not self._vehicle.is_remote_set_ac_limit_enabled
+                or not self._vehicle.charging_profile
+                or not self._vehicle.charging_profile.ac_available_limits
+            ):
+                raise ValueError("Vehicle does not support setting AC Limit.")
+            if not isinstance(ac_limit, int) or ac_limit not in self._vehicle.charging_profile.ac_available_limits:
+                raise ValueError("AC Limit must be an integer and in `charging_profile.ac_available_limits`.")
+
+        return await self.trigger_remote_service(
+            Services.CHARGING_SETTINGS,
+            data=ChargingSettings(chargingTarget=target_soc, acLimitValue=ac_limit),
+            refresh=True,
+        )
+
+    async def trigger_charging_profile_update(
+        self, charging_mode: Optional[ChargingMode] = None, precondition_climate: Optional[bool] = None
+    ) -> RemoteServiceStatus:
+        """Update the charging profile on the vehicle."""
+
+        if not self._vehicle.is_charging_plan_supported or not self._vehicle.charging_profile:
+            raise ValueError("Vehicle does not support setting charging profile.")
+
+        target_charging_profile = self._vehicle.charging_profile.format_for_remote_service()
+
+        if charging_mode and not charging_mode == ChargingMode.UNKNOWN:
+            target_charging_profile["chargingMode"]["type"] = MAP_CHARGING_MODE_TO_REMOTE_SERVICE[charging_mode]
+            target_charging_profile["chargingMode"]["chargingPreference"] = CHARGING_MODE_TO_CHARGING_PREFERENCE[
+                charging_mode
+            ].value
+
+        if precondition_climate:
+            target_charging_profile["isPreconditionForDepartureActive"] = precondition_climate
+
+        return await self.trigger_remote_service(
+            Services.CHARGING_PROFILE,
+            data=target_charging_profile,
+            refresh=True,
+        )
 
     async def trigger_send_poi(self, poi: Union[PointOfInterest, Dict]) -> RemoteServiceStatus:
         """Send a PointOfInterest to the vehicle.
 
         :param poi: A PointOfInterest containing at least 'lat' and 'lon' and optionally
             'name', 'street', 'city', 'postalCode', 'country'
-
-        A state update is NOT triggered after this, as the vehicle state is unchanged.
         """
-        _LOGGER.debug("Sending PointOfInterest to car")
+        if not self._vehicle.is_remote_sendpoi_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.SEND_POI.value}'.")
 
         if isinstance(poi, Dict):
             poi = PointOfInterest(**poi)
 
-        async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
-            await client.post(
-                VEHICLE_POI_URL,
-                headers={"content-type": "application/json"},
-                content=json.dumps(
-                    {
-                        "location": poi.__dict__,
-                        "vin": self._vehicle.vin,
-                    },
-                    cls=MyBMWJSONEncoder,
-                ),
-            )
-
-        # send-to-car has no separate ExecutionStates
-        return RemoteServiceStatus({"eventStatus": "EXECUTED"})
+        return await self.trigger_remote_service(
+            Services.SEND_POI,
+            data={
+                "location": poi,
+                "vin": self._vehicle.vin,
+            },
+        )
 
     async def trigger_remote_vehicle_finder(self) -> RemoteServiceStatus:
-        """Trigger the vehicle finder.
+        """Trigger the vehicle finder."""
+        if not self._vehicle.is_vehicle_tracking_enabled:
+            raise ValueError(f"Vehicle does not support remote service '{Services.VEHICLE_FINDER.value}'.")
 
-        A state update is triggered after this, as the location state of the vehicle changes.
-        """
-        _LOGGER.debug("Triggering remote vehicle finder")
-        event_id = await self._start_remote_service(Services.VEHICLE_FINDER)
-        status = await self._block_until_done(event_id)
-        result = await self._get_event_position(event_id)
+        status = await self.trigger_remote_service(Services.VEHICLE_FINDER)
+        result = await self._get_event_position(status.event_id)
         self._vehicle.vehicle_location.set_remote_service_position(result)
         return status
 

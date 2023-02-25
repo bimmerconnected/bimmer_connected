@@ -4,7 +4,14 @@ import logging
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
 
 from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_CAPABILITIES, ATTR_STATE, VEHICLE_IMAGE_URL, CarBrands
+from bimmer_connected.const import (
+    ATTR_ATTRIBUTES,
+    ATTR_CAPABILITIES,
+    ATTR_CHARGING_SETTINGS,
+    ATTR_STATE,
+    VEHICLE_IMAGE_URL,
+    CarBrands,
+)
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
@@ -64,12 +71,13 @@ class MyBMWVehicle:
         self,
         account: "MyBMWAccount",
         vehicle_base: dict,
-        vehicle_state: dict,
+        vehicle_state: Optional[dict] = None,
+        charging_settings: Optional[dict] = None,
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Initialize a MyBMWVehicle."""
         self.account = account
-        self.data = self.combine_data(account, vehicle_base, vehicle_state, fetched_at)
+        self.data = self.combine_data(account, vehicle_base, vehicle_state, charging_settings, fetched_at)
         self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
         self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
@@ -79,13 +87,17 @@ class MyBMWVehicle:
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
         self.charging_profile: Optional[ChargingProfile] = None
 
-        self.update_state(vehicle_base, vehicle_state, fetched_at)
+        self.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
 
     def update_state(
-        self, vehicle_base: dict, vehicle_state: dict, fetched_at: Optional[datetime.datetime] = None
+        self,
+        vehicle_base: dict,
+        vehicle_state: Optional[dict] = None,
+        charging_settings: Optional[dict] = None,
+        fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Update the state of a vehicle."""
-        vehicle_data = self.combine_data(self.account, vehicle_base, vehicle_state or {}, fetched_at)
+        vehicle_data = self.combine_data(self.account, vehicle_base, vehicle_state, charging_settings, fetched_at)
         self.data = vehicle_data
 
         update_entities: List[Tuple[Type["VehicleDataBase"], str]] = [
@@ -105,12 +117,17 @@ class MyBMWVehicle:
 
     @staticmethod
     def combine_data(
-        account: "MyBMWAccount", vehicle_base: dict, vehicle_state: dict, fetched_at: Optional[datetime.datetime] = None
+        account: "MyBMWAccount",
+        vehicle_base: dict,
+        vehicle_state: Optional[dict],
+        charging_settings: Optional[dict],
+        fetched_at: Optional[datetime.datetime] = None,
     ) -> Dict:
         """Combine API responses and additional information to a single dictionary."""
         return {
             **vehicle_base,
-            **vehicle_state,
+            **(vehicle_state or {}),
+            ATTR_CHARGING_SETTINGS: charging_settings or {},
             "is_metric": account.config.use_metric_units,
             "fetched_at": fetched_at or datetime.datetime.now(datetime.timezone.utc),
         }
@@ -181,7 +198,7 @@ class MyBMWVehicle:
 
     @property
     def is_charging_plan_supported(self) -> bool:
-        """Return True if charging control (weekly planner) is available."""
+        """Return True if charging profile is available and can be set via API."""
         return self.data[ATTR_CAPABILITIES].get("isChargingPlanSupported", False)
 
     @property
@@ -210,6 +227,61 @@ class MyBMWVehicle:
     def is_lsc_enabled(self) -> bool:
         """Return True if LastStateCall is enabled (vehicle automatically updates API)."""
         return self.data[ATTR_STATE]["isLscSupported"]
+
+    @property
+    def is_remote_set_target_soc_enabled(self) -> bool:
+        """Return True if Target SoC can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
+
+    @property
+    def is_remote_set_ac_limit_enabled(self) -> bool:
+        """Return True if AC limit can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("isChargingPowerLimitEnabled", False)
+
+    @property
+    def is_remote_sendpoi_enabled(self) -> bool:
+        """Return True if POIs can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("sendPoi", False)
+
+    @property
+    def is_remote_horn_enabled(self) -> bool:
+        """Return True if the horn can be activated via the API."""
+        return self.data[ATTR_CAPABILITIES].get("horn", False)
+
+    @property
+    def is_remote_lights_enabled(self) -> bool:
+        """Return True if the lights can be activated via the API."""
+        return self.data[ATTR_CAPABILITIES].get("lights", False)
+
+    @property
+    def is_remote_lock_enabled(self) -> bool:
+        """Return True if vehicle can be locked via the API."""
+        return self.data[ATTR_CAPABILITIES].get("lock", False)
+
+    @property
+    def is_remote_unlock_enabled(self) -> bool:
+        """Return True if POIs can be unlocked via the API."""
+        return self.data[ATTR_CAPABILITIES].get("unlock", False)
+
+    @property
+    def is_remote_climate_start_enabled(self) -> bool:
+        """Return True if AC/ventilation can be started via the API."""
+        return self.data[ATTR_CAPABILITIES].get("climateNow", False)
+
+    @property
+    def is_remote_climate_stop_enabled(self) -> bool:
+        """Return True if AC/ventilation can be stopped via the API."""
+        return "climateControlState" in self.data[ATTR_STATE]
+
+    @property
+    def is_remote_charge_start_enabled(self) -> bool:
+        """Return True if charging can be started via the API."""
+        return "START" in self.data[ATTR_CAPABILITIES].get("remoteChargingCommands", {}).get("chargingControl", [])
+
+    @property
+    def is_remote_charge_stop_enabled(self) -> bool:
+        """Return True if charging can be stop via the API."""
+        return "STOP" in self.data[ATTR_CAPABILITIES].get("remoteChargingCommands", {}).get("chargingControl", [])
 
     @property
     def drive_train_attributes(self) -> List[str]:
@@ -309,11 +381,15 @@ class ConnectedDriveVehicle(MyBMWVehicle):
 
     def __init__(self, account: "MyBMWAccount", vehicle_dict: dict) -> None:
         """Initialize a ConnectedDriveVehicle (deprecated)."""
-        super().__init__(account, vehicle_dict, {})
+        super().__init__(account, vehicle_dict, {}, {})
 
     def update_state(
-        self, vehicle_base: dict, vehicle_state: Optional[dict] = None, fetched_at: Optional[datetime.datetime] = None
+        self,
+        vehicle_base: dict,
+        vehicle_state: Optional[dict] = None,
+        charging_settings: Optional[dict] = None,
+        fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Update the state of a vehicle."""
 
-        super().update_state(vehicle_base, vehicle_state or {}, fetched_at)
+        super().update_state(vehicle_base, vehicle_state or {}, charging_settings, fetched_at)

@@ -5,7 +5,7 @@ import logging
 from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
-from bimmer_connected.const import ATTR_STATE
+from bimmer_connected.const import ATTR_CHARGING_SETTINGS, ATTR_STATE
 from bimmer_connected.models import StrEnum, VehicleDataBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -19,6 +19,12 @@ class ChargingMode(StrEnum):
     UNKNOWN = "UNKNOWN"
 
 
+MAP_CHARGING_MODE_TO_REMOTE_SERVICE = {
+    ChargingMode.IMMEDIATE_CHARGING: "CHARGING_IMMEDIATELY",
+    ChargingMode.DELAYED_CHARGING: "TIME_SLOT",
+}
+
+
 class ChargingPreferences(StrEnum):
     """Charging preferences of electric vehicle."""
 
@@ -30,11 +36,15 @@ class ChargingPreferences(StrEnum):
 class TimerTypes(StrEnum):
     """Different timer types."""
 
-    TWO_WEEKS = "TWO_WEEKS_TIMER"
-    ONE_WEEK = "WEEKLY_PLANNER"
-    OVERRIDE_TIMER = "OVERRIDE_TIMER"
+    WEEKLY_PLANNER = "WEEKLY_PLANNER"
     TWO_TIMES_TIMER = "TWO_TIMES_TIMER"
     UNKNOWN = "UNKNOWN"
+
+
+MAP_TIMER_TYPES_TO_REMOTE_SERVICE = {
+    TimerTypes.WEEKLY_PLANNER: "WEEKLY_DEPARTURE_TIMER",
+    TimerTypes.TWO_TIMES_TIMER: "TWO_DEPARTURE_TIMER",
+}
 
 
 class ChargingWindow:
@@ -46,11 +56,15 @@ class ChargingWindow:
     @property
     def start_time(self) -> datetime.time:
         """Start of the charging window."""
+        if "start" not in self._window_dict:
+            return datetime.time(0, 0)
         return datetime.time(int(self._window_dict["start"]["hour"]), int(self._window_dict["start"]["minute"]))
 
     @property
     def end_time(self) -> datetime.time:
         """End of the charging window."""
+        if "end" not in self._window_dict:
+            return datetime.time(0, 0)
         return datetime.time(int(self._window_dict["end"]["hour"]), int(self._window_dict["end"]["minute"]))
 
 
@@ -108,6 +122,12 @@ class ChargingProfile(VehicleDataBase):
     ac_current_limit: Optional[int] = None
     """Returns the ac current limit."""
 
+    ac_available_limits: Optional[list] = None
+    """Available AC limits to be selected."""
+
+    charging_preferences_service_pack: Optional[str] = None
+    """Service Pack required for remote service format."""
+
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
         """Parse charging data."""
@@ -125,4 +145,47 @@ class ChargingProfile(VehicleDataBase):
             if "acCurrentLimit" in charging_profile["chargingSettings"]:
                 retval["ac_current_limit"] = charging_profile["chargingSettings"]["acCurrentLimit"]
 
+        if ATTR_CHARGING_SETTINGS in vehicle_data:
+            charging_settings = vehicle_data[ATTR_CHARGING_SETTINGS]
+            if "servicePack" in charging_settings:
+                retval["charging_preferences_service_pack"] = charging_settings["servicePack"]
+            if (
+                "chargingSettingsDetail" in charging_settings
+                and "acLimit" in charging_settings["chargingSettingsDetail"]
+            ):
+                retval["ac_available_limits"] = charging_settings["chargingSettingsDetail"]["acLimit"]["values"]
+
         return retval
+
+    def format_for_remote_service(self) -> dict:
+        """Format current charging profile as base to be sent to remote service."""
+
+        return {
+            "chargingMode": {
+                "chargingPreference": self.charging_preferences.value,
+                "endTimeSlot": self._format_time(self.preferred_charging_window.end_time),
+                "startTimeSlot": self._format_time(self.preferred_charging_window.start_time),
+                "type": MAP_CHARGING_MODE_TO_REMOTE_SERVICE[self.charging_mode],
+                "timerChange": "NO_CHANGE",
+            },
+            "departureTimer": {
+                "type": MAP_TIMER_TYPES_TO_REMOTE_SERVICE[self.timer_type],
+                "weeklyTimers": [
+                    {
+                        "daysOfTheWeek": t.weekdays,
+                        "id": t.timer_id,
+                        "time": self._format_time(t.start_time),
+                        "timerAction": t.action,
+                    }
+                    for t in self.departure_times
+                ],
+            },
+            "isPreconditionForDepartureActive": self.is_pre_entry_climatization_enabled,
+            "servicePack": self.charging_preferences_service_pack,
+        }
+
+    @staticmethod
+    def _format_time(time: Optional[datetime.time] = None) -> str:
+        if not time:
+            return "0001-01-01T00:00:00.000"
+        return time.strftime("0001-01-01T%H:%M:00.000")

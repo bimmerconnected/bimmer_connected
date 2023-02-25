@@ -1,15 +1,16 @@
 {
     "capabilities": {
-        "a4aType": "NOT_SUPPORTED",
+        "a4aType": "BLUETOOTH",
         "checkSustainabilityDPP": false,
         "climateFunction": "AIR_CONDITIONING",
         "climateNow": true,
         "digitalKey": {
-            "bookedServicePackage": "SMACC_1_5",
+            "bookedServicePackage": "SMACC_2_UWB",
             "readerGraphics": "readerGraphics",
             "state": "ACTIVATED"
         },
         "horn": true,
+        "inCarCamera": true,
         "isBmwChargingSupported": true,
         "isCarSharingSupported": false,
         "isChargeNowForBusinessSupported": true,
@@ -28,6 +29,7 @@
         "isEvGoChargingSupported": false,
         "isMiniChargingSupported": false,
         "isNonLscFeatureEnabled": false,
+        "isPersonalPictureUploadSupported": false,
         "isRemoteEngineStartSupported": false,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
@@ -42,11 +44,13 @@
         "lights": true,
         "lock": true,
         "remote360": true,
+        "remoteChargingCommands": {},
         "remoteSoftwareUpgrade": true,
         "sendPoi": true,
         "specialThemeSupport": [],
         "speechThirdPartyAlexa": false,
         "speechThirdPartyAlexaSDK": false,
+        "surroundViewRecorder": true,
         "unlock": true,
         "vehicleFinder": true,
         "vehicleStateSource": "LAST_STATE_CALL"
@@ -108,7 +112,7 @@
             }
         ],
         "climateControlState": {
-            "activity": "STANDBY"
+            "activity": "INACTIVE"
         },
         "climateTimers": [
             {
@@ -139,7 +143,9 @@
                 "timerWeekDays": []
             }
         ],
-        "combustionFuelLevel": {},
+        "combustionFuelLevel": {
+            "remainingFuelPercent": 10
+        },
         "currentMileage": 1121,
         "doorsState": {
             "combinedSecurityState": "LOCKED",
@@ -156,17 +162,17 @@
         },
         "electricChargingState": {
             "chargingConnectionType": "UNKNOWN",
-            "chargingLevelPercent": 80,
-            "chargingStatus": "INVALID",
+            "chargingLevelPercent": 70,
+            "chargingStatus": "CHARGING",
             "chargingTarget": 80,
-            "isChargerConnected": false,
-            "range": 472,
+            "isChargerConnected": true,
+            "range": 340,
             "remainingChargingMinutes": 10
         },
         "isLeftSteering": true,
         "isLscSupported": true,
-        "lastFetched": "2023-01-04T14:57:06.386Z",
-        "lastUpdatedAt": "2023-01-04T14:57:06.407Z",
+        "lastFetched": "2023-01-04T14:57:06.371Z",
+        "lastUpdatedAt": "2023-01-04T14:57:06.383Z",
         "location": {
             "address": {
                 "formatted": "Am Olympiapark 1, 80809 München"
@@ -177,7 +183,7 @@
             },
             "heading": 180
         },
-        "range": 472,
+        "range": 340,
         "requiredServices": [
             {
                 "dateTime": "2024-12-01T00:00:00.000Z",
@@ -209,15 +215,19 @@
                 "type": "TIRE_WEAR_FRONT"
             }
         ],
+        "roofState": {
+            "roofState": "CLOSED",
+            "roofStateType": "SUN_ROOF"
+        },
         "tireState": {
             "frontLeft": {
                 "details": {
-                    "dimension": "225/35 R20 90Y XL",
+                    "dimension": "275/40 R22 107Y XL",
                     "isOptimizedForOemBmw": true,
                     "manufacturer": "Pirelli",
                     "manufacturingWeek": 4021,
-                    "mountingDate": "2022-03-07T00:00:00.000Z",
-                    "partNumber": "2461756",
+                    "mountingDate": "2022-04-20T00:00:00.000Z",
+                    "partNumber": "5A401A1",
                     "season": 2,
                     "speedClassification": {
                         "atLeast": false,
@@ -228,18 +238,18 @@
                 "status": {
                     "currentPressure": 241,
                     "pressureStatus": 0,
-                    "targetPressure": 269,
+                    "targetPressure": 241,
                     "wearStatus": 0
                 }
             },
             "frontRight": {
                 "details": {
-                    "dimension": "225/35 R20 90Y XL",
+                    "dimension": "275/40 R22 107Y XL",
                     "isOptimizedForOemBmw": true,
                     "manufacturer": "Pirelli",
-                    "manufacturingWeek": 2419,
-                    "mountingDate": "2022-03-07T00:00:00.000Z",
-                    "partNumber": "2461756",
+                    "manufacturingWeek": 4021,
+                    "mountingDate": "2022-04-20T00:00:00.000Z",
+                    "partNumber": "5A401A1",
                     "season": 2,
                     "speedClassification": {
                         "atLeast": false,
@@ -248,20 +258,20 @@
                     "treadDesign": "P-ZERO"
                 },
                 "status": {
-                    "currentPressure": 255,
+                    "currentPressure": 241,
                     "pressureStatus": 0,
-                    "targetPressure": 269,
+                    "targetPressure": 241,
                     "wearStatus": 0
                 }
             },
             "rearLeft": {
                 "details": {
-                    "dimension": "255/30 R20 92Y XL",
+                    "dimension": "275/40 R22 107Y XL",
                     "isOptimizedForOemBmw": true,
                     "manufacturer": "Pirelli",
-                    "manufacturingWeek": 1219,
-                    "mountingDate": "2022-03-07T00:00:00.000Z",
-                    "partNumber": "2461757",
+                    "manufacturingWeek": 4021,
+                    "mountingDate": "2022-04-20T00:00:00.000Z",
+                    "partNumber": "5A401A1",
                     "season": 2,
                     "speedClassification": {
                         "atLeast": false,
@@ -270,20 +280,20 @@
                     "treadDesign": "P-ZERO"
                 },
                 "status": {
-                    "currentPressure": 324,
+                    "currentPressure": 261,
                     "pressureStatus": 0,
-                    "targetPressure": 303,
+                    "targetPressure": 269,
                     "wearStatus": 0
                 }
             },
             "rearRight": {
                 "details": {
-                    "dimension": "255/30 R20 92Y XL",
+                    "dimension": "275/40 R22 107Y XL",
                     "isOptimizedForOemBmw": true,
                     "manufacturer": "Pirelli",
-                    "manufacturingWeek": 1219,
-                    "mountingDate": "2022-03-07T00:00:00.000Z",
-                    "partNumber": "2461757",
+                    "manufacturingWeek": 4021,
+                    "mountingDate": "2022-04-20T00:00:00.000Z",
+                    "partNumber": "5A401A1",
                     "season": 2,
                     "speedClassification": {
                         "atLeast": false,
@@ -292,9 +302,9 @@
                     "treadDesign": "P-ZERO"
                 },
                 "status": {
-                    "currentPressure": 331,
+                    "currentPressure": 269,
                     "pressureStatus": 0,
-                    "targetPressure": 303,
+                    "targetPressure": 269,
                     "wearStatus": 0
                 }
             }

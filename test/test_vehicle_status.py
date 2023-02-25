@@ -11,14 +11,24 @@ from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBatt
 from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedServiceStatus
 
-from . import VIN_F31, VIN_G01, VIN_G20, VIN_G23, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
+from . import (
+    ALL_CHARGING_SETTINGS,
+    VIN_F31,
+    VIN_G01,
+    VIN_G20,
+    VIN_G26,
+    VIN_I01_NOREX,
+    VIN_I01_REX,
+    VIN_I20,
+    get_deprecation_warning_count,
+)
 from .test_account import get_mocked_account
 
 
 @pytest.mark.asyncio
 async def test_generic(caplog):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23)
+    status = (await get_mocked_account()).get_vehicle(VIN_G26)
 
     expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=datetime.timezone.utc)
     assert expected == status.timestamp
@@ -226,7 +236,7 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
 @pytest.mark.asyncio
 async def test_condition_based_services(caplog):
     """Test condition based service messages."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G23)
+    vehicle = (await get_mocked_account()).get_vehicle(VIN_G26)
 
     cbs = vehicle.condition_based_services.messages
     assert 5 == len(cbs)
@@ -253,7 +263,7 @@ async def test_condition_based_services(caplog):
 @pytest.mark.asyncio
 async def test_position_generic(caplog):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G23)
+    status = (await get_mocked_account()).get_vehicle(VIN_G26)
 
     assert (48.177334, 11.556274) == status.vehicle_location.location
     assert 180 == status.vehicle_location.heading
@@ -304,10 +314,10 @@ async def test_parse_gcj02_position(caplog):
         },
     }
 
-    vehicle.update_state(dict(vehicle.data, **vehicle_test_data), {})
+    vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
 
     # Update twice to test against slowly crawling position due to GCJ02 to WGS84 conversion
-    vehicle.update_state(dict(vehicle.data, **vehicle_test_data), {})
+    vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
 
     assert (39.8337, 116.22617) == (
         round(vehicle.vehicle_location.location[0], 5),
@@ -326,7 +336,7 @@ async def test_lids(caplog):
     # assert 3 == len(list(status.open_lids))
     # assert status.all_lids_closed is False
 
-    status = (await get_mocked_account()).get_vehicle(VIN_G23).doors_and_windows
+    status = (await get_mocked_account()).get_vehicle(VIN_G26).doors_and_windows
 
     for lid in status.lids:
         assert LidState.CLOSED == lid.state
@@ -423,7 +433,33 @@ async def test_charging_profile(caplog):
     assert charging_window.start_time == datetime.time(18, 1)
     assert charging_window.end_time == datetime.time(1, 30)
 
-    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G01).charging_profile
+    assert charging_profile.ac_available_limits is None
+
+    charging_settings = (await get_mocked_account()).get_vehicle(VIN_G26).charging_profile
     assert charging_settings.ac_current_limit == 16
+    assert charging_settings.ac_available_limits == [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 20, 32]
 
     assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_charging_profile_format_for_remote_service(caplog):
+    """Test formatting of the charging profile."""
+    account = await get_mocked_account()
+
+    for vin in ALL_CHARGING_SETTINGS:
+        vehicle = account.get_vehicle(vin)
+
+        fixture_data = {
+            **ALL_CHARGING_SETTINGS[vin]["chargeAndClimateTimerDetail"],
+            "servicePack": ALL_CHARGING_SETTINGS[vin]["servicePack"],
+        }
+        fixture_data["chargingMode"]["timerChange"] = "NO_CHANGE"
+
+        # Add milliseconds to data because BMW has different formats to set & get
+        fixture_data["chargingMode"]["startTimeSlot"] = f"{fixture_data['chargingMode']['startTimeSlot']}.000"
+        fixture_data["chargingMode"]["endTimeSlot"] = f"{fixture_data['chargingMode']['endTimeSlot']}.000"
+        for w in fixture_data["departureTimer"]["weeklyTimers"]:
+            w["time"] = f"{w['time']}.000"
+
+        assert vehicle.charging_profile.format_for_remote_service() == fixture_data

@@ -133,3 +133,13 @@ class AnonymizedResponse:
 
     filename: str
     content: Optional[Union[List, Dict, str]] = None
+
+
+@dataclass
+class ChargingSettings:
+    """Charging settings to control the vehicle."""
+
+    chargingTarget: Optional[int]
+    isUnlockCableActive = None
+    acLimitValue: Optional[int] = None
+    dcLoudness = None
