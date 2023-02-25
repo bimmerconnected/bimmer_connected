@@ -229,7 +229,7 @@ async def chargingsettings(args) -> None:
 
 
 async def chargingprofile(args) -> None:
-    """Trigger a change to charging settings."""
+    """Trigger a change to charging profile."""
     if not args.charging_mode and not args.precondition_climate:
         raise ValueError("At least one of 'charging-mode' and 'precondition-climate' has to be provided.")
     account = MyBMWAccount(

@@ -235,8 +235,8 @@ class MyBMWVehicle:
 
     @property
     def is_remote_set_ac_limit_enabled(self) -> bool:
-        """Return True if Target SoC can be set via the API."""
-        return self.data[ATTR_CAPABILITIES].get("isChargingTargetSocEnabled", False)
+        """Return True if AC limit can be set via the API."""
+        return self.data[ATTR_CAPABILITIES].get("isChargingPowerLimitEnabled", False)
 
     @property
     def is_remote_sendpoi_enabled(self) -> bool:
