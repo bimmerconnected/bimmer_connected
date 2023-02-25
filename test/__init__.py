@@ -41,16 +41,15 @@ def load_response(path: Union[Path, str]) -> Any:
         return file.read().decode("UTF-8")
 
 
-for fingerprint in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles.json"):
+for fingerprint in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles.json"):
+    brand = fingerprint.stem.split("-")[0]
     for vehicle in load_response(fingerprint):
-        brand: str = vehicle["attributes"]["brand"]
-        brand = "bmw" if brand == "BMW_I" else brand.lower()
         ALL_FINGERPRINTS[brand].append(vehicle)
 
-for state in RESPONSE_DIR.rglob("eadrax-vcs_v4_vehicles_state_*.json"):
+for state in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles_state_*.json"):
     ALL_STATES[state.stem.split("_")[-1]] = load_response(state)
 
-for charging_setting in RESPONSE_DIR.rglob("eadrax-crccs_v2_vehicles_*.json"):
+for charging_setting in RESPONSE_DIR.rglob("*-eadrax-crccs_v2_vehicles_*.json"):
     ALL_CHARGING_SETTINGS[charging_setting.stem.split("_")[-1]] = load_response(charging_setting)
 
 
