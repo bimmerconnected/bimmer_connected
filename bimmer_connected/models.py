@@ -143,3 +143,11 @@ class ChargingSettings:
     isUnlockCableActive = None
     acLimitValue: Optional[int] = None
     dcLoudness = None
+
+
+class MyBMWAPIError(Exception):
+    """General BMW API error."""
+
+
+class MyBMWAuthError(MyBMWAPIError):
+    """Auth-related error from BMW API (HTTP status codes 401 and 403)."""

@@ -1,12 +1,12 @@
 """Tests for API that are not covered by other tests."""
 import json
 
-import httpx
 import pytest
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.api.utils import anonymize_data
+from bimmer_connected.models import MyBMWAPIError
 from bimmer_connected.utils import log_response_store_to_file
 
 from . import RESPONSE_DIR, TEST_PASSWORD, TEST_REGION, TEST_USERNAME, get_fingerprint_count, load_response
@@ -63,7 +63,7 @@ async def test_storing_fingerprints(tmp_path):
         mock_api.get("/eadrax-vcs/v4/vehicles/state").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MyBMWAPIError):
             await account.get_vehicles()
 
     log_response_store_to_file(account.get_stored_responses(), tmp_path)

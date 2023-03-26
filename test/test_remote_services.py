@@ -5,6 +5,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List
 
+from bimmer_connected.models import MyBMWAPIError
 from bimmer_connected.vehicle.charging_profile import ChargingMode
 
 try:
@@ -207,7 +208,7 @@ async def test_get_remote_service_status():
             ],
         )
 
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MyBMWAPIError):
             await vehicle.remote_services._block_until_done(uuid4())
         with pytest.raises(ValueError):
             await vehicle.remote_services._block_until_done(uuid4())

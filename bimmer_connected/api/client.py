@@ -1,5 +1,6 @@
 """Generic API management."""
 
+import logging
 from collections import defaultdict, deque
 from dataclasses import dataclass
 from typing import Deque, Dict, Optional
@@ -8,9 +9,11 @@ import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_app_version, get_server_url
-from bimmer_connected.api.utils import anonymize_response, get_correlation_id
+from bimmer_connected.api.utils import anonymize_response, get_correlation_id, handle_httpstatuserror
 from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
 from bimmer_connected.models import AnonymizedResponse, GPSPosition
+
+_LOGGER = logging.getLogger(__name__)
 
 RESPONSE_STORE: Deque[AnonymizedResponse] = deque(maxlen=10)
 
@@ -62,11 +65,13 @@ class MyBMWClient(httpx.AsyncClient):
         async def raise_for_status_event_handler(response: httpx.Response):
             """Event handler that automatically raises HTTPStatusErrors when attached.
 
-            Will only raise on 4xx/5xx errors (but not 401!) and not raise on 3xx.
+            Will only raise on 4xx/5xx errors but not 401/429 which are handled `self.auth`.
             """
             if response.is_error and response.status_code not in [401, 429]:
-                await response.aread()
-                response.raise_for_status()
+                try:
+                    response.raise_for_status()
+                except httpx.HTTPStatusError as ex:
+                    await handle_httpstatuserror(ex, log_handler=_LOGGER)
 
         kwargs["event_hooks"]["response"].append(raise_for_status_event_handler)
 
