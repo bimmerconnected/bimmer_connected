@@ -13,7 +13,7 @@ from uuid import uuid4
 
 import httpx
 
-from bimmer_connected.models import AnonymizedResponse
+from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError
 
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
 RE_VIN = re.compile(r"(?P<vin>WB[a-zA-Z0-9]{15})")
@@ -42,22 +42,37 @@ def get_correlation_id() -> Dict[str, str]:
     }
 
 
-def handle_http_status_error(
+async def handle_httpstatuserror(
     ex: httpx.HTTPStatusError,
-    module: str = "MyBMW API",
+    module: str = "API",
     log_handler: Optional[logging.Logger] = None,
-    debug: bool = False,
+    dont_raise: bool = False,
 ) -> None:
     """Try to extract information from response and re-raise Exception."""
     _logger = log_handler or logging.getLogger(__name__)
-    _level = logging.DEBUG if debug else logging.ERROR
+    _level = logging.DEBUG if dont_raise else logging.ERROR
+
+    # By default we will raise a MyBMWAPIError
+    _ex_to_raise = MyBMWAPIError
+
+    # HTTP status code is 401 or 403, raise MyBMWAuthError instead
+    if ex.response.status_code in [401, 403]:
+        _ex_to_raise = MyBMWAuthError
+
+    await ex.response.aread()
+
     try:
-        err = ex.response.json()
-        _logger.log(_level, "%s error (%s): %s", module, err["error"], err["error_description"])
+        # Try parsing the known BMW API error JSON
+        _err = ex.response.json()
+        _err_message = f'{type(ex).__name__}: {_err["error"]} - {_err.get("error_description", "")}'
     except (json.JSONDecodeError, KeyError):
-        _logger.log(_level, "%s error: %s", module, ex.response.text)
-    if not debug:
-        raise ex
+        # If format has changed or is not JSON
+        _err_message = f"{type(ex).__name__}: {ex.response.text or str(ex)}"
+
+    _logger.log(_level, "MyBMW %s error: %s", module, _err_message)
+
+    if not dont_raise:
+        raise _ex_to_raise(_err_message) from ex
 
 
 def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:

@@ -23,7 +23,7 @@ from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginR
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.const import ATTR_CAPABILITIES, Regions
-from bimmer_connected.models import GPSPosition
+from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError
 
 from . import (
     ALL_CHARGING_SETTINGS,
@@ -204,7 +204,7 @@ async def test_login_refresh_token_row_na_invalid(caplog):
 
         debug_messages = [r.message for r in caplog.records if r.name.startswith("bimmer_connected")]
         assert "Authenticating with refresh token for North America & Rest of World." in debug_messages
-        assert "Unable to get access token using refresh token." in debug_messages
+        assert "Unable to get access token using refresh token, falling back to username/password." in debug_messages
         assert "Authenticating with MyBMW flow for North America & Rest of World." in debug_messages
 
 
@@ -277,7 +277,7 @@ async def test_login_refresh_token_china_invalid(caplog):
 
         debug_messages = [r.message for r in caplog.records if r.name.startswith("bimmer_connected")]
         assert "Authenticating with refresh token for China." in debug_messages
-        assert "Unable to get access token using refresh token." in debug_messages
+        assert "Unable to get access token using refresh token, falling back to username/password." in debug_messages
         assert "Authenticating with MyBMW flow for China." in debug_messages
 
 
@@ -330,7 +330,7 @@ async def test_invalid_password():
         mock_api.post("/gcdm/oauth/authenticate").respond(
             401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")
         )
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MyBMWAuthError):
             account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             await account.get_vehicles()
 
@@ -342,7 +342,7 @@ async def test_invalid_password_china():
         mock_api.post("/eadrax-coas/v2/login/pwd").respond(
             422, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json")
         )
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MyBMWAPIError):
             account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
             await account.get_vehicles()
 
@@ -354,7 +354,7 @@ async def test_server_error():
         mock_api.post("/gcdm/oauth/authenticate").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MyBMWAPIError):
             account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
             await account.get_vehicles()
 
@@ -380,7 +380,7 @@ async def test_get_fingerprints():
         mock_api.get("/eadrax-vcs/v4/vehicles/state").respond(
             500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
         )
-        with pytest.raises(httpx.HTTPStatusError):
+        with pytest.raises(MyBMWAPIError):
             await account.get_vehicles()
 
     filenames = [Path(f.filename) for f in account.get_stored_responses()]
@@ -512,7 +512,7 @@ async def test_429_retry_raise_login(caplog):
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-            with pytest.raises(httpx.HTTPStatusError):
+            with pytest.raises(MyBMWAPIError):
                 await account.get_vehicles()
 
         log_429 = [
@@ -563,7 +563,7 @@ async def test_429_retry_raise_vehicles(caplog):
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-            with pytest.raises(httpx.HTTPStatusError):
+            with pytest.raises(MyBMWAPIError):
                 await account.get_vehicles()
 
         log_429 = [

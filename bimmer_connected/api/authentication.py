@@ -20,7 +20,7 @@ from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_token,
     get_correlation_id,
-    handle_http_status_error,
+    handle_httpstatuserror,
 )
 from bimmer_connected.const import (
     AUTH_CHINA_LOGIN_URL,
@@ -31,6 +31,7 @@ from bimmer_connected.const import (
     USER_AGENT,
     X_USER_AGENT,
 )
+from bimmer_connected.models import MyBMWAPIError
 
 EXPIRES_AT_OFFSET = datetime.timedelta(seconds=HTTPX_TIMEOUT * 2)
 
@@ -38,7 +39,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 class MyBMWAuthentication(httpx.Auth):
-    """Authentication for MyBMW API."""
+    """Authentication and Retry Handler for MyBMW API."""
 
     def __init__(
         self,
@@ -97,7 +98,10 @@ class MyBMWAuthentication(httpx.Auth):
                     await asyncio.sleep(wait_time)
                     response = yield request
             # Raise if still error after 3rd retry
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as ex:
+                await handle_httpstatuserror(ex, log_handler=_LOGGER)
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
@@ -124,80 +128,76 @@ class MyBMWAuthentication(httpx.Auth):
 
     async def _login_row_na(self):
         """Login to Rest of World and North America."""
-        try:
-            async with MyBMWLoginClient(region=self.region) as client:
-                _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
+        async with MyBMWLoginClient(region=self.region) as client:
+            _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
 
-                # Get OAuth2 settings from BMW API
-                r_oauth_settings = await client.get(
-                    OAUTH_CONFIG_URL,
-                    headers={
-                        "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
-                        "bmw-session-id": self.session_id,
-                        **get_correlation_id(),
-                    },
-                )
-                oauth_settings = r_oauth_settings.json()
+            # Get OAuth2 settings from BMW API
+            r_oauth_settings = await client.get(
+                OAUTH_CONFIG_URL,
+                headers={
+                    "ocp-apim-subscription-key": get_ocp_apim_key(self.region),
+                    "bmw-session-id": self.session_id,
+                    **get_correlation_id(),
+                },
+            )
+            oauth_settings = r_oauth_settings.json()
 
-                # Generate OAuth2 Code Challenge + State
-                code_verifier = generate_token(86)
-                code_challenge = create_s256_code_challenge(code_verifier)
+            # Generate OAuth2 Code Challenge + State
+            code_verifier = generate_token(86)
+            code_challenge = create_s256_code_challenge(code_verifier)
 
-                state = generate_token(22)
+            state = generate_token(22)
 
-                # Set up authenticate endpoint
-                authenticate_url = oauth_settings["tokenEndpoint"].replace("/token", "/authenticate")
-                oauth_base_values = {
-                    "client_id": oauth_settings["clientId"],
-                    "response_type": "code",
-                    "redirect_uri": oauth_settings["returnUrl"],
-                    "state": state,
-                    "nonce": "login_nonce",
-                    "scope": " ".join(oauth_settings["scopes"]),
-                    "code_challenge": code_challenge,
-                    "code_challenge_method": "S256",
-                }
+            # Set up authenticate endpoint
+            authenticate_url = oauth_settings["tokenEndpoint"].replace("/token", "/authenticate")
+            oauth_base_values = {
+                "client_id": oauth_settings["clientId"],
+                "response_type": "code",
+                "redirect_uri": oauth_settings["returnUrl"],
+                "state": state,
+                "nonce": "login_nonce",
+                "scope": " ".join(oauth_settings["scopes"]),
+                "code_challenge": code_challenge,
+                "code_challenge_method": "S256",
+            }
 
-                # Call authenticate endpoint first time (with user/pw) and get authentication
-                response = await client.post(
-                    authenticate_url,
-                    data=dict(
-                        oauth_base_values,
-                        **{
-                            "grant_type": "authorization_code",
-                            "username": self.username,
-                            "password": self.password,
-                        },
-                    ),
-                )
-                authorization = httpx.URL(response.json()["redirect_to"]).params["authorization"]
-
-                # With authorization, call authenticate endpoint second time to get code
-                response = await client.post(
-                    authenticate_url,
-                    data=dict(oauth_base_values, **{"authorization": authorization}),
-                )
-                code = response.next_request.url.params["code"]
-
-                # With code, get token
-                current_utc_time = datetime.datetime.utcnow()
-                response = await client.post(
-                    oauth_settings["tokenEndpoint"],
-                    data={
-                        "code": code,
-                        "code_verifier": code_verifier,
-                        "redirect_uri": oauth_settings["returnUrl"],
+            # Call authenticate endpoint first time (with user/pw) and get authentication
+            response = await client.post(
+                authenticate_url,
+                data=dict(
+                    oauth_base_values,
+                    **{
                         "grant_type": "authorization_code",
+                        "username": self.username,
+                        "password": self.password,
                     },
-                    auth=(oauth_settings["clientId"], oauth_settings["clientSecret"]),
-                )
-                response_json = response.json()
+                ),
+            )
+            authorization = httpx.URL(response.json()["redirect_to"]).params["authorization"]
 
-                expiration_time = int(response_json["expires_in"])
-                expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
+            # With authorization, call authenticate endpoint second time to get code
+            response = await client.post(
+                authenticate_url,
+                data=dict(oauth_base_values, **{"authorization": authorization}),
+            )
+            code = response.next_request.url.params["code"]
 
-        except httpx.HTTPStatusError as ex:
-            handle_http_status_error(ex, "Authentication", _LOGGER)
+            # With code, get token
+            current_utc_time = datetime.datetime.utcnow()
+            response = await client.post(
+                oauth_settings["tokenEndpoint"],
+                data={
+                    "code": code,
+                    "code_verifier": code_verifier,
+                    "redirect_uri": oauth_settings["returnUrl"],
+                    "grant_type": "authorization_code",
+                },
+                auth=(oauth_settings["clientId"], oauth_settings["clientSecret"]),
+            )
+            response_json = response.json()
+
+            expiration_time = int(response_json["expires_in"])
+            expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
         return {
             "access_token": response_json["access_token"],
@@ -239,9 +239,8 @@ class MyBMWAuthentication(httpx.Auth):
                 expiration_time = int(response_json["expires_in"])
                 expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
-        except httpx.HTTPStatusError as ex:
-            _LOGGER.debug("Unable to get access token using refresh token.")
-            handle_http_status_error(ex, "Authentication", _LOGGER, debug=True)
+        except MyBMWAPIError:
+            _LOGGER.debug("Unable to get access token using refresh token, falling back to username/password.")
             return {}
 
         return {
@@ -251,38 +250,34 @@ class MyBMWAuthentication(httpx.Auth):
         }
 
     async def _login_china(self):
-        try:
-            async with MyBMWLoginClient(region=self.region) as client:
-                _LOGGER.debug("Authenticating with MyBMW flow for China.")
+        async with MyBMWLoginClient(region=self.region) as client:
+            _LOGGER.debug("Authenticating with MyBMW flow for China.")
 
-                # Get current RSA public certificate & use it to encrypt password
-                response = await client.get(
-                    AUTH_CHINA_PUBLIC_KEY_URL,
-                )
-                pem_public_key = response.json()["data"]["value"]
+            # Get current RSA public certificate & use it to encrypt password
+            response = await client.get(
+                AUTH_CHINA_PUBLIC_KEY_URL,
+            )
+            pem_public_key = response.json()["data"]["value"]
 
-                public_key = RSA.import_key(pem_public_key)
-                cipher_rsa = PKCS1_v1_5.new(public_key)
-                encrypted = cipher_rsa.encrypt(self.password.encode())
-                pw_encrypted = base64.b64encode(encrypted).decode("UTF-8")
+            public_key = RSA.import_key(pem_public_key)
+            cipher_rsa = PKCS1_v1_5.new(public_key)
+            encrypted = cipher_rsa.encrypt(self.password.encode())
+            pw_encrypted = base64.b64encode(encrypted).decode("UTF-8")
 
-                cipher_aes = AES.new(**get_aes_keys(self.region), mode=AES.MODE_CBC)
-                nonce = f"{self.username}|{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%fZ')}".encode()
+            cipher_aes = AES.new(**get_aes_keys(self.region), mode=AES.MODE_CBC)
+            nonce = f"{self.username}|{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%fZ')}".encode()
 
-                # Get token
-                response = await client.post(
-                    AUTH_CHINA_LOGIN_URL,
-                    headers={"x-login-nonce": base64.b64encode(cipher_aes.encrypt(pad(nonce, 16))).decode()},
-                    json={"mobile": self.username, "password": pw_encrypted},
-                )
-                response_json = response.json()["data"]
+            # Get token
+            response = await client.post(
+                AUTH_CHINA_LOGIN_URL,
+                headers={"x-login-nonce": base64.b64encode(cipher_aes.encrypt(pad(nonce, 16))).decode()},
+                json={"mobile": self.username, "password": pw_encrypted},
+            )
+            response_json = response.json()["data"]
 
-                decoded_token = jwt.decode(
-                    response_json["access_token"], algorithms=["HS256"], options={"verify_signature": False}
-                )
-
-        except httpx.HTTPStatusError as ex:
-            handle_http_status_error(ex, "Authentication", _LOGGER)
+            decoded_token = jwt.decode(
+                response_json["access_token"], algorithms=["HS256"], options={"verify_signature": False}
+            )
 
         return {
             "access_token": response_json["access_token"],
@@ -310,9 +305,8 @@ class MyBMWAuthentication(httpx.Auth):
                 expiration_time = int(response_json["expires_in"])
                 expires_at = current_utc_time + datetime.timedelta(seconds=expiration_time)
 
-        except httpx.HTTPStatusError as ex:
-            _LOGGER.debug("Unable to get access token using refresh token.")
-            handle_http_status_error(ex, "Authentication", _LOGGER, debug=True)
+        except MyBMWAPIError:
+            _LOGGER.debug("Unable to get access token using refresh token, falling back to username/password.")
             return {}
 
         return {
@@ -346,11 +340,13 @@ class MyBMWLoginClient(httpx.AsyncClient):
         async def raise_for_status_event_handler(response: httpx.Response):
             """Event handler that automatically raises HTTPStatusErrors when attached.
 
-            Will only raise on 4xx/5xx errors (but not on 429) and not raise on 3xx.
+            Will only raise on 4xx/5xx errors but not 429 which is handled `self.auth`.
             """
-            if response.is_error and not response.status_code == 429:
-                await response.aread()
-                response.raise_for_status()
+            if response.is_error and response.status_code != 429:
+                try:
+                    response.raise_for_status()
+                except httpx.HTTPStatusError as ex:
+                    await handle_httpstatuserror(ex, log_handler=_LOGGER)
 
         kwargs["event_hooks"]["response"].append(raise_for_status_event_handler)
 
@@ -376,6 +372,10 @@ class MyBMWLoginRetry(httpx.Auth):
                 _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
                 await asyncio.sleep(wait_time)
                 response = yield request
+        # Only checking for 429 errors, as all other errors are handled by the
+        # response hook of MyBMWLoginClient
         if response.status_code == 429:
-            await response.aread()
-            response.raise_for_status()
+            try:
+                response.raise_for_status()
+            except httpx.HTTPStatusError as ex:
+                await handle_httpstatuserror(ex, log_handler=_LOGGER)
