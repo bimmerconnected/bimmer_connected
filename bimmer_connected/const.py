@@ -44,20 +44,20 @@ AES_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "2.12.0(19883)",
-    Regions.REST_OF_WORLD: "2.12.0(19883)",
-    Regions.CHINA: "2.3.0(13603)",
+    Regions.NORTH_AMERICA: "3.1.0(20658)",
+    Regions.REST_OF_WORLD: "3.1.0(20658)",
+    Regions.CHINA: "3.1.0(20658)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
-USER_AGENT = "Dart/2.16 (dart:io)"
-X_USER_AGENT = "android(SP1A.210812.016.C1);{brand};{app_version};{region}"
+USER_AGENT = "Dart/2.18 (dart:io)"
+X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
 AUTH_CHINA_LOGIN_URL = "/eadrax-coas/v2/login/pwd"
-AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v1/oauth/token"
+AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v2/oauth/token"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 
