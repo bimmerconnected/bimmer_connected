@@ -21,6 +21,7 @@ from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
+from bimmer_connected.vehicle.tires import Tires
 from bimmer_connected.vehicle.vehicle_status import VehicleStatus
 
 if TYPE_CHECKING:
@@ -86,6 +87,7 @@ class MyBMWVehicle:
         self.condition_based_services: ConditionBasedServiceReport = ConditionBasedServiceReport()
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
         self.charging_profile: Optional[ChargingProfile] = None
+        self.tires: Optional[Tires] = None
 
         self.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
 
@@ -107,6 +109,7 @@ class MyBMWVehicle:
             (ConditionBasedServiceReport, "condition_based_services"),
             (CheckControlMessageReport, "check_control_messages"),
             (ChargingProfile, "charging_profile"),
+            (Tires, "tires"),
         ]
         for cls, vehicle_attribute in update_entities:
             if getattr(self, vehicle_attribute) is None:
