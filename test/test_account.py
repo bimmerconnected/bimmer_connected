@@ -110,7 +110,7 @@ def account_mock():
     router.post("/eadrax-coas/v2/login/pwd").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
     )
-    router.post("/eadrax-coas/v1/oauth/token").respond(
+    router.post("/eadrax-coas/v2/oauth/token").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")
     )
 
@@ -262,7 +262,7 @@ async def test_login_refresh_token_china_401():
 async def test_login_refresh_token_china_invalid(caplog):
     """Test the login flow using refresh_token."""
     with account_mock() as mock_api:
-        mock_api.post("/eadrax-coas/v1/oauth/token").mock(
+        mock_api.post("/eadrax-coas/v2/oauth/token").mock(
             side_effect=[
                 httpx.Response(400),
                 httpx.Response(200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")),
