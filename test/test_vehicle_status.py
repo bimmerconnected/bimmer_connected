@@ -17,6 +17,7 @@ from . import (
     VIN_G01,
     VIN_G20,
     VIN_G26,
+    VIN_G70,
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
@@ -463,3 +464,26 @@ async def test_charging_profile_format_for_remote_service(caplog):
             w["time"] = f"{w['time']}.000"
 
         assert vehicle.charging_profile.format_for_remote_service() == fixture_data
+
+
+@pytest.mark.asyncio
+async def test_tires():
+    """Test tire status."""
+    account = await get_mocked_account()
+
+    # Older vehicles do not provide tire status
+    assert account.get_vehicle(VIN_F31).tires is None
+
+    # Vehicle with tire pressure, but no details
+    tires = account.get_vehicle(VIN_G01).tires
+    assert tires.front_left.current_pressure == 270
+    assert tires.front_left.target_pressure == 260
+    assert tires.front_left.manufacturing_week is None
+    assert tires.front_left.season is None
+
+    # Vehicle with details
+    tires = account.get_vehicle(VIN_G70).tires
+    assert tires.rear_left.current_pressure == 261
+    assert tires.rear_left.target_pressure == 269
+    assert tires.rear_left.manufacturing_week == datetime.datetime(2021, 10, 4, 0, 0)
+    assert tires.rear_left.season == 2
