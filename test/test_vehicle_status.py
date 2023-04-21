@@ -6,6 +6,7 @@ import pytest
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
+from bimmer_connected.vehicle.climate import ClimateActivityState
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
@@ -487,3 +488,28 @@ async def test_tires():
     assert tires.rear_left.target_pressure == 269
     assert tires.rear_left.manufacturing_week == datetime.datetime(2021, 10, 4, 0, 0)
     assert tires.rear_left.season == 2
+
+
+@time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
+@pytest.mark.asyncio
+async def test_climate():
+    """Test climate status."""
+    account = await get_mocked_account()
+
+    # Older vehicles do not provide climate status
+    climate = account.get_vehicle(VIN_I01_REX).climate
+    assert climate.activity == ClimateActivityState.UNKNOWN
+    assert climate.activity_end_time is None
+    assert climate.is_climate_on is False
+
+    # Vehicle with climate state doing nothing
+    climate = account.get_vehicle(VIN_G01).climate
+    assert climate.activity == ClimateActivityState.STANDBY
+    assert climate.activity_end_time is None
+    assert climate.is_climate_on is False
+
+    # Running climatization
+    climate = account.get_vehicle(VIN_G26).climate
+    assert climate.activity == ClimateActivityState.HEATING
+    assert climate.activity_end_time == datetime.datetime(2021, 11, 28, 22, 58, 49, tzinfo=account.timezone)
+    assert climate.is_climate_on is True
