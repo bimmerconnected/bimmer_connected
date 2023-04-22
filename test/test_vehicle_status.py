@@ -26,13 +26,15 @@ from . import (
 )
 from .test_account import get_mocked_account
 
+UTC = datetime.timezone.utc
+
 
 @pytest.mark.asyncio
 async def test_generic(caplog):
     """Test generic attributes."""
     status = (await get_mocked_account()).get_vehicle(VIN_G26)
 
-    expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=datetime.timezone.utc)
+    expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=UTC)
     assert expected == status.timestamp
 
     assert 1121 == status.mileage[0]
@@ -207,8 +209,8 @@ async def test_charging_end_time(caplog):
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_I01_NOREX)
 
-    assert vehicle.fuel_and_battery.charging_end_time == datetime.datetime(
-        2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc
+    assert vehicle.fuel_and_battery.charging_end_time.astimezone(UTC) == datetime.datetime(
+        2021, 11, 28, 23, 27, 59, tzinfo=UTC
     )
     assert vehicle.fuel_and_battery.charging_status == ChargingState.CHARGING
     assert vehicle.fuel_and_battery.is_charger_connected is True
@@ -227,7 +229,7 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
     assert vehicle.fuel_and_battery.charging_end_time is None
     assert vehicle.fuel_and_battery.charging_status == ChargingState.WAITING_FOR_CHARGING
     assert vehicle.fuel_and_battery.is_charger_connected is True
-    assert vehicle.fuel_and_battery.charging_start_time == datetime.datetime(
+    assert vehicle.fuel_and_battery.charging_start_time.astimezone(UTC) == datetime.datetime(
         2021, 11, 28, 18, 1, tzinfo=account.timezone
     )
     assert vehicle.fuel_and_battery.charging_target == 100
@@ -243,17 +245,17 @@ async def test_condition_based_services(caplog):
     cbs = vehicle.condition_based_services.messages
     assert 5 == len(cbs)
     assert ConditionBasedServiceStatus.OK == cbs[0].state
-    expected_cbs0 = datetime.datetime(year=2024, month=12, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs0 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs0 == cbs[0].due_date
     assert (50000, "km") == cbs[0].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[1].state
-    expected_cbs1 = datetime.datetime(year=2024, month=12, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs1 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs1 == cbs[1].due_date
     assert (50000, "km") == cbs[1].due_distance
 
     assert ConditionBasedServiceStatus.OK == cbs[2].state
-    expected_cbs2 = datetime.datetime(year=2024, month=12, day=1, tzinfo=datetime.timezone.utc)
+    expected_cbs2 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs2 == cbs[2].due_date
     assert (50000, "km") == cbs[2].due_distance
 
@@ -511,5 +513,7 @@ async def test_climate():
     # Running climatization
     climate = account.get_vehicle(VIN_G26).climate
     assert climate.activity == ClimateActivityState.HEATING
-    assert climate.activity_end_time == datetime.datetime(2021, 11, 28, 22, 58, 49, tzinfo=account.timezone)
+    assert climate.activity_end_time.astimezone(datetime.timezone.utc) == datetime.datetime(
+        2021, 11, 28, 21, 58, 49, tzinfo=UTC
+    )
     assert climate.is_climate_on is True
