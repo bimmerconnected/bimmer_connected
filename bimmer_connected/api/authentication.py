@@ -178,6 +178,12 @@ class MyBMWAuthentication(httpx.Auth):
             # With authorization, call authenticate endpoint second time to get code
             response = await client.post(
                 authenticate_url,
+                params={
+                    "interaction-id": uuid4(),
+                    "client-version": X_USER_AGENT.format(
+                        brand="bmw", app_version=get_app_version(self.region), region=self.region.value
+                    ),
+                },
                 data=dict(oauth_base_values, **{"authorization": authorization}),
             )
             code = response.next_request.url.params["code"]
