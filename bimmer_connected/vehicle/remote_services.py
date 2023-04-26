@@ -16,7 +16,7 @@ from bimmer_connected.const import (
     VEHICLE_CHARGING_START_STOP_URL,
     VEHICLE_POI_URL,
 )
-from bimmer_connected.models import ChargingSettings, PointOfInterest, StrEnum
+from bimmer_connected.models import ChargingSettings, MyBMWRemoteServiceError, PointOfInterest, StrEnum
 from bimmer_connected.utils import MyBMWJSONEncoder
 from bimmer_connected.vehicle.charging_profile import (
     MAP_CHARGING_MODE_TO_REMOTE_SERVICE,
@@ -120,12 +120,14 @@ class RemoteServices:
                 params=params,
                 content=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
             )
-        event_id = response.json().get("eventId") if response.content else None
+            event_id = response.json().get("eventId") if response.content else None
 
-        # Get status via event_id or assume successful execution as HTTP errors would raise exceptions before
-        status = (
-            await self._block_until_done(event_id) if event_id else RemoteServiceStatus({"eventStatus": "EXECUTED"})
-        )
+            # Get status via event_id or assume successful execution as HTTP errors would raise exceptions before
+            status = (
+                await self._block_until_done(client, event_id)
+                if event_id
+                else RemoteServiceStatus({"eventStatus": "EXECUTED"})
+            )
 
         # If vehicle data needs to be refresh, wait 2 times polling cycle and refresh completely
         if refresh:
@@ -134,7 +136,7 @@ class RemoteServices:
 
         return status
 
-    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
+    async def _get_remote_service_status(self, client: MyBMWClient, event_id: str) -> RemoteServiceStatus:
         """Return execution status of the last remote service that was triggered."""
 
         _LOGGER.debug("getting remote service status for '%s'", event_id)
@@ -143,7 +145,7 @@ class RemoteServices:
             response = await client.post(url)
         return RemoteServiceStatus(response.json(), event_id=event_id)
 
-    async def _block_until_done(self, event_id: str) -> RemoteServiceStatus:
+    async def _block_until_done(self, client: MyBMWClient, event_id: str) -> RemoteServiceStatus:
         """Keep polling the server until we get a final answer.
 
         :raises TimeoutError: if there is no final answer before _POLLING_TIMEOUT
@@ -152,13 +154,15 @@ class RemoteServices:
         fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
         while datetime.datetime.now() < fail_after:
             await asyncio.sleep(_POLLING_CYCLE)
-            status = await self._get_remote_service_status(event_id)
+            status = await self._get_remote_service_status(client, event_id)
             _LOGGER.debug("current state of '%s' is: %s", event_id, status.state.value)
             if status.state == ExecutionState.ERROR:
-                raise Exception(f"Remote service failed with state '{status.state}'. Response: {status.details}")
+                raise MyBMWRemoteServiceError(
+                    f"Remote service failed with state '{status.state}'. Response: {status.details}"
+                )
             if status.state not in [ExecutionState.UNKNOWN, ExecutionState.PENDING, ExecutionState.DELIVERED]:
                 return status
-        raise TimeoutError(
+        raise MyBMWRemoteServiceError(
             f"Did not receive remote service result for '{event_id}' in {_POLLING_TIMEOUT} seconds. "
             f"Current state: {status.state.value}"
         )

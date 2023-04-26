@@ -151,3 +151,7 @@ class MyBMWAPIError(Exception):
 
 class MyBMWAuthError(MyBMWAPIError):
     """Auth-related error from BMW API (HTTP status codes 401 and 403)."""
+
+
+class MyBMWRemoteServiceError(MyBMWAPIError):
+    """Error when executing remote services."""

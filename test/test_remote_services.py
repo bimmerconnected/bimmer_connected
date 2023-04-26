@@ -5,7 +5,8 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List
 
-from bimmer_connected.models import MyBMWAPIError
+from bimmer_connected.api.client import MyBMWClient
+from bimmer_connected.models import MyBMWAPIError, MyBMWRemoteServiceError
 from bimmer_connected.vehicle.charging_profile import ChargingMode
 
 try:
@@ -198,6 +199,7 @@ async def test_get_remote_service_status():
 
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G26)
+    client = MyBMWClient(account.config)
 
     with remote_services_mock() as mock_api:
         mock_api.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
@@ -209,11 +211,11 @@ async def test_get_remote_service_status():
         )
 
         with pytest.raises(MyBMWAPIError):
-            await vehicle.remote_services._block_until_done(uuid4())
+            await vehicle.remote_services._block_until_done(client, uuid4())
         with pytest.raises(ValueError):
-            await vehicle.remote_services._block_until_done(uuid4())
-        with pytest.raises(Exception):
-            await vehicle.remote_services._block_until_done(uuid4())
+            await vehicle.remote_services._block_until_done(client, uuid4())
+        with pytest.raises(MyBMWRemoteServiceError):
+            await vehicle.remote_services._block_until_done(client, uuid4())
 
 
 @remote_services_mock()
@@ -382,7 +384,7 @@ async def test_fail_with_timeout():
     account = await get_mocked_account()
     vehicle = account.get_vehicle(VIN_G26)
 
-    with pytest.raises(TimeoutError):
+    with pytest.raises(MyBMWRemoteServiceError):
         await vehicle.remote_services.trigger_remote_light_flash()
 
 
