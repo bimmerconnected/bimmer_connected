@@ -15,6 +15,7 @@ from bimmer_connected.const import (
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import deprecated, parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.climate import Climate
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
@@ -86,6 +87,7 @@ class MyBMWVehicle:
         self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
         self.condition_based_services: ConditionBasedServiceReport = ConditionBasedServiceReport()
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
+        self.climate: Climate = Climate(account_timezone=account.timezone)
         self.charging_profile: Optional[ChargingProfile] = None
         self.tires: Optional[Tires] = None
 
@@ -108,6 +110,7 @@ class MyBMWVehicle:
             (DoorsAndWindows, "doors_and_windows"),
             (ConditionBasedServiceReport, "condition_based_services"),
             (CheckControlMessageReport, "check_control_messages"),
+            (Climate, "climate"),
             (ChargingProfile, "charging_profile"),
             (Tires, "tires"),
         ]

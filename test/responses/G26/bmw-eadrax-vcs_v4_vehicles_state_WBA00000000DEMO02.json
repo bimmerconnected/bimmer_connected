@@ -110,7 +110,8 @@
             }
         ],
         "climateControlState": {
-            "activity": "STANDBY"
+            "activity": "HEATING",
+            "remainingSeconds": 1790.846
         },
         "climateTimers": [
             {
