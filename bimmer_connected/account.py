@@ -74,7 +74,6 @@ class MyBMWAccount:
                     VEHICLES_URL,
                     headers={
                         **client.generate_default_header(brand),
-                        "bmw-current-date": fetched_at.isoformat(),
                     },
                 )
                 for brand in CarBrands
@@ -98,9 +97,12 @@ class MyBMWAccount:
                 # Get the detailed vehicle state
                 state_response = await client.get(
                     VEHICLE_STATE_URL,
+                    params={
+                        "apptimezone": self.utcdiff,
+                        "appDateTime": int(fetched_at.timestamp() * 1000),
+                    },
                     headers={
                         **client.generate_default_header(vehicle.brand),
-                        "bmw-current-date": fetched_at.isoformat(),
                         "bmw-vin": vehicle.vin,
                     },
                 )
