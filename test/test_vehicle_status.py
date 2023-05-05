@@ -484,6 +484,13 @@ async def test_tires():
     assert tires.front_left.manufacturing_week is None
     assert tires.front_left.season is None
 
+    # Vehicle with current tire pressure and details, but no target pressure
+    tires = account.get_vehicle(VIN_G20).tires
+    assert tires.front_left.current_pressure == 241
+    assert tires.front_left.target_pressure is None
+    assert tires.front_left.manufacturing_week == datetime.datetime(2021, 10, 4, 0, 0)
+    assert tires.front_left.season == 2
+
     # Vehicle with details
     tires = account.get_vehicle(VIN_G70).tires
     assert tires.rear_left.current_pressure == 261
