@@ -199,7 +199,6 @@
                 "status": {
                     "currentPressure": 241,
                     "pressureStatus": 0,
-                    "targetPressure": 269,
                     "wearStatus": 0
                 }
             },
@@ -221,7 +220,6 @@
                 "status": {
                     "currentPressure": 255,
                     "pressureStatus": 0,
-                    "targetPressure": 269,
                     "wearStatus": 0
                 }
             },
@@ -243,7 +241,6 @@
                 "status": {
                     "currentPressure": 324,
                     "pressureStatus": 0,
-                    "targetPressure": 303,
                     "wearStatus": 0
                 }
             },
@@ -265,7 +262,6 @@
                 "status": {
                     "currentPressure": 331,
                     "pressureStatus": 0,
-                    "targetPressure": 303,
                     "wearStatus": 0
                 }
             }
