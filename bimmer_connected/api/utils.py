@@ -8,8 +8,12 @@ import mimetypes
 import random
 import re
 import string
+import datetime
 from typing import Dict, List, Optional, Union
 from uuid import uuid4
+from Crypto.Hash import SHA256
+from Crypto.Cipher import AES
+from Crypto.Util.Padding import pad
 
 import httpx
 
@@ -43,10 +47,10 @@ def get_correlation_id() -> Dict[str, str]:
 
 
 async def handle_httpstatuserror(
-    ex: httpx.HTTPStatusError,
-    module: str = "API",
-    log_handler: Optional[logging.Logger] = None,
-    dont_raise: bool = False,
+        ex: httpx.HTTPStatusError,
+        module: str = "API",
+        log_handler: Optional[logging.Logger] = None,
+        dont_raise: bool = False,
 ) -> None:
     """Try to extract information from response and re-raise Exception."""
     _logger = log_handler or logging.getLogger(__name__)
@@ -113,7 +117,7 @@ def anonymize_vin(match: re.Match):
     """Anonymize VINs but keep assignment."""
     vin = match.groupdict()["vin"]
     if vin not in ANONYMIZED_VINS:
-        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS)+1).zfill(2)}"
+        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS) + 1).zfill(2)}"
     return ANONYMIZED_VINS[vin]
 
 
@@ -137,3 +141,32 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     file_extension = mimetypes.guess_extension(content_type or ".txt")
 
     return AnonymizedResponse(f"{brand}{url_path}{file_extension}", content)
+
+
+def generate_random_base64_string(size):
+    return base64.b64encode(bytes(random.randint(0, 255) for _ in range(size))).decode()[:size]
+
+
+def generate_cn_nonce(username):
+    key = generate_random_base64_string(16)
+    iv = generate_random_base64_string(16)
+
+    k1 = key[:8]
+    i1 = iv[:8]
+    k2 = key[8:]
+    i2 = iv[8:]
+
+    sha256_hex = SHA256.new((k1 + i1 + "u3.1.0" + k2 + i2).encode()).hexdigest()
+    sha256_a = sha256_hex[:32]
+    sha256_b = sha256_hex[32:]
+
+    possible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    random_str = "".join(random.choice(possible_chars) for _ in range(8))
+
+    phone_text = f"{username}&{datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}&{random_str}"
+
+    cipher_aes = AES.new(key.encode(), AES.MODE_CBC, iv.encode())
+
+    aes_hex = cipher_aes.encrypt(pad(phone_text.encode(), AES.block_size)).hex()
+
+    return k1 + i1 + sha256_a + aes_hex + k2 + i2 + sha256_b
