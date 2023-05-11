@@ -1,0 +1,10 @@
+{
+  "description": "ok",
+  "code": 200,
+  "error": false,
+  "data": {
+    "verifyId": "f40f54f1cb40463ba7188bd73e906d33",
+    "backGroundImg": "/xxxx",
+    "cutImg": "xxxx"
+  }
+}

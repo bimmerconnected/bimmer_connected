@@ -61,7 +61,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.refresh_token: Optional[str] = refresh_token
         self.session_id: str = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
-        self.gcid: str = ""
+        self.gcid: Optional[str] = None
 
     @property
     def login_lock(self) -> asyncio.Lock:
@@ -345,6 +345,7 @@ class MyBMWAuthentication(httpx.Auth):
             "access_token": response_json["access_token"],
             "expires_at": expires_at,
             "refresh_token": response_json["refresh_token"],
+            "gcid": response_json["gcid"],
         }
 
 

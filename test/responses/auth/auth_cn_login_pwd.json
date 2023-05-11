@@ -4,7 +4,8 @@
         "token_type": "Bearer",
         "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJEVU1NWSQxJFIkMTYzNzcwNTc5NTA3NSIsIm5iZiI6MTYzNzcwNTc5NSwiZXhwIjoxNjQ1NDgwODk1LCJpYXQiOjE2Mzc3MDU3OTV9.dGVpbpfrJOo895jiU6Rk16ESYz80klfJbIX9M4KD1hQ",
         "usid": "DUMMY",
-        "cid": "DUMMY"
+        "cid": "DUMMY",
+        "gcid": "DUMMY"
     },
     "code": 200,
     "error": false,

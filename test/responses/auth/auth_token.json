@@ -3,5 +3,7 @@
     "token_type": "Bearer",
     "expires_in": 28799,
     "refresh_token": "another_token_string",
-    "scope": "authenticate_user vehicle_data remote_services"
+    "scope": "authenticate_user vehicle_data remote_services",
+    "usid": "DUMMY",
+    "gcid": "DUMMY"
 }
