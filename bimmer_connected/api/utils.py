@@ -1,6 +1,7 @@
 """Utils for bimmer_connected.api."""
 
 import base64
+import datetime
 import hashlib
 import json
 import logging
@@ -8,14 +9,13 @@ import mimetypes
 import random
 import re
 import string
-import datetime
 from typing import Dict, List, Optional, Union
 from uuid import uuid4
-from Crypto.Hash import SHA256
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad
 
 import httpx
+from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
+from Crypto.Util.Padding import pad
 
 from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError
 
@@ -143,11 +143,13 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     return AnonymizedResponse(f"{brand}{url_path}{file_extension}", content)
 
 
-def generate_random_base64_string(size):
+def generate_random_base64_string(size: int) -> str:
+    """Generate a random base64 string with size."""
     return base64.b64encode(bytes(random.randint(0, 255) for _ in range(size))).decode()[:size]
 
 
-def generate_cn_nonce(username):
+def generate_cn_nonce(username: str) -> str:
+    """Generate a x-login-nonce string."""
     key = generate_random_base64_string(16)
     iv = generate_random_base64_string(16)
 

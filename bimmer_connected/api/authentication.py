@@ -14,21 +14,20 @@ import jwt
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 
-
 from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
+    generate_cn_nonce,
     generate_token,
     get_correlation_id,
     handle_httpstatuserror,
-    generate_cn_nonce
 )
 from bimmer_connected.const import (
+    AUTH_CHINA_CAPTCHA_CHECK_URL,
+    AUTH_CHINA_CAPTCHA_URL,
     AUTH_CHINA_LOGIN_URL,
     AUTH_CHINA_PUBLIC_KEY_URL,
     AUTH_CHINA_TOKEN_URL,
-    AUTH_CHINA_CAPTCHA_URL,
-    AUTH_CHINA_CAPTCHA_CHECK_URL,
     HTTPX_TIMEOUT,
     OAUTH_CONFIG_URL,
     USER_AGENT,
@@ -300,7 +299,7 @@ class MyBMWAuthentication(httpx.Auth):
                     "mobile": self.username,
                     "password": pw_encrypted,
                     "verifyId": verify_id,
-                    "deviceId": self.username
+                    "deviceId": self.username,
                 },
             )
             response_json = response.json()["data"]

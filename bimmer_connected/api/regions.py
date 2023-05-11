@@ -1,6 +1,6 @@
 """Get the right url for the different countries."""
 from base64 import b64decode
-from typing import Dict, List
+from typing import List
 
 from bimmer_connected.const import APP_VERSIONS, OCP_APIM_KEYS, SERVER_URLS_MYBMW, Regions
 
