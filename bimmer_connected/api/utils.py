@@ -47,10 +47,10 @@ def get_correlation_id() -> Dict[str, str]:
 
 
 async def handle_httpstatuserror(
-        ex: httpx.HTTPStatusError,
-        module: str = "API",
-        log_handler: Optional[logging.Logger] = None,
-        dont_raise: bool = False,
+    ex: httpx.HTTPStatusError,
+    module: str = "API",
+    log_handler: Optional[logging.Logger] = None,
+    dont_raise: bool = False,
 ) -> None:
     """Try to extract information from response and re-raise Exception."""
     _logger = log_handler or logging.getLogger(__name__)
@@ -117,7 +117,7 @@ def anonymize_vin(match: re.Match):
     """Anonymize VINs but keep assignment."""
     vin = match.groupdict()["vin"]
     if vin not in ANONYMIZED_VINS:
-        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS) + 1).zfill(2)}"
+        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS)+1).zfill(2)}"
     return ANONYMIZED_VINS[vin]
 
 

@@ -36,13 +36,6 @@ OCP_APIM_KEYS = {
     Regions.REST_OF_WORLD: "NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh",
 }
 
-AES_KEYS = {
-    Regions.CHINA: {
-        "key": "UzJUdzEwdlExWGYySmxLYQ==",
-        "iv": "dTFGUDd4ZWRrQWhMR3ozVQ==",
-    }
-}
-
 APP_VERSIONS = {
     Regions.NORTH_AMERICA: "3.3.1(22418)",
     Regions.REST_OF_WORLD: "3.3.1(22418)",

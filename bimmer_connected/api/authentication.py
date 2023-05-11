@@ -11,11 +11,11 @@ from uuid import uuid4
 
 import httpx
 import jwt
-from Crypto.Cipher import AES, PKCS1_v1_5
+from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from Crypto.Util.Padding import pad
 
-from bimmer_connected.api.regions import Regions, get_aes_keys, get_app_version, get_ocp_apim_key, get_server_url
+
+from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_token,
@@ -45,13 +45,13 @@ class MyBMWAuthentication(httpx.Auth):
     """Authentication and Retry Handler for MyBMW API."""
 
     def __init__(
-            self,
-            username: str,
-            password: str,
-            region: Regions,
-            access_token: Optional[str] = None,
-            expires_at: Optional[datetime.datetime] = None,
-            refresh_token: Optional[str] = None,
+        self,
+        username: str,
+        password: str,
+        region: Regions,
+        access_token: Optional[str] = None,
+        expires_at: Optional[datetime.datetime] = None,
+        refresh_token: Optional[str] = None,
     ):
         self.username: str = username
         self.password: str = password
