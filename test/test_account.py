@@ -348,6 +348,7 @@ async def test_invalid_password_china():
         mock_api.post("/eadrax-coas/v2/login/pwd").respond(
             422, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_error.json")
         )
+        mock_api.post("/eadrax-coas/v1/cop/check-captcha").respond(422)
         with pytest.raises(MyBMWAPIError):
             account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
             await account.get_vehicles()

@@ -45,13 +45,13 @@ class MyBMWAuthentication(httpx.Auth):
     """Authentication and Retry Handler for MyBMW API."""
 
     def __init__(
-        self,
-        username: str,
-        password: str,
-        region: Regions,
-        access_token: Optional[str] = None,
-        expires_at: Optional[datetime.datetime] = None,
-        refresh_token: Optional[str] = None,
+            self,
+            username: str,
+            password: str,
+            region: Regions,
+            access_token: Optional[str] = None,
+            expires_at: Optional[datetime.datetime] = None,
+            refresh_token: Optional[str] = None,
     ):
         self.username: str = username
         self.password: str = password
@@ -290,7 +290,7 @@ class MyBMWAuthentication(httpx.Auth):
                     if captcha_check_res.json()["code"] == 200:
                         break
                 except Exception:
-                    pass
+                    continue
 
             # Get token
             response = await client.post(
