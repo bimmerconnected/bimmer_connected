@@ -287,9 +287,9 @@ class MyBMWAuthentication(httpx.Auth):
                         AUTH_CHINA_CAPTCHA_CHECK_URL,
                         json={"position": 0.74 + i / 100, "verifyId": verify_id},
                     )
-                    if captcha_check_res.status_code == 200:
+                    if captcha_check_res.status_code == 201:
                         break
-                except Exception:
+                except MyBMWAPIError:
                     continue
 
             # Get token
