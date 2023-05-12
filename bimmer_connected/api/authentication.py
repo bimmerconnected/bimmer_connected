@@ -51,6 +51,7 @@ class MyBMWAuthentication(httpx.Auth):
         access_token: Optional[str] = None,
         expires_at: Optional[datetime.datetime] = None,
         refresh_token: Optional[str] = None,
+        gcid: Optional[str] = None,
     ):
         self.username: str = username
         self.password: str = password
@@ -60,7 +61,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.refresh_token: Optional[str] = refresh_token
         self.session_id: str = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
-        self.gcid: Optional[str] = None
+        self.gcid: Optional[str] = gcid
 
     @property
     def login_lock(self) -> asyncio.Lock:
@@ -286,7 +287,7 @@ class MyBMWAuthentication(httpx.Auth):
                         AUTH_CHINA_CAPTCHA_CHECK_URL,
                         json={"position": 0.74 + i / 100, "verifyId": verify_id},
                     )
-                    if captcha_check_res.json()["code"] == 200:
+                    if captcha_check_res.status_code == 200:
                         break
                 except Exception:
                     continue
