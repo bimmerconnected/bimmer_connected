@@ -164,9 +164,10 @@ class MyBMWAccount:
         """Set the position of the observer for all vehicles."""
         self.config.observer_position = GPSPosition(latitude=latitude, longitude=longitude)
 
-    def set_refresh_token(self, refresh_token: str) -> None:
-        """Overwrite the current value of the MyBMW refresh token."""
+    def set_refresh_token(self, refresh_token: str, gcid: Optional[str] = None) -> None:
+        """Overwrite the current value of the MyBMW refresh token and GCID (if available)."""
         self.config.authentication.refresh_token = refresh_token
+        self.config.authentication.gcid = gcid
 
     def set_use_metric_units(self, use_metric_units: bool) -> None:
         """Change between using metric units (km, l) if True or imperial units (mi, gal) if False."""
@@ -193,6 +194,11 @@ class MyBMWAccount:
     def refresh_token(self) -> Optional[str]:
         """Returns the current refresh_token."""
         return self.config.authentication.refresh_token
+
+    @property
+    def gcid(self) -> Optional[str]:
+        """Returns the current GCID."""
+        return self.config.authentication.gcid
 
 
 @deprecated("MyBMWAccount")
