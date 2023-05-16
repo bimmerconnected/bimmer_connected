@@ -473,14 +473,24 @@ async def test_deprecated_account(caplog):
 @account_mock()
 @pytest.mark.asyncio
 async def test_refresh_token_getset():
-    """Test getting/setting the refresh_token."""
+    """Test getting/setting the refresh_token and gcid."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
     assert account.refresh_token is None
     await account.get_vehicles()
     assert account.refresh_token == "another_token_string"
+    assert account.gcid is None
 
     account.set_refresh_token("new_refresh_token")
     assert account.refresh_token == "new_refresh_token"
+    assert account.gcid is None
+
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    account.set_refresh_token("new_refresh_token", "dummy_gcid")
+    assert account.refresh_token == "new_refresh_token"
+    assert account.gcid == "dummy_gcid"
+    await account.get_vehicles()
+    assert account.refresh_token == "another_token_string"
+    assert account.gcid == "DUMMY"
 
 
 @pytest.mark.asyncio
