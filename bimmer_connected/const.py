@@ -36,13 +36,6 @@ OCP_APIM_KEYS = {
     Regions.REST_OF_WORLD: "NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh",
 }
 
-AES_KEYS = {
-    Regions.CHINA: {
-        "key": "UzJUdzEwdlExWGYySmxLYQ==",
-        "iv": "dTFGUDd4ZWRrQWhMR3ozVQ==",
-    }
-}
-
 APP_VERSIONS = {
     Regions.NORTH_AMERICA: "3.3.1(22418)",
     Regions.REST_OF_WORLD: "3.3.1(22418)",
@@ -58,6 +51,8 @@ X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
 AUTH_CHINA_LOGIN_URL = "/eadrax-coas/v2/login/pwd"
 AUTH_CHINA_TOKEN_URL = "/eadrax-coas/v2/oauth/token"
+AUTH_CHINA_CAPTCHA_URL = "/eadrax-coas/v2/cop/slider-captcha"
+AUTH_CHINA_CAPTCHA_CHECK_URL = "/eadrax-coas/v1/cop/check-captcha"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 

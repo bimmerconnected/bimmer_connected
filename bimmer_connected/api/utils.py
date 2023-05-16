@@ -1,6 +1,7 @@
 """Utils for bimmer_connected.api."""
 
 import base64
+import datetime
 import hashlib
 import json
 import logging
@@ -12,6 +13,9 @@ from typing import Dict, List, Optional, Union
 from uuid import uuid4
 
 import httpx
+from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
+from Crypto.Util.Padding import pad
 
 from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError
 
@@ -137,3 +141,34 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
     file_extension = mimetypes.guess_extension(content_type or ".txt")
 
     return AnonymizedResponse(f"{brand}{url_path}{file_extension}", content)
+
+
+def generate_random_base64_string(size: int) -> str:
+    """Generate a random base64 string with size."""
+    return base64.b64encode(bytes(random.randint(0, 255) for _ in range(size))).decode()[:size]
+
+
+def generate_cn_nonce(username: str) -> str:
+    """Generate a x-login-nonce string."""
+    key = generate_random_base64_string(16)
+    iv = generate_random_base64_string(16)
+
+    k1 = key[:8]
+    i1 = iv[:8]
+    k2 = key[8:]
+    i2 = iv[8:]
+
+    sha256_hex = SHA256.new((k1 + i1 + "u3.1.0" + k2 + i2).encode()).hexdigest()
+    sha256_a = sha256_hex[:32]
+    sha256_b = sha256_hex[32:]
+
+    possible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+    random_str = "".join(random.choice(possible_chars) for _ in range(8))
+
+    phone_text = f"{username}&{datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}&{random_str}"
+
+    cipher_aes = AES.new(key.encode(), AES.MODE_CBC, iv.encode())
+
+    aes_hex = cipher_aes.encrypt(pad(phone_text.encode(), AES.block_size)).hex()
+
+    return k1 + i1 + sha256_a + aes_hex + k2 + i2 + sha256_b

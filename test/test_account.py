@@ -107,6 +107,17 @@ def account_mock():
     router.get("/eadrax-coas/v1/cop/publickey").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_publickey.json")
     )
+    router.post("/eadrax-coas/v2/cop/slider-captcha").respond(
+        200, json=load_response(RESPONSE_DIR / "auth" / "auth_slider_captcha.json")
+    )
+
+    router.post("/eadrax-coas/v1/cop/check-captcha").mock(
+        side_effect=[
+            httpx.Response(422),
+            httpx.Response(201, json=load_response(RESPONSE_DIR / "auth" / "auth_slider_captcha_check.json")),
+        ]
+    )
+
     router.post("/eadrax-coas/v2/login/pwd").respond(
         200, json=load_response(RESPONSE_DIR / "auth" / "auth_cn_login_pwd.json")
     )

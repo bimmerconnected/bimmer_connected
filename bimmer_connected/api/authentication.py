@@ -11,18 +11,20 @@ from uuid import uuid4
 
 import httpx
 import jwt
-from Crypto.Cipher import AES, PKCS1_v1_5
+from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from Crypto.Util.Padding import pad
 
-from bimmer_connected.api.regions import Regions, get_aes_keys, get_app_version, get_ocp_apim_key, get_server_url
+from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
+    generate_cn_nonce,
     generate_token,
     get_correlation_id,
     handle_httpstatuserror,
 )
 from bimmer_connected.const import (
+    AUTH_CHINA_CAPTCHA_CHECK_URL,
+    AUTH_CHINA_CAPTCHA_URL,
     AUTH_CHINA_LOGIN_URL,
     AUTH_CHINA_PUBLIC_KEY_URL,
     AUTH_CHINA_TOKEN_URL,
@@ -49,6 +51,7 @@ class MyBMWAuthentication(httpx.Auth):
         access_token: Optional[str] = None,
         expires_at: Optional[datetime.datetime] = None,
         refresh_token: Optional[str] = None,
+        gcid: Optional[str] = None,
     ):
         self.username: str = username
         self.password: str = password
@@ -58,6 +61,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.refresh_token: Optional[str] = refresh_token
         self.session_id: str = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
+        self.gcid: Optional[str] = gcid
 
     @property
     def login_lock(self) -> asyncio.Lock:
@@ -121,6 +125,7 @@ class MyBMWAuthentication(httpx.Auth):
             if not token_data:
                 token_data = await self._login_china()
             token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
+            self.gcid = token_data["gcid"]
 
         self.access_token = token_data["access_token"]
         self.expires_at = token_data["expires_at"]
@@ -270,14 +275,33 @@ class MyBMWAuthentication(httpx.Auth):
             encrypted = cipher_rsa.encrypt(self.password.encode())
             pw_encrypted = base64.b64encode(encrypted).decode("UTF-8")
 
-            cipher_aes = AES.new(**get_aes_keys(self.region), mode=AES.MODE_CBC)
-            nonce = f"{self.username}|{datetime.datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S.%fZ')}".encode()
+            captcha_res = await client.post(
+                AUTH_CHINA_CAPTCHA_URL,
+                json={"mobile": self.username},
+            )
+            verify_id = captcha_res.json()["data"]["verifyId"]
+
+            for i in range(1, 13):
+                try:
+                    captcha_check_res = await client.post(
+                        AUTH_CHINA_CAPTCHA_CHECK_URL,
+                        json={"position": 0.74 + i / 100, "verifyId": verify_id},
+                    )
+                    if captcha_check_res.status_code == 201:
+                        break
+                except MyBMWAPIError:
+                    continue
 
             # Get token
             response = await client.post(
                 AUTH_CHINA_LOGIN_URL,
-                headers={"x-login-nonce": base64.b64encode(cipher_aes.encrypt(pad(nonce, 16))).decode()},
-                json={"mobile": self.username, "password": pw_encrypted},
+                headers={"x-login-nonce": generate_cn_nonce(self.username)},
+                json={
+                    "mobile": self.username,
+                    "password": pw_encrypted,
+                    "verifyId": verify_id,
+                    "deviceId": self.username,
+                },
             )
             response_json = response.json()["data"]
 
@@ -289,6 +313,7 @@ class MyBMWAuthentication(httpx.Auth):
             "access_token": response_json["access_token"],
             "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]),
             "refresh_token": response_json["refresh_token"],
+            "gcid": response_json["gcid"],
         }
 
     async def _refresh_token_china(self):
@@ -301,6 +326,7 @@ class MyBMWAuthentication(httpx.Auth):
                 # Try logging in using refresh_token
                 response = await client.post(
                     AUTH_CHINA_TOKEN_URL,
+                    headers={"x-login-nonce": generate_cn_nonce(self.gcid)},
                     data={
                         "refresh_token": self.refresh_token,
                         "grant_type": "refresh_token",
@@ -319,6 +345,7 @@ class MyBMWAuthentication(httpx.Auth):
             "access_token": response_json["access_token"],
             "expires_at": expires_at,
             "refresh_token": response_json["refresh_token"],
+            "gcid": response_json["gcid"],
         }
 
 
