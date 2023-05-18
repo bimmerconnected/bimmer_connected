@@ -213,6 +213,7 @@ class MyBMWVehicle:
         return self.data[ATTR_CAPABILITIES].get("vehicleFinder", False)
 
     @property
+    @deprecated()
     def is_vehicle_active(self) -> bool:
         """Check if the vehicle is active/moving.
 
