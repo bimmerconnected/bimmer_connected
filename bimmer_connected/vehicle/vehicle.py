@@ -214,7 +214,9 @@ class MyBMWVehicle:
 
     @property
     def is_vehicle_active(self) -> bool:
-        """Check if the vehicle is active/moving.
+        """Deprecated, always returns False.
+
+        Check if the vehicle is active/moving.
 
         If the vehicle was active/moving at the time of the last status update, current position is not available.
         """
