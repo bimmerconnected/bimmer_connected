@@ -12,7 +12,7 @@ class TireState:
     """A tire of the vehicle."""
 
     def __init__(self, status: Dict, details: Optional[Dict] = None):
-        self.current_pressure: int = status["currentPressure"]
+        self.current_pressure: Optional[int] = status.get("currentPressure")
         self.target_pressure: Optional[int] = status.get("targetPressure")
         self.season: Optional[int] = None
         self.manufacturing_week: Optional[datetime] = None
