@@ -9,7 +9,7 @@ import pathlib
 import time
 import traceback
 from enum import Enum
-from typing import TYPE_CHECKING, Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
 from bimmer_connected.models import AnonymizedResponse
 
@@ -62,7 +62,7 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
 class MyBMWJSONEncoder(json.JSONEncoder):
     """JSON Encoder that handles data classes, properties and additional data types."""
 
-    def default(self, o):  # noqa: D102
+    def default(self, o) -> Union[str, dict]:  # noqa: D102
         if isinstance(o, (datetime.datetime, datetime.date, datetime.time)):
             return o.isoformat()
         if not isinstance(o, Enum) and hasattr(o, "__dict__") and isinstance(o.__dict__, Dict):

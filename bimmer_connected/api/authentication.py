@@ -83,7 +83,9 @@ class MyBMWAuthentication(httpx.Auth):
 
         # Try getting a response
         response: httpx.Response = (yield request)
+        await response.aread()
 
+        # Handle "classic" 401 Unauthorized
         if response.status_code == 401:
             async with self.login_lock:
                 _LOGGER.debug("Received unauthorized response, refreshing token.")
@@ -91,7 +93,8 @@ class MyBMWAuthentication(httpx.Auth):
             request.headers["authorization"] = f"Bearer {self.access_token}"
             request.headers["bmw-session-id"] = self.session_id
             yield request
-        elif response.status_code == 429:
+        # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
+        elif response.status_code == 429 or (response.status_code == 403 and "quota exceeded" in response.text.lower()):
             for _ in range(3):
                 if response.status_code == 429:
                     await response.aread()

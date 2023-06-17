@@ -153,5 +153,9 @@ class MyBMWAuthError(MyBMWAPIError):
     """Auth-related error from BMW API (HTTP status codes 401 and 403)."""
 
 
+class MyBMWQuotaError(MyBMWAPIError):
+    """Quota exceeded on BMW API."""
+
+
 class MyBMWRemoteServiceError(MyBMWAPIError):
     """Error when executing remote services."""
