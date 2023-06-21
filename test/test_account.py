@@ -23,7 +23,7 @@ from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginR
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.const import ATTR_CAPABILITIES, Regions
-from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError
+from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
 from . import (
     ALL_CHARGING_SETTINGS,
@@ -584,7 +584,7 @@ async def test_429_retry_raise_vehicles(caplog):
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-            with pytest.raises(MyBMWAPIError):
+            with pytest.raises(MyBMWQuotaError):
                 await account.get_vehicles()
 
         log_429 = [
@@ -593,6 +593,25 @@ async def test_429_retry_raise_vehicles(caplog):
             if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
         ]
         assert len(log_429) == 3
+
+
+@pytest.mark.asyncio
+async def test_403_quota_exceeded_vehicles_usa(caplog):
+    """Test 403 quota issues for vehicle state and fail if it happens too often."""
+    with account_mock() as mock_api:
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+        # get vehicles once
+        await account.get_vehicles()
+
+        mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(return_value=httpx.Response(403, text="403 Quota Exceeded"))
+        caplog.set_level(logging.DEBUG)
+
+        with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+            with pytest.raises(MyBMWQuotaError):
+                await account.get_vehicles()
+
+        log_quota = [r for r in caplog.records if "Quota Exceeded" in r.message]
+        assert len(log_quota) == 1
 
 
 @account_mock()

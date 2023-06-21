@@ -17,7 +17,7 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Util.Padding import pad
 
-from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError
+from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
 RE_VIN = re.compile(r"(?P<vin>WB[a-zA-Z0-9]{15})")
@@ -56,6 +56,8 @@ async def handle_httpstatuserror(
     _logger = log_handler or logging.getLogger(__name__)
     _level = logging.DEBUG if dont_raise else logging.ERROR
 
+    await ex.response.aread()
+
     # By default we will raise a MyBMWAPIError
     _ex_to_raise = MyBMWAPIError
 
@@ -63,7 +65,11 @@ async def handle_httpstatuserror(
     if ex.response.status_code in [401, 403]:
         _ex_to_raise = MyBMWAuthError
 
-    await ex.response.aread()
+    # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 401 Forbidden)
+    if ex.response.status_code == 429 or (
+        ex.response.status_code == 403 and "quota exceeded" in ex.response.text.lower()
+    ):
+        _ex_to_raise = MyBMWQuotaError
 
     try:
         # Try parsing the known BMW API error JSON
@@ -73,7 +79,7 @@ async def handle_httpstatuserror(
         # If format has changed or is not JSON
         _err_message = f"{type(ex).__name__}: {ex.response.text or str(ex)}"
 
-    _logger.log(_level, "MyBMW %s error: %s", module, _err_message)
+    _logger.log(_level, "%s due to %s", _ex_to_raise.__name__, _err_message)
 
     if not dont_raise:
         raise _ex_to_raise(_err_message) from ex
