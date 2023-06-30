@@ -94,7 +94,7 @@ class MyBMWAuthentication(httpx.Auth):
             request.headers["bmw-session-id"] = self.session_id
             yield request
         # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
-        elif response.status_code == 429 or (response.status_code == 403 and "quota exceeded" in response.text.lower()):
+        elif response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower()):
             for _ in range(3):
                 if response.status_code == 429:
                     await response.aread()
