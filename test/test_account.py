@@ -603,14 +603,19 @@ async def test_403_quota_exceeded_vehicles_usa(caplog):
         # get vehicles once
         await account.get_vehicles()
 
-        mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(return_value=httpx.Response(403, text="403 Quota Exceeded"))
+        mock_api.get("/eadrax-vcs/v4/vehicles/state").mock(
+            return_value=httpx.Response(
+                403,
+                json={"statusCode": 403, "message": "Out of call volume quota. Quota will be replenished in 02:12:20."},
+            )
+        )
         caplog.set_level(logging.DEBUG)
 
         with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
             with pytest.raises(MyBMWQuotaError):
                 await account.get_vehicles()
 
-        log_quota = [r for r in caplog.records if "Quota Exceeded" in r.message]
+        log_quota = [r for r in caplog.records if "quota" in r.message]
         assert len(log_quota) == 1
 
 

@@ -66,9 +66,7 @@ async def handle_httpstatuserror(
         _ex_to_raise = MyBMWAuthError
 
     # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 401 Forbidden)
-    if ex.response.status_code == 429 or (
-        ex.response.status_code == 403 and "quota exceeded" in ex.response.text.lower()
-    ):
+    if ex.response.status_code == 429 or (ex.response.status_code == 403 and "quota" in ex.response.text.lower()):
         _ex_to_raise = MyBMWQuotaError
 
     try:
