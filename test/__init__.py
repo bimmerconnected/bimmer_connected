@@ -23,14 +23,21 @@ VIN_I01_NOREX = "WBY000000NOREXI01"
 VIN_I01_REX = "WBY00000000REXI01"
 VIN_I20 = "WBA00000000DEMO01"
 
-ALL_FINGERPRINTS: Dict[str, List[Dict]] = {brand.value: [] for brand in CarBrands}
+ALL_VEHICLES: Dict[str, List[Dict]] = {brand.value: [] for brand in CarBrands}
 ALL_STATES: Dict[str, Dict] = {}
 ALL_CHARGING_SETTINGS: Dict[str, Dict] = {}
+
+REMOTE_SERVICE_RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
+REMOTE_SERVICE_RESPONSE_PENDING = RESPONSE_DIR / "remote_services" / "eadrax_service_pending.json"
+REMOTE_SERVICE_RESPONSE_DELIVERED = RESPONSE_DIR / "remote_services" / "eadrax_service_delivered.json"
+REMOTE_SERVICE_RESPONSE_EXECUTED = RESPONSE_DIR / "remote_services" / "eadrax_service_executed.json"
+REMOTE_SERVICE_RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_service_error.json"
+REMOTE_SERVICE_RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
 
 def get_fingerprint_count() -> int:
     """Return number of loaded vehicles."""
-    return sum([len(vehicles) for vehicles in ALL_FINGERPRINTS.values()])
+    return sum([len(vehicles) for vehicles in ALL_VEHICLES.values()])
 
 
 def load_response(path: Union[Path, str]) -> Any:
@@ -44,7 +51,7 @@ def load_response(path: Union[Path, str]) -> Any:
 for fingerprint in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles.json"):
     brand = fingerprint.stem.split("-")[0]
     for vehicle in load_response(fingerprint):
-        ALL_FINGERPRINTS[brand].append(vehicle)
+        ALL_VEHICLES[brand].append(vehicle)
 
 for state in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles_state_*.json"):
     ALL_STATES[state.stem.split("_")[-1]] = load_response(state)

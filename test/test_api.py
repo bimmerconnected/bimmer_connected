@@ -2,6 +2,7 @@
 import json
 
 import pytest
+import respx
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
@@ -10,7 +11,6 @@ from bimmer_connected.models import MyBMWAPIError
 from bimmer_connected.utils import log_response_store_to_file
 
 from . import RESPONSE_DIR, TEST_PASSWORD, TEST_REGION, TEST_USERNAME, get_fingerprint_count, load_response
-from .test_account import account_mock
 
 
 def test_valid_regions():
@@ -54,17 +54,16 @@ def test_anonymize_data():
 
 
 @pytest.mark.asyncio
-async def test_storing_fingerprints(tmp_path):
+async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router):
     """Test storing fingerprints to file."""
-    with account_mock() as mock_api:
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
-        await account.get_vehicles()
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    await account.get_vehicles()
 
-        mock_api.get("/eadrax-vcs/v4/vehicles/state").respond(
-            500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
-        )
-        with pytest.raises(MyBMWAPIError):
-            await account.get_vehicles()
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").respond(
+        500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
+    )
+    with pytest.raises(MyBMWAPIError):
+        await account.get_vehicles()
 
     log_response_store_to_file(account.get_stored_responses(), tmp_path)
 
@@ -77,26 +76,26 @@ async def test_storing_fingerprints(tmp_path):
 
 
 @pytest.mark.asyncio
-async def test_fingerprint_deque():
+async def test_fingerprint_deque(bmw_fixture: respx.Router):
     """Test storing fingerprints to file."""
-    with account_mock() as mock_api:
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
-        await account.get_vehicles()
-        await account.get_vehicles()
+    # with bmw_fixture as mock_api:
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    await account.get_vehicles()
+    await account.get_vehicles()
 
-        # More than 10 calls were made, but only last 10 are stored
-        assert len([c for c in mock_api.calls if c.request.url.path.startswith("/eadrax-vcs")]) > 10
-        assert len(account.get_stored_responses()) == 10
+    # More than 10 calls were made, but only last 10 are stored
+    assert len([c for c in bmw_fixture.calls if c.request.url.path.startswith("/eadrax-vcs")]) > 10
+    assert len(account.get_stored_responses()) == 10
 
-        # Stored responses are reset
-        account.config.set_log_responses(False)
-        assert len(account.get_stored_responses()) == 0
+    # Stored responses are reset
+    account.config.set_log_responses(False)
+    assert len(account.get_stored_responses()) == 0
 
-        # No new responses are getting added
-        await account.get_vehicles()
-        assert len(account.get_stored_responses()) == 0
+    # No new responses are getting added
+    await account.get_vehicles()
+    assert len(account.get_stored_responses()) == 0
 
-        # Get responses again
-        account.config.set_log_responses(True)
-        await account.get_vehicles()
-        assert len(account.get_stored_responses()) == 10
+    # Get responses again
+    account.config.set_log_responses(True)
+    await account.get_vehicles()
+    assert len(account.get_stored_responses()) == 10
