@@ -97,6 +97,17 @@ class PointOfInterestAddress:
     city: Optional[str] = None
     country: Optional[str] = None
 
+    # The following attributes are not by us but available in the API
+    banchi: Optional[str] = None
+    chome: Optional[str] = None
+    countryCode: Optional[str] = None
+    district: Optional[str] = None
+    go: Optional[str] = None
+    houseNumber: Optional[str] = None
+    region: Optional[str] = None
+    regionCode: Optional[str] = None
+    settlement: Optional[str] = None
+
 
 @dataclass
 class PointOfInterest:
@@ -112,12 +123,28 @@ class PointOfInterest:
 
     coordinates: GPSPosition = field(init=False)
     locationAddress: Optional[PointOfInterestAddress] = field(init=False)
+    # The following attributes are not by us but required in the API
+    formattedAddress: Optional[str] = None
     entryPoints: List = field(init=False, default_factory=list)
+
+    # The following attributes are not by us but available in the API
+    address: Optional[str] = None
+    baseCategoryId: Optional[str] = None
+    phoneNumber: Optional[str] = None
+    provider: Optional[str] = None
+    providerId: Optional[str] = None
+    providerPoiId: str = ""
+    sourceType: Optional[str] = None
+    type: Optional[str] = None
+    vehicleCategoryId: Optional[str] = None
 
     def __post_init__(self, lat, lon, street, postal_code, city, country):
         self.coordinates = GPSPosition(lat, lon)
 
         self.locationAddress = PointOfInterestAddress(street, postal_code, city, country)
+
+        if not self.formattedAddress:
+            self.formattedAddress = ", ".join([i for i in [street, postal_code, city] if i]) or "Coordinates only"
 
 
 class ValueWithUnit(NamedTuple):
