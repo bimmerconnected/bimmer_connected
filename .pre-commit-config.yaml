@@ -1,12 +1,12 @@
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.265
+    rev: v0.0.282
     hooks:
       - id: ruff
         args:
           - --fix
   - repo: https://github.com/psf/black
-    rev: 23.3.0
+    rev: 23.7.0
     hooks:
       - id: black
         args:
@@ -14,7 +14,7 @@ repos:
           - --quiet
         files: ^((bimmer_connected|test)/.+)?[^/]+\.py$
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.4
+    rev: v2.2.5
     hooks:
       - id: codespell
         args:
@@ -24,7 +24,7 @@ repos:
         exclude_types: [csv, json]
         exclude: ^test/responses/
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.2.0
+    rev: v1.4.1
     hooks: 
       - id: mypy
         name: mypy

@@ -1,5 +1,5 @@
 """Fixtures for BMW tests."""
-from typing import Optional
+from typing import Generator, Optional
 
 try:
     from unittest import mock
@@ -27,7 +27,7 @@ from .common import MyBMWMockRouter
 
 
 @pytest.fixture
-def bmw_fixture(request: pytest.FixtureRequest) -> respx.MockRouter:
+def bmw_fixture(request: pytest.FixtureRequest) -> Generator[respx.MockRouter, None, None]:
     """Patch MyBMW login API calls."""
     # Now we can start patching the API calls
     router = MyBMWMockRouter(

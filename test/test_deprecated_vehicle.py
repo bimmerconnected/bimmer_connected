@@ -37,7 +37,7 @@ ATTRIBUTE_MAPPING = {
 
 
 @pytest.mark.asyncio
-async def test_parsing_attributes(caplog, bmw_fixture: respx.router):
+async def test_parsing_attributes(caplog, bmw_fixture: respx.Router):
     """Test parsing different attributes of the vehicle."""
     account = await prepare_account_with_vehicles()
 
@@ -55,7 +55,7 @@ async def test_parsing_attributes(caplog, bmw_fixture: respx.router):
 
 
 @pytest.mark.asyncio
-async def test_drive_train_attributes(caplog, bmw_fixture: respx.router):
+async def test_drive_train_attributes(caplog, bmw_fixture: respx.Router):
     """Test parsing different attributes of the vehicle."""
     account = await prepare_account_with_vehicles()
 
@@ -79,7 +79,7 @@ async def test_drive_train_attributes(caplog, bmw_fixture: respx.router):
 
 
 @pytest.mark.asyncio
-async def test_deprecated_vehicle(caplog, bmw_fixture: respx.router):
+async def test_deprecated_vehicle(caplog, bmw_fixture: respx.Router):
     """Test deprecation warning for ConnectedDriveVehicle."""
     account = await prepare_account_with_vehicles()
 
