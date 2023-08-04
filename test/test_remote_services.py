@@ -435,3 +435,10 @@ def test_poi_parsing():
     assert poi_data.coordinates.longitude == POI_DATA["lon"]
     assert poi_data.name == "Sent with ♥ by bimmer_connected"
     assert poi_data.formattedAddress == "Coordinates only"
+
+    # Check the default attributes with formatted address
+    poi_data = PointOfInterest(lat=POI_DATA["lat"], lon=POI_DATA["lon"], formattedAddress="Somewhere over rainbow")
+    assert poi_data.coordinates.latitude == POI_DATA["lat"]
+    assert poi_data.coordinates.longitude == POI_DATA["lon"]
+    assert poi_data.name == "Sent with ♥ by bimmer_connected"
+    assert poi_data.formattedAddress == "Somewhere over rainbow"
