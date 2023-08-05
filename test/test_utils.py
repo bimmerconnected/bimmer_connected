@@ -8,19 +8,20 @@ except ImportError:
     from backports import zoneinfo  # type: ignore[import, no-redef]
 
 import pytest
+import respx
 import time_machine
 
 from bimmer_connected.models import ChargingSettings, ValueWithUnit
 from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
 from . import VIN_G26
-from .test_account import get_mocked_account
+from .conftest import prepare_account_with_vehicles
 
 
 @pytest.mark.asyncio
-async def test_drive_train():
+async def test_drive_train(bmw_fixture: respx.Router):
     """Tests available attribute."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G26)
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26)
     assert [
         "available_attributes",
         "brand",
@@ -77,9 +78,9 @@ def test_parse_datetime(caplog):
     tick=False,
 )
 @pytest.mark.asyncio
-async def test_account_timezone():
+async def test_account_timezone(bmw_fixture: respx.Router):
     """Test the timezone in MyBMWAccount."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     assert account.utcdiff == 960
 
 

@@ -1,5 +1,6 @@
 """Tests for deprecated MyBMWVehicle."""
 import pytest
+import respx
 
 from bimmer_connected.const import CarBrands
 from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
@@ -15,7 +16,7 @@ from . import (
     VIN_I20,
     get_deprecation_warning_count,
 )
-from .test_account import get_mocked_account
+from .conftest import prepare_account_with_vehicles
 
 ATTRIBUTE_MAPPING = {
     "remainingFuel": "remaining_fuel",
@@ -36,9 +37,9 @@ ATTRIBUTE_MAPPING = {
 
 
 @pytest.mark.asyncio
-async def test_parsing_attributes(caplog):
+async def test_parsing_attributes(caplog, bmw_fixture: respx.Router):
     """Test parsing different attributes of the vehicle."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     for vehicle in account.vehicles:
         print(vehicle.name)
@@ -54,9 +55,9 @@ async def test_parsing_attributes(caplog):
 
 
 @pytest.mark.asyncio
-async def test_drive_train_attributes(caplog):
+async def test_drive_train_attributes(caplog, bmw_fixture: respx.Router):
     """Test parsing different attributes of the vehicle."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     vehicle_drivetrains = {
         VIN_F31: (True, False, False),
@@ -78,9 +79,9 @@ async def test_drive_train_attributes(caplog):
 
 
 @pytest.mark.asyncio
-async def test_deprecated_vehicle(caplog):
+async def test_deprecated_vehicle(caplog, bmw_fixture: respx.Router):
     """Test deprecation warning for ConnectedDriveVehicle."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     deprecated_vehicle = ConnectedDriveVehicle(account, account.vehicles[0].data)
 

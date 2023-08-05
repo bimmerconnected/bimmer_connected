@@ -1,5 +1,6 @@
 """Tests for MyBMWVehicle."""
 import pytest
+import respx
 
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE, CarBrands
 from bimmer_connected.models import GPSPosition, StrEnum, VehicleDataBase
@@ -18,7 +19,7 @@ from . import (
     VIN_I20,
     get_deprecation_warning_count,
 )
-from .test_account import account_mock, get_mocked_account
+from .conftest import prepare_account_with_vehicles
 
 ATTRIBUTE_MAPPING = {
     "remainingFuel": "remaining_fuel",
@@ -39,30 +40,31 @@ ATTRIBUTE_MAPPING = {
 
 
 @pytest.mark.asyncio
-async def test_drive_train(caplog):
+async def test_drive_train(caplog, bmw_fixture: respx.Router):
     """Tests around drive_train attribute."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
+    account = await prepare_account_with_vehicles()
+    vehicle = account.get_vehicle(VIN_F31)
     assert DriveTrainType.COMBUSTION == vehicle.drive_train
 
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
+    vehicle = account.get_vehicle(VIN_G01)
     assert DriveTrainType.PLUGIN_HYBRID == vehicle.drive_train
 
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G26)
+    vehicle = account.get_vehicle(VIN_G26)
     assert DriveTrainType.ELECTRIC == vehicle.drive_train
 
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_NOREX)
+    vehicle = account.get_vehicle(VIN_I01_NOREX)
     assert DriveTrainType.ELECTRIC == vehicle.drive_train
 
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_REX)
+    vehicle = account.get_vehicle(VIN_I01_REX)
     assert DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER == vehicle.drive_train
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
-async def test_parsing_attributes(caplog):
+async def test_parsing_attributes(caplog, bmw_fixture: respx.Router):
     """Test parsing different attributes of the vehicle."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     for vehicle in account.vehicles:
         print(vehicle.name)
@@ -78,9 +80,9 @@ async def test_parsing_attributes(caplog):
 
 
 @pytest.mark.asyncio
-async def test_drive_train_attributes(caplog):
+async def test_drive_train_attributes(caplog, bmw_fixture: respx.Router):
     """Test parsing different attributes of the vehicle."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     vehicle_drivetrains = {
         VIN_F31: (True, False),
@@ -101,9 +103,9 @@ async def test_drive_train_attributes(caplog):
 
 
 @pytest.mark.asyncio
-async def test_parsing_of_lsc_type(caplog):
+async def test_parsing_of_lsc_type(caplog, bmw_fixture: respx.Router):
     """Test parsing the lsc type field."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     for vehicle in account.vehicles:
         assert vehicle.lsc_type is not None
@@ -111,7 +113,7 @@ async def test_parsing_of_lsc_type(caplog):
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
-def test_car_brand(caplog):
+def test_car_brand(caplog, bmw_fixture: respx.Router):
     """Test CarBrand enum."""
     assert CarBrands("BMW") == CarBrands("bmw")
 
@@ -122,21 +124,22 @@ def test_car_brand(caplog):
 
 
 @pytest.mark.asyncio
-async def test_get_is_tracking_enabled(caplog):
+async def test_get_is_tracking_enabled(caplog, bmw_fixture: respx.Router):
     """Test setting observer position."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_I01_REX)
+    account = await prepare_account_with_vehicles()
+    vehicle = account.get_vehicle(VIN_I01_REX)
     assert vehicle.is_vehicle_tracking_enabled is False
 
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
+    vehicle = account.get_vehicle(VIN_F31)
     assert vehicle.is_vehicle_tracking_enabled is True
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
-async def test_available_attributes(caplog):
+async def test_available_attributes(caplog, bmw_fixture: respx.Router):
     """Check that available_attributes returns exactly the arguments we have in our test data."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     vehicle = account.get_vehicle(VIN_F31)
     assert ["gps_position", "vin"] == vehicle.available_attributes
@@ -204,25 +207,24 @@ async def test_available_attributes(caplog):
 
 
 @pytest.mark.asyncio
-async def test_vehicle_image(caplog):
+async def test_vehicle_image(caplog, bmw_fixture: respx.Router):
     """Test vehicle image request."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01)
 
-    with account_mock() as mock_api:
-        mock_api.get(
-            path__regex=r"(.*)/eadrax-ics/v3/presentation/vehicles/\w*/images",
-            params={"carView": "FrontView"},
-            headers={"accept": "image/png"},
-        ).respond(200, content="png_image")
-        assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
+    bmw_fixture.get(
+        path__regex=r"(.*)/eadrax-ics/v3/presentation/vehicles/\w*/images",
+        params={"carView": "FrontView"},
+        headers={"accept": "image/png"},
+    ).respond(200, content="png_image")
+    assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
-async def test_no_timestamp():
+async def test_no_timestamp(bmw_fixture: respx.Router):
     """Test no timestamp available."""
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_F31)
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
     vehicle.data[ATTR_STATE].pop("lastFetched")
     vehicle.data[ATTR_ATTRIBUTES].pop("lastFetched")
 

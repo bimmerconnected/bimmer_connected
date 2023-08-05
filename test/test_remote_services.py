@@ -1,14 +1,4 @@
 """Test for remote_services."""
-import json
-from collections import defaultdict
-from copy import deepcopy
-from pathlib import Path
-from typing import Dict, List
-
-from bimmer_connected.api.client import MyBMWClient
-from bimmer_connected.models import MyBMWAPIError, MyBMWRemoteServiceError
-from bimmer_connected.vehicle.charging_profile import ChargingMode
-
 try:
     from unittest import mock
 
@@ -22,133 +12,48 @@ from uuid import uuid4
 
 import httpx
 import pytest
+import respx
 import time_machine
 
-from bimmer_connected.models import ChargingSettings, PointOfInterest
+from bimmer_connected.api.client import MyBMWClient
+from bimmer_connected.models import MyBMWAPIError, MyBMWRemoteServiceError, PointOfInterest
 from bimmer_connected.vehicle import remote_services
+from bimmer_connected.vehicle.charging_profile import ChargingMode
+from bimmer_connected.vehicle.climate import ClimateActivityState
+from bimmer_connected.vehicle.doors_windows import LockState
+from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.remote_services import ExecutionState, RemoteServiceStatus
 
-from . import RESPONSE_DIR, VIN_F31, VIN_G01, VIN_G26, VIN_I01_NOREX, VIN_I20, load_response
-from .test_account import account_mock, get_mocked_account
-
-_RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
-_RESPONSE_PENDING = RESPONSE_DIR / "remote_services" / "eadrax_service_pending.json"
-_RESPONSE_DELIVERED = RESPONSE_DIR / "remote_services" / "eadrax_service_delivered.json"
-_RESPONSE_EXECUTED = RESPONSE_DIR / "remote_services" / "eadrax_service_executed.json"
-_RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_service_error.json"
-_RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
+from . import (
+    REMOTE_SERVICE_RESPONSE_DELIVERED,
+    REMOTE_SERVICE_RESPONSE_ERROR,
+    REMOTE_SERVICE_RESPONSE_EXECUTED,
+    REMOTE_SERVICE_RESPONSE_PENDING,
+    VIN_F31,
+    VIN_G01,
+    VIN_G26,
+    VIN_I01_NOREX,
+    VIN_I20,
+    load_response,
+)
+from .common import (
+    CHARGING_SETTINGS,
+    POI_DATA,
+)
+from .conftest import prepare_account_with_vehicles
 
 remote_services._POLLING_CYCLE = 0
-
-POI_DATA = {
-    "lat": 37.4028943,
-    "lon": -121.9700289,
-    "name": "49ers",
-    "street": "4949 Marie P DeBartolo Way",
-    "city": "Santa Clara",
-    "postal_code": "CA 95054",
-    "country": "United States",
-}
-
-CHARGING_SETTINGS = {"target_soc": 75, "ac_limit": 16}
-
-STATUS_RESPONSE_ORDER = [_RESPONSE_PENDING, _RESPONSE_DELIVERED, _RESPONSE_EXECUTED]
-STATUS_RESPONSE_DICT: Dict[str, List[Path]] = defaultdict(lambda: deepcopy(STATUS_RESPONSE_ORDER))
-
-
-def service_trigger_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Return specific eventId for each remote function."""
-    json_data = load_response(_RESPONSE_INITIATED)
-    json_data["eventId"] = str(uuid4())
-    return httpx.Response(200, json=json_data)
-
-
-def charging_settings_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Check if payload is a valid charging settings payload and return evendId."""
-    _ = ChargingSettings(**json.loads(request.content))
-    return service_trigger_sideeffect(request)
-
-
-def charging_profile_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Check if payload is a valid charging settings payload and return evendId."""
-
-    data = json.loads(request.content)
-
-    if {"chargingMode", "departureTimer", "isPreconditionForDepartureActive", "servicePack"} != set(data):
-        return httpx.Response(500)
-    if (
-        data["chargingMode"]["chargingPreference"] == "NO_PRESELECTION"
-        and data["chargingMode"]["type"] != "CHARGING_IMMEDIATELY"
-    ):
-        return httpx.Response(500)
-    if data["chargingMode"]["chargingPreference"] == "CHARGING_WINDOW" and data["chargingMode"]["type"] != "TIME_SLOT":
-        return httpx.Response(500)
-
-    if not isinstance(data["isPreconditionForDepartureActive"], bool):
-        return httpx.Response(500)
-
-    return service_trigger_sideeffect(request)
-
-
-def service_status_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Return all 3 eventStatus responses per function."""
-    response_data = STATUS_RESPONSE_DICT[request.url.params["eventId"]].pop(0)
-    return httpx.Response(200, json=load_response(response_data))
-
-
-def poi_sideeffect(request: httpx.Request) -> httpx.Response:
-    """Check if payload is a valid POI."""
-    data = json.loads(request.content)
-    tests = all(
-        [
-            len(data["vin"]) == 17,
-            isinstance(data["location"]["coordinates"]["latitude"], float),
-            isinstance(data["location"]["coordinates"]["longitude"], float),
-            len(data["location"]["name"]) > 0,
-        ]
-    )
-    if not tests:
-        return httpx.Response(400)
-    return httpx.Response(201)
-
-
-def remote_services_mock():
-    """Return mocked adapter for auth."""
-    router = account_mock()
-
-    router.post(path__regex=r"/eadrax-vrccs/v3/presentation/remote-commands/.+/.+$").mock(
-        side_effect=service_trigger_sideeffect
-    )
-    router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/(start|stop)-charging$").mock(
-        side_effect=service_trigger_sideeffect
-    )
-    router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-settings$").mock(
-        side_effect=charging_settings_sideeffect
-    )
-    router.post(path__regex=r"/eadrax-crccs/v1/vehicles/.+/charging-profile$").mock(
-        side_effect=charging_profile_sideeffect
-    )
-    router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
-        side_effect=service_status_sideeffect
-    )
-
-    router.post("/eadrax-dcs/v1/send-to-car/send-to-car").mock(side_effect=poi_sideeffect)
-    router.post("/eadrax-vrccs/v3/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
-        200,
-        json=load_response(_RESPONSE_EVENTPOSITION),
-    )
-    return router
 
 
 def test_states():
     """Test parsing the different response types."""
-    rss = RemoteServiceStatus(load_response(_RESPONSE_PENDING))
+    rss = RemoteServiceStatus(load_response(REMOTE_SERVICE_RESPONSE_PENDING))
     assert ExecutionState.PENDING == rss.state
 
-    rss = RemoteServiceStatus(load_response(_RESPONSE_DELIVERED))
+    rss = RemoteServiceStatus(load_response(REMOTE_SERVICE_RESPONSE_DELIVERED))
     assert ExecutionState.DELIVERED == rss.state
 
-    rss = RemoteServiceStatus(load_response(_RESPONSE_EXECUTED))
+    rss = RemoteServiceStatus(load_response(REMOTE_SERVICE_RESPONSE_EXECUTED))
     assert ExecutionState.EXECUTED == rss.state
 
 
@@ -167,13 +72,12 @@ ALL_SERVICES = {
 }
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
 @pytest.mark.filterwarnings("ignore:coroutine 'AsyncMockMixin._execute_mock_call' was never awaited:RuntimeWarning")
-async def test_trigger_remote_services():
+async def test_trigger_remote_services(bmw_fixture: respx.Router):
     """Test executing a remote light flash."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_I20)
 
     for service in ALL_SERVICES.values():
@@ -182,7 +86,7 @@ async def test_trigger_remote_services():
         ) as mock_listener:
             mock_listener.reset_mock()
 
-            response = await getattr(vehicle.remote_services, service["call"])(
+            response = await getattr(vehicle.remote_services, service["call"])(  # type: ignore[call-overload]
                 *service.get("args", []), **service.get("kwargs", {})
             )
             assert ExecutionState.EXECUTED == response.state
@@ -194,36 +98,86 @@ async def test_trigger_remote_services():
 
 
 @pytest.mark.asyncio
-async def test_get_remote_service_status():
+async def test_get_remote_service_status(bmw_fixture: respx.Router):
     """Test get_remove_service_status method."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_G26)
     client = MyBMWClient(account.config)
 
-    with remote_services_mock() as mock_api:
-        mock_api.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
-            side_effect=[
-                httpx.Response(500),
-                httpx.Response(200, text="You can't parse this..."),
-                httpx.Response(200, json=load_response(_RESPONSE_ERROR)),
-            ],
-        )
+    bmw_fixture.post("/eadrax-vrccs/v3/presentation/remote-commands/eventStatus", params={"eventId": mock.ANY}).mock(
+        side_effect=[
+            httpx.Response(500),
+            httpx.Response(200, text="You can't parse this..."),
+            httpx.Response(200, json=load_response(REMOTE_SERVICE_RESPONSE_ERROR)),
+        ],
+    )
 
-        with pytest.raises(MyBMWAPIError):
-            await vehicle.remote_services._block_until_done(client, uuid4())
-        with pytest.raises(ValueError):
-            await vehicle.remote_services._block_until_done(client, uuid4())
-        with pytest.raises(MyBMWRemoteServiceError):
-            await vehicle.remote_services._block_until_done(client, uuid4())
+    with pytest.raises(MyBMWAPIError):
+        await vehicle.remote_services._block_until_done(client, uuid4())
+    with pytest.raises(ValueError):
+        await vehicle.remote_services._block_until_done(client, uuid4())
+    with pytest.raises(MyBMWRemoteServiceError):
+        await vehicle.remote_services._block_until_done(client, uuid4())
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_set_charging_settings():
+async def test_set_lock_result(bmw_fixture: respx.Router):
+    """Test locking/unlocking a car."""
+
+    account = await prepare_account_with_vehicles()
+
+    vehicle = account.get_vehicle(VIN_I01_NOREX)
+    # check current state, unlock vehicle, check changed state
+    assert vehicle.doors_and_windows.door_lock_state == LockState.UNLOCKED
+    await vehicle.remote_services.trigger_remote_door_lock()
+    assert vehicle.doors_and_windows.door_lock_state == LockState.LOCKED
+
+    # now lock vehicle again, check changed state
+    await vehicle.remote_services.trigger_remote_door_unlock()
+    assert vehicle.doors_and_windows.door_lock_state == LockState.UNLOCKED
+
+
+@pytest.mark.asyncio
+async def test_set_climate_result(bmw_fixture: respx.Router):
+    """Test starting/stopping climatization."""
+
+    account = await prepare_account_with_vehicles()
+
+    vehicle = account.get_vehicle(VIN_G01)
+    # check current state, unlock vehicle, check changed state
+    assert vehicle.climate.activity == ClimateActivityState.STANDBY
+    await vehicle.remote_services.trigger_remote_air_conditioning()
+    assert vehicle.climate.activity in [ClimateActivityState.COOLING, ClimateActivityState.HEATING]
+
+    # now lock vehicle again, check changed state
+    await vehicle.remote_services.trigger_remote_air_conditioning_stop()
+    assert vehicle.climate.activity == ClimateActivityState.STANDBY
+
+
+@pytest.mark.asyncio
+async def test_charging_start_stop(bmw_fixture: respx.Router):
+    """Test starting/stopping climatization."""
+
+    account = await prepare_account_with_vehicles()
+
+    vehicle = account.get_vehicle(VIN_I20)
+
+    # check current state, unlock vehicle, check changed state
+    assert vehicle.fuel_and_battery.charging_status == ChargingState.CHARGING
+    await vehicle.remote_services.trigger_charge_stop()
+    assert vehicle.fuel_and_battery.charging_status == ChargingState.PLUGGED_IN
+
+    # now lock vehicle again, check changed state
+    await vehicle.remote_services.trigger_charge_start()
+    assert vehicle.fuel_and_battery.charging_status == ChargingState.CHARGING
+
+
+@pytest.mark.asyncio
+async def test_set_charging_settings(bmw_fixture: respx.Router):
     """Test setting the charging settings on a car."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     # Errors on old electric vehicles, combustion engines and PHEV
     for vin in [VIN_I01_NOREX, VIN_F31, VIN_G01]:
@@ -233,9 +187,16 @@ async def test_set_charging_settings():
         with pytest.raises(ValueError):
             await vehicle.remote_services.trigger_charging_settings_update(ac_limit=16)
 
-    # This shouldn't fail
+    # This should work
     vehicle = account.get_vehicle(VIN_G26)
-    await vehicle.remote_services.trigger_charging_settings_update(target_soc=80, ac_limit=16)
+    # Test current state
+    assert vehicle.charging_profile.ac_current_limit == 16
+    assert vehicle.fuel_and_battery.charging_target == 80
+    # Update settings
+    await vehicle.remote_services.trigger_charging_settings_update(target_soc=75, ac_limit=12)
+    # Test changed state
+    assert vehicle.charging_profile.ac_current_limit == 12
+    assert vehicle.fuel_and_battery.charging_target == 75
 
     # But these are not allowed
     with pytest.raises(ValueError):
@@ -252,12 +213,11 @@ async def test_set_charging_settings():
         await vehicle.remote_services.trigger_charging_settings_update(ac_limit="asdf")
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_set_charging_profile():
+async def test_set_charging_profile(bmw_fixture: respx.Router):
     """Test setting the charging profile on a car."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     # Errors on combustion engines
     vehicle = account.get_vehicle(VIN_F31)
@@ -266,20 +226,31 @@ async def test_set_charging_profile():
 
     # This shouldn't fail even on older EV
     vehicle = account.get_vehicle(VIN_I01_NOREX)
+    # check current state
+    assert vehicle.charging_profile.charging_mode == ChargingMode.IMMEDIATE_CHARGING
+    assert vehicle.charging_profile.is_pre_entry_climatization_enabled is True
+
+    # update two settings
     await vehicle.remote_services.trigger_charging_profile_update(
-        charging_mode=ChargingMode.IMMEDIATE_CHARGING, precondition_climate=True
+        charging_mode=ChargingMode.DELAYED_CHARGING, precondition_climate=False
     )
+    assert vehicle.charging_profile.charging_mode == ChargingMode.DELAYED_CHARGING
+    assert vehicle.charging_profile.is_pre_entry_climatization_enabled is False
 
+    # change back only charging mode
     await vehicle.remote_services.trigger_charging_profile_update(charging_mode=ChargingMode.IMMEDIATE_CHARGING)
+    assert vehicle.charging_profile.charging_mode == ChargingMode.IMMEDIATE_CHARGING
+
+    # change back only climatization
     await vehicle.remote_services.trigger_charging_profile_update(precondition_climate=True)
+    assert vehicle.charging_profile.is_pre_entry_climatization_enabled is True
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_vehicles_without_enabled_services():
+async def test_vehicles_without_enabled_services(bmw_fixture: respx.Router):
     """Test setting the charging profile on a car."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
 
     # Errors on combustion engines
     vehicle = account.get_vehicle(VIN_F31)
@@ -288,17 +259,16 @@ async def test_vehicles_without_enabled_services():
 
     for service in ALL_SERVICES.values():
         with pytest.raises(ValueError):
-            await getattr(vehicle.remote_services, service["call"])(
+            await getattr(vehicle.remote_services, service["call"])(  # type: ignore[call-overload]
                 *service.get("args", []), **service.get("kwargs", {})
             )
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_trigger_charge_start_stop_warnings(caplog):
+async def test_trigger_charge_start_stop_warnings(caplog, bmw_fixture: respx.Router):
     """Test if warnings are produced correctly with the charge start/stop services."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_I20)
 
     fixture_not_connected = {
@@ -331,12 +301,11 @@ async def test_trigger_charge_start_stop_warnings(caplog):
     caplog.clear()
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_get_remote_position():
+async def test_get_remote_position(bmw_fixture: respx.Router):
     """Test getting position from remote service."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     account.set_observer_position(1.0, 0.0)
     vehicle = account.get_vehicle(VIN_G26)
     status = vehicle.status
@@ -356,12 +325,11 @@ async def test_get_remote_position():
     assert 121 == status.gps_heading
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_get_remote_position_fail_without_observer(caplog):
+async def test_get_remote_position_fail_without_observer(caplog, bmw_fixture: respx.Router):
     """Test getting position from remote service."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_G26)
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
@@ -374,14 +342,13 @@ async def test_get_remote_position_fail_without_observer(caplog):
     assert len(errors) == 1
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_fail_with_timeout():
+async def test_fail_with_timeout(bmw_fixture: respx.Router):
     """Test failing after timeout was reached."""
     remote_services._POLLING_CYCLE = 1
     remote_services._POLLING_TIMEOUT = 2
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_G26)
 
     with pytest.raises(MyBMWRemoteServiceError):
@@ -389,12 +356,11 @@ async def test_fail_with_timeout():
 
 
 @time_machine.travel("2020-01-01", tick=False)
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_get_remote_position_too_old():
+async def test_get_remote_position_too_old(bmw_fixture: respx.Router):
     """Test remote service position being ignored as vehicle status is newer."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_G26)
     status = vehicle.status
 
@@ -404,12 +370,11 @@ async def test_get_remote_position_too_old():
     assert 180 == status.gps_heading
 
 
-@remote_services_mock()
 @pytest.mark.asyncio
-async def test_poi():
+async def test_poi(bmw_fixture: respx.Router):
     """Test get_remove_service_status method."""
 
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_G26)
 
     await vehicle.remote_services.trigger_send_poi({"lat": 12.34, "lon": 12.34})

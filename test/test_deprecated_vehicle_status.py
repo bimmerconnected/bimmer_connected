@@ -3,6 +3,7 @@
 import datetime
 
 import pytest
+import respx
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
@@ -12,13 +13,13 @@ from bimmer_connected.vehicle.reports import CheckControlStatus, ConditionBasedS
 from bimmer_connected.vehicle.vehicle import ConnectedDriveVehicle
 
 from . import VIN_F31, VIN_G01, VIN_G20, VIN_G26, VIN_I01_NOREX, VIN_I01_REX, VIN_I20, get_deprecation_warning_count
-from .test_account import get_mocked_account
+from .conftest import prepare_account_with_vehicles
 
 
 @pytest.mark.asyncio
-async def test_generic(caplog):
+async def test_generic(caplog, bmw_fixture: respx.Router):
     """Test generic attributes."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26).status
 
     expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=datetime.timezone.utc)
     assert expected == status.timestamp
@@ -39,9 +40,9 @@ async def test_generic(caplog):
 
 
 @pytest.mark.asyncio
-async def test_range_combustion_no_info(caplog):
+async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_F31).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31).status
 
     assert (14, "L") == status.remaining_fuel
     assert status.remaining_range_fuel == (None, None)
@@ -56,9 +57,9 @@ async def test_range_combustion_no_info(caplog):
 
 
 @pytest.mark.asyncio
-async def test_range_combustion(caplog):
+async def test_range_combustion(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G20).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20).status
 
     assert (40, "L") == status.remaining_fuel
     assert (629, "km") == status.remaining_range_fuel
@@ -73,9 +74,9 @@ async def test_range_combustion(caplog):
 
 
 @pytest.mark.asyncio
-async def test_range_phev(caplog):
+async def test_range_phev(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).status
 
     assert (40, "L") == status.remaining_fuel
     assert (436, "km") == status.remaining_range_fuel
@@ -92,9 +93,9 @@ async def test_range_phev(caplog):
 
 
 @pytest.mark.asyncio
-async def test_range_rex(caplog):
+async def test_range_rex(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I01_REX).status
 
     assert (6, "L") == status.remaining_fuel
     assert (105, "km") == status.remaining_range_fuel
@@ -111,9 +112,9 @@ async def test_range_rex(caplog):
 
 
 @pytest.mark.asyncio
-async def test_range_electric(caplog):
+async def test_range_electric(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26).status
 
     assert status.remaining_fuel == (None, None)
     assert status.remaining_range_fuel == (None, None)
@@ -129,9 +130,9 @@ async def test_range_electric(caplog):
 
 @time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
 @pytest.mark.asyncio
-async def test_charging_end_time(caplog):
+async def test_charging_end_time(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     status = account.get_vehicle(VIN_I01_NOREX).status
     assert datetime.datetime(2021, 11, 28, 23, 27, 59, tzinfo=datetime.timezone.utc) == status.charging_end_time
 
@@ -140,9 +141,9 @@ async def test_charging_end_time(caplog):
 
 
 @pytest.mark.asyncio
-async def test_charging_time_label(caplog):
+async def test_charging_time_label(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     status = account.get_vehicle(VIN_I20).status
     assert None is status.charging_time_label
 
@@ -150,10 +151,10 @@ async def test_charging_time_label(caplog):
 
 
 @pytest.mark.asyncio
-async def test_plugged_in_waiting_for_charge_window(caplog):
+async def test_plugged_in_waiting_for_charge_window(caplog, bmw_fixture: respx.Router):
     """G01 is plugged in but not charging, as its waiting for charging window."""
     # Should be None on G01 as it is only "charging"
-    account = await get_mocked_account()
+    account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_I01_REX)
 
     assert vehicle.status.charging_end_time is None
@@ -164,9 +165,9 @@ async def test_plugged_in_waiting_for_charge_window(caplog):
 
 
 @pytest.mark.asyncio
-async def test_condition_based_services(caplog):
+async def test_condition_based_services(caplog, bmw_fixture: respx.Router):
     """Test condition based service messages."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26).status
 
     cbs = status.condition_based_services
     assert 5 == len(cbs)
@@ -191,9 +192,9 @@ async def test_condition_based_services(caplog):
 
 
 @pytest.mark.asyncio
-async def test_parse_f31_no_position(caplog):
+async def test_parse_f31_no_position(caplog, bmw_fixture: respx.Router):
     """Test parsing of F31 data with position tracking disabled in the vehicle."""
-    status = (await get_mocked_account()).get_vehicle(VIN_F31).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31).status
 
     assert status.gps_position is None
     assert status.gps_heading is None
@@ -202,9 +203,9 @@ async def test_parse_f31_no_position(caplog):
 
 
 @pytest.mark.asyncio
-async def test_parse_gcj02_position(caplog):
+async def test_parse_gcj02_position(caplog, bmw_fixture: respx.Router):
     """Test conversion of GCJ02 to WGS84 for china."""
-    account = await get_mocked_account(get_region_from_name("china"))
+    account = await prepare_account_with_vehicles(get_region_from_name("china"))
     vehicle = account.get_vehicle(VIN_G01)
     vehicle = ConnectedDriveVehicle(account, vehicle.data)
     vehicle.update_state(
@@ -228,15 +229,15 @@ async def test_parse_gcj02_position(caplog):
 
 
 @pytest.mark.asyncio
-async def test_lids(caplog):
+async def test_lids(caplog, bmw_fixture: respx.Router):
     """Test features around lids."""
-    # status = (await get_mocked_account()).get_vehicle(VIN_G30).status
+    # status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G30).status
 
     # assert 6 == len(list(status.lids))
     # assert 3 == len(list(status.open_lids))
     # assert status.all_lids_closed is False
 
-    status = (await get_mocked_account()).get_vehicle(VIN_G26).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26).status
 
     for lid in status.lids:
         assert LidState.CLOSED == lid.state
@@ -248,9 +249,9 @@ async def test_lids(caplog):
 
 
 @pytest.mark.asyncio
-async def test_windows_g31(caplog):
+async def test_windows_g31(caplog, bmw_fixture: respx.Router):
     """Test features around windows."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).status
 
     for window in status.windows:
         assert LidState.CLOSED == window.state
@@ -263,13 +264,13 @@ async def test_windows_g31(caplog):
 
 
 @pytest.mark.asyncio
-async def test_door_locks(caplog):
+async def test_door_locks(caplog, bmw_fixture: respx.Router):
     """Test the door locks."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).status
 
     assert LockState.LOCKED == status.door_lock_state
 
-    status = (await get_mocked_account()).get_vehicle(VIN_I01_REX).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I01_REX).status
 
     assert LockState.UNLOCKED == status.door_lock_state
 
@@ -277,13 +278,13 @@ async def test_door_locks(caplog):
 
 
 @pytest.mark.asyncio
-async def test_check_control_messages(caplog):
+async def test_check_control_messages(caplog, bmw_fixture: respx.Router):
     """Test handling of check control messages.
 
     F11 is the only vehicle with active Check Control Messages, so we only expect to get something there.
     However we have no vehicle with issues in check control.
     """
-    vehicle = (await get_mocked_account()).get_vehicle(VIN_G01)
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01)
     assert vehicle.status.has_check_control_messages is True
 
     ccms = vehicle.status.check_control_messages
@@ -297,9 +298,9 @@ async def test_check_control_messages(caplog):
 
 
 @pytest.mark.asyncio
-async def test_functions_without_data(caplog):
+async def test_functions_without_data(caplog, bmw_fixture: respx.Router):
     """Test functions that do not return any result anymore."""
-    status = (await get_mocked_account()).get_vehicle(VIN_G01).status
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).status
 
     assert status.last_charging_end_result is None
     assert status.parking_lights is None

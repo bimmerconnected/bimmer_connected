@@ -275,7 +275,7 @@ class RemoteServices:
                 charging_mode
             ].value
 
-        if precondition_climate:
+        if precondition_climate is not None:
             target_charging_profile["isPreconditionForDepartureActive"] = precondition_climate
 
         return await self.trigger_remote_service(
