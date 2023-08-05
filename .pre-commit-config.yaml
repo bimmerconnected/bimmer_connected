@@ -12,7 +12,7 @@ repos:
         args:
           - --safe
           - --quiet
-        files: ^((bimmer_connected|test)/.+)?[^/]+\.py$
+        files: ^(bimmer_connected/.+)?[^/]+\.py$
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.5
     hooks:
@@ -30,5 +30,5 @@ repos:
         name: mypy
         entry: mypy
         additional_dependencies: [types-setuptools, "typing_extensions>=3.10.0.2,<5.0"]
-        files: ^(bimmer_connected|test)/.+\.py$
+        files: ^bimmer_connected/.+\.py$
  

@@ -28,7 +28,7 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest --cov=bimmer_connected --timeout=10 --cov-report=xml test
+          pytest --cov bimmer_connected --timeout 10 --cov-report xml --pyargs bimmer_connected
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
@@ -53,7 +53,7 @@ jobs:
           pip install -r requirements.txt -r requirements-test.txt
       - name: Test with flake8
         run: |
-          ruff --config=pyproject.toml bimmer_connected test
+          ruff --config=pyproject.toml bimmer_connected
 
   black:
     runs-on: ubuntu-latest
@@ -70,7 +70,7 @@ jobs:
           pip install -r requirements.txt -r requirements-test.txt
       - name: Test with black
         run: |
-          black --check bimmer_connected test
+          black --check bimmer_connected
   
   mypy:
     runs-on: ubuntu-latest
@@ -87,7 +87,7 @@ jobs:
           pip install -r requirements.txt -r requirements-test.txt
       - name: Test with mypy
         run: |
-          mypy bimmer_connected test
+          mypy bimmer_connected
 
   docs:
     runs-on: ubuntu-latest

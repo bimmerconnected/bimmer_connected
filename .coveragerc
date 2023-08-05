@@ -3,6 +3,7 @@ relative_files = True
 omit = 
     bimmer_connected/cli.py
     bimmer_connected/coord_convert.py
+    bimmer_connected/tests/*
 
 [report]
 exclude_lines =
