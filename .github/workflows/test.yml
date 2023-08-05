@@ -28,7 +28,7 @@ jobs:
           pip install -e .
       - name: Test with pytest
         run: |
-          pytest --cov=bimmer_connected --timeout=10 --cov-report=xml test
+          pytest --cov bimmer_connected --timeout 10 --cov-report xml --pyargs bimmer_connected
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
