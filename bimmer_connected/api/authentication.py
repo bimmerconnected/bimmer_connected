@@ -197,7 +197,7 @@ class MyBMWAuthentication(httpx.Auth):
             code = response.next_request.url.params["code"]
 
             # With code, get token
-            current_utc_time = datetime.datetime.utcnow()
+            current_utc_time = datetime.datetime.now(tz=datetime.timezone.utc)
             response = await client.post(
                 oauth_settings["tokenEndpoint"],
                 data={
@@ -237,7 +237,7 @@ class MyBMWAuthentication(httpx.Auth):
                 oauth_settings = r_oauth_settings.json()
 
                 # With code, get token
-                current_utc_time = datetime.datetime.utcnow()
+                current_utc_time = datetime.datetime.now(tz=datetime.timezone.utc)
                 response = await client.post(
                     oauth_settings["tokenEndpoint"],
                     data={
@@ -314,7 +314,7 @@ class MyBMWAuthentication(httpx.Auth):
 
         return {
             "access_token": response_json["access_token"],
-            "expires_at": datetime.datetime.utcfromtimestamp(decoded_token["exp"]),
+            "expires_at": datetime.datetime.fromtimestamp(decoded_token["exp"], tz=datetime.timezone.utc),
             "refresh_token": response_json["refresh_token"],
             "gcid": response_json["gcid"],
         }
@@ -324,7 +324,7 @@ class MyBMWAuthentication(httpx.Auth):
             async with MyBMWLoginClient(region=self.region) as client:
                 _LOGGER.debug("Authenticating with refresh token for China.")
 
-                current_utc_time = datetime.datetime.utcnow()
+                current_utc_time = datetime.datetime.now(tz=datetime.timezone.utc)
 
                 # Try logging in using refresh_token
                 response = await client.post(

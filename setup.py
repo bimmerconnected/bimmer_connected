@@ -8,5 +8,6 @@ setup(
         "httpx",
         "pycryptodome>=3.4",
         "pyjwt>=2.1.0",
+        "importlib-metadata;python_version<'3.8'",
     ],
 )

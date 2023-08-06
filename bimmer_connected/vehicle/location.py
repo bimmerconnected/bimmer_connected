@@ -77,8 +77,7 @@ class VehicleLocation(VehicleDataBase):
             _LOGGER.error("Error retrieving vehicle position. %s: %s", error["title"], error["description"])
         else:
             pos = remote_service_dict["positionData"]["position"]
-            pos["timestamp"] = datetime.datetime.utcnow()
-            pos["timestamp"] = pos["timestamp"].replace(tzinfo=datetime.timezone.utc)
+            pos["timestamp"] = datetime.datetime.now(tz=datetime.timezone.utc)
 
             self.remote_service_position = pos
 
