@@ -236,6 +236,11 @@ class MyBMWMockRouter(respx.MockRouter):
             new_state = ChargingState.PLUGGED_IN if "stop" in service else ChargingState.CHARGING
             self.states[vin]["state"]["electricChargingState"]["chargingStatus"] = new_state
 
+        elif service in ["vehicle-finder"]:
+            # nothing to do here as this is handled by the
+            # return of REMOTE_SERVICE_RESPONSE_EVENTPOSITION
+            pass
+
         json_data = load_response(REMOTE_SERVICE_RESPONSE_INITIATED)
         json_data["eventId"] = str(uuid4())
 
@@ -244,8 +249,12 @@ class MyBMWMockRouter(respx.MockRouter):
     def charging_settings_sideeffect(self, request: httpx.Request, vin: str) -> httpx.Response:
         """Check if payload is a valid charging settings payload and return evendId."""
         cs = ChargingSettings(**json.loads(request.content))
-        self.states[vin]["state"]["electricChargingState"]["chargingTarget"] = cs.chargingTarget
-        self.states[vin]["state"]["chargingProfile"]["chargingSettings"]["acCurrentLimit"] = cs.acLimitValue
+
+        # this endpoint allows fields to be omitted, so we have to check for that
+        if cs.chargingTarget:
+            self.states[vin]["state"]["electricChargingState"]["chargingTarget"] = cs.chargingTarget
+        if cs.acLimitValue:
+            self.states[vin]["state"]["chargingProfile"]["chargingSettings"]["acCurrentLimit"] = cs.acLimitValue
 
         return self.service_trigger_sideeffect(request, vin)
 
@@ -269,6 +278,8 @@ class MyBMWMockRouter(respx.MockRouter):
 
         if not isinstance(data["isPreconditionForDepartureActive"], bool):
             return httpx.Response(500)
+
+        # this endpoint does not allow fields to be omitted, so we can assume that they are always present
 
         # separate charging profile endpoint
         self.charging_settings[vin]["chargeAndClimateTimerDetail"]["chargingMode"]["chargingPreference"] = data[
