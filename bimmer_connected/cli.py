@@ -210,7 +210,7 @@ async def vehicle_finder(args) -> None:
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_vehicle_finder()
     print(status.state)
-    print({"gps_position": vehicle.status.gps_position, "heading": vehicle.status.gps_heading})
+    print({"gps_position": vehicle.vehicle_location.location, "heading": vehicle.vehicle_location.heading})
 
 
 async def chargingsettings(args) -> None:

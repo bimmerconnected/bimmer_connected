@@ -17,7 +17,7 @@ import httpx
 import pytest
 import respx
 
-from bimmer_connected.account import ConnectedDriveAccount, MyBMWAccount
+from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
@@ -31,7 +31,6 @@ from . import (
     TEST_REGION_STRING,
     TEST_USERNAME,
     VIN_G26,
-    get_deprecation_warning_count,
     get_fingerprint_count,
     load_response,
 )
@@ -337,16 +336,6 @@ async def test_set_use_metric_units():
     assert imperial_account.config.use_metric_units is False
     imperial_client = MyBMWClient(imperial_account.config)
     assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
-
-
-@pytest.mark.asyncio
-async def test_deprecated_account(caplog, bmw_fixture: respx.Router):
-    """Test deprecation warning for ConnectedDriveAccount."""
-    account = ConnectedDriveAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
-    await account.get_vehicles()
-    assert account is not None
-
-    assert 1 == len(get_deprecation_warning_count(caplog))
 
 
 @pytest.mark.asyncio

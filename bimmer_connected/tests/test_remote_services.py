@@ -308,21 +308,21 @@ async def test_get_remote_position(bmw_fixture: respx.Router):
     account = await prepare_account_with_vehicles()
     account.set_observer_position(1.0, 0.0)
     vehicle = account.get_vehicle(VIN_G26)
-    status = vehicle.status
+    location = vehicle.vehicle_location
 
     # Check original position
-    assert (48.177334, 11.556274) == status.gps_position
-    assert 180 == status.gps_heading
+    assert (48.177334, 11.556274) == location.location
+    assert 180 == location.heading
 
     # Check updated position
     await vehicle.remote_services.trigger_remote_vehicle_finder()
-    assert (123.456, 34.5678) == status.gps_position
-    assert 121 == status.gps_heading
+    assert (123.456, 34.5678) == location.location
+    assert 121 == location.heading
 
     # Position should still be from vehicle finder after status update
     await account.get_vehicles()
-    assert (123.456, 34.5678) == status.gps_position
-    assert 121 == status.gps_heading
+    assert (123.456, 34.5678) == location.location
+    assert 121 == location.heading
 
 
 @pytest.mark.asyncio
@@ -362,12 +362,12 @@ async def test_get_remote_position_too_old(bmw_fixture: respx.Router):
 
     account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_G26)
-    status = vehicle.status
+    location = vehicle.vehicle_location
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
 
-    assert (48.177334, 11.556274) == status.gps_position
-    assert 180 == status.gps_heading
+    assert (48.177334, 11.556274) == location.location
+    assert 180 == location.heading
 
 
 @pytest.mark.asyncio

@@ -18,7 +18,6 @@ from bimmer_connected.const import (
     CarBrands,
 )
 from bimmer_connected.models import AnonymizedResponse, GPSPosition
-from bimmer_connected.utils import deprecated
 from bimmer_connected.vehicle import MyBMWVehicle
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
@@ -199,8 +198,3 @@ class MyBMWAccount:
     def gcid(self) -> Optional[str]:
         """Returns the current GCID."""
         return self.config.authentication.gcid
-
-
-@deprecated("MyBMWAccount")
-class ConnectedDriveAccount(MyBMWAccount):
-    """Deprecated class name for compatibility."""
