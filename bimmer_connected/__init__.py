@@ -8,6 +8,11 @@ Disclaimer:
 This library is not affiliated with or endorsed by BMW Group.
 """
 
-import pkg_resources  # part of setuptools
+import sys
 
-__version__ = pkg_resources.get_distribution("bimmer_connected").version
+if sys.version_info >= (3, 8):
+    from importlib.metadata import version
+else:
+    from importlib_metadata import version
+
+__version__ = version("bimmer_connected")

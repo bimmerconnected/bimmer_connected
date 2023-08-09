@@ -169,7 +169,8 @@ def generate_cn_nonce(username: str) -> str:
     possible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
     random_str = "".join(random.choice(possible_chars) for _ in range(8))
 
-    phone_text = f"{username}&{datetime.datetime.utcnow().strftime('%a, %d %b %Y %H:%M:%S GMT')}&{random_str}"
+    time_str = datetime.datetime.now(tz=datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
+    phone_text = f"{username}&{time_str}&{random_str}"
 
     cipher_aes = AES.new(key.encode(), AES.MODE_CBC, iv.encode())
 
