@@ -26,7 +26,7 @@ Installation
 :code:`bimmer_connected` is tested against **Python 3.7 or above**. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
 using :code:`pip3 install --upgrade bimmer_connected`. 
 
-Alteratively, clone the project and execute :code:`pip install -e .` to install the current 
+Alternatively, clone the project and execute :code:`pip install -e .` to install the current 
 :code:`master` branch.
 
 Usage

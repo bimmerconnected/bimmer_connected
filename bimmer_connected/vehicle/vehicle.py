@@ -13,7 +13,7 @@ from bimmer_connected.const import (
     CarBrands,
 )
 from bimmer_connected.models import StrEnum, ValueWithUnit
-from bimmer_connected.utils import deprecated, parse_datetime
+from bimmer_connected.utils import parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
 from bimmer_connected.vehicle.climate import Climate
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
@@ -23,7 +23,6 @@ from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.remote_services import RemoteServices
 from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
 from bimmer_connected.vehicle.tires import Tires
-from bimmer_connected.vehicle.vehicle_status import VehicleStatus
 
 if TYPE_CHECKING:
     from bimmer_connected.account import MyBMWAccount
@@ -80,7 +79,6 @@ class MyBMWVehicle:
         """Initialize a MyBMWVehicle."""
         self.account = account
         self.data = self.combine_data(account, vehicle_base, vehicle_state, charging_settings, fetched_at)
-        self.status = VehicleStatus(self)
         self.remote_services = RemoteServices(self)
         self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
         self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
@@ -357,47 +355,3 @@ class MyBMWVehicle:
         async with MyBMWClient(self.account.config, brand=self.brand) as client:
             response = await client.get(url, headers={"accept": "image/png"})
         return response.content
-
-    # # # # # # # # # # # # # # #
-    # Deprecated
-    # # # # # # # # # # # # # # #
-
-    @property  # type: ignore[misc]
-    @deprecated("vehicle.has_electric_drivetrain")
-    def has_hv_battery(self) -> bool:  # noqa: D102
-        return self.has_electric_drivetrain
-
-    @property  # type: ignore[misc]
-    @deprecated()
-    def has_range_extender(self) -> bool:  # noqa: D102
-        return False
-
-    @property  # type: ignore[misc]
-    @deprecated("vehicle.has_combustion_drivetrain")
-    def has_internal_combustion_engine(self) -> bool:  # noqa: D102
-        return self.has_combustion_drivetrain
-
-    @property  # type: ignore[misc]
-    @deprecated("vehicle.is_charging_plan_supported")
-    def has_weekly_planner_service(self) -> bool:  # noqa: D102
-        return self.is_charging_plan_supported
-
-
-@deprecated("MyBMWVehicle")
-class ConnectedDriveVehicle(MyBMWVehicle):
-    """Deprecated class name for compatibility."""
-
-    def __init__(self, account: "MyBMWAccount", vehicle_dict: dict) -> None:
-        """Initialize a ConnectedDriveVehicle (deprecated)."""
-        super().__init__(account, vehicle_dict, {}, {})
-
-    def update_state(
-        self,
-        vehicle_base: dict,
-        vehicle_state: Optional[dict] = None,
-        charging_settings: Optional[dict] = None,
-        fetched_at: Optional[datetime.datetime] = None,
-    ) -> None:
-        """Update the state of a vehicle."""
-
-        super().update_state(vehicle_base, vehicle_state or {}, charging_settings, fetched_at)
