@@ -1,15 +1,6 @@
 """Fixtures for BMW tests."""
 from typing import Generator, Optional
 
-try:
-    from unittest import mock
-
-    if not hasattr(mock, "AsyncMock"):
-        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
-        raise ImportError()
-except ImportError:
-    import mock  # type: ignore[import,no-redef]  # noqa: UP026
-
 import pytest
 import respx
 

@@ -1,13 +1,5 @@
 """Test for remote_services."""
-try:
-    from unittest import mock
-
-    if not hasattr(mock, "AsyncMock"):
-        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
-        raise ImportError()
-except ImportError:
-    import mock  # type: ignore[import,no-redef]  # noqa: UP026
-
+from unittest import mock
 from uuid import uuid4
 
 import httpx

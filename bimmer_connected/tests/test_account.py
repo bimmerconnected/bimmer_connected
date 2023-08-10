@@ -3,15 +3,7 @@
 import datetime
 import logging
 from pathlib import Path
-
-try:
-    from unittest import mock
-
-    if not hasattr(mock, "AsyncMock"):
-        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
-        raise ImportError()
-except ImportError:
-    import mock  # type: ignore[import,no-redef]  # noqa: UP026
+from unittest import mock
 
 import httpx
 import pytest
