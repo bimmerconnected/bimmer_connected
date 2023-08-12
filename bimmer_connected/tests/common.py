@@ -5,25 +5,16 @@ from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from typing import Dict, List, Optional
+from unittest import mock
 from uuid import uuid4
-
-from bimmer_connected.vehicle.climate import ClimateActivityState
-from bimmer_connected.vehicle.fuel_and_battery import ChargingState
-
-try:
-    from unittest import mock
-
-    if not hasattr(mock, "AsyncMock"):
-        # AsyncMock was only introduced with Python3.8, so we have to use the backported module
-        raise ImportError()
-except ImportError:
-    import mock  # type: ignore[import,no-redef]  # noqa: UP026
 
 import httpx
 import respx
 
 from bimmer_connected.const import Regions
 from bimmer_connected.models import ChargingSettings
+from bimmer_connected.vehicle.climate import ClimateActivityState
+from bimmer_connected.vehicle.fuel_and_battery import ChargingState
 from bimmer_connected.vehicle.remote_services import MAP_CHARGING_MODE_TO_REMOTE_SERVICE
 
 from . import (
