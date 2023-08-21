@@ -178,6 +178,9 @@ class MyBMWMockRouter(respx.MockRouter):
         if self.vehicles_to_load:
             fingerprints = [f for f in fingerprints if f["vin"] in self.vehicles_to_load]
 
+        # Ensure order
+        fingerprints = sorted(fingerprints, key=lambda v: v["vin"])
+
         return httpx.Response(200, json=fingerprints)
 
     def vehicle_state_sideeffect(self, request: httpx.Request) -> httpx.Response:
