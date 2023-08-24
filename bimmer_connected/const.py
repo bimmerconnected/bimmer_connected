@@ -39,13 +39,13 @@ OCP_APIM_KEYS = {
 APP_VERSIONS = {
     Regions.NORTH_AMERICA: "3.3.1(22418)",
     Regions.REST_OF_WORLD: "3.3.1(22418)",
-    Regions.CHINA: "3.1.0(20658)",
+    Regions.CHINA: "3.6.1(23634)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
 USER_AGENT = "Dart/2.18 (dart:io)"
-X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
+X_USER_AGENT = "ios(15.0);{brand};{app_version};{region}"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
