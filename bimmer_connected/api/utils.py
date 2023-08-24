@@ -163,6 +163,9 @@ def generate_cn_nonce(username: str) -> str:
     k2 = key[8:]
     i2 = iv[8:]
 
+    if username is None:
+        username = ""
+
     sha256_hex = SHA256.new((k2 + i1 + "u3.6.1" + username[-4:] + k1 + i2).encode()).hexdigest()
     sha256_a = sha256_hex[:32]
     sha256_b = sha256_hex[32:]
