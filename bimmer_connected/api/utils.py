@@ -15,6 +15,7 @@ from uuid import uuid4
 import httpx
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
+from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
 
 from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
@@ -121,7 +122,7 @@ def anonymize_vin(match: re.Match):
     """Anonymize VINs but keep assignment."""
     vin = match.groupdict()["vin"]
     if vin not in ANONYMIZED_VINS:
-        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS)+1).zfill(2)}"
+        ANONYMIZED_VINS[vin] = f"{vin[:3]}0FINGERPRINT{str(len(ANONYMIZED_VINS) + 1).zfill(2)}"
     return ANONYMIZED_VINS[vin]
 
 
@@ -149,7 +150,7 @@ def anonymize_response(response: httpx.Response) -> AnonymizedResponse:
 
 def generate_random_base64_string(size: int) -> str:
     """Generate a random base64 string with size."""
-    return base64.b64encode(bytes(random.randint(0, 255) for _ in range(size))).decode()[:size]
+    return get_random_bytes(size).hex()[:size]
 
 
 def generate_cn_nonce(username: str) -> str:
@@ -162,18 +163,25 @@ def generate_cn_nonce(username: str) -> str:
     k2 = key[8:]
     i2 = iv[8:]
 
-    sha256_hex = SHA256.new((k1 + i1 + "u3.1.0" + k2 + i2).encode()).hexdigest()
+    if username is None:
+        username = ""
+
+    sha256_hex = SHA256.new((k2 + i1 + "u3.6.1" + username[-4:] + k1 + i2).encode()).hexdigest()
     sha256_a = sha256_hex[:32]
     sha256_b = sha256_hex[32:]
 
-    possible_chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-    random_str = "".join(random.choice(possible_chars) for _ in range(8))
+    random_str = k1
 
     time_str = datetime.datetime.now(tz=datetime.timezone.utc).strftime("%a, %d %b %Y %H:%M:%S GMT")
     phone_text = f"{username}&{time_str}&{random_str}"
 
-    cipher_aes = AES.new(key.encode(), AES.MODE_CBC, iv.encode())
+    chars = list("01234abcdefghijklmnopqrstuvwxyz56789")
+    k1r = chars[36 - chars.index(k1[4]) - 1]
+    k2r = chars[36 - chars.index(k2[4]) - 1]
+    aes_key = key[:4] + k1r + key[5:12] + k2r + key[13:]
+
+    cipher_aes = AES.new(aes_key.encode(), AES.MODE_CBC, iv.encode())
 
     aes_hex = cipher_aes.encrypt(pad(phone_text.encode(), AES.block_size)).hex()
 
-    return k1 + i1 + sha256_a + aes_hex + k2 + i2 + sha256_b
+    return k2 + i1 + sha256_a + aes_hex + k1 + i2 + sha256_b
