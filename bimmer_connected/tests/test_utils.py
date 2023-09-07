@@ -11,10 +11,11 @@ import pytest
 import respx
 import time_machine
 
+from bimmer_connected.api.utils import get_capture_position
 from bimmer_connected.models import ChargingSettings, ValueWithUnit
 from bimmer_connected.utils import MyBMWJSONEncoder, get_class_property_names, parse_datetime
 
-from . import VIN_G26
+from . import RESPONSE_DIR, VIN_G26, load_response
 from .conftest import prepare_account_with_vehicles
 
 
@@ -112,3 +113,10 @@ def test_charging_settings():
     assert cs.chargingTarget == 90
     assert cs.dcLoudness is None
     assert cs.isUnlockCableActive is None
+
+
+def test_get_capture_position():
+    """Test the auto get slider captcha position."""
+    base64_background_img = load_response(RESPONSE_DIR / "auth" / "auth_slider_captcha.json")["data"]["backGroundImg"]
+    position = get_capture_position(base64_background_img)
+    assert position == "0.81"

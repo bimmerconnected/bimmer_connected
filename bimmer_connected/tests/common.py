@@ -96,11 +96,8 @@ class MyBMWMockRouter(respx.MockRouter):
             200, json=load_response(RESPONSE_DIR / "auth" / "auth_slider_captcha.json")
         )
 
-        self.post("/eadrax-coas/v1/cop/check-captcha").mock(
-            side_effect=[
-                httpx.Response(422),
-                httpx.Response(201, json=load_response(RESPONSE_DIR / "auth" / "auth_slider_captcha_check.json")),
-            ]
+        self.post("/eadrax-coas/v1/cop/check-captcha").respond(
+            200, json=load_response(RESPONSE_DIR / "auth" / "auth_slider_captcha_check.json")
         )
 
         self.post("/eadrax-coas/v2/login/pwd").respond(

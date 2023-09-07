@@ -19,6 +19,7 @@ from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_cn_nonce,
     generate_token,
+    get_capture_position,
     get_correlation_id,
     handle_httpstatuserror,
 )
@@ -284,16 +285,8 @@ class MyBMWAuthentication(httpx.Auth):
             )
             verify_id = captcha_res.json()["data"]["verifyId"]
 
-            for i in range(1, 13):
-                try:
-                    captcha_check_res = await client.post(
-                        AUTH_CHINA_CAPTCHA_CHECK_URL,
-                        json={"position": 0.74 + i / 100, "verifyId": verify_id},
-                    )
-                    if captcha_check_res.status_code == 201:
-                        break
-                except MyBMWAPIError:
-                    continue
+            position = get_capture_position(captcha_res.json()["data"]["backGroundImg"])
+            await client.post(AUTH_CHINA_CAPTCHA_CHECK_URL, json={"position": position, "verifyId": verify_id})
 
             # Get token
             response = await client.post(

@@ -3,6 +3,7 @@
 import base64
 import datetime
 import hashlib
+import io
 import json
 import logging
 import mimetypes
@@ -17,6 +18,7 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
+from PIL import Image
 
 from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
@@ -185,3 +187,41 @@ def generate_cn_nonce(username: str) -> str:
     aes_hex = cipher_aes.encrypt(pad(phone_text.encode(), AES.block_size)).hex()
 
     return k2 + i1 + sha256_a + aes_hex + k1 + i2 + sha256_b
+
+
+def get_capture_position(base64_background_img: str) -> str:
+    """Get the position of the capture in the background image."""
+    target_color = [220, 230, 221]
+    tolerance = 15
+    block = {"width": 15, "height": 75}
+
+    img_bytes = io.BytesIO(base64.b64decode(base64_background_img))
+    img = Image.open(img_bytes)
+    pixels = list(img.getdata())
+
+    position = ""
+    found_block = False
+
+    for y in range(0, img.height - block["height"]):
+        for x in range(0, img.width - block["width"]):
+            found_block = True
+            for i in range(block["height"]):
+                for j in range(block["width"]):
+                    pixel_index = (y + i) * img.width + (x + j)
+                    pr = pixels[pixel_index][:3]
+                    dr = abs(pr[0] - target_color[0])
+                    dg = abs(pr[1] - target_color[1])
+                    db = abs(pr[2] - target_color[2])
+
+                    if dr > tolerance or dg > tolerance or db > tolerance:
+                        found_block = False
+                        break
+                if not found_block:
+                    break
+            if found_block:
+                position = str(round((x - 26) / img.width, 2))
+                break
+        if found_block:
+            break
+
+    return position
