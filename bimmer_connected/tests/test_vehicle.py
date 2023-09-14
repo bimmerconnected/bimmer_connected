@@ -116,6 +116,7 @@ async def test_parsing_of_lsc_type(caplog, bmw_fixture: respx.Router):
 def test_car_brand(caplog, bmw_fixture: respx.Router):
     """Test CarBrand enum."""
     assert CarBrands("BMW") == CarBrands("bmw")
+    assert CarBrands("DRITTKUNDE") == CarBrands("toyota")
 
     with pytest.raises(ValueError):
         CarBrands("Audi")
