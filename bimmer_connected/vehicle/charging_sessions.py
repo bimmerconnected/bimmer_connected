@@ -2,7 +2,7 @@
 
 import datetime
 from dataclasses import dataclass
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 from bimmer_connected.const import ATTR_CHARGING_SESSIONS
 from bimmer_connected.models import StrEnum, VehicleDataBase
@@ -90,7 +90,7 @@ class ChargingSession(VehicleDataBase):
     power_max: float
     """Maximum charging speed."""
 
-    charging_blocks: [ChargingBlock]
+    charging_blocks: List[ChargingBlock]
     """List of charging blocks."""
 
     public: bool
@@ -108,7 +108,7 @@ class ChargingSession(VehicleDataBase):
         retval: Dict[str, Any] = {}
 
         retval["status"] = session_data.get("sessionStatus")
-        retval["description"] = session_data.get("title") + " \u2022 " + session_data.get("subtitle")
+        retval["description"] = session_data.get("title", "") + " \u2022 " + session_data.get("subtitle", "")
         retval["address"] = session_data.get("details", {}).get("address", "N/A").strip().title()
         retval["charging_type"] = ChargingType(session_data.get("details", {}).get("chargingType", "N/A"))
         retval["soc_start"] = session_data.get("details", {}).get("startBatteryPc", "N/A")
@@ -141,7 +141,7 @@ class ChargingSessions(VehicleDataBase):
     charging_session_count: int
     """Total number of charging sessions."""
 
-    charging_sessions: [ChargingSession]
+    charging_sessions: List[ChargingSession]
     """List of charging sessions."""
 
     @classmethod
