@@ -324,9 +324,9 @@ async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
     assert status.charging_sessions[0].time_start == "N/A"
     assert status.charging_sessions[0].time_end == "N/A"
     assert status.charging_sessions[0].duration == "N/A"
-    assert status.charging_sessions[0].power_avg == "N/A"
-    assert status.charging_sessions[0].power_min == "N/A"
-    assert status.charging_sessions[0].power_max == "N/A"
+    assert status.charging_sessions[0].power_avg == -1.0
+    assert status.charging_sessions[0].power_min == -1.0
+    assert status.charging_sessions[0].power_max == -1.0
     assert status.charging_sessions[0].public is True
     assert status.charging_sessions[0].pre_condition == "N/A"
     assert status.charging_sessions[0].mileage == "N/A"

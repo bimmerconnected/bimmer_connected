@@ -42,7 +42,7 @@ class ChargingBlock(VehicleDataBase):
 
         retval["time_start"] = charging_block__data.get("startTime")
         retval["time_end"] = charging_block__data.get("endTime")
-        retval["power_avg"] = charging_block__data.get("averagePowerGridKw")
+        retval["power_avg"] = round(charging_block__data.get("averagePowerGridKw", -1.0), 2)
 
         return retval
 
@@ -117,9 +117,9 @@ class ChargingSession(VehicleDataBase):
         retval["time_start"] = session_data.get("details", {}).get("date", "N/A")
         retval["time_end"] = session_data.get("details", {}).get("endDate", "N/A")
         retval["duration"] = session_data.get("details", {}).get("duration", "N/A")
-        retval["power_avg"] = session_data.get("details", {}).get("chargingBlocks", {}).get("average", "N/A")
-        retval["power_min"] = session_data.get("details", {}).get("chargingBlocks", {}).get("min", "N/A")
-        retval["power_max"] = session_data.get("details", {}).get("chargingBlocks", {}).get("max", "N/A")
+        retval["power_avg"] = round(session_data.get("details", {}).get("chargingBlocks", {}).get("average", -1.0), 2)
+        retval["power_min"] = round(session_data.get("details", {}).get("chargingBlocks", {}).get("min", -1.0), 2)
+        retval["power_max"] = round(session_data.get("details", {}).get("chargingBlocks", {}).get("max", -1.0), 2)
         retval["public"] = session_data.get("isPublic")
         retval["pre_condition"] = session_data.get("details", {}).get("preCondition", "N/A")
         retval["mileage"] = session_data.get("details", {}).get("totalMileage", "N/A")
