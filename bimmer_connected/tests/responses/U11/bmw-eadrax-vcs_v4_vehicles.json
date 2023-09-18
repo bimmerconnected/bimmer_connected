@@ -1,0 +1,48 @@
+[
+    {
+        "appVehicleType": "CONNECTED",
+        "attributes": {
+            "bodyType": "U11",
+            "brand": "BMW",
+            "color": 4283716692,
+            "countryOfOrigin": "DE",
+            "driveTrain": "ELECTRIC",
+            "driverGuideInfo": {
+                "androidAppScheme": "com.bmwgroup.driversguide.row",
+                "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
+                "iosAppScheme": "bmwdriversguide:///open",
+                "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
+            },
+            "headUnitRaw": "HU_MGU",
+            "headUnitType": "MGU",
+            "hmiVersion": "ID8",
+            "lastFetched": "2023-09-18T15:13:09.016Z",
+            "model": "iX1 xDrive30",
+            "softwareVersionCurrent": {
+                "iStep": 535,
+                "puStep": {
+                    "month": 7,
+                    "year": 23
+                },
+                "seriesCluster": "U006"
+            },
+            "softwareVersionExFactory": {
+                "iStep": 535,
+                "puStep": {
+                    "month": 3,
+                    "year": 23
+                },
+                "seriesCluster": "U006"
+            },
+            "telematicsUnit": "WAVE01",
+            "year": 2023
+        },
+        "mappingInfo": {
+            "isAssociated": true,
+            "isLmmEnabled": true,
+            "isPrimaryUser": true,
+            "mappingStatus": "CONFIRMED"
+        },
+        "vin": "WBA00000000000U11"
+    }
+]

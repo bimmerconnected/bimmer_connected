@@ -17,6 +17,7 @@ from . import (
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
+    VIN_U11,
     get_deprecation_warning_count,
 )
 from .conftest import prepare_account_with_vehicles
@@ -58,6 +59,9 @@ async def test_drive_train(caplog, bmw_fixture: respx.Router):
     vehicle = account.get_vehicle(VIN_I01_REX)
     assert DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER == vehicle.drive_train
 
+    vehicle = account.get_vehicle(VIN_U11)
+    assert DriveTrainType.ELECTRIC == vehicle.drive_train
+
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
@@ -93,6 +97,7 @@ async def test_drive_train_attributes(caplog, bmw_fixture: respx.Router):
         VIN_I01_NOREX: (False, True),
         VIN_I01_REX: (True, True),
         VIN_I20: (False, True),
+        VIN_U11: (False, True),
     }
 
     for vehicle in account.vehicles:

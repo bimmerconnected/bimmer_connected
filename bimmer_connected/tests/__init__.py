@@ -22,10 +22,13 @@ VIN_G70 = "WBA00000000DEMO05"
 VIN_I01_NOREX = "WBY000000NOREXI01"
 VIN_I01_REX = "WBY00000000REXI01"
 VIN_I20 = "WBA00000000DEMO01"
+VIN_U11 = "WBA00000000000U11"
 
 ALL_VEHICLES: Dict[str, List[Dict]] = {brand.value: [] for brand in CarBrands}
 ALL_STATES: Dict[str, Dict] = {}
 ALL_CHARGING_SETTINGS: Dict[str, Dict] = {}
+ALL_CHARGING_STATISTICS: Dict[str, Dict] = {}
+ALL_CHARGING_SESSIONS: Dict[str, Dict] = {}
 
 REMOTE_SERVICE_RESPONSE_INITIATED = RESPONSE_DIR / "remote_services" / "eadrax_service_initiated.json"
 REMOTE_SERVICE_RESPONSE_PENDING = RESPONSE_DIR / "remote_services" / "eadrax_service_pending.json"
@@ -58,6 +61,12 @@ for state in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles_state_*.json"):
 
 for charging_setting in RESPONSE_DIR.rglob("*-eadrax-crccs_v2_vehicles_*.json"):
     ALL_CHARGING_SETTINGS[charging_setting.stem.split("_")[-1]] = load_response(charging_setting)
+
+for charging_statistics in RESPONSE_DIR.rglob("*-eadrax-chs_v1_charging-statistics_*.json"):
+    ALL_CHARGING_STATISTICS[charging_statistics.stem.split("_")[-1]] = load_response(charging_statistics)
+
+for charging_sessions in RESPONSE_DIR.rglob("*-eadrax-chs_v1_charging-sessions_W*.json"):
+    ALL_CHARGING_SESSIONS[charging_sessions.stem.split("_")[-1]] = load_response(charging_sessions)
 
 
 def get_deprecation_warning_count(caplog):
