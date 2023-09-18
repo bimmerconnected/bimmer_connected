@@ -23,7 +23,6 @@ from . import (
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
-    VIN_U11,
     get_deprecation_warning_count,
 )
 from .conftest import prepare_account_with_vehicles

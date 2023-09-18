@@ -334,5 +334,6 @@ async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
 
 
 def test_charging_type_unknown():
-    unknown_charging_type = ChargingType("ABCs")
+    """Test if unknown charging types are handled by assigning ChargingType.UNKNOWN."""
+    unknown_charging_type = ChargingType("SUPER_DUPER_HYPER_CHARGER")
     assert unknown_charging_type == ChargingType.UNKNOWN
