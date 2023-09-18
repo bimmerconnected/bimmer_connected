@@ -154,7 +154,8 @@ class MyBMWAccount:
                         params={
                             "vin": vehicle.vin,
                             # TODO: This yields the full date range with data: "include_date_picker": "true",
-                            "date": datetime.datetime.utcnow().isoformat(),  # "2023-04-01T00:00:00Z", Setting this will give session data for that month
+                            # "2023-04-01T00:00:00Z", Setting this will give session data for that month
+                            "date": datetime.datetime.utcnow().isoformat(),
                         },
                         headers={
                             **client.generate_default_header(vehicle.brand),
@@ -164,7 +165,8 @@ class MyBMWAccount:
                     charging_sessions = charging_sessions_response.json()
 
                     async def get_charging_session(id: str):
-                        """Get single charging session by ID
+                        """Get single charging session by ID.
+
                         :param id: the charging session ID
                         :return: Charging session details
                         """

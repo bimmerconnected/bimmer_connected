@@ -9,7 +9,6 @@ from bimmer_connected.const import (
     ATTR_CAPABILITIES,
     ATTR_CHARGING_SETTINGS,
     ATTR_CHARGING_STATISTICS,
-    ATTR_CHARGING_SESSIONS,
     ATTR_STATE,
     VEHICLE_IMAGE_URL,
     CarBrands,

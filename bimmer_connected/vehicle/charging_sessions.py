@@ -1,8 +1,7 @@
 """Models the charging sessions."""
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 
 from bimmer_connected.const import ATTR_STATE
 from bimmer_connected.models import VehicleDataBase, StrEnum
@@ -26,7 +25,7 @@ class ChargingType(StrEnum):
 class ChargingSessions(VehicleDataBase):
     """Provides an accessible version of `charging_sessions`."""
 
-    charging_session_count: int = None
+    charging_session_count: int
     """Total number of charging sessions."""
 
     charging_sessions: list = field(default_factory=lambda: [])
