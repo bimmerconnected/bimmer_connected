@@ -313,22 +313,23 @@ async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
     if not status:
         pytest.skip("No charging sessions available")
 
-    assert status.charging_session_count == "6"
-    assert status.charging_sessions[0]["status"] == "FINISHED"
-    assert status.charging_sessions[0]["description"] == "9/3/2023 15:47 • some_road • duration • -- EUR"
-    assert status.charging_sessions[0]["address"] == "N/A"
-    assert status.charging_sessions[0]["charging_type"] == "N/A"
-    assert status.charging_sessions[0]["soc_start"] == "N/A"
-    assert status.charging_sessions[0]["soc_end"] == "N/A"
-    assert status.charging_sessions[0]["energy_charged"] == "N/A"
-    assert status.charging_sessions[0]["date_start"] == "N/A"
-    assert status.charging_sessions[0]["date_end"] == "N/A"
-    assert status.charging_sessions[0]["duration"] == "N/A"
-    assert status.charging_sessions[0]["charging_speed_min"] == "N/A"
-    assert status.charging_sessions[0]["charging_speed_max"] == "N/A"
-    assert status.charging_sessions[0]["public"] is True
-    assert status.charging_sessions[0]["pre_condition"] == "N/A"
-    assert status.charging_sessions[0]["mileage"] == "N/A"
+    assert status.charging_session_count == 6
+    assert status.charging_sessions[0].status == "FINISHED"
+    assert status.charging_sessions[0].description == "9/3/2023 15:47 • some_road • duration • -- EUR"
+    assert status.charging_sessions[0].address == "N/A"
+    assert status.charging_sessions[0].charging_type == "N/A"
+    assert status.charging_sessions[0].soc_start == "N/A"
+    assert status.charging_sessions[0].soc_end == "N/A"
+    assert status.charging_sessions[0].energy_charged == "N/A"
+    assert status.charging_sessions[0].time_start == "N/A"
+    assert status.charging_sessions[0].time_end == "N/A"
+    assert status.charging_sessions[0].duration == "N/A"
+    assert status.charging_sessions[0].power_avg == "N/A"
+    assert status.charging_sessions[0].power_min == "N/A"
+    assert status.charging_sessions[0].power_max == "N/A"
+    assert status.charging_sessions[0].public is True
+    assert status.charging_sessions[0].pre_condition == "N/A"
+    assert status.charging_sessions[0].mileage == "N/A"
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
