@@ -8,9 +8,9 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.const import Regions
 
 from . import (
+    ALL_CHARGING_SESSIONS,
     ALL_CHARGING_SETTINGS,
     ALL_CHARGING_STATISTICS,
-    ALL_CHARGING_SESSIONS,
     ALL_STATES,
     TEST_PASSWORD,
     TEST_REGION,

@@ -16,8 +16,8 @@ from bimmer_connected.const import (
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
-from bimmer_connected.vehicle.charging_statistics import ChargingStatistics
 from bimmer_connected.vehicle.charging_sessions import ChargingSessions
+from bimmer_connected.vehicle.charging_statistics import ChargingStatistics
 from bimmer_connected.vehicle.climate import Climate
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows

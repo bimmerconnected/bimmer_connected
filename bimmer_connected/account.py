@@ -13,10 +13,10 @@ from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import (
     ATTR_CAPABILITIES,
     VEHICLE_CHARGING_DETAILS_URL,
+    VEHICLE_CHARGING_SESSIONS_URL,
+    VEHICLE_CHARGING_STATISTICS_URL,
     VEHICLE_STATE_URL,
     VEHICLES_URL,
-    VEHICLE_CHARGING_STATISTICS_URL,
-    VEHICLE_CHARGING_SESSIONS_URL,
     CarBrands,
 )
 from bimmer_connected.models import AnonymizedResponse, GPSPosition

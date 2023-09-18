@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict
 
 from bimmer_connected.const import ATTR_STATE
-from bimmer_connected.models import VehicleDataBase, StrEnum
+from bimmer_connected.models import StrEnum, VehicleDataBase
 
 
 class ChargingType(StrEnum):
