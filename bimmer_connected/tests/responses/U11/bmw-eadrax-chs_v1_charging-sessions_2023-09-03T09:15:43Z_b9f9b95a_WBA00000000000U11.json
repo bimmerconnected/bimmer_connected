@@ -1,0 +1,348 @@
+{
+    "address": "Rasthausstra\u00dfe 3 4300 St. Valentin ",
+    "chargingBlocks": {
+        "average": 103.49997892311151,
+        "chargingBlockList": [
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-03T11:16:00Z",
+                "startTime": "2023-09-03T11:15:59Z"
+            },
+            {
+                "averagePowerGridKw": 34.0999755859375,
+                "endTime": "2023-09-03T11:16:02Z",
+                "startTime": "2023-09-03T11:16:00Z"
+            },
+            {
+                "averagePowerGridKw": 34.0999755859375,
+                "endTime": "2023-09-03T11:16:32Z",
+                "startTime": "2023-09-03T11:16:02Z"
+            },
+            {
+                "averagePowerGridKw": 124.2000732421875,
+                "endTime": "2023-09-03T11:17:02Z",
+                "startTime": "2023-09-03T11:16:32Z"
+            },
+            {
+                "averagePowerGridKw": 125.300048828125,
+                "endTime": "2023-09-03T11:17:32Z",
+                "startTime": "2023-09-03T11:17:02Z"
+            },
+            {
+                "averagePowerGridKw": 125.9500732421875,
+                "endTime": "2023-09-03T11:18:02Z",
+                "startTime": "2023-09-03T11:17:32Z"
+            },
+            {
+                "averagePowerGridKw": 126.3499755859375,
+                "endTime": "2023-09-03T11:18:32Z",
+                "startTime": "2023-09-03T11:18:02Z"
+            },
+            {
+                "averagePowerGridKw": 126.800048828125,
+                "endTime": "2023-09-03T11:19:02Z",
+                "startTime": "2023-09-03T11:18:32Z"
+            },
+            {
+                "averagePowerGridKw": 127.25,
+                "endTime": "2023-09-03T11:19:32Z",
+                "startTime": "2023-09-03T11:19:02Z"
+            },
+            {
+                "averagePowerGridKw": 127.550048828125,
+                "endTime": "2023-09-03T11:20:02Z",
+                "startTime": "2023-09-03T11:19:32Z"
+            },
+            {
+                "averagePowerGridKw": 128.050048828125,
+                "endTime": "2023-09-03T11:20:32Z",
+                "startTime": "2023-09-03T11:20:02Z"
+            },
+            {
+                "averagePowerGridKw": 126.800048828125,
+                "endTime": "2023-09-03T11:21:02Z",
+                "startTime": "2023-09-03T11:20:32Z"
+            },
+            {
+                "averagePowerGridKw": 125.9000244140625,
+                "endTime": "2023-09-03T11:21:32Z",
+                "startTime": "2023-09-03T11:21:02Z"
+            },
+            {
+                "averagePowerGridKw": 125.4500732421875,
+                "endTime": "2023-09-03T11:22:02Z",
+                "startTime": "2023-09-03T11:21:32Z"
+            },
+            {
+                "averagePowerGridKw": 124.75,
+                "endTime": "2023-09-03T11:22:32Z",
+                "startTime": "2023-09-03T11:22:02Z"
+            },
+            {
+                "averagePowerGridKw": 125.050048828125,
+                "endTime": "2023-09-03T11:23:02Z",
+                "startTime": "2023-09-03T11:22:32Z"
+            },
+            {
+                "averagePowerGridKw": 124.9500732421875,
+                "endTime": "2023-09-03T11:23:32Z",
+                "startTime": "2023-09-03T11:23:02Z"
+            },
+            {
+                "averagePowerGridKw": 125.0,
+                "endTime": "2023-09-03T11:24:02Z",
+                "startTime": "2023-09-03T11:23:32Z"
+            },
+            {
+                "averagePowerGridKw": 124.7000732421875,
+                "endTime": "2023-09-03T11:24:32Z",
+                "startTime": "2023-09-03T11:24:02Z"
+            },
+            {
+                "averagePowerGridKw": 124.4000244140625,
+                "endTime": "2023-09-03T11:25:02Z",
+                "startTime": "2023-09-03T11:24:32Z"
+            },
+            {
+                "averagePowerGridKw": 124.0,
+                "endTime": "2023-09-03T11:25:32Z",
+                "startTime": "2023-09-03T11:25:02Z"
+            },
+            {
+                "averagePowerGridKw": 123.800048828125,
+                "endTime": "2023-09-03T11:26:02Z",
+                "startTime": "2023-09-03T11:25:32Z"
+            },
+            {
+                "averagePowerGridKw": 123.5,
+                "endTime": "2023-09-03T11:26:32Z",
+                "startTime": "2023-09-03T11:26:02Z"
+            },
+            {
+                "averagePowerGridKw": 122.7000732421875,
+                "endTime": "2023-09-03T11:27:02Z",
+                "startTime": "2023-09-03T11:26:32Z"
+            },
+            {
+                "averagePowerGridKw": 121.9500732421875,
+                "endTime": "2023-09-03T11:27:32Z",
+                "startTime": "2023-09-03T11:27:02Z"
+            },
+            {
+                "averagePowerGridKw": 120.9500732421875,
+                "endTime": "2023-09-03T11:28:02Z",
+                "startTime": "2023-09-03T11:27:32Z"
+            },
+            {
+                "averagePowerGridKw": 120.4000244140625,
+                "endTime": "2023-09-03T11:28:32Z",
+                "startTime": "2023-09-03T11:28:02Z"
+            },
+            {
+                "averagePowerGridKw": 119.5,
+                "endTime": "2023-09-03T11:29:02Z",
+                "startTime": "2023-09-03T11:28:32Z"
+            },
+            {
+                "averagePowerGridKw": 119.9500732421875,
+                "endTime": "2023-09-03T11:29:32Z",
+                "startTime": "2023-09-03T11:29:02Z"
+            },
+            {
+                "averagePowerGridKw": 120.25,
+                "endTime": "2023-09-03T11:30:02Z",
+                "startTime": "2023-09-03T11:29:32Z"
+            },
+            {
+                "averagePowerGridKw": 116.2000732421875,
+                "endTime": "2023-09-03T11:30:32Z",
+                "startTime": "2023-09-03T11:30:02Z"
+            },
+            {
+                "averagePowerGridKw": 112.3499755859375,
+                "endTime": "2023-09-03T11:31:02Z",
+                "startTime": "2023-09-03T11:30:32Z"
+            },
+            {
+                "averagePowerGridKw": 108.800048828125,
+                "endTime": "2023-09-03T11:31:32Z",
+                "startTime": "2023-09-03T11:31:02Z"
+            },
+            {
+                "averagePowerGridKw": 105.5999755859375,
+                "endTime": "2023-09-03T11:32:02Z",
+                "startTime": "2023-09-03T11:31:32Z"
+            },
+            {
+                "averagePowerGridKw": 103.2000732421875,
+                "endTime": "2023-09-03T11:32:32Z",
+                "startTime": "2023-09-03T11:32:02Z"
+            },
+            {
+                "averagePowerGridKw": 100.8499755859375,
+                "endTime": "2023-09-03T11:33:02Z",
+                "startTime": "2023-09-03T11:32:32Z"
+            },
+            {
+                "averagePowerGridKw": 98.2000732421875,
+                "endTime": "2023-09-03T11:33:32Z",
+                "startTime": "2023-09-03T11:33:02Z"
+            },
+            {
+                "averagePowerGridKw": 95.800048828125,
+                "endTime": "2023-09-03T11:34:02Z",
+                "startTime": "2023-09-03T11:33:32Z"
+            },
+            {
+                "averagePowerGridKw": 93.7000732421875,
+                "endTime": "2023-09-03T11:34:32Z",
+                "startTime": "2023-09-03T11:34:02Z"
+            },
+            {
+                "averagePowerGridKw": 91.7000732421875,
+                "endTime": "2023-09-03T11:35:02Z",
+                "startTime": "2023-09-03T11:34:32Z"
+            },
+            {
+                "averagePowerGridKw": 89.25,
+                "endTime": "2023-09-03T11:35:32Z",
+                "startTime": "2023-09-03T11:35:02Z"
+            },
+            {
+                "averagePowerGridKw": 87.2000732421875,
+                "endTime": "2023-09-03T11:36:02Z",
+                "startTime": "2023-09-03T11:35:32Z"
+            },
+            {
+                "averagePowerGridKw": 85.4500732421875,
+                "endTime": "2023-09-03T11:36:32Z",
+                "startTime": "2023-09-03T11:36:02Z"
+            },
+            {
+                "averagePowerGridKw": 84.0999755859375,
+                "endTime": "2023-09-03T11:37:02Z",
+                "startTime": "2023-09-03T11:36:32Z"
+            },
+            {
+                "averagePowerGridKw": 82.2000732421875,
+                "endTime": "2023-09-03T11:37:32Z",
+                "startTime": "2023-09-03T11:37:02Z"
+            },
+            {
+                "averagePowerGridKw": 80.800048828125,
+                "endTime": "2023-09-03T11:38:02Z",
+                "startTime": "2023-09-03T11:37:32Z"
+            },
+            {
+                "averagePowerGridKw": 80.5999755859375,
+                "endTime": "2023-09-03T11:38:32Z",
+                "startTime": "2023-09-03T11:38:02Z"
+            },
+            {
+                "averagePowerGridKw": 80.800048828125,
+                "endTime": "2023-09-03T11:39:02Z",
+                "startTime": "2023-09-03T11:38:32Z"
+            },
+            {
+                "averagePowerGridKw": 79.4000244140625,
+                "endTime": "2023-09-03T11:39:32Z",
+                "startTime": "2023-09-03T11:39:02Z"
+            },
+            {
+                "averagePowerGridKw": 77.1500244140625,
+                "endTime": "2023-09-03T11:40:02Z",
+                "startTime": "2023-09-03T11:39:32Z"
+            },
+            {
+                "averagePowerGridKw": 76.4500732421875,
+                "endTime": "2023-09-03T11:41:02Z",
+                "startTime": "2023-09-03T11:40:02Z"
+            },
+            {
+                "averagePowerGridKw": 70.4500732421875,
+                "endTime": "2023-09-03T11:41:32Z",
+                "startTime": "2023-09-03T11:41:02Z"
+            },
+            {
+                "averagePowerGridKw": 68.9500732421875,
+                "endTime": "2023-09-03T11:42:02Z",
+                "startTime": "2023-09-03T11:41:32Z"
+            },
+            {
+                "averagePowerGridKw": 68.0999755859375,
+                "endTime": "2023-09-03T11:42:32Z",
+                "startTime": "2023-09-03T11:42:02Z"
+            },
+            {
+                "averagePowerGridKw": 67.550048828125,
+                "endTime": "2023-09-03T11:43:02Z",
+                "startTime": "2023-09-03T11:42:32Z"
+            },
+            {
+                "averagePowerGridKw": 58.7000732421875,
+                "endTime": "2023-09-03T11:43:32Z",
+                "startTime": "2023-09-03T11:43:02Z"
+            },
+            {
+                "averagePowerGridKw": 42.7000732421875,
+                "endTime": "2023-09-03T11:43:48Z",
+                "startTime": "2023-09-03T11:43:32Z"
+            },
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-03T11:43:49Z",
+                "startTime": "2023-09-03T11:43:48Z"
+            }
+        ],
+        "max": 128.050048828125,
+        "min": 34.0999755859375
+    },
+    "chargingSessionState": "FINISHED",
+    "chargingType": "DC",
+    "closestChargingStation": {
+        "countryCode": "AT",
+        "providerId": "209",
+        "providerName": "HPC/DC IONITY GmbH",
+        "providerPoiId": "AT:DCS:POOL:5cec11b9-dc78-364e-b12a-378d380ff229",
+        "streetAddress": "Rasthausstra\u00dfe 3"
+    },
+    "date": "9/3/2023 11:15",
+    "duration": "27 min",
+    "endBatteryPc": "80%",
+    "endChargingColour": "BLUE",
+    "endDate": "9/3/2023 11:43",
+    "energyCharged": "~ 48 kWh",
+    "energyChargedSign": "~",
+    "energyChargedUnit": "kWh",
+    "energyChargedValue": 48.149993896484375,
+    "id": "2023-09-03T09:15:43Z_b9f9b95a",
+    "isGpsTrackingEnabled": true,
+    "isLocationAvailable": true,
+    "isPlausible": true,
+    "isPreferred": false,
+    "isPublic": true,
+    "locationName": "HPC/DC IONITY GmbH",
+    "locationType": "UNKNOWN",
+    "plugType": {
+        "icon": "COMBO_2",
+        "text": "Combo 2"
+    },
+    "preCondition": "On",
+    "savings": "0 EUR",
+    "sessionCost": {
+        "areTariffsSupported": true,
+        "costPerKwh": 0.3499999999999999,
+        "currency": "EUR",
+        "isEstimation": true,
+        "value": 16.85249786376953
+    },
+    "startBatteryPc": "8%",
+    "startChargingColour": "BLUE",
+    "startDate": "9/3/2023 11:15",
+    "totalCost": {
+        "cost": "~ 16,85 EUR",
+        "hasTariff": true
+    },
+    "totalMileage": "6,696 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:48.19693:14.5286"
+}

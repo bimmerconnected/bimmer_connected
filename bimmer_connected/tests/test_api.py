@@ -71,7 +71,7 @@ async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router):
     json_files = [f for f in files if f.suffix == ".json"]
     txt_files = [f for f in files if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 1)
+    assert len(json_files) == (get_fingerprint_count() + 0)
     assert len(txt_files) == 1
 
 

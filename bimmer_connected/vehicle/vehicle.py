@@ -8,6 +8,7 @@ from bimmer_connected.const import (
     ATTR_ATTRIBUTES,
     ATTR_CAPABILITIES,
     ATTR_CHARGING_SETTINGS,
+    ATTR_CHARGING_STATISTICS,
     ATTR_STATE,
     VEHICLE_IMAGE_URL,
     CarBrands,
@@ -15,6 +16,8 @@ from bimmer_connected.const import (
 from bimmer_connected.models import StrEnum, ValueWithUnit
 from bimmer_connected.utils import parse_datetime
 from bimmer_connected.vehicle.charging_profile import ChargingProfile
+from bimmer_connected.vehicle.charging_sessions import ChargingSessions
+from bimmer_connected.vehicle.charging_statistics import ChargingStatistics
 from bimmer_connected.vehicle.climate import Climate
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
@@ -74,11 +77,15 @@ class MyBMWVehicle:
         vehicle_base: dict,
         vehicle_state: Optional[dict] = None,
         charging_settings: Optional[dict] = None,
+        charging_statistics: Optional[dict] = None,
+        charging_sessions: Optional[dict] = None,
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Initialize a MyBMWVehicle."""
         self.account = account
-        self.data = self.combine_data(account, vehicle_base, vehicle_state, charging_settings, fetched_at)
+        self.data = self.combine_data(
+            account, vehicle_base, vehicle_state, charging_settings, charging_statistics, charging_sessions, fetched_at
+        )
         self.remote_services = RemoteServices(self)
         self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
         self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
@@ -87,19 +94,33 @@ class MyBMWVehicle:
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
         self.climate: Climate = Climate(account_timezone=account.timezone)
         self.charging_profile: Optional[ChargingProfile] = None
+        self.charging_statistics: Optional[ChargingStatistics] = None
+        self.charging_sessions: Optional[ChargingSessions] = None
         self.tires: Optional[Tires] = None
 
-        self.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
+        self.update_state(
+            vehicle_base, vehicle_state, charging_settings, charging_statistics, charging_sessions, fetched_at
+        )
 
     def update_state(
         self,
         vehicle_base: dict,
         vehicle_state: Optional[dict] = None,
         charging_settings: Optional[dict] = None,
+        charging_statistics: Optional[dict] = None,
+        charging_sessions: Optional[dict] = None,
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Update the state of a vehicle."""
-        vehicle_data = self.combine_data(self.account, vehicle_base, vehicle_state, charging_settings, fetched_at)
+        vehicle_data = self.combine_data(
+            self.account,
+            vehicle_base,
+            vehicle_state,
+            charging_settings,
+            charging_statistics,
+            charging_sessions,
+            fetched_at,
+        )
         self.data = vehicle_data
 
         update_entities: List[Tuple[Type["VehicleDataBase"], str]] = [
@@ -110,6 +131,8 @@ class MyBMWVehicle:
             (CheckControlMessageReport, "check_control_messages"),
             (Climate, "climate"),
             (ChargingProfile, "charging_profile"),
+            (ChargingStatistics, "charging_statistics"),
+            (ChargingSessions, "charging_sessions"),
             (Tires, "tires"),
         ]
         for cls, vehicle_attribute in update_entities:
@@ -125,6 +148,8 @@ class MyBMWVehicle:
         vehicle_base: dict,
         vehicle_state: Optional[dict],
         charging_settings: Optional[dict],
+        charging_statistics: Optional[dict],
+        charging_sessions: Optional[dict],
         fetched_at: Optional[datetime.datetime] = None,
     ) -> Dict:
         """Combine API responses and additional information to a single dictionary."""
@@ -132,6 +157,8 @@ class MyBMWVehicle:
             **vehicle_base,
             **(vehicle_state or {}),
             ATTR_CHARGING_SETTINGS: charging_settings or {},
+            ATTR_CHARGING_STATISTICS: charging_statistics or {},
+            **(charging_sessions or {}),
             "is_metric": account.config.use_metric_units,
             "fetched_at": fetched_at or datetime.datetime.now(datetime.timezone.utc),
         }

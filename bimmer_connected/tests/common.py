@@ -63,16 +63,22 @@ class MyBMWMockRouter(respx.MockRouter):
         vehicles_to_load: Optional[List[str]] = None,
         states: Optional[Dict[str, Dict]] = None,
         charging_settings: Optional[Dict[str, Dict]] = None,
+        charging_statistics: Optional[Dict[str, Dict]] = None,
+        charging_sessions: Optional[Dict[str, Dict]] = None,
     ) -> None:
         """Initialize the MyBMWMockRouter with clean responses."""
         super().__init__(assert_all_called=False)
         self.vehicles_to_load = vehicles_to_load or []
         self.states = deepcopy(states) if states else {}
         self.charging_settings = deepcopy(charging_settings) if charging_settings else {}
+        self.charging_statistics = deepcopy(charging_statistics) if charging_statistics else {}
+        self.charging_sessions = deepcopy(charging_sessions) if charging_sessions else {}
 
         self.add_login_routes()
         self.add_vehicle_routes()
         self.add_remote_service_routes()
+        self.add_charging_statistics_routes()
+        self.add_charging_sessions_routes()
 
     # # # # # # # # # # # # # # # # # # # # # # # #
     # Routes
@@ -142,6 +148,20 @@ class MyBMWMockRouter(respx.MockRouter):
             json=load_response(REMOTE_SERVICE_RESPONSE_EVENTPOSITION),
         )
 
+    def add_charging_statistics_routes(self) -> None:
+        """Add routes for charging statistics."""
+
+        self.get("/eadrax-chs/v1/charging-statistics").mock(side_effect=self.vehicle_charging_statistics_sideeffect)
+
+    def add_charging_sessions_routes(self) -> None:
+        """Add routes for charging sessions."""
+
+        self.get("/eadrax-chs/v1/charging-sessions").mock(side_effect=self.vehicle_charging_sessions_sideeffect)
+
+        self.get(path__regex=r"/eadrax-chs/v1/charging-sessions/(?P<id>.+)").mock(
+            side_effect=self.vehicle_charging_session_details_sideeffect
+        )
+
     # # # # # # # # # # # # # # # # # # # # # # # #
     # Authentication sideeffects
     # # # # # # # # # # # # # # # # # # # # # # # #
@@ -204,6 +224,44 @@ class MyBMWMockRouter(respx.MockRouter):
             return httpx.Response(200, json=self.charging_settings[request.headers["bmw-vin"]])
         except KeyError:
             return httpx.Response(404)
+
+    # # # # # # # # # # # # # # # # # # # # # # # #
+    # Charging statistics and session sideeffects
+    # # # # # # # # # # # # # # # # # # # # # # # #
+
+    def vehicle_charging_statistics_sideeffect(self, request: httpx.Request) -> httpx.Response:
+        """Return /eadrax-chs/v1/charging-statistics based on vin."""
+        x_user_agent = request.headers.get("x-user-agent", "").split(";")
+        assert len(x_user_agent) == 4
+        assert "vin" in request.url.params
+        assert "currentDate" in request.url.params
+
+        try:
+            return httpx.Response(200, json=self.charging_statistics[request.headers["bmw-vin"]])
+        except KeyError:
+            return httpx.Response(200, json={})
+
+    def vehicle_charging_sessions_sideeffect(self, request: httpx.Request) -> httpx.Response:
+        """Return /eadrax-chs/v1/charging-statistics based on vin."""
+        x_user_agent = request.headers.get("x-user-agent", "").split(";")
+        assert len(x_user_agent) == 4
+        assert "vin" in request.url.params
+        assert "date" in request.url.params
+
+        try:
+            return httpx.Response(200, json=self.charging_sessions[request.headers["bmw-vin"]]["root"])
+        except KeyError:
+            return httpx.Response(200, json={})
+
+    def vehicle_charging_session_details_sideeffect(self, request: httpx.Request, id) -> httpx.Response:
+        """Return /eadrax-chs/v1/charging-statistics based on vin."""
+        x_user_agent = request.headers.get("x-user-agent", "").split(";")
+        assert len(x_user_agent) == 4
+
+        try:
+            return httpx.Response(200, json=self.charging_sessions[request.headers["bmw-vin"]]["details"][id])
+        except KeyError:
+            return httpx.Response(200, json={})
 
     # # # # # # # # # # # # # # # # # # # # # # # #
     # Remote service sideeffects

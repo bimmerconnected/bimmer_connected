@@ -1,0 +1,106 @@
+{
+    "address": "EDUARD-KLEIN-GASSE 1 1130 WIEN ",
+    "chargingBlocks": {
+        "average": 15.536152860078737,
+        "chargingBlockList": [
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-01T12:12:34Z",
+                "startTime": "2023-09-01T12:12:33Z"
+            },
+            {
+                "averagePowerGridKw": 19.60003662109375,
+                "endTime": "2023-09-01T12:19:32Z",
+                "startTime": "2023-09-01T12:12:34Z"
+            },
+            {
+                "averagePowerGridKw": 19.85003662109375,
+                "endTime": "2023-09-01T12:42:23Z",
+                "startTime": "2023-09-01T12:19:32Z"
+            },
+            {
+                "averagePowerGridKw": 20.20001220703125,
+                "endTime": "2023-09-01T13:00:50Z",
+                "startTime": "2023-09-01T12:42:23Z"
+            },
+            {
+                "averagePowerGridKw": 20.5,
+                "endTime": "2023-09-01T13:15:06Z",
+                "startTime": "2023-09-01T13:00:50Z"
+            },
+            {
+                "averagePowerGridKw": 20.75,
+                "endTime": "2023-09-01T13:28:08Z",
+                "startTime": "2023-09-01T13:15:06Z"
+            },
+            {
+                "averagePowerGridKw": 11.35003662109375,
+                "endTime": "2023-09-01T13:49:08.25Z",
+                "startTime": "2023-09-01T13:28:08Z"
+            },
+            {
+                "averagePowerGridKw": 11.35003662109375,
+                "endTime": "2023-09-01T14:10:08.5Z",
+                "startTime": "2023-09-01T13:49:08.25Z"
+            },
+            {
+                "averagePowerGridKw": 11.35003662109375,
+                "endTime": "2023-09-01T14:31:08.75Z",
+                "startTime": "2023-09-01T14:10:08.5Z"
+            },
+            {
+                "averagePowerGridKw": 11.35003662109375,
+                "endTime": "2023-09-01T14:52:09Z",
+                "startTime": "2023-09-01T14:31:08.75Z"
+            },
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-01T14:52:10Z",
+                "startTime": "2023-09-01T14:52:09Z"
+            }
+        ],
+        "max": 20.75,
+        "min": 11.35003662109375
+    },
+    "chargingSessionState": "FINISHED",
+    "chargingType": "AC_HIGH",
+    "closestChargingStation": {
+        "countryCode": "AT",
+        "providerId": "209",
+        "providerName": "AC Wien Energie GmbH",
+        "providerPoiId": "AT:DCS:POOL:da0bfd28-6356-3182-b9e7-e5de2c4c2f49",
+        "streetAddress": "EDUARD-KLEIN-GASSE 1"
+    },
+    "date": "9/1/2023 12:10",
+    "duration": "2h 39min",
+    "endBatteryPc": "72%",
+    "endChargingColour": "BLUE",
+    "endDate": "9/1/2023 14:52",
+    "energyCharged": "~ 42 kWh",
+    "energyChargedSign": "~",
+    "energyChargedUnit": "kWh",
+    "energyChargedValue": 41.55999755859375,
+    "id": "2023-09-01T10:11:01Z_b9f9b95a",
+    "isGpsTrackingEnabled": true,
+    "isLocationAvailable": true,
+    "isPlausible": true,
+    "isPreferred": false,
+    "isPublic": true,
+    "locationName": "AC Wien Energie GmbH",
+    "locationType": "UNKNOWN",
+    "preCondition": "On",
+    "sessionCost": {
+        "areTariffsSupported": true,
+        "currency": "EUR",
+        "isEstimation": true
+    },
+    "startBatteryPc": "12%",
+    "startChargingColour": "BLUE",
+    "startDate": "9/1/2023 12:10",
+    "totalCost": {
+        "cost": "Add cost",
+        "hasTariff": false
+    },
+    "totalMileage": "6,506 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:48.1877:16.30281"
+}
