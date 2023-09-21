@@ -361,3 +361,22 @@ def test_charging_type():
 
     unknown_charging_type = ChargingType("SUPER_DUPER_HYPER_CHARGER")
     assert unknown_charging_type == ChargingType.UNKNOWN
+
+
+@pytest.mark.asyncio
+async def test_headunit_data(caplog, bmw_fixture: respx.Router):
+    """Test if the parsing of headunit is working."""
+
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I20).headunit
+
+    assert status.idrive_version == "ID8"
+    assert status.headunit_type == "MGU"
+    assert status.software_version == "07/2021.00"
+
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31).headunit
+
+    assert status.idrive_version == "ID4"
+    assert status.headunit_type == "NBT"
+    assert status.software_version == "11/2013.02"
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
