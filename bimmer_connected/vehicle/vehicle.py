@@ -21,7 +21,7 @@ from bimmer_connected.vehicle.doors_windows import DoorsAndWindows
 from bimmer_connected.vehicle.fuel_and_battery import FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
 from bimmer_connected.vehicle.remote_services import RemoteServices
-from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport
+from bimmer_connected.vehicle.reports import CheckControlMessageReport, ConditionBasedServiceReport, Headunit
 from bimmer_connected.vehicle.tires import Tires
 
 if TYPE_CHECKING:
@@ -84,6 +84,7 @@ class MyBMWVehicle:
         self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
         self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
         self.condition_based_services: ConditionBasedServiceReport = ConditionBasedServiceReport()
+        self.headunit: Headunit = Headunit()
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
         self.climate: Climate = Climate(account_timezone=account.timezone)
         self.charging_profile: Optional[ChargingProfile] = None
@@ -108,6 +109,7 @@ class MyBMWVehicle:
             (DoorsAndWindows, "doors_and_windows"),
             (ConditionBasedServiceReport, "condition_based_services"),
             (CheckControlMessageReport, "check_control_messages"),
+            (Headunit, "headunit"),
             (Climate, "climate"),
             (ChargingProfile, "charging_profile"),
             (Tires, "tires"),
