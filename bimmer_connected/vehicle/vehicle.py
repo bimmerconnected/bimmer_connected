@@ -248,6 +248,16 @@ class MyBMWVehicle:
         return bool(self.charging_statistics)
 
     @property
+    def charging_session_count(self):
+        """Return number of charging events for this month."""
+        return self.charging_statistics.charging_session_count
+
+    @property
+    def total_energy_charged(self):
+        """Return total energy charged for this month."""
+        return self.charging_statistics.total_energy_charged
+
+    @property
     def is_charging_sessions_supported(self) -> bool:
         """Return True if charging sessions are available.
 
@@ -386,6 +396,13 @@ class MyBMWVehicle:
             ]
             # required for existing Home Assistant binary sensors
             result += ["lids", "windows"]
+
+        if self.is_charging_statistics_supported:
+            result += [
+                "total_energy_charged",
+                "charging_session_count",
+            ]
+
         return result
 
     # # # # # # # # # # # # # # #

@@ -25,6 +25,7 @@ async def test_drive_train(bmw_fixture: respx.Router):
     assert [
         "available_attributes",
         "brand",
+        "charging_session_count",
         "drive_train",
         "drive_train_attributes",
         "has_combustion_drivetrain",
@@ -51,6 +52,7 @@ async def test_drive_train(bmw_fixture: respx.Router):
         "name",
         "software_version",
         "timestamp",
+        "total_energy_charged",
         "vin",
     ] == get_class_property_names(vehicle)
 

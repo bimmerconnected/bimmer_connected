@@ -302,10 +302,16 @@ async def test_charging_statistics(caplog, bmw_fixture: respx.Router):
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
     assert status.charging_statistics == None
     assert status.is_charging_statistics_supported == False
+    assert "total_energy_charged" not in status.available_attributes
+    assert "charging_session_count" not in status.available_attributes
 
     # Car with statistics
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
     assert status.is_charging_statistics_supported == True
+    assert status.total_energy_charged == "168"
+    assert status.charging_session_count == "6"
+    assert "total_energy_charged" in status.available_attributes
+    assert "charging_session_count" in status.available_attributes
 
     status = status.charging_statistics
     assert status.charging_session_timeperiod == "September 2023"
