@@ -150,12 +150,13 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
     account = await prepare_account_with_vehicles()
 
     vehicle = account.get_vehicle(VIN_F31)
-    assert ["gps_position", "vin"] == vehicle.available_attributes
+    assert ["gps_position", "vin", "software_version"] == vehicle.available_attributes
 
     vehicle = account.get_vehicle(VIN_G01)
     assert [
         "gps_position",
         "vin",
+        "software_version",
         "remaining_range_total",
         "mileage",
         "charging_time_remaining",
@@ -187,6 +188,7 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
     assert [
         "gps_position",
         "vin",
+        "software_version",
         "remaining_range_total",
         "mileage",
         "charging_time_remaining",

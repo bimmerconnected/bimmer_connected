@@ -195,6 +195,11 @@ class MyBMWVehicle:
         return ValueWithUnit(self.data[ATTR_STATE].get("currentMileage", 0), "km" if self.data["is_metric"] else "mi")
 
     @property
+    def software_version(self) -> ValueWithUnit:
+        """Get the software version of the vehicle."""
+        return self.headunit.software_version
+
+    @property
     def timestamp(self) -> Optional[datetime.datetime]:
         """Get the timestamp when the data was recorded."""
         timestamps = [
@@ -353,7 +358,7 @@ class MyBMWVehicle:
     def available_attributes(self) -> List[str]:
         """Get the list of non-drivetrain attributes available for this vehicle."""
         # attributes available in all vehicles
-        result = ["gps_position", "vin"]
+        result = ["gps_position", "vin", "software_version"]
         if self.is_lsc_enabled:
             # generic attributes if lsc_type =! NOT_SUPPORTED
             result += self.drive_train_attributes
