@@ -71,7 +71,7 @@ async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router):
     json_files = [f for f in files if f.suffix == ".json"]
     txt_files = [f for f in files if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 0)
+    assert len(json_files) == (get_fingerprint_count() + 29)
     assert len(txt_files) == 1
 
 
@@ -82,10 +82,13 @@ async def test_fingerprint_deque(bmw_fixture: respx.Router):
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
     await account.get_vehicles()
+    await account.get_vehicles()
+    await account.get_vehicles()
+    await account.get_vehicles()
 
     # More than 10 calls were made, but only last 10 are stored
-    assert len([c for c in bmw_fixture.calls if c.request.url.path.startswith("/eadrax-vcs")]) > 10
-    assert len(account.get_stored_responses()) == 10
+    assert len([c for c in bmw_fixture.calls if c.request.url.path.startswith("/eadrax-vcs")]) > 45
+    assert len(account.get_stored_responses()) == 45
 
     # Stored responses are reset
     account.config.set_log_responses(False)
@@ -98,4 +101,4 @@ async def test_fingerprint_deque(bmw_fixture: respx.Router):
     # Get responses again
     account.config.set_log_responses(True)
     await account.get_vehicles()
-    assert len(account.get_stored_responses()) == 10
+    assert len(account.get_stored_responses()) == 36
