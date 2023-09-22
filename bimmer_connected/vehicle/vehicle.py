@@ -235,6 +235,22 @@ class MyBMWVehicle:
         return self.data[ATTR_CAPABILITIES].get("isChargingPlanSupported", False)
 
     @property
+    def is_charging_statistics_supported(self) -> bool:
+        """Return True if charging statistics are available.
+
+        In this case we can get the charging statistics in the state attributes.
+        """
+        return bool(self.charging_statistics)
+
+    @property
+    def is_charging_sessions_supported(self) -> bool:
+        """Return True if charging sessions are available.
+
+        In this case we can get the charging statistics in the state attributes.
+        """
+        return bool(self.charging_sessions)
+
+    @property
     def is_vehicle_tracking_enabled(self) -> bool:
         """Return True if vehicle finder is enabled in vehicle."""
         return self.data[ATTR_CAPABILITIES].get("vehicleFinder", False)
