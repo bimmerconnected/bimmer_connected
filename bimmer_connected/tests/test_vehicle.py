@@ -215,6 +215,37 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
         "windows",
     ] == vehicle.available_attributes
 
+    vehicle = account.get_vehicle(VIN_U11)
+    assert [
+        "gps_position",
+        "vin",
+        "software_version",
+        "remaining_range_total",
+        "mileage",
+        "charging_time_remaining",
+        "charging_start_time",
+        "charging_end_time",
+        "charging_time_label",
+        "charging_status",
+        "connection_status",
+        "remaining_battery_percent",
+        "remaining_range_electric",
+        "last_charging_end_result",
+        "ac_current_limit",
+        "charging_target",
+        "charging_mode",
+        "charging_preferences",
+        "is_pre_entry_climatization_enabled",
+        "condition_based_services",
+        "check_control_messages",
+        "door_lock_state",
+        "timestamp",
+        "lids",
+        "windows",
+        "total_energy_charged",
+        "charging_session_count",
+    ] == vehicle.available_attributes
+
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
@@ -306,6 +337,8 @@ async def test_charging_statistics(caplog, bmw_fixture: respx.Router):
     # Car with statistics
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
     assert status.is_charging_statistics_supported is True
+    assert status.charging_session_count == 6
+    assert status.total_energy_charged == 168
 
     status = status.charging_statistics
     assert status.charging_session_timeperiod == "September 2023"
