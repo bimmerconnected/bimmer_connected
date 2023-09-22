@@ -47,7 +47,6 @@ async def test_drive_train(bmw_fixture: respx.Router):
         "lsc_type",
         "mileage",
         "name",
-        "software_version",
         "timestamp",
         "vin",
     ] == get_class_property_names(vehicle)
