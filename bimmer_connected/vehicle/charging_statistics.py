@@ -25,7 +25,9 @@ class ChargingStatistics(VehicleDataBase):
         """Parse charging statistics."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_CHARGING_STATISTICS in vehicle_data and vehicle_data.get(ATTR_CHARGING_STATISTICS).get("description"):
+        if ATTR_CHARGING_STATISTICS in vehicle_data and vehicle_data.get(ATTR_CHARGING_STATISTICS, {}).get(
+            "description"
+        ):
             retval["charging_session_timeperiod"] = vehicle_data.get("charging_statistics", {}).get("description")
             retval["charging_session_count"] = (
                 vehicle_data.get("charging_statistics", {}).get("statistics", {}).get("numberOfChargingSessions")

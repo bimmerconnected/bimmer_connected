@@ -195,7 +195,7 @@ class MyBMWVehicle:
         return ValueWithUnit(self.data[ATTR_STATE].get("currentMileage", 0), "km" if self.data["is_metric"] else "mi")
 
     @property
-    def software_version(self) -> ValueWithUnit:
+    def software_version(self) -> str:
         """Get the software version of the vehicle."""
         return self.headunit.software_version
 
@@ -248,14 +248,14 @@ class MyBMWVehicle:
         return bool(self.charging_statistics)
 
     @property
-    def charging_session_count(self):
+    def charging_session_count(self) -> int:
         """Return number of charging events for this month."""
-        return self.charging_statistics.charging_session_count
+        return self.charging_statistics.charging_session_count if self.charging_statistics else 0
 
     @property
-    def total_energy_charged(self):
+    def total_energy_charged(self) -> int:
         """Return total energy charged for this month."""
-        return self.charging_statistics.total_energy_charged
+        return self.charging_statistics.total_energy_charged if self.charging_statistics else 0
 
     @property
     def is_charging_sessions_supported(self) -> bool:
