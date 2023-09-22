@@ -82,6 +82,8 @@ async def test_parsing_attributes(caplog, bmw_fixture: respx.Router):
         assert vehicle.has_electric_drivetrain is not None
         assert vehicle.drive_train_attributes is not None
         assert vehicle.is_charging_plan_supported is not None
+        assert vehicle.is_charging_sessions_supported is not None
+        assert vehicle.is_charging_statistics_supported is not None
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -296,11 +298,16 @@ def test_gpsposition():
 async def test_charging_statistics(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of charging statistics is working."""
 
-    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11).charging_statistics
+    # Car with no statistics
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
+    assert status.charging_statistics == None
+    assert status.is_charging_statistics_supported == False
 
-    if not status:
-        pytest.skip("No charging statistics available")
+    # Car with statistics
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
+    assert status.is_charging_statistics_supported == True
 
+    status = status.charging_statistics
     assert status.charging_session_timeperiod == "September 2023"
     assert status.charging_session_count == 6
     assert status.total_energy_charged == 168
@@ -312,11 +319,16 @@ async def test_charging_statistics(caplog, bmw_fixture: respx.Router):
 async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of charging sessions is working."""
 
-    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11).charging_sessions
+    # Car with no sessions
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
+    assert status.charging_sessions == None
+    assert status.is_charging_sessions_supported == False
 
-    if not status:
-        pytest.skip("No charging sessions available")
+    # Car with sessions
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
+    assert status.is_charging_sessions_supported == True
 
+    status = status.charging_sessions
     assert status.charging_session_count == len(status.charging_sessions)
     assert status.charging_sessions[0].status == "FINISHED"
     assert status.charging_sessions[0].description == "9/3/2023 15:47 • some_road • duration • -- EUR"

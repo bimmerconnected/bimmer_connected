@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Any, Dict
 
-from bimmer_connected.const import ATTR_STATE
+from bimmer_connected.const import ATTR_CHARGING_STATISTICS
 from bimmer_connected.models import VehicleDataBase
 
 
@@ -25,7 +25,7 @@ class ChargingStatistics(VehicleDataBase):
         """Parse charging statistics."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_STATE in vehicle_data:
+        if ATTR_CHARGING_STATISTICS in vehicle_data and vehicle_data.get(ATTR_CHARGING_STATISTICS).get("description"):
             retval["charging_session_timeperiod"] = vehicle_data.get("charging_statistics", {}).get("description")
             retval["charging_session_count"] = (
                 vehicle_data.get("charging_statistics", {}).get("statistics", {}).get("numberOfChargingSessions")
