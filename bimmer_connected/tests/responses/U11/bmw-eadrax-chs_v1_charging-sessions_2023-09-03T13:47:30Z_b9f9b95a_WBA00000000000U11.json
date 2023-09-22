@@ -1,5 +1,5 @@
 {
-    "address": "Kornmarkt 8 90402 N\u00fcrnberg ",
+    "address": "Some Street 999 99999 SomeCity",
     "chargingBlocks": {
         "average": 20.483850593240852,
         "chargingBlockList": [
@@ -132,9 +132,9 @@
     "closestChargingStation": {
         "countryCode": "DE",
         "providerId": "209",
-        "providerName": "AC solid GmbH",
-        "providerPoiId": "DE:DCS:POOL:c83c769c-0551-306b-990a-d765bcd4bba3",
-        "streetAddress": "Kornmarkt 8"
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
     },
     "date": "9/3/2023 15:47",
     "duration": "1h 49min",
@@ -151,7 +151,7 @@
     "isPlausible": true,
     "isPreferred": false,
     "isPublic": true,
-    "locationName": "AC solid GmbH",
+    "locationName": "DC/AC Lade GmbH & Co KG",
     "locationType": "UNKNOWN",
     "preCondition": "On",
     "savings": "0 EUR",
@@ -169,6 +169,6 @@
         "cost": "~ 13,57 EUR",
         "hasTariff": true
     },
-    "totalMileage": "7,038 km",
-    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:49.44914:11.07454"
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
 }

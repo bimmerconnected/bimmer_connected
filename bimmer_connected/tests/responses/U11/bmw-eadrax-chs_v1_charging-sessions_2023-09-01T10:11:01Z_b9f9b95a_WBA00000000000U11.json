@@ -1,5 +1,5 @@
 {
-    "address": "EDUARD-KLEIN-GASSE 1 1130 WIEN ",
+    "address": "Some Street 999 99999 SomeCity",
     "chargingBlocks": {
         "average": 15.536152860078737,
         "chargingBlockList": [
@@ -65,11 +65,11 @@
     "chargingSessionState": "FINISHED",
     "chargingType": "AC_HIGH",
     "closestChargingStation": {
-        "countryCode": "AT",
+        "countryCode": "DE",
         "providerId": "209",
-        "providerName": "AC Wien Energie GmbH",
-        "providerPoiId": "AT:DCS:POOL:da0bfd28-6356-3182-b9e7-e5de2c4c2f49",
-        "streetAddress": "EDUARD-KLEIN-GASSE 1"
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
     },
     "date": "9/1/2023 12:10",
     "duration": "2h 39min",
@@ -86,7 +86,7 @@
     "isPlausible": true,
     "isPreferred": false,
     "isPublic": true,
-    "locationName": "AC Wien Energie GmbH",
+    "locationName": "DC/AC Lade GmbH & Co KG",
     "locationType": "UNKNOWN",
     "preCondition": "On",
     "sessionCost": {
@@ -101,6 +101,6 @@
         "cost": "Add cost",
         "hasTariff": false
     },
-    "totalMileage": "6,506 km",
-    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:48.1877:16.30281"
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
 }

@@ -1,5 +1,5 @@
 {
-    "address": "Rastanlage Donautal Ost A3 94036 Passau ",
+    "address": "Some Street 999 99999 SomeCity",
     "chargingBlocks": {
         "average": 72.45378243265331,
         "chargingBlockList": [
@@ -297,9 +297,9 @@
     "closestChargingStation": {
         "countryCode": "DE",
         "providerId": "209",
-        "providerName": "HPC/DC IONITY GmbH",
-        "providerPoiId": "DE:DCS:POOL:c6f47844-88b3-3cae-8fd0-38231d2ebdd0",
-        "streetAddress": "Rastanlage Donautal Ost A3"
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
     },
     "date": "9/3/2023 13:01",
     "duration": "27 min",
@@ -316,7 +316,7 @@
     "isPlausible": true,
     "isPreferred": false,
     "isPublic": true,
-    "locationName": "HPC/DC IONITY GmbH",
+    "locationName": "DC/AC Lade GmbH & Co KG",
     "locationType": "UNKNOWN",
     "plugType": {
         "icon": "COMBO_2",
@@ -338,6 +338,6 @@
         "cost": "~ 11,70 EUR",
         "hasTariff": true
     },
-    "totalMileage": "6,824 km",
-    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:48.58818:13.36648"
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
 }

@@ -102,6 +102,14 @@ def anonymize_data(json_data: Union[List, Dict]) -> Union[List, Dict]:
         "phone": "some_phone",
         "formatted": "some_formatted_address",
         "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+        "address": "Some Street 999 99999 SomeCity",
+        "streetAddress": "Some Street 999",
+        "countryCode": "DE",
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "locationName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "totalMileage": "9,999 km",
+        "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:34.56789:12.34567",
     }
 
     if isinstance(json_data, list):

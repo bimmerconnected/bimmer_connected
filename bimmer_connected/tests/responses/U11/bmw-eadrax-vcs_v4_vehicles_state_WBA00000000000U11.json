@@ -187,12 +187,10 @@
         "isDeepSleepModeActive": false,
         "isLeftSteering": true,
         "isLscSupported": true,
-        "lastFetched": "2023-09-18T17:19:33.703Z",
+        "lastFetched": "2023-09-22T07:21:21.700Z",
         "lastUpdatedAt": "2023-09-11T11:53:57Z",
         "location": {
-            "address": {
-                "formatted": "some_formatted_address"
-            },
+            "address": "Some Street 999 99999 SomeCity",
             "coordinates": {
                 "latitude": 12.3456,
                 "longitude": 34.5678

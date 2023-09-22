@@ -1,13 +1,13 @@
 {
-    "address": "Mitterfeldstra\u00dfe 2 4600 Wels ",
+    "address": "Some Street 999 99999 SomeCity",
     "chargingSessionState": "FINISHED",
     "chargingType": "DC",
     "closestChargingStation": {
-        "countryCode": "AT",
+        "countryCode": "DE",
         "providerId": "209",
-        "providerName": "DC/AC SMATRICS GmbH & Co KG",
-        "providerPoiId": "AT:DCS:POOL:59502879-8bb8-34b5-a984-77f702e86d00",
-        "streetAddress": "Mitterfeldstra\u00dfe 2"
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
     },
     "date": "9/1/2023 9:20",
     "duration": "0 min",
@@ -23,7 +23,7 @@
     "isPlausible": true,
     "isPreferred": false,
     "isPublic": true,
-    "locationName": "DC/AC SMATRICS GmbH & Co KG",
+    "locationName": "DC/AC Lade GmbH & Co KG",
     "locationType": "UNKNOWN",
     "plugType": {
         "icon": "COMBO_2",
@@ -42,6 +42,6 @@
         "cost": "Add cost",
         "hasTariff": false
     },
-    "totalMileage": "6,310 km",
-    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:48.18519:14.02677"
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
 }

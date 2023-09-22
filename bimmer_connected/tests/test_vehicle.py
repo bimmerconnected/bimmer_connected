@@ -315,11 +315,10 @@ async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
     if not status:
         pytest.skip("No charging sessions available")
 
-    print(status.charging_sessions[0])
     assert status.charging_session_count == len(status.charging_sessions)
     assert status.charging_sessions[0].status == "FINISHED"
     assert status.charging_sessions[0].description == "9/3/2023 15:47 • some_road • duration • -- EUR"
-    assert status.charging_sessions[0].address == "Kornmarkt 8 90402 Nürnberg"
+    assert status.charging_sessions[0].address == "Some Street 999 99999 Somecity"
     assert status.charging_sessions[0].charging_type == ChargingType.AC_HIGH
     assert status.charging_sessions[0].soc_start == 0.1
     assert status.charging_sessions[0].soc_end == 0.62
@@ -332,7 +331,7 @@ async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
     assert status.charging_sessions[0].power_max == 21.55
     assert status.charging_sessions[0].public is True
     assert status.charging_sessions[0].pre_condition is True
-    assert status.charging_sessions[0].mileage == 7038
+    assert status.charging_sessions[0].mileage == 9999
 
     # ChargingBlocks Exists
     assert len(status.charging_sessions[0].charging_blocks) == 24

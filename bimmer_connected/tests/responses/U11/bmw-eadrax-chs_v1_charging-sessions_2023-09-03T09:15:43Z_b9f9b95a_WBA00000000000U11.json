@@ -1,5 +1,5 @@
 {
-    "address": "Rasthausstra\u00dfe 3 4300 St. Valentin ",
+    "address": "Some Street 999 99999 SomeCity",
     "chargingBlocks": {
         "average": 103.49997892311151,
         "chargingBlockList": [
@@ -300,11 +300,11 @@
     "chargingSessionState": "FINISHED",
     "chargingType": "DC",
     "closestChargingStation": {
-        "countryCode": "AT",
+        "countryCode": "DE",
         "providerId": "209",
-        "providerName": "HPC/DC IONITY GmbH",
-        "providerPoiId": "AT:DCS:POOL:5cec11b9-dc78-364e-b12a-378d380ff229",
-        "streetAddress": "Rasthausstra\u00dfe 3"
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
     },
     "date": "9/3/2023 11:15",
     "duration": "27 min",
@@ -321,7 +321,7 @@
     "isPlausible": true,
     "isPreferred": false,
     "isPublic": true,
-    "locationName": "HPC/DC IONITY GmbH",
+    "locationName": "DC/AC Lade GmbH & Co KG",
     "locationType": "UNKNOWN",
     "plugType": {
         "icon": "COMBO_2",
@@ -343,6 +343,6 @@
         "cost": "~ 16,85 EUR",
         "hasTariff": true
     },
-    "totalMileage": "6,696 km",
-    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae7a5:48.19693:14.5286"
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
 }
