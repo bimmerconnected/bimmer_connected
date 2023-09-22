@@ -298,12 +298,12 @@ async def test_charging_statistics(caplog, bmw_fixture: respx.Router):
 
     # Car with no statistics
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
-    assert status.charging_statistics == None
-    assert status.is_charging_statistics_supported == False
+    assert status.charging_statistics is None
+    assert status.is_charging_statistics_supported is False
 
     # Car with statistics
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
-    assert status.is_charging_statistics_supported == True
+    assert status.is_charging_statistics_supported is True
 
     status = status.charging_statistics
     assert status.charging_session_timeperiod == "September 2023"
@@ -319,12 +319,12 @@ async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
 
     # Car with no sessions
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
-    assert status.charging_sessions == None
-    assert status.is_charging_sessions_supported == False
+    assert status.charging_sessions is None
+    assert status.is_charging_sessions_supported is False
 
     # Car with sessions
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
-    assert status.is_charging_sessions_supported == True
+    assert status.is_charging_sessions_supported is True
 
     status = status.charging_sessions
     assert status.charging_session_count == len(status.charging_sessions)
