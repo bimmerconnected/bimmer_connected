@@ -1,0 +1,11 @@
+{
+    "description": "September 2023",
+    "optStateType": "OPT_IN_WITH_SESSIONS",
+    "statistics": {
+        "numberOfChargingSessions": 6,
+        "numberOfChargingSessionsSemantics": "6 charging sessions",
+        "symbol": "~",
+        "totalEnergyCharged": 168,
+        "totalEnergyChargedSemantics": "Charged a total of approximately 168 kilowatt-hours"
+    }
+}

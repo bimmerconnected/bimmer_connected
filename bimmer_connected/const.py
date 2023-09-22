@@ -85,5 +85,7 @@ ATTR_STATE = "state"
 ATTR_CAPABILITIES = "capabilities"
 ATTR_ATTRIBUTES = "attributes"
 ATTR_CHARGING_SETTINGS = "charging_settings"
+ATTR_CHARGING_STATISTICS = "charging_statistics"
+ATTR_CHARGING_SESSIONS = "chargingSessions"
 
 DEFAULT_POI_NAME = "Sent with ♥ by bimmer_connected"

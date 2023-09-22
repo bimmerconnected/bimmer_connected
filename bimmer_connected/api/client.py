@@ -15,7 +15,7 @@ from bimmer_connected.models import AnonymizedResponse, GPSPosition
 
 _LOGGER = logging.getLogger(__name__)
 
-RESPONSE_STORE: Deque[AnonymizedResponse] = deque(maxlen=10)
+RESPONSE_STORE: Deque[AnonymizedResponse] = deque(maxlen=45)
 
 
 @dataclass

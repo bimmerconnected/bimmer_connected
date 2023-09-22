@@ -1,0 +1,47 @@
+{
+    "address": "Some Street 999 99999 SomeCity",
+    "chargingSessionState": "FINISHED",
+    "chargingType": "DC",
+    "closestChargingStation": {
+        "countryCode": "DE",
+        "providerId": "209",
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
+    },
+    "date": "9/1/2023 9:20",
+    "duration": "0 min",
+    "endBatteryPc": "63%",
+    "endChargingColour": "BLUE",
+    "endDate": "9/1/2023 9:22",
+    "energyCharged": "0 kWh",
+    "energyChargedUnit": "kWh",
+    "energyChargedValue": 0.0,
+    "id": "2023-09-01T07:20:53Z_b9f9b95a",
+    "isGpsTrackingEnabled": true,
+    "isLocationAvailable": true,
+    "isPlausible": true,
+    "isPreferred": false,
+    "isPublic": true,
+    "locationName": "DC/AC Lade GmbH & Co KG",
+    "locationType": "UNKNOWN",
+    "plugType": {
+        "icon": "COMBO_2",
+        "text": "Combo 2"
+    },
+    "preCondition": "On",
+    "sessionCost": {
+        "areTariffsSupported": true,
+        "currency": "EUR",
+        "isEstimation": true
+    },
+    "startBatteryPc": "63%",
+    "startChargingColour": "BLUE",
+    "startDate": "9/1/2023 9:20",
+    "totalCost": {
+        "cost": "Add cost",
+        "hasTariff": false
+    },
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
+}
