@@ -11,3 +11,4 @@ time_machine<2.13.0
 pre-commit
 backports.zoneinfo;python_version<"3.9"
 ruff
+types-Pillow
