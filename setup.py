@@ -8,6 +8,6 @@ setup(
         "httpx",
         "pycryptodome>=3.4",
         "pyjwt>=2.1.0",
-        "Pillow>=6.2.0"
+        "Pillow"
     ],
 )
