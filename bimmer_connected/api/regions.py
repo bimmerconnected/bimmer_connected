@@ -2,7 +2,7 @@
 from base64 import b64decode
 from typing import List
 
-from bimmer_connected.const import APP_VERSIONS, OCP_APIM_KEYS, SERVER_URLS_MYBMW, Regions
+from bimmer_connected.const import APP_VERSIONS, OCP_APIM_KEYS, SERVER_URLS_MYBMW, USER_AGENTS, Regions
 
 
 def valid_regions() -> List[str]:
@@ -24,6 +24,11 @@ def get_region_from_name(name: str) -> Regions:
 def get_server_url(region: Regions) -> str:
     """Get the url of the server for the region."""
     return f"https://{SERVER_URLS_MYBMW[region]}"
+
+
+def get_user_agent(region: Regions) -> str:
+    """Get the Dart user agent for the region."""
+    return USER_AGENTS[region]
 
 
 def get_app_version(region: Regions) -> str:
