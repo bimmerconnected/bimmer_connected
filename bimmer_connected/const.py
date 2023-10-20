@@ -37,14 +37,18 @@ OCP_APIM_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "3.3.1(22418)",
-    Regions.REST_OF_WORLD: "3.3.1(22418)",
+    Regions.NORTH_AMERICA: "3.9.0(27760)",
+    Regions.REST_OF_WORLD: "3.9.0(27760)",
     Regions.CHINA: "3.6.1(23634)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
-USER_AGENT = "Dart/2.18 (dart:io)"
+USER_AGENTS = {
+    Regions.NORTH_AMERICA: "Dart/2.19 (dart:io)",
+    Regions.REST_OF_WORLD: "Dart/2.19 (dart:io)",
+    Regions.CHINA: "Dart/2.18 (dart:io)",
+}
 X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
 
 

@@ -14,7 +14,7 @@ import jwt
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 
-from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url
+from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url, get_user_agent
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_cn_nonce,
@@ -31,7 +31,6 @@ from bimmer_connected.const import (
     AUTH_CHINA_TOKEN_URL,
     HTTPX_TIMEOUT,
     OAUTH_CONFIG_URL,
-    USER_AGENT,
     X_USER_AGENT,
 )
 from bimmer_connected.models import MyBMWAPIError
@@ -358,7 +357,7 @@ class MyBMWLoginClient(httpx.AsyncClient):
         region = kwargs.pop("region")
         kwargs["base_url"] = get_server_url(region)
         kwargs["headers"] = {
-            "user-agent": USER_AGENT,
+            "user-agent": get_user_agent(region),
             "x-user-agent": X_USER_AGENT.format(brand="bmw", app_version=get_app_version(region), region=region.value),
         }
 
