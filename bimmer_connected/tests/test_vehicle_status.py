@@ -23,6 +23,7 @@ from . import (
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
+    VIN_U11,
     get_deprecation_warning_count,
 )
 from .conftest import prepare_account_with_vehicles
@@ -526,3 +527,28 @@ async def test_climate(bmw_fixture: respx.Router):
         2021, 11, 28, 21, 58, 49, tzinfo=UTC
     )
     assert climate.is_climate_on is True
+
+
+@pytest.mark.asyncio
+async def test_software_version(bmw_fixture: respx.Router):
+    """Test software version."""
+    account = await prepare_account_with_vehicles()
+
+    software_version = account.get_vehicle(VIN_F31).software_version
+    assert software_version == "11/2013.02"
+
+    # Fingerprint probably not in order
+    software_version = account.get_vehicle(VIN_G01).software_version
+    assert software_version == ""
+
+    software_version = account.get_vehicle(VIN_G20).software_version
+    assert software_version == "07/2021.70"
+
+    software_version = account.get_vehicle(VIN_I01_REX).software_version
+    assert software_version == "11/2021.10"
+
+    software_version = account.get_vehicle(VIN_G70).software_version
+    assert software_version == "07/2022.05"
+
+    software_version = account.get_vehicle(VIN_U11).software_version
+    assert software_version == "07/2023.35"

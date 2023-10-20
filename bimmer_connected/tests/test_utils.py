@@ -26,11 +26,14 @@ async def test_drive_train(bmw_fixture: respx.Router):
     assert [
         "available_attributes",
         "brand",
+        "charging_session_count",
         "drive_train",
         "drive_train_attributes",
         "has_combustion_drivetrain",
         "has_electric_drivetrain",
         "is_charging_plan_supported",
+        "is_charging_sessions_supported",
+        "is_charging_statistics_supported",
         "is_lsc_enabled",
         "is_remote_charge_start_enabled",
         "is_remote_charge_stop_enabled",
@@ -48,7 +51,9 @@ async def test_drive_train(bmw_fixture: respx.Router):
         "lsc_type",
         "mileage",
         "name",
+        "software_version",
         "timestamp",
+        "total_energy_charged",
         "vin",
     ] == get_class_property_names(vehicle)
 

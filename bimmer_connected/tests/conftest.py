@@ -8,7 +8,9 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.const import Regions
 
 from . import (
+    ALL_CHARGING_SESSIONS,
     ALL_CHARGING_SETTINGS,
+    ALL_CHARGING_STATISTICS,
     ALL_STATES,
     TEST_PASSWORD,
     TEST_REGION,
@@ -25,6 +27,8 @@ def bmw_fixture(request: pytest.FixtureRequest) -> Generator[respx.MockRouter, N
         vehicles_to_load=getattr(request, "param", []),
         states=ALL_STATES,
         charging_settings=ALL_CHARGING_SETTINGS,
+        charging_statistics=ALL_CHARGING_STATISTICS,
+        charging_sessions=ALL_CHARGING_SESSIONS,
     )
 
     with router:

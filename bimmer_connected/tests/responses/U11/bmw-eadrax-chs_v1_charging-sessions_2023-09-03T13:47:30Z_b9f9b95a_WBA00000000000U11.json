@@ -1,0 +1,174 @@
+{
+    "address": "Some Street 999 99999 SomeCity",
+    "chargingBlocks": {
+        "average": 20.483850593240852,
+        "chargingBlockList": [
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-03T15:47:48Z",
+                "startTime": "2023-09-03T15:47:47Z"
+            },
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-03T15:47:49Z",
+                "startTime": "2023-09-03T15:47:48Z"
+            },
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-03T15:48:55Z",
+                "startTime": "2023-09-03T15:47:49Z"
+            },
+            {
+                "averagePowerGridKw": 19.54998779296875,
+                "endTime": "2023-09-03T15:55:21Z",
+                "startTime": "2023-09-03T15:48:55Z"
+            },
+            {
+                "averagePowerGridKw": 19.79998779296875,
+                "endTime": "2023-09-03T15:58:16.75Z",
+                "startTime": "2023-09-03T15:55:21Z"
+            },
+            {
+                "averagePowerGridKw": 19.79998779296875,
+                "endTime": "2023-09-03T16:01:12.5Z",
+                "startTime": "2023-09-03T15:58:16.75Z"
+            },
+            {
+                "averagePowerGridKw": 19.79998779296875,
+                "endTime": "2023-09-03T16:04:08.25Z",
+                "startTime": "2023-09-03T16:01:12.5Z"
+            },
+            {
+                "averagePowerGridKw": 19.79998779296875,
+                "endTime": "2023-09-03T16:07:04Z",
+                "startTime": "2023-09-03T16:04:08.25Z"
+            },
+            {
+                "averagePowerGridKw": 20.10003662109375,
+                "endTime": "2023-09-03T16:11:36.5Z",
+                "startTime": "2023-09-03T16:07:04Z"
+            },
+            {
+                "averagePowerGridKw": 20.10003662109375,
+                "endTime": "2023-09-03T16:16:09Z",
+                "startTime": "2023-09-03T16:11:36.5Z"
+            },
+            {
+                "averagePowerGridKw": 20.10003662109375,
+                "endTime": "2023-09-03T16:20:41.5Z",
+                "startTime": "2023-09-03T16:16:09Z"
+            },
+            {
+                "averagePowerGridKw": 20.10003662109375,
+                "endTime": "2023-09-03T16:25:14Z",
+                "startTime": "2023-09-03T16:20:41.5Z"
+            },
+            {
+                "averagePowerGridKw": 20.35003662109375,
+                "endTime": "2023-09-03T16:32:53.5Z",
+                "startTime": "2023-09-03T16:25:14Z"
+            },
+            {
+                "averagePowerGridKw": 20.35003662109375,
+                "endTime": "2023-09-03T16:40:33Z",
+                "startTime": "2023-09-03T16:32:53.5Z"
+            },
+            {
+                "averagePowerGridKw": 20.35003662109375,
+                "endTime": "2023-09-03T16:48:12.5Z",
+                "startTime": "2023-09-03T16:40:33Z"
+            },
+            {
+                "averagePowerGridKw": 20.35003662109375,
+                "endTime": "2023-09-03T16:55:52Z",
+                "startTime": "2023-09-03T16:48:12.5Z"
+            },
+            {
+                "averagePowerGridKw": 20.75,
+                "endTime": "2023-09-03T17:05:55Z",
+                "startTime": "2023-09-03T16:55:52Z"
+            },
+            {
+                "averagePowerGridKw": 21.0,
+                "endTime": "2023-09-03T17:09:48Z",
+                "startTime": "2023-09-03T17:05:55Z"
+            },
+            {
+                "averagePowerGridKw": 21.0,
+                "endTime": "2023-09-03T17:13:41Z",
+                "startTime": "2023-09-03T17:09:48Z"
+            },
+            {
+                "averagePowerGridKw": 21.0,
+                "endTime": "2023-09-03T17:17:34Z",
+                "startTime": "2023-09-03T17:13:41Z"
+            },
+            {
+                "averagePowerGridKw": 21.0,
+                "endTime": "2023-09-03T17:21:27Z",
+                "startTime": "2023-09-03T17:17:34Z"
+            },
+            {
+                "averagePowerGridKw": 21.25,
+                "endTime": "2023-09-03T17:31:29Z",
+                "startTime": "2023-09-03T17:21:27Z"
+            },
+            {
+                "averagePowerGridKw": 21.54998779296875,
+                "endTime": "2023-09-03T17:38:06Z",
+                "startTime": "2023-09-03T17:31:29Z"
+            },
+            {
+                "averagePowerGridKw": 0.0,
+                "endTime": "2023-09-03T17:38:07Z",
+                "startTime": "2023-09-03T17:38:06Z"
+            }
+        ],
+        "max": 21.54998779296875,
+        "min": 0.0
+    },
+    "chargingSessionState": "FINISHED",
+    "chargingType": "AC_HIGH",
+    "closestChargingStation": {
+        "countryCode": "DE",
+        "providerId": "209",
+        "providerName": "DC/AC Lade GmbH & Co KG",
+        "providerPoiId": "AT:DCS:POOL:4E2AFF82-6FB4-4BAD-B9D5-3758D0D213F6",
+        "streetAddress": "Some Street 999"
+    },
+    "date": "9/3/2023 15:47",
+    "duration": "1h 49min",
+    "endBatteryPc": "62%",
+    "endChargingColour": "BLUE",
+    "endDate": "9/3/2023 17:38",
+    "energyCharged": "~ 38 kWh",
+    "energyChargedSign": "~",
+    "energyChargedUnit": "kWh",
+    "energyChargedValue": 37.699981689453125,
+    "id": "2023-09-03T13:47:30Z_b9f9b95a",
+    "isGpsTrackingEnabled": true,
+    "isLocationAvailable": true,
+    "isPlausible": true,
+    "isPreferred": false,
+    "isPublic": true,
+    "locationName": "DC/AC Lade GmbH & Co KG",
+    "locationType": "UNKNOWN",
+    "preCondition": "On",
+    "savings": "0 EUR",
+    "sessionCost": {
+        "areTariffsSupported": true,
+        "costPerKwh": 0.36,
+        "currency": "EUR",
+        "isEstimation": true,
+        "value": 13.571993408203124
+    },
+    "startBatteryPc": "10%",
+    "startChargingColour": "BLUE",
+    "startDate": "9/3/2023 15:47",
+    "totalCost": {
+        "cost": "~ 13,57 EUR",
+        "hasTariff": true
+    },
+    "totalMileage": "9,999 km",
+    "vehicleLocationId": "04f23bcff030a2ea40391d8b332b0519f5cc829a3fada8af53358a8a5feae999:48.99919:14.99977"
+}

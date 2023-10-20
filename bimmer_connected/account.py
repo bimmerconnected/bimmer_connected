@@ -13,6 +13,8 @@ from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import (
     ATTR_CAPABILITIES,
     VEHICLE_CHARGING_DETAILS_URL,
+    VEHICLE_CHARGING_SESSIONS_URL,
+    VEHICLE_CHARGING_STATISTICS_URL,
     VEHICLE_STATE_URL,
     VEHICLES_URL,
     CarBrands,
@@ -80,7 +82,7 @@ class MyBMWAccount:
 
             for response in vehicles_responses:
                 for vehicle_base in response.json():
-                    self.add_vehicle(vehicle_base, None, None, fetched_at)
+                    self.add_vehicle(vehicle_base, None, None, None, None, fetched_at)
 
     async def get_vehicles(self, force_init: bool = False) -> None:
         """Retrieve vehicle data from BMW servers."""
@@ -107,8 +109,11 @@ class MyBMWAccount:
                 )
                 vehicle_state = state_response.json()
 
-                # Get detailed charging settings if supported by vehicle
+                # Get detailed charging settings, charging-sessions and charging-statistics if supported by vehicle
                 charging_settings = None
+                charging_statistics = None
+                charging_sessions = None
+
                 if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
                     ATTR_CAPABILITIES
                 ].get("isChargingSettingsEnabled", False):
@@ -126,15 +131,75 @@ class MyBMWAccount:
                             "bmw-vin": vehicle.vin,
                         },
                     )
+
                     charging_settings = charging_settings_response.json()
 
-                self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
+                    # Get all charging statistics for date range
+                    charging_statistics_response = await client.get(
+                        VEHICLE_CHARGING_STATISTICS_URL,
+                        params={
+                            "vin": vehicle.vin,
+                            "currentDate": datetime.datetime.utcnow().isoformat(),
+                        },
+                        headers={
+                            **client.generate_default_header(vehicle.brand),
+                            "bmw-vin": vehicle.vin,
+                        },
+                    )
+                    charging_statistics = charging_statistics_response.json()
+
+                    # Get all charging sessions for date range
+                    charging_sessions_response = await client.get(
+                        VEHICLE_CHARGING_SESSIONS_URL,
+                        params={
+                            "vin": vehicle.vin,
+                            # TODO: This yields the full date range with data: "include_date_picker": "true",
+                            # "2023-04-01T00:00:00Z", Setting this will give session data for that month
+                            "date": datetime.datetime.utcnow().isoformat(),
+                        },
+                        headers={
+                            **client.generate_default_header(vehicle.brand),
+                            "bmw-vin": vehicle.vin,
+                        },
+                    )
+                    charging_sessions = charging_sessions_response.json()
+
+                    async def get_charging_session(id: str):
+                        """Get single charging session by ID.
+
+                        :param id: the charging session ID
+                        :return: Charging session details
+                        """
+                        charging_session_response = await client.get(
+                            VEHICLE_CHARGING_SESSIONS_URL + f"/{id}",
+                            params={
+                                "vin": vehicle.vin,
+                            },
+                            headers={
+                                **client.generate_default_header(vehicle.brand),
+                                "bmw-vin": vehicle.vin,
+                            },
+                        )
+
+                        charging_session_detail = charging_session_response.json()
+
+                        return charging_session_detail
+
+                    # Extend charging session with collected details if any
+                    for charging_session in charging_sessions.get("chargingSessions", {}).get("sessions", []):
+                        charging_session["details"] = await get_charging_session(charging_session.get("id"))
+
+                self.add_vehicle(
+                    vehicle.data, vehicle_state, charging_settings, charging_statistics, charging_sessions, fetched_at
+                )
 
     def add_vehicle(
         self,
         vehicle_base: dict,
         vehicle_state: Optional[dict],
         charging_settings: Optional[dict],
+        charging_statistics: Optional[dict],
+        charging_sessions: Optional[dict],
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Add or update a vehicle from the API responses."""
@@ -143,9 +208,21 @@ class MyBMWAccount:
 
         # If vehicle already exists, just update it's state
         if existing_vehicle:
-            existing_vehicle.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
+            existing_vehicle.update_state(
+                vehicle_base, vehicle_state, charging_settings, charging_statistics, charging_sessions, fetched_at
+            )
         else:
-            self.vehicles.append(MyBMWVehicle(self, vehicle_base, vehicle_state, charging_settings, fetched_at))
+            self.vehicles.append(
+                MyBMWVehicle(
+                    self,
+                    vehicle_base,
+                    vehicle_state,
+                    charging_settings,
+                    charging_statistics,
+                    charging_sessions,
+                    fetched_at,
+                )
+            )
 
     def get_vehicle(self, vin: str) -> Optional[MyBMWVehicle]:
         """Get vehicle with given VIN.

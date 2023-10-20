@@ -1,10 +1,13 @@
 """Tests for MyBMWVehicle."""
+import datetime
+
 import pytest
 import respx
 
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE, CarBrands
 from bimmer_connected.models import GPSPosition, StrEnum, VehicleDataBase
 from bimmer_connected.vehicle import VehicleViewDirection
+from bimmer_connected.vehicle.charging_sessions import ChargingBlock, ChargingType
 from bimmer_connected.vehicle.const import DriveTrainType
 from bimmer_connected.vehicle.reports import CheckControlMessageReport
 
@@ -17,6 +20,7 @@ from . import (
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
+    VIN_U11,
     get_deprecation_warning_count,
 )
 from .conftest import prepare_account_with_vehicles
@@ -58,6 +62,9 @@ async def test_drive_train(caplog, bmw_fixture: respx.Router):
     vehicle = account.get_vehicle(VIN_I01_REX)
     assert DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER == vehicle.drive_train
 
+    vehicle = account.get_vehicle(VIN_U11)
+    assert DriveTrainType.ELECTRIC == vehicle.drive_train
+
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
@@ -75,6 +82,8 @@ async def test_parsing_attributes(caplog, bmw_fixture: respx.Router):
         assert vehicle.has_electric_drivetrain is not None
         assert vehicle.drive_train_attributes is not None
         assert vehicle.is_charging_plan_supported is not None
+        assert vehicle.is_charging_sessions_supported is not None
+        assert vehicle.is_charging_statistics_supported is not None
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -93,6 +102,7 @@ async def test_drive_train_attributes(caplog, bmw_fixture: respx.Router):
         VIN_I01_NOREX: (False, True),
         VIN_I01_REX: (True, True),
         VIN_I20: (False, True),
+        VIN_U11: (False, True),
     }
 
     for vehicle in account.vehicles:
@@ -142,12 +152,13 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
     account = await prepare_account_with_vehicles()
 
     vehicle = account.get_vehicle(VIN_F31)
-    assert ["gps_position", "vin"] == vehicle.available_attributes
+    assert ["gps_position", "vin", "software_version"] == vehicle.available_attributes
 
     vehicle = account.get_vehicle(VIN_G01)
     assert [
         "gps_position",
         "vin",
+        "software_version",
         "remaining_range_total",
         "mileage",
         "charging_time_remaining",
@@ -179,6 +190,7 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
     assert [
         "gps_position",
         "vin",
+        "software_version",
         "remaining_range_total",
         "mileage",
         "charging_time_remaining",
@@ -201,6 +213,37 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
         "timestamp",
         "lids",
         "windows",
+    ] == vehicle.available_attributes
+
+    vehicle = account.get_vehicle(VIN_U11)
+    assert [
+        "gps_position",
+        "vin",
+        "software_version",
+        "remaining_range_total",
+        "mileage",
+        "charging_time_remaining",
+        "charging_start_time",
+        "charging_end_time",
+        "charging_time_label",
+        "charging_status",
+        "connection_status",
+        "remaining_battery_percent",
+        "remaining_range_electric",
+        "last_charging_end_result",
+        "ac_current_limit",
+        "charging_target",
+        "charging_mode",
+        "charging_preferences",
+        "is_pre_entry_climatization_enabled",
+        "condition_based_services",
+        "check_control_messages",
+        "door_lock_state",
+        "timestamp",
+        "lids",
+        "windows",
+        "total_energy_charged",
+        "charging_session_count",
     ] == vehicle.available_attributes
 
     assert len(get_deprecation_warning_count(caplog)) == 0
@@ -280,6 +323,90 @@ def test_gpsposition():
     assert pos == (1, 2)
     assert pos != "(1, 2)"
     assert pos[0] == 1
+
+
+@pytest.mark.asyncio
+async def test_charging_statistics(caplog, bmw_fixture: respx.Router):
+    """Test if the parsing of charging statistics is working."""
+
+    # Car with no statistics
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
+    assert status.charging_statistics is None
+    assert status.is_charging_statistics_supported is False
+
+    # Car with statistics
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
+    assert status.is_charging_statistics_supported is True
+    assert status.charging_session_count == 6
+    assert status.total_energy_charged == 168
+
+    status = status.charging_statistics
+    assert status.charging_session_timeperiod == "September 2023"
+    assert status.charging_session_count == 6
+    assert status.total_energy_charged == 168
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_charging_sessions(caplog, bmw_fixture: respx.Router):
+    """Test if the parsing of charging sessions is working."""
+
+    # Car with no sessions
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
+    assert status.charging_sessions is None
+    assert status.is_charging_sessions_supported is False
+
+    # Car with sessions
+    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_U11)
+    assert status.is_charging_sessions_supported is True
+
+    status = status.charging_sessions
+    assert status.charging_session_count == len(status.charging_sessions)
+    assert status.charging_sessions[0].status == "FINISHED"
+    assert status.charging_sessions[0].description == "9/3/2023 15:47 • some_road • duration • -- EUR"
+    assert status.charging_sessions[0].address == "Some Street 999 99999 Somecity"
+    assert status.charging_sessions[0].charging_type == ChargingType.AC_HIGH
+    assert status.charging_sessions[0].soc_start == 0.1
+    assert status.charging_sessions[0].soc_end == 0.62
+    assert status.charging_sessions[0].energy_charged == 37.7
+    assert status.charging_sessions[0].time_start == datetime.datetime(2023, 3, 9, 15, 47)
+    assert status.charging_sessions[0].time_end == datetime.datetime(2023, 3, 9, 17, 38)
+    assert status.charging_sessions[0].duration == 109
+    assert status.charging_sessions[0].power_avg == 20.48
+    assert status.charging_sessions[0].power_min == 0.0
+    assert status.charging_sessions[0].power_max == 21.55
+    assert status.charging_sessions[0].public is True
+    assert status.charging_sessions[0].pre_condition is True
+    assert status.charging_sessions[0].mileage == 9999
+
+    # ChargingBlocks Exists
+    assert len(status.charging_sessions[0].charging_blocks) == 24
+    assert (isinstance(x, ChargingBlock) for x in status.charging_sessions[0].charging_blocks)
+    assert status.charging_sessions[0].charging_blocks[0].time_start == "2023-09-03T15:47:47Z"
+    assert status.charging_sessions[0].charging_blocks[0].time_end == "2023-09-03T15:47:48Z"
+    assert status.charging_sessions[0].charging_blocks[0].power_avg == 0.0
+
+    # Missing ChargingBlocks, failed charge
+    assert len(status.charging_sessions[5].charging_blocks) == 0
+    assert status.charging_sessions[5].power_avg == 0.0
+    assert status.charging_sessions[5].power_min == 0.0
+    assert status.charging_sessions[5].power_max == 0.0
+
+    assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+def test_charging_type():
+    """Test charging types are handled correctly."""
+
+    charging_type = ChargingType("DC")
+    assert charging_type == ChargingType.DC
+
+    charging_type = ChargingType("AC_HIGH")
+    assert charging_type == ChargingType.AC_HIGH
+
+    unknown_charging_type = ChargingType("SUPER_DUPER_HYPER_CHARGER")
+    assert unknown_charging_type == ChargingType.UNKNOWN
 
 
 @pytest.mark.asyncio

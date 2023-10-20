@@ -1,0 +1,61 @@
+{
+    "chargingSessions": {
+        "chargingListState": "HAS_SESSIONS",
+        "costsGroupedByCurrency": [
+            "~ 42,12 EUR"
+        ],
+        "numberOfSessions": "6",
+        "sessions": [
+            {
+                "energyCharged": "~ 38 kWh",
+                "id": "2023-09-03T13:47:30Z_b9f9b95a",
+                "isPublic": true,
+                "sessionStatus": "FINISHED",
+                "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+                "title": "9/3/2023 15:47"
+            },
+            {
+                "energyCharged": "~ 33 kWh",
+                "id": "2023-09-03T11:01:25Z_b9f9b95a",
+                "isPublic": true,
+                "sessionStatus": "FINISHED",
+                "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+                "title": "9/3/2023 13:01"
+            },
+            {
+                "energyCharged": "~ 48 kWh",
+                "id": "2023-09-03T09:15:43Z_b9f9b95a",
+                "isPublic": true,
+                "sessionStatus": "FINISHED",
+                "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+                "title": "9/3/2023 11:15"
+            },
+            {
+                "energyCharged": "~ 42 kWh",
+                "id": "2023-09-01T10:11:01Z_b9f9b95a",
+                "isPublic": true,
+                "sessionStatus": "FINISHED",
+                "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+                "title": "9/1/2023 12:10"
+            },
+            {
+                "energyCharged": "~ 7 kWh",
+                "id": "2023-09-01T07:22:42Z_b9f9b95a",
+                "isPublic": true,
+                "sessionStatus": "FINISHED",
+                "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+                "title": "9/1/2023 9:22"
+            },
+            {
+                "energyCharged": "0 kWh",
+                "id": "2023-09-01T07:20:53Z_b9f9b95a",
+                "isPublic": true,
+                "sessionStatus": "FINISHED",
+                "subtitle": "some_road \u2022 duration \u2022 -- EUR",
+                "title": "9/1/2023 9:20"
+            }
+        ],
+        "total": "~ 168 kWh"
+    },
+    "paginationInfo": {}
+}
