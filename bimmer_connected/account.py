@@ -1,6 +1,7 @@
 """Access to a MyBMW account and all vehicles therein."""
 
 import datetime
+import json
 import logging
 from dataclasses import InitVar, dataclass, field
 from typing import List, Optional
@@ -17,7 +18,7 @@ from bimmer_connected.const import (
     VEHICLES_URL,
     CarBrands,
 )
-from bimmer_connected.models import AnonymizedResponse, GPSPosition
+from bimmer_connected.models import AnonymizedResponse, GPSPosition, MyBMWAPIError
 from bimmer_connected.vehicle import MyBMWVehicle
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
@@ -94,41 +95,44 @@ class MyBMWAccount:
         async with MyBMWClient(self.config) as client:
             for vehicle in self.vehicles:
                 # Get the detailed vehicle state
-                state_response = await client.get(
-                    VEHICLE_STATE_URL,
-                    params={
-                        "apptimezone": self.utcdiff,
-                        "appDateTime": int(fetched_at.timestamp() * 1000),
-                    },
-                    headers={
-                        **client.generate_default_header(vehicle.brand),
-                        "bmw-vin": vehicle.vin,
-                    },
-                )
-                vehicle_state = state_response.json()
-
-                # Get detailed charging settings if supported by vehicle
-                charging_settings = None
-                if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
-                    ATTR_CAPABILITIES
-                ].get("isChargingSettingsEnabled", False):
-                    charging_settings_response = await client.get(
-                        VEHICLE_CHARGING_DETAILS_URL,
+                try:
+                    state_response = await client.get(
+                        VEHICLE_STATE_URL,
                         params={
-                            "fields": "charging-profile",
-                            "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
-                                "isChargingSettingsEnabled"
-                            ],
+                            "apptimezone": self.utcdiff,
+                            "appDateTime": int(fetched_at.timestamp() * 1000),
                         },
                         headers={
                             **client.generate_default_header(vehicle.brand),
-                            "bmw-current-date": fetched_at.isoformat(),
                             "bmw-vin": vehicle.vin,
                         },
                     )
-                    charging_settings = charging_settings_response.json()
+                    vehicle_state = state_response.json()
 
-                self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
+                    # Get detailed charging settings if supported by vehicle
+                    charging_settings = None
+                    if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
+                        ATTR_CAPABILITIES
+                    ].get("isChargingSettingsEnabled", False):
+                        charging_settings_response = await client.get(
+                            VEHICLE_CHARGING_DETAILS_URL,
+                            params={
+                                "fields": "charging-profile",
+                                "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
+                                    "isChargingSettingsEnabled"
+                                ],
+                            },
+                            headers={
+                                **client.generate_default_header(vehicle.brand),
+                                "bmw-current-date": fetched_at.isoformat(),
+                                "bmw-vin": vehicle.vin,
+                            },
+                        )
+                        charging_settings = charging_settings_response.json()
+
+                    self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
+                except (MyBMWAPIError, json.JSONDecodeError) as ex:
+                    _LOGGER.error("Unable to get details for vehicle %s - (%s) %s", vehicle.vin, type(ex).__name__, ex)
 
     def add_vehicle(
         self,

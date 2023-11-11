@@ -7,7 +7,7 @@ import respx
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.vehicle.climate import ClimateActivityState
+from bimmer_connected.vehicle.climate import Climate, ClimateActivityState
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
@@ -43,6 +43,40 @@ async def test_generic(caplog, bmw_fixture: respx.Router):
     assert "km" == status.mileage[1]
 
     assert len(get_deprecation_warning_count(caplog)) == 0
+
+
+@pytest.mark.asyncio
+async def test_generic_error_handling(caplog, bmw_fixture: respx.Router):
+    """Test error handling when vehicle is set up."""
+    account = await prepare_account_with_vehicles()
+
+    vehicle = account.get_vehicle(VIN_G26)
+    state_wo_front_left = vehicle.data["state"].copy()
+    state_wo_front_left["tireState"]["frontLeft"].pop("status", None)
+    vehicle.tires = None
+
+    assert vehicle.tires is None
+    vehicle.update_state(vehicle.data, state_wo_front_left)
+    assert (
+        any("tires" in r.message and "TypeError" in r.message and "'status'" in r.message for r in caplog.records)
+        is True
+    )
+    assert vehicle.tires is None
+
+    caplog.clear()
+
+    vehicle = account.get_vehicle(VIN_I20)
+    state_wo_climate_activity = vehicle.data["state"].copy()
+    state_wo_climate_activity["climateControlState"].pop("activity", None)
+    vehicle.climate = Climate(account_timezone=account.timezone)
+
+    assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
+    vehicle.update_state(vehicle.data, state_wo_climate_activity)
+    assert (
+        any("climate" in r.message and "KeyError" in r.message and "'activity'" in r.message for r in caplog.records)
+        is True
+    )
+    assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
 
 
 @pytest.mark.asyncio

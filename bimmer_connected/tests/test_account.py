@@ -474,6 +474,35 @@ async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router
 
 
 @pytest.mark.asyncio
+@pytest.mark.parametrize("bmw_fixture", [[VIN_G26]], indirect=True)
+async def test_incomplete_vehicle_details(caplog, bmw_fixture: respx.Router):
+    """Test incorrect responses for vehicle details."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    # get vehicles once
+    await account.get_vehicles()
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
+        return_value=httpx.Response(
+            500,
+            json={"statusCode": 500, "message": "Something is broken."},
+        )
+    )
+    await account.get_vehicles()
+
+    log_error = [r for r in caplog.records if "Unable to get details" in r.message]
+    assert len(log_error) == 1
+
+    caplog.clear()
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
+        return_value=httpx.Response(200, text="I don't fancy JSON...")
+    )
+    await account.get_vehicles()
+    log_error = [r for r in caplog.records if "Unable to get details" in r.message]
+    assert len(log_error) == 1
+
+
+@pytest.mark.asyncio
 async def test_client_async_only(bmw_fixture: respx.Router):
     """Test that the Authentication providers only work async."""
 

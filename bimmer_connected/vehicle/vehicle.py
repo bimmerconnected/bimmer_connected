@@ -115,11 +115,14 @@ class MyBMWVehicle:
             (Tires, "tires"),
         ]
         for cls, vehicle_attribute in update_entities:
-            if getattr(self, vehicle_attribute) is None:
-                setattr(self, vehicle_attribute, cls.from_vehicle_data(vehicle_data))
-            else:
-                curr_attr: "VehicleDataBase" = getattr(self, vehicle_attribute)
-                curr_attr.update_from_vehicle_data(vehicle_data)
+            try:
+                if getattr(self, vehicle_attribute) is None:
+                    setattr(self, vehicle_attribute, cls.from_vehicle_data(vehicle_data))
+                else:
+                    curr_attr: "VehicleDataBase" = getattr(self, vehicle_attribute)
+                    curr_attr.update_from_vehicle_data(vehicle_data)
+            except (KeyError, TypeError) as ex:
+                _LOGGER.warning("Unable to update %s - (%s) %s", vehicle_attribute, type(ex).__name__, ex)
 
     @staticmethod
     def combine_data(
