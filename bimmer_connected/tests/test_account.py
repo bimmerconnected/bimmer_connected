@@ -23,7 +23,9 @@ from . import (
     TEST_REGION_STRING,
     TEST_USERNAME,
     VIN_G26,
-    get_fingerprint_count,
+    VIN_I20,
+    get_fingerprint_charging_settings_count,
+    get_fingerprint_state_count,
     load_response,
 )
 from .conftest import prepare_account_with_vehicles
@@ -175,7 +177,7 @@ async def test_vehicles(bmw_fixture: respx.Router):
     await account.get_vehicles()
 
     assert account.config.authentication.access_token is not None
-    assert get_fingerprint_count() == len(account.vehicles)
+    assert get_fingerprint_state_count() == len(account.vehicles)
 
     vehicle = account.get_vehicle(VIN_G26)
     assert vehicle is not None
@@ -196,15 +198,15 @@ async def test_vehicle_init(bmw_fixture: respx.Router):
 
         # First call on init
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_count()
+        assert len(account.vehicles) == get_fingerprint_state_count()
 
         # No call to _init_vehicles()
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_count()
+        assert len(account.vehicles) == get_fingerprint_state_count()
 
         # Second, forced call _init_vehicles()
         await account.get_vehicles(force_init=True)
-        assert len(account.vehicles) == get_fingerprint_count()
+        assert len(account.vehicles) == get_fingerprint_state_count()
 
         assert mock_listener.call_count == 2
 
@@ -254,23 +256,42 @@ async def test_vehicle_search_case(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_get_fingerprints(bmw_fixture: respx.Router):
+async def test_get_fingerprints(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router, bmw_log_all_responses):
     """Test getting fingerprints."""
+
+    # Prepare Number of good responses (vehicle states, charging settings per vehicle)
+    # and 2x vehicle list
+    json_count = get_fingerprint_state_count() + get_fingerprint_charging_settings_count() + 2
+
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").respond(
+    # This should have been successful
+    filenames = [Path(f.filename) for f in account.get_stored_responses()]
+    json_files = [f for f in filenames if f.suffix == ".json"]
+    txt_files = [f for f in filenames if f.suffix == ".txt"]
+
+    assert len(json_files) == json_count  # all good
+    assert len(txt_files) == 0  # no errors
+
+    # Now we simulate an error for a single vehicle
+    # We need to remove the existing state route first and add it back later as otherwise our error call is never
+    # matched (respx matches by order of routes and we don't replace the existing one)
+    state_route = bmw_fixture.routes.pop("state")
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_G26}).respond(
         500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
     )
-    with pytest.raises(MyBMWAPIError):
-        await account.get_vehicles()
+    bmw_fixture.routes.add(state_route, "state")
+
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    await account.get_vehicles()
 
     filenames = [Path(f.filename) for f in account.get_stored_responses()]
     json_files = [f for f in filenames if f.suffix == ".json"]
     txt_files = [f for f in filenames if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 1)
-    assert len(txt_files) == 1
+    assert len(json_files) == json_count - 2  # missing on 1 state and 1 charging setting
+    assert len(txt_files) == 1  # error message from state, charging setting was not loaded anymore
 
 
 @pytest.mark.asyncio
@@ -474,11 +495,35 @@ async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("bmw_fixture", [[VIN_G26]], indirect=True)
 async def test_incomplete_vehicle_details(caplog, bmw_fixture: respx.Router):
     """Test incorrect responses for vehicle details."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
     # get vehicles once
+    await account.get_vehicles()
+
+    # We need to remove the existing state route first and add it back later as otherwise our error call is never
+    # matched (respx matches by order of routes and we don't replace the existing one)
+    state_route = bmw_fixture.routes.pop("state")
+    # JSON, but error
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_I20}).respond(
+        500, json={"statusCode": 500, "message": "Something is broken."}
+    )
+    # No JSON
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_G26}).respond(
+        500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
+    )
+    bmw_fixture.routes.add(state_route, "state")
+
+    await account.get_vehicles()
+
+    log_error = [r for r in caplog.records if "Unable to get details" in r.message]
+    assert len(log_error) == 2
+
+
+@pytest.mark.asyncio
+async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
+    """Test raising an exception if no responses for vehicle details are received."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
     await account.get_vehicles()
 
     bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
@@ -487,19 +532,11 @@ async def test_incomplete_vehicle_details(caplog, bmw_fixture: respx.Router):
             json={"statusCode": 500, "message": "Something is broken."},
         )
     )
-    await account.get_vehicles()
+    with pytest.raises(MyBMWAPIError):
+        await account.get_vehicles()
 
     log_error = [r for r in caplog.records if "Unable to get details" in r.message]
-    assert len(log_error) == 1
-
-    caplog.clear()
-
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
-        return_value=httpx.Response(200, text="I don't fancy JSON...")
-    )
-    await account.get_vehicles()
-    log_error = [r for r in caplog.records if "Unable to get details" in r.message]
-    assert len(log_error) == 1
+    assert len(log_error) == get_fingerprint_state_count()
 
 
 @pytest.mark.asyncio

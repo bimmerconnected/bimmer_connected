@@ -1,11 +1,13 @@
 """Fixtures for BMW tests."""
-from typing import Generator, Optional
+from collections import deque
+from typing import Deque, Generator, Optional
 
 import pytest
 import respx
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.const import Regions
+from bimmer_connected.models import AnonymizedResponse
 
 from . import (
     ALL_CHARGING_SETTINGS,
@@ -29,6 +31,14 @@ def bmw_fixture(request: pytest.FixtureRequest) -> Generator[respx.MockRouter, N
 
     with router:
         yield router
+
+
+@pytest.fixture
+def bmw_log_all_responses(monkeypatch: pytest.MonkeyPatch):
+    """Increase the length of the response store to log all responses."""
+    temp_store: Deque[AnonymizedResponse] = deque(maxlen=100)
+    monkeypatch.setattr("bimmer_connected.api.client.RESPONSE_STORE", temp_store)
+    monkeypatch.setattr("bimmer_connected.account.RESPONSE_STORE", temp_store)
 
 
 async def prepare_account_with_vehicles(region: Optional[Regions] = None, metric: bool = True):

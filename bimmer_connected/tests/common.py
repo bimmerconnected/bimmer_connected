@@ -111,7 +111,7 @@ class MyBMWMockRouter(respx.MockRouter):
         """Add routes for vehicle requests."""
 
         self.get("/eadrax-vcs/v4/vehicles").mock(side_effect=self.vehicles_sideeffect)
-        self.get("/eadrax-vcs/v4/vehicles/state").mock(side_effect=self.vehicle_state_sideeffect)
+        self.get("/eadrax-vcs/v4/vehicles/state", name="state").mock(side_effect=self.vehicle_state_sideeffect)
         self.get("/eadrax-crccs/v2/vehicles").mock(side_effect=self.vehicle_charging_settings_sideeffect)
 
     def add_remote_service_routes(self) -> None:

@@ -18,7 +18,7 @@ from bimmer_connected.const import (
     VEHICLES_URL,
     CarBrands,
 )
-from bimmer_connected.models import AnonymizedResponse, GPSPosition, MyBMWAPIError
+from bimmer_connected.models import AnonymizedResponse, GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 from bimmer_connected.vehicle import MyBMWVehicle
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
@@ -93,6 +93,7 @@ class MyBMWAccount:
             await self._init_vehicles()
 
         async with MyBMWClient(self.config) as client:
+            error_count = 0
             for vehicle in self.vehicles:
                 # Get the detailed vehicle state
                 try:
@@ -132,7 +133,19 @@ class MyBMWAccount:
 
                     self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
                 except (MyBMWAPIError, json.JSONDecodeError) as ex:
+                    # We don't want to fail completely if one vehicle fails, but we want to know about it
+                    error_count += 1
+
+                    # If it's a MyBMWQuotaError or MyBMWAuthError, we want to raise it
+                    if isinstance(ex, (MyBMWQuotaError, MyBMWAuthError)):
+                        raise ex
+
+                    # Always log the error
                     _LOGGER.error("Unable to get details for vehicle %s - (%s) %s", vehicle.vin, type(ex).__name__, ex)
+
+                    # If all vehicles fail, we want to raise an exception
+                    if error_count == len(self.vehicles):
+                        raise ex
 
     def add_vehicle(
         self,
