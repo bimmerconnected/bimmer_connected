@@ -14,11 +14,12 @@ import jwt
 from Crypto.Cipher import PKCS1_v1_5
 from Crypto.PublicKey import RSA
 
-from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url
+from bimmer_connected.api.regions import Regions, get_app_version, get_ocp_apim_key, get_server_url, get_user_agent
 from bimmer_connected.api.utils import (
     create_s256_code_challenge,
     generate_cn_nonce,
     generate_token,
+    get_capture_position,
     get_correlation_id,
     handle_httpstatuserror,
 )
@@ -30,7 +31,6 @@ from bimmer_connected.const import (
     AUTH_CHINA_TOKEN_URL,
     HTTPX_TIMEOUT,
     OAUTH_CONFIG_URL,
-    USER_AGENT,
     X_USER_AGENT,
 )
 from bimmer_connected.models import MyBMWAPIError
@@ -284,16 +284,8 @@ class MyBMWAuthentication(httpx.Auth):
             )
             verify_id = captcha_res.json()["data"]["verifyId"]
 
-            for i in range(1, 13):
-                try:
-                    captcha_check_res = await client.post(
-                        AUTH_CHINA_CAPTCHA_CHECK_URL,
-                        json={"position": 0.74 + i / 100, "verifyId": verify_id},
-                    )
-                    if captcha_check_res.status_code == 201:
-                        break
-                except MyBMWAPIError:
-                    continue
+            position = get_capture_position(captcha_res.json()["data"]["backGroundImg"])
+            await client.post(AUTH_CHINA_CAPTCHA_CHECK_URL, json={"position": position, "verifyId": verify_id})
 
             # Get token
             response = await client.post(
@@ -365,7 +357,7 @@ class MyBMWLoginClient(httpx.AsyncClient):
         region = kwargs.pop("region")
         kwargs["base_url"] = get_server_url(region)
         kwargs["headers"] = {
-            "user-agent": USER_AGENT,
+            "user-agent": get_user_agent(region),
             "x-user-agent": X_USER_AGENT.format(brand="bmw", app_version=get_app_version(region), region=region.value),
         }
 

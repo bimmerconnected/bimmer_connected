@@ -8,9 +8,9 @@ from typing import Deque, Dict, Optional
 import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
-from bimmer_connected.api.regions import get_app_version, get_server_url
+from bimmer_connected.api.regions import get_app_version, get_server_url, get_user_agent
 from bimmer_connected.api.utils import anonymize_response, get_correlation_id, handle_httpstatuserror
-from bimmer_connected.const import HTTPX_TIMEOUT, USER_AGENT, X_USER_AGENT, CarBrands
+from bimmer_connected.const import HTTPX_TIMEOUT, X_USER_AGENT, CarBrands
 from bimmer_connected.models import AnonymizedResponse, GPSPosition
 
 _LOGGER = logging.getLogger(__name__)
@@ -82,7 +82,7 @@ class MyBMWClient(httpx.AsyncClient):
         return {
             "accept": "application/json",
             "accept-language": "en",
-            "user-agent": USER_AGENT,
+            "user-agent": get_user_agent(self.config.authentication.region),
             "x-user-agent": X_USER_AGENT.format(
                 brand=(brand or CarBrands.BMW).value,
                 app_version=get_app_version(self.config.authentication.region),
