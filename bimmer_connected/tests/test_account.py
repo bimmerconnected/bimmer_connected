@@ -550,3 +550,31 @@ async def test_client_async_only(bmw_fixture: respx.Router):
     with httpx.Client(auth=MyBMWLoginRetry()) as client:
         with pytest.raises(RuntimeError):
             client.get("/eadrax-ucs/v1/presentation/oauth/config")
+
+
+@pytest.mark.asyncio
+async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router):
+    """Test cases if Pillow is unavailable (i.e. lib is not installed with extra [china])."""
+
+    monkeypatch.setattr("importlib.import_module", mock.Mock(side_effect=ImportError))
+
+    # Test china (needs to throw exception)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    with pytest.raises(
+        expected_exception=ImportError,
+        match=r"Missing dependencies for region 'china'. Please install using bimmerconnected\[china\].",
+    ):
+        await account.get_vehicles()
+    assert account is not None
+    assert len(account.vehicles) == 0
+
+    # But rest_of_world and north_america should work
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("rest_of_world"))
+    await account.get_vehicles()
+    assert account is not None
+    assert len(account.vehicles) > 0
+
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("north_america"))
+    await account.get_vehicles()
+    assert account is not None
+    assert len(account.vehicles) > 0

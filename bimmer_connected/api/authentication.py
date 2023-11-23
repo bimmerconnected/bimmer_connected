@@ -22,6 +22,7 @@ from bimmer_connected.api.utils import (
     get_capture_position,
     get_correlation_id,
     handle_httpstatuserror,
+    try_import_pillow_image,
 )
 from bimmer_connected.const import (
     AUTH_CHINA_CAPTCHA_CHECK_URL,
@@ -266,6 +267,10 @@ class MyBMWAuthentication(httpx.Auth):
     async def _login_china(self):
         async with MyBMWLoginClient(region=self.region) as client:
             _LOGGER.debug("Authenticating with MyBMW flow for China.")
+
+            # While PIL.Image is only needed in `get_capture_position`, we test it here to avoid
+            # unneeded requests to the server.
+            try_import_pillow_image()
 
             # Get current RSA public certificate & use it to encrypt password
             response = await client.get(
