@@ -3,6 +3,7 @@
 import base64
 import datetime
 import hashlib
+import importlib
 import io
 import json
 import logging
@@ -18,7 +19,6 @@ from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad
-from PIL import Image
 
 from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
@@ -196,7 +196,7 @@ def get_capture_position(base64_background_img: str) -> str:
     block = {"width": 15, "height": 75}
 
     img_bytes = io.BytesIO(base64.b64decode(base64_background_img))
-    img = Image.open(img_bytes)
+    img = try_import_pillow_image().open(img_bytes)
     pixels = list(img.getdata())
 
     position = ""
@@ -225,3 +225,19 @@ def get_capture_position(base64_background_img: str) -> str:
             break
 
     return position
+
+
+def try_import_pillow_image():
+    """Try to import PIL.Image and return if successful.
+
+    We only need to load PIL if we are in China, so we try to avoid a general dependency
+    on Pillow for all users. Installing Pillow on Raspberry Pi (ARMv7) is painful.
+    """
+
+    try:
+        image = importlib.import_module("PIL.Image")
+    except ImportError as ex:
+        raise ImportError(
+            "Missing dependencies for region 'china'. Please install using bimmerconnected[china]."
+        ) from ex
+    return image
