@@ -49,7 +49,7 @@ class MyBMWAccount:
     """Optional. Required for getting a position on older cars."""
 
     use_metric_units: InitVar[Optional[bool]] = None
-    """Deprecated. Use metric units (km, l) by default. Use imperial units (mi, gal) if False."""
+    """Deprecated. All returned values are metric units (km, l)."""
 
     vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
