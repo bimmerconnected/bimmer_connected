@@ -332,23 +332,28 @@ async def test_set_observer_invalid_values(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_set_use_metric_units():
-    """Test set_observer_position with no arguments."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
-    assert account.config.use_metric_units is True
+async def test_set_use_metric_units(caplog):
+    """Test (deprecated) use_metrics_units flag."""
 
+    # Default
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    assert len(caplog.records) == 0
     metric_client = MyBMWClient(account.config)
     assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
 
-    account.set_use_metric_units(False)
-    assert account.config.use_metric_units is False
-    imperial_client = MyBMWClient(account.config)
-    assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
+    # Set to true
+    caplog.clear()
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=True)
+    assert len(caplog.records) == 1
+    metric_client = MyBMWClient(account.config)
+    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
 
-    imperial_account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=False)
-    assert imperial_account.config.use_metric_units is False
-    imperial_client = MyBMWClient(imperial_account.config)
-    assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
+    # Set to false
+    caplog.clear()
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=True)
+    assert len(caplog.records) == 1
+    metric_client = MyBMWClient(account.config)
+    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
 
 
 @pytest.mark.asyncio

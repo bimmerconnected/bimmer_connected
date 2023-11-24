@@ -48,18 +48,25 @@ class MyBMWAccount:
     observer_position: InitVar[GPSPosition] = None
     """Optional. Required for getting a position on older cars."""
 
-    use_metric_units: InitVar[bool] = True
-    """Optional. Use metric units (km, l) by default. Use imperial units (mi, gal) if False."""
+    use_metric_units: InitVar[Optional[bool]] = None
+    """Deprecated. Use metric units (km, l) by default. Use imperial units (mi, gal) if False."""
 
     vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
     def __post_init__(self, password, log_responses, observer_position, use_metric_units):
+        """Initialize the account."""
+
+        if use_metric_units is not None:
+            _LOGGER.warning(
+                "The use_metric_units parameter is deprecated and will be removed in a future release. "
+                "All values will be returned in metric units, as the parameter has no effect on the API."
+            )
+
         if self.config is None:
             self.config = MyBMWClientConfiguration(
                 MyBMWAuthentication(self.username, password, self.region),
                 log_responses=log_responses,
                 observer_position=observer_position,
-                use_metric_units=use_metric_units,
             )
 
     async def _init_vehicles(self) -> None:
@@ -184,10 +191,6 @@ class MyBMWAccount:
         """Overwrite the current value of the MyBMW refresh token and GCID (if available)."""
         self.config.authentication.refresh_token = refresh_token
         self.config.authentication.gcid = gcid
-
-    def set_use_metric_units(self, use_metric_units: bool) -> None:
-        """Change between using metric units (km, l) if True or imperial units (mi, gal) if False."""
-        self.config.use_metric_units = use_metric_units
 
     @staticmethod
     def get_stored_responses() -> List[AnonymizedResponse]:

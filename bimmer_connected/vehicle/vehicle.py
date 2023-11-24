@@ -137,7 +137,6 @@ class MyBMWVehicle:
             **vehicle_base,
             **(vehicle_state or {}),
             ATTR_CHARGING_SETTINGS: charging_settings or {},
-            "is_metric": account.config.use_metric_units,
             "fetched_at": fetched_at or datetime.datetime.now(datetime.timezone.utc),
         }
 
@@ -168,7 +167,7 @@ class MyBMWVehicle:
     @property
     def mileage(self) -> ValueWithUnit:
         """Get the mileage of the vehicle."""
-        return ValueWithUnit(self.data[ATTR_STATE].get("currentMileage", 0), "km" if self.data["is_metric"] else "mi")
+        return ValueWithUnit(self.data[ATTR_STATE].get("currentMileage", 0), "km")
 
     @property
     def timestamp(self) -> Optional[datetime.datetime]:

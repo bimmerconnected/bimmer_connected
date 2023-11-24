@@ -25,7 +25,6 @@ class MyBMWClientConfiguration:
     authentication: MyBMWAuthentication
     log_responses: Optional[bool] = False
     observer_position: Optional[GPSPosition] = None
-    use_metric_units: Optional[bool] = True
 
     def set_log_responses(self, log_responses: bool) -> None:
         """Set if responses are logged and clear response store."""
@@ -89,6 +88,6 @@ class MyBMWClient(httpx.AsyncClient):
                 region=self.config.authentication.region.value,
             ),
             **get_correlation_id(),
-            "bmw-units-preferences": "d=KM;v=L" if self.config.use_metric_units else "d=MI;v=G",
+            "bmw-units-preferences": "d=KM;v=L",
             "24-hour-format": "true",
         }

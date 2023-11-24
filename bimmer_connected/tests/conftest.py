@@ -41,8 +41,8 @@ def bmw_log_all_responses(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("bimmer_connected.account.RESPONSE_STORE", temp_store)
 
 
-async def prepare_account_with_vehicles(region: Optional[Regions] = None, metric: bool = True):
+async def prepare_account_with_vehicles(region: Optional[Regions] = None):
     """Initialize account and get vehicles."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION, use_metric_units=metric)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
     await account.get_vehicles()
     return account
