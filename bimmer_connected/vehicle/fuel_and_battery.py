@@ -101,7 +101,7 @@ class FuelAndBattery(VehicleDataBase):
         state = vehicle_data["state"]
 
         if drivetrain in COMBUSTION_ENGINE_DRIVE_TRAINS:
-            retval.update(cls._parse_fuel_data(state.get("combustionFuelLevel", {}), vehicle_data["is_metric"]))
+            retval.update(cls._parse_fuel_data(state.get("combustionFuelLevel", {})))
 
         if drivetrain in HV_BATTERY_DRIVE_TRAINS:
             electric_data = state.get("electricChargingState", {})
@@ -110,7 +110,6 @@ class FuelAndBattery(VehicleDataBase):
                     cls._parse_electric_data(
                         electric_data,
                         vehicle_data["fetched_at"],
-                        vehicle_data["is_metric"],
                         state.get("chargingProfile", {}).get("reductionOfChargeCurrent"),
                     ),
                 )
@@ -142,20 +141,20 @@ class FuelAndBattery(VehicleDataBase):
         return retval
 
     @staticmethod
-    def _parse_fuel_data(fuel_data: Dict, is_metric: bool) -> Dict:
+    def _parse_fuel_data(fuel_data: Dict) -> Dict:
         """Parse fuel data."""
         retval = {}
         if "remainingFuelLiters" in fuel_data:
-            retval["remaining_fuel"] = ValueWithUnit(fuel_data["remainingFuelLiters"], "L" if is_metric else "gal")
+            retval["remaining_fuel"] = ValueWithUnit(fuel_data["remainingFuelLiters"], "L")
         if "remainingFuelPercent" in fuel_data:
             retval["remaining_fuel_percent"] = fuel_data["remainingFuelPercent"]
         if "range" in fuel_data:
-            retval["remaining_range_fuel"] = ValueWithUnit(fuel_data["range"], "km" if is_metric else "mi")
+            retval["remaining_range_fuel"] = ValueWithUnit(fuel_data["range"], "km")
         return retval
 
     @staticmethod
     def _parse_electric_data(
-        electric_data: Dict, fetched_at: datetime.datetime, is_metric: bool, charging_window: Optional[Dict] = None
+        electric_data: Dict, fetched_at: datetime.datetime, charging_window: Optional[Dict] = None
     ) -> Dict:
         """Parse electric data."""
         retval = {}
@@ -164,7 +163,7 @@ class FuelAndBattery(VehicleDataBase):
         if "chargingLevelPercent" in electric_data:
             retval["remaining_battery_percent"] = int(electric_data["chargingLevelPercent"])
         if "range" in electric_data:
-            retval["remaining_range_electric"] = ValueWithUnit(electric_data["range"], "km" if is_metric else "mi")
+            retval["remaining_range_electric"] = ValueWithUnit(electric_data["range"], "km")
         if "chargingStatus" in electric_data:
             retval["charging_status"] = ChargingState(
                 electric_data["chargingStatus"] if electric_data["chargingStatus"] != "INVALID" else "NOT_CHARGING"
