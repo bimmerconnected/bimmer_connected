@@ -80,66 +80,6 @@ async def test_login_refresh_token_row_na_401(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_error_handling_429_401_success(bmw_fixture: respx.Router):
-    """Test the login flow but experiencing a 429 first."""
-
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
-    await account.get_vehicles()
-
-    with mock.patch(
-        "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
-        wraps=account.config.authentication._refresh_token_row_na,
-    ) as mock_listener:
-        bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
-            side_effect=[
-                httpx.Response(
-                    429, json={"statusCode": 429, "message": "Rate limit is exceeded. Try again in 0 seconds."}
-                ),
-                httpx.Response(401),
-                *([httpx.Response(200, json={ATTR_CAPABILITIES: {}})] * 10),
-            ]
-        )
-        mock_listener.reset_mock()
-        await account.get_vehicles()
-
-        assert mock_listener.call_count == 1
-        assert account.config.authentication.refresh_token is not None
-
-
-@pytest.mark.asyncio
-async def test_error_handling_429_401_fail(bmw_fixture: respx.Router):
-    """Test the error handling, experiencing a 429, 401 and another two 429."""
-
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
-    await account.get_vehicles()
-
-    with mock.patch(
-        "bimmer_connected.api.authentication.MyBMWAuthentication._refresh_token_row_na",
-        wraps=account.config.authentication._refresh_token_row_na,
-    ) as mock_listener:
-        bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
-            side_effect=[
-                httpx.Response(
-                    429, json={"statusCode": 429, "message": "Rate limit is exceeded. Try again in 0 seconds."}
-                ),
-                httpx.Response(401),
-                *[
-                    httpx.Response(
-                        429, json={"statusCode": 429, "message": "Rate limit is exceeded. Try again in 0 seconds."}
-                    )
-                ]
-                * 2,
-            ]
-        )
-        mock_listener.reset_mock()
-        with pytest.raises(MyBMWQuotaError):
-            await account.get_vehicles()
-
-        assert mock_listener.call_count == 1
-        assert account.config.authentication.refresh_token is not None
-
-
-@pytest.mark.asyncio
 async def test_login_refresh_token_row_na_invalid(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
     bmw_fixture.post("/gcdm/oauth/token").mock(
@@ -529,6 +469,63 @@ async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
         if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
     ]
     assert len(log_429) == 3
+
+
+@pytest.mark.asyncio
+async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
+    """Test the login flow but experiencing a 429 first."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            *[httpx.Response(200, json=[])] * 2,
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
+    """Test the error handling, experiencing a 429, 401 and another two 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWQuotaError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_multiple_401(bmw_fixture: respx.Router):
+    """Test the error handling, when multiple 401 are received in sequence."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(401),
+            httpx.Response(401),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWAuthError):
+            await account.get_vehicles()
 
 
 @pytest.mark.asyncio

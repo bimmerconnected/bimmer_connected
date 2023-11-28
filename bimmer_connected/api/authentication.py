@@ -85,11 +85,13 @@ class MyBMWAuthentication(httpx.Auth):
         # Try getting a response
         response: httpx.Response = (yield request)
         await response.aread()
+        prev_response_code: int = None
 
         # Retry 3 times on 401 or 429
         for _ in range(3):
             # Handle "classic" 401 Unauthorized
-            if response.status_code == 401:
+            if response.status_code == 401 and response.status_code != prev_response_code:
+                prev_response_code = response.status_code
                 async with self.login_lock:
                     _LOGGER.debug("Received unauthorized response, refreshing token.")
                     await self.login()
@@ -99,12 +101,12 @@ class MyBMWAuthentication(httpx.Auth):
 
             # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
             elif response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower()):
-                if response.status_code == 429:
-                    await response.aread()
-                    wait_time = get_retry_wait_time(response)
-                    _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
-                    await asyncio.sleep(wait_time)
-                    response = yield request
+                prev_response_code = response.status_code
+                await response.aread()
+                wait_time = get_retry_wait_time(response)
+                _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
+                await asyncio.sleep(wait_time)
+                response = yield request
 
         # Raise if still error after 3rd retry
         try:
