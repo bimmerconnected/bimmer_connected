@@ -1,10 +1,12 @@
 """Tests for API that are not covered by other tests."""
 import json
 
+import httpx
 import pytest
 import respx
 
 from bimmer_connected.account import MyBMWAccount
+from bimmer_connected.api.authentication import get_retry_wait_time
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.api.utils import anonymize_data
 from bimmer_connected.utils import log_response_store_to_file
@@ -120,3 +122,19 @@ async def test_fingerprint_deque(monkeypatch: pytest.MonkeyPatch, bmw_fixture: r
     account.config.set_log_responses(True)
     await account.get_vehicles()
     assert len(account.get_stored_responses()) == 10
+
+
+def test_get_retry_wait_time():
+    """Test extraction of retry wait time."""
+
+    # Parsing correctly
+    r = httpx.Response(429, json={"statusCode": 429, "message": "Rate limit is exceeded. Try again in 1 seconds."})
+    assert get_retry_wait_time(r) == 2
+
+    # No number found
+    r = httpx.Response(429, json={"statusCode": 429, "message": "Rate limit is exceeded."})
+    assert get_retry_wait_time(r) == 4
+
+    # No JSON response
+    r = httpx.Response(429, text="Rate limit is exceeded.")
+    assert get_retry_wait_time(r) == 4

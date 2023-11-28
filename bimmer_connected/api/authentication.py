@@ -86,30 +86,31 @@ class MyBMWAuthentication(httpx.Auth):
         response: httpx.Response = (yield request)
         await response.aread()
 
-        # Handle "classic" 401 Unauthorized
-        if response.status_code == 401:
-            async with self.login_lock:
-                _LOGGER.debug("Received unauthorized response, refreshing token.")
-                await self.login()
-            request.headers["authorization"] = f"Bearer {self.access_token}"
-            request.headers["bmw-session-id"] = self.session_id
-            yield request
-        # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
-        elif response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower()):
-            for _ in range(3):
+        # Retry 3 times on 401 or 429
+        for _ in range(3):
+            # Handle "classic" 401 Unauthorized
+            if response.status_code == 401:
+                async with self.login_lock:
+                    _LOGGER.debug("Received unauthorized response, refreshing token.")
+                    await self.login()
+                request.headers["authorization"] = f"Bearer {self.access_token}"
+                request.headers["bmw-session-id"] = self.session_id
+                response = yield request
+
+            # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
+            elif response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower()):
                 if response.status_code == 429:
                     await response.aread()
-                    wait_time = math.ceil(
-                        next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
-                    )
+                    wait_time = get_retry_wait_time(response)
                     _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
                     await asyncio.sleep(wait_time)
                     response = yield request
-            # Raise if still error after 3rd retry
-            try:
-                response.raise_for_status()
-            except httpx.HTTPStatusError as ex:
-                await handle_httpstatuserror(ex, log_handler=_LOGGER)
+
+        # Raise if still error after 3rd retry
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as ex:
+            await handle_httpstatuserror(ex, log_handler=_LOGGER)
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
@@ -399,9 +400,7 @@ class MyBMWLoginRetry(httpx.Auth):
         for _ in range(3):
             if response.status_code == 429:
                 await response.aread()
-                wait_time = math.ceil(
-                    next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
-                )
+                wait_time = get_retry_wait_time(response)
                 _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
                 await asyncio.sleep(wait_time)
                 response = yield request
@@ -412,3 +411,13 @@ class MyBMWLoginRetry(httpx.Auth):
                 response.raise_for_status()
             except httpx.HTTPStatusError as ex:
                 await handle_httpstatuserror(ex, log_handler=_LOGGER)
+
+
+def get_retry_wait_time(response: httpx.Response) -> int:
+    """Get the wait time for the next retry from the response and multiply by 2."""
+    try:
+        response_wait_time = next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]))
+    except Exception:
+        response_wait_time = 2
+    wait_time = math.ceil(response_wait_time * 2)
+    return wait_time
