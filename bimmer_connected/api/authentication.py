@@ -85,11 +85,12 @@ class MyBMWAuthentication(httpx.Auth):
         # Try getting a response
         response: httpx.Response = (yield request)
         await response.aread()
-        prev_response_code: int = None
+        prev_response_code: int = 0
 
         # Retry 3 times on 401 or 429
         for _ in range(3):
-            # Handle "classic" 401 Unauthorized
+            # Handle "classic" 401 Unauthorized and try getting a new token
+            # We don't want to call the auth endpoint too many times, so we only do it once per 401
             if response.status_code == 401 and response.status_code != prev_response_code:
                 prev_response_code = response.status_code
                 async with self.login_lock:
@@ -108,7 +109,7 @@ class MyBMWAuthentication(httpx.Auth):
                 await asyncio.sleep(wait_time)
                 response = yield request
 
-        # Raise if still error after 3rd retry
+        # Raise if request still was not successful
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as ex:
