@@ -477,6 +477,63 @@ async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
+async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
+    """Test the login flow but experiencing a 429 first."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            *[httpx.Response(200, json=[])] * 2,
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
+    """Test the error handling, experiencing a 429, 401 and another two 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWQuotaError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_multiple_401(bmw_fixture: respx.Router):
+    """Test the error handling, when multiple 401 are received in sequence."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(401),
+            httpx.Response(401),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWAuthError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
 async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router):
     """Test 403 quota issues for vehicle state and fail if it happens too often."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
