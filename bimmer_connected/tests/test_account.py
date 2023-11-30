@@ -508,6 +508,9 @@ async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
             httpx.Response(401),
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
         ]
     )
 
@@ -530,6 +533,52 @@ async def test_multiple_401(bmw_fixture: respx.Router):
 
     with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
         with pytest.raises(MyBMWAuthError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_401_after_429_ok(bmw_fixture: respx.Router):
+    """Test the error handling, when a 401 is received after exactly 3 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    await account.get_vehicles()
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    # Recover after 3 429 and 1 401
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            *[httpx.Response(200, json={})] * 100,  # Just simulate OK responses from now on
+        ]
+    )
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        await account.get_vehicles()
+    assert len(account.vehicles) == get_fingerprint_state_count()
+
+
+@pytest.mark.asyncio
+async def test_401_after_429_fail(bmw_fixture: respx.Router):
+    """Test the error handling, when a 401 is received after exactly 3 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    # Fail after 3 429 and 1 401 with another 429
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            httpx.Response(429, json=json_429),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWQuotaError):
             await account.get_vehicles()
 
 
