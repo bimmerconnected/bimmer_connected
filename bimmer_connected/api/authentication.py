@@ -84,30 +84,34 @@ class MyBMWAuthentication(httpx.Auth):
 
         # Try getting a response
         response: httpx.Response = (yield request)
+
+        # return directly if first response was successful
+        if response.is_success:
+            return
+
         await response.aread()
-        prev_response_code: int = 0
 
-        # Retry 3 times on 401 or 429
-        for _ in range(3):
-            # Handle "classic" 401 Unauthorized and try getting a new token
-            # We don't want to call the auth endpoint too many times, so we only do it once per 401
-            if response.status_code == 401 and response.status_code != prev_response_code:
-                prev_response_code = response.status_code
-                async with self.login_lock:
-                    _LOGGER.debug("Received unauthorized response, refreshing token.")
-                    await self.login()
-                request.headers["authorization"] = f"Bearer {self.access_token}"
-                request.headers["bmw-session-id"] = self.session_id
-                response = yield request
-
+        # First check against 429 Too Many Requests and 403 Quota Exceeded
+        retry_count = 0
+        while (
+            response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower())
+        ) and retry_count < 3:
             # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
-            elif response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower()):
-                prev_response_code = response.status_code
-                await response.aread()
-                wait_time = get_retry_wait_time(response)
-                _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
-                await asyncio.sleep(wait_time)
-                response = yield request
+            wait_time = get_retry_wait_time(response)
+            _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
+            await asyncio.sleep(wait_time)
+            response = yield request
+            await response.aread()
+            retry_count += 1
+
+        # Handle 401 Unauthorized and try getting a new token
+        if response.status_code == 401:
+            async with self.login_lock:
+                _LOGGER.debug("Received unauthorized response, refreshing token.")
+                await self.login()
+            request.headers["authorization"] = f"Bearer {self.access_token}"
+            request.headers["bmw-session-id"] = self.session_id
+            response = yield request
 
         # Raise if request still was not successful
         try:
