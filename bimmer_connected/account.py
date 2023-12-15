@@ -1,6 +1,7 @@
 """Access to a MyBMW account and all vehicles therein."""
 
 import datetime
+import json
 import logging
 from dataclasses import InitVar, dataclass, field
 from typing import List, Optional
@@ -17,7 +18,7 @@ from bimmer_connected.const import (
     VEHICLES_URL,
     CarBrands,
 )
-from bimmer_connected.models import AnonymizedResponse, GPSPosition
+from bimmer_connected.models import AnonymizedResponse, GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 from bimmer_connected.vehicle import MyBMWVehicle
 
 VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
@@ -47,18 +48,25 @@ class MyBMWAccount:
     observer_position: InitVar[GPSPosition] = None
     """Optional. Required for getting a position on older cars."""
 
-    use_metric_units: InitVar[bool] = True
-    """Optional. Use metric units (km, l) by default. Use imperial units (mi, gal) if False."""
+    use_metric_units: InitVar[Optional[bool]] = None
+    """Deprecated. All returned values are metric units (km, l)."""
 
     vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
     def __post_init__(self, password, log_responses, observer_position, use_metric_units):
+        """Initialize the account."""
+
+        if use_metric_units is not None:
+            _LOGGER.warning(
+                "The use_metric_units parameter is deprecated and will be removed in a future release. "
+                "All values will be returned in metric units, as the parameter has no effect on the API."
+            )
+
         if self.config is None:
             self.config = MyBMWClientConfiguration(
                 MyBMWAuthentication(self.username, password, self.region),
                 log_responses=log_responses,
                 observer_position=observer_position,
-                use_metric_units=use_metric_units,
             )
 
     async def _init_vehicles(self) -> None:
@@ -92,43 +100,59 @@ class MyBMWAccount:
             await self._init_vehicles()
 
         async with MyBMWClient(self.config) as client:
+            error_count = 0
             for vehicle in self.vehicles:
                 # Get the detailed vehicle state
-                state_response = await client.get(
-                    VEHICLE_STATE_URL,
-                    params={
-                        "apptimezone": self.utcdiff,
-                        "appDateTime": int(fetched_at.timestamp() * 1000),
-                    },
-                    headers={
-                        **client.generate_default_header(vehicle.brand),
-                        "bmw-vin": vehicle.vin,
-                    },
-                )
-                vehicle_state = state_response.json()
-
-                # Get detailed charging settings if supported by vehicle
-                charging_settings = None
-                if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
-                    ATTR_CAPABILITIES
-                ].get("isChargingSettingsEnabled", False):
-                    charging_settings_response = await client.get(
-                        VEHICLE_CHARGING_DETAILS_URL,
+                try:
+                    state_response = await client.get(
+                        VEHICLE_STATE_URL,
                         params={
-                            "fields": "charging-profile",
-                            "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
-                                "isChargingSettingsEnabled"
-                            ],
+                            "apptimezone": self.utcdiff,
+                            "appDateTime": int(fetched_at.timestamp() * 1000),
                         },
                         headers={
                             **client.generate_default_header(vehicle.brand),
-                            "bmw-current-date": fetched_at.isoformat(),
                             "bmw-vin": vehicle.vin,
                         },
                     )
-                    charging_settings = charging_settings_response.json()
+                    vehicle_state = state_response.json()
 
-                self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
+                    # Get detailed charging settings if supported by vehicle
+                    charging_settings = None
+                    if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
+                        ATTR_CAPABILITIES
+                    ].get("isChargingSettingsEnabled", False):
+                        charging_settings_response = await client.get(
+                            VEHICLE_CHARGING_DETAILS_URL,
+                            params={
+                                "fields": "charging-profile",
+                                "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
+                                    "isChargingSettingsEnabled"
+                                ],
+                            },
+                            headers={
+                                **client.generate_default_header(vehicle.brand),
+                                "bmw-current-date": fetched_at.isoformat(),
+                                "bmw-vin": vehicle.vin,
+                            },
+                        )
+                        charging_settings = charging_settings_response.json()
+
+                    self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
+                except (MyBMWAPIError, json.JSONDecodeError) as ex:
+                    # We don't want to fail completely if one vehicle fails, but we want to know about it
+                    error_count += 1
+
+                    # If it's a MyBMWQuotaError or MyBMWAuthError, we want to raise it
+                    if isinstance(ex, (MyBMWQuotaError, MyBMWAuthError)):
+                        raise ex
+
+                    # Always log the error
+                    _LOGGER.error("Unable to get details for vehicle %s - (%s) %s", vehicle.vin, type(ex).__name__, ex)
+
+                    # If all vehicles fail, we want to raise an exception
+                    if error_count == len(self.vehicles):
+                        raise ex
 
     def add_vehicle(
         self,
@@ -167,10 +191,6 @@ class MyBMWAccount:
         """Overwrite the current value of the MyBMW refresh token and GCID (if available)."""
         self.config.authentication.refresh_token = refresh_token
         self.config.authentication.gcid = gcid
-
-    def set_use_metric_units(self, use_metric_units: bool) -> None:
-        """Change between using metric units (km, l) if True or imperial units (mi, gal) if False."""
-        self.config.use_metric_units = use_metric_units
 
     @staticmethod
     def get_stored_responses() -> List[AnonymizedResponse]:

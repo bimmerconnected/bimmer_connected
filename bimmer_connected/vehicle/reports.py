@@ -37,11 +37,10 @@ class ConditionBasedService:
         status: str,
         dateTime: Optional[str] = None,
         mileage: Optional[int] = None,
-        is_metric: bool = True,
         **kwargs,
     ):
         """Parse a condition based service entry from the API format to `ConditionBasedService`."""
-        due_distance = ValueWithUnit(mileage, "km" if is_metric else "mi") if mileage else ValueWithUnit(None, None)
+        due_distance = ValueWithUnit(mileage, "km") if mileage else ValueWithUnit(None, None)
         due_date = parse_datetime(dateTime) if dateTime else None
         return cls(type, ConditionBasedServiceStatus(status), due_date, due_distance)
 
@@ -63,9 +62,7 @@ class ConditionBasedServiceReport(VehicleDataBase):
 
         if ATTR_STATE in vehicle_data and "requiredServices" in vehicle_data[ATTR_STATE]:
             messages = vehicle_data[ATTR_STATE]["requiredServices"]
-            retval["messages"] = [
-                ConditionBasedService.from_api_entry(**m, is_metric=vehicle_data["is_metric"]) for m in messages
-            ]
+            retval["messages"] = [ConditionBasedService.from_api_entry(**m) for m in messages]
             retval["is_service_required"] = any((m.state != ConditionBasedServiceStatus.OK) for m in retval["messages"])
 
         return retval

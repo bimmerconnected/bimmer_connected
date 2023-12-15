@@ -1,16 +1,27 @@
 """Tests for API that are not covered by other tests."""
 import json
 
+import httpx
 import pytest
 import respx
 
 from bimmer_connected.account import MyBMWAccount
+from bimmer_connected.api.authentication import get_retry_wait_time
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.api.utils import anonymize_data
-from bimmer_connected.models import MyBMWAPIError
 from bimmer_connected.utils import log_response_store_to_file
 
-from . import RESPONSE_DIR, TEST_PASSWORD, TEST_REGION, TEST_USERNAME, get_fingerprint_count, load_response
+from . import (
+    RESPONSE_DIR,
+    TEST_PASSWORD,
+    TEST_REGION,
+    TEST_USERNAME,
+    VIN_G26,
+    get_fingerprint_charging_settings_count,
+    get_fingerprint_state_count,
+    # get_fingerprint_count,
+    load_response,
+)
 
 
 def test_valid_regions():
@@ -54,16 +65,19 @@ def test_anonymize_data():
 
 
 @pytest.mark.asyncio
-async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router):
+async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router, bmw_log_all_responses):
     """Test storing fingerprints to file."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
-    await account.get_vehicles()
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").respond(
+    # We need to remove the existing state route first and add it back later as otherwise our error call is never
+    # matched (respx matches by order of routes and we don't replace the existing one)
+    state_route = bmw_fixture.routes.pop("state")
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_G26}).respond(
         500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
     )
-    with pytest.raises(MyBMWAPIError):
-        await account.get_vehicles()
+    bmw_fixture.routes.add(state_route, "state")
+
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    await account.get_vehicles()
 
     log_response_store_to_file(account.get_stored_responses(), tmp_path)
 
@@ -71,14 +85,23 @@ async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router):
     json_files = [f for f in files if f.suffix == ".json"]
     txt_files = [f for f in files if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 1)
+    assert len(json_files) == (get_fingerprint_state_count() + get_fingerprint_charging_settings_count() + 2 - 2)
     assert len(txt_files) == 1
 
 
 @pytest.mark.asyncio
-async def test_fingerprint_deque(bmw_fixture: respx.Router):
+async def test_fingerprint_deque(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router):
     """Test storing fingerprints to file."""
-    # with bmw_fixture as mock_api:
+    # Increase length of response store for local testing
+
+    # temp_store = deque(maxlen=100)
+    # monkeypatch.setattr("bimmer_connected.api.client.RESPONSE_STORE", temp_store)
+    # monkeypatch.setattr("bimmer_connected.account.RESPONSE_STORE", temp_store)
+
+    # Prepare Number of good responses (vehicle states, charging settings per vehicle)
+    # # and 2x vehicle list
+    # json_count = get_fingerprint_state_count() + get_fingerprint_charging_settings_count() + 2
+
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
     await account.get_vehicles()
@@ -99,3 +122,19 @@ async def test_fingerprint_deque(bmw_fixture: respx.Router):
     account.config.set_log_responses(True)
     await account.get_vehicles()
     assert len(account.get_stored_responses()) == 10
+
+
+def test_get_retry_wait_time():
+    """Test extraction of retry wait time."""
+
+    # Parsing correctly
+    r = httpx.Response(429, json={"statusCode": 429, "message": "Rate limit is exceeded. Try again in 1 seconds."})
+    assert get_retry_wait_time(r) == 2
+
+    # No number found
+    r = httpx.Response(429, json={"statusCode": 429, "message": "Rate limit is exceeded."})
+    assert get_retry_wait_time(r) == 4
+
+    # No JSON response
+    r = httpx.Response(429, text="Rate limit is exceeded.")
+    assert get_retry_wait_time(r) == 4

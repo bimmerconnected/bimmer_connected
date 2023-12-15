@@ -29,6 +29,9 @@ using :code:`pip3 install --upgrade bimmer_connected`.
 Alternatively, clone the project and execute :code:`pip install -e .` to install the current
 :code:`master` branch.
 
+.. note::
+    If you want to connect to a **chinese** server, you need to install the :code:`[china]` extra, e.g. :code:`pip3 install --upgrade bimmer_connected[china]`.
+
 Usage
 =====
 While this library is mainly written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_, it can be use on its own.

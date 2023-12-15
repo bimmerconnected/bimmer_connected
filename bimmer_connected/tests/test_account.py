@@ -23,7 +23,9 @@ from . import (
     TEST_REGION_STRING,
     TEST_USERNAME,
     VIN_G26,
-    get_fingerprint_count,
+    VIN_I20,
+    get_fingerprint_charging_settings_count,
+    get_fingerprint_state_count,
     load_response,
 )
 from .conftest import prepare_account_with_vehicles
@@ -175,7 +177,7 @@ async def test_vehicles(bmw_fixture: respx.Router):
     await account.get_vehicles()
 
     assert account.config.authentication.access_token is not None
-    assert get_fingerprint_count() == len(account.vehicles)
+    assert get_fingerprint_state_count() == len(account.vehicles)
 
     vehicle = account.get_vehicle(VIN_G26)
     assert vehicle is not None
@@ -196,15 +198,15 @@ async def test_vehicle_init(bmw_fixture: respx.Router):
 
         # First call on init
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_count()
+        assert len(account.vehicles) == get_fingerprint_state_count()
 
         # No call to _init_vehicles()
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_count()
+        assert len(account.vehicles) == get_fingerprint_state_count()
 
         # Second, forced call _init_vehicles()
         await account.get_vehicles(force_init=True)
-        assert len(account.vehicles) == get_fingerprint_count()
+        assert len(account.vehicles) == get_fingerprint_state_count()
 
         assert mock_listener.call_count == 2
 
@@ -254,23 +256,42 @@ async def test_vehicle_search_case(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_get_fingerprints(bmw_fixture: respx.Router):
+async def test_get_fingerprints(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router, bmw_log_all_responses):
     """Test getting fingerprints."""
+
+    # Prepare Number of good responses (vehicle states, charging settings per vehicle)
+    # and 2x vehicle list
+    json_count = get_fingerprint_state_count() + get_fingerprint_charging_settings_count() + 2
+
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").respond(
+    # This should have been successful
+    filenames = [Path(f.filename) for f in account.get_stored_responses()]
+    json_files = [f for f in filenames if f.suffix == ".json"]
+    txt_files = [f for f in filenames if f.suffix == ".txt"]
+
+    assert len(json_files) == json_count  # all good
+    assert len(txt_files) == 0  # no errors
+
+    # Now we simulate an error for a single vehicle
+    # We need to remove the existing state route first and add it back later as otherwise our error call is never
+    # matched (respx matches by order of routes and we don't replace the existing one)
+    state_route = bmw_fixture.routes.pop("state")
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_G26}).respond(
         500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
     )
-    with pytest.raises(MyBMWAPIError):
-        await account.get_vehicles()
+    bmw_fixture.routes.add(state_route, "state")
+
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    await account.get_vehicles()
 
     filenames = [Path(f.filename) for f in account.get_stored_responses()]
     json_files = [f for f in filenames if f.suffix == ".json"]
     txt_files = [f for f in filenames if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_count() + 1)
-    assert len(txt_files) == 1
+    assert len(json_files) == json_count - 2  # missing on 1 state and 1 charging setting
+    assert len(txt_files) == 1  # error message from state, charging setting was not loaded anymore
 
 
 @pytest.mark.asyncio
@@ -311,23 +332,28 @@ async def test_set_observer_invalid_values(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_set_use_metric_units():
-    """Test set_observer_position with no arguments."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
-    assert account.config.use_metric_units is True
+async def test_set_use_metric_units(caplog):
+    """Test (deprecated) use_metrics_units flag."""
 
+    # Default
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    assert len(caplog.records) == 0
     metric_client = MyBMWClient(account.config)
     assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
 
-    account.set_use_metric_units(False)
-    assert account.config.use_metric_units is False
-    imperial_client = MyBMWClient(account.config)
-    assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
+    # Set to true
+    caplog.clear()
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=True)
+    assert len(caplog.records) == 1
+    metric_client = MyBMWClient(account.config)
+    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
 
-    imperial_account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=False)
-    assert imperial_account.config.use_metric_units is False
-    imperial_client = MyBMWClient(imperial_account.config)
-    assert imperial_client.generate_default_header()["bmw-units-preferences"] == "d=MI;v=G"
+    # Set to false
+    caplog.clear()
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=True)
+    assert len(caplog.records) == 1
+    metric_client = MyBMWClient(account.config)
+    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
 
 
 @pytest.mark.asyncio
@@ -451,6 +477,112 @@ async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
+async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
+    """Test the login flow but experiencing a 429 first."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            *[httpx.Response(200, json=[])] * 2,
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
+    """Test the error handling, experiencing a 429, 401 and another two 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWQuotaError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_multiple_401(bmw_fixture: respx.Router):
+    """Test the error handling, when multiple 401 are received in sequence."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(401),
+            httpx.Response(401),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWAuthError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
+async def test_401_after_429_ok(bmw_fixture: respx.Router):
+    """Test the error handling, when a 401 is received after exactly 3 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    await account.get_vehicles()
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    # Recover after 3 429 and 1 401
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            *[httpx.Response(200, json={})] * 100,  # Just simulate OK responses from now on
+        ]
+    )
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        await account.get_vehicles()
+    assert len(account.vehicles) == get_fingerprint_state_count()
+
+
+@pytest.mark.asyncio
+async def test_401_after_429_fail(bmw_fixture: respx.Router):
+    """Test the error handling, when a 401 is received after exactly 3 429."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    # Fail after 3 429 and 1 401 with another 429
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            httpx.Response(401),
+            httpx.Response(429, json=json_429),
+        ]
+    )
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        with pytest.raises(MyBMWQuotaError):
+            await account.get_vehicles()
+
+
+@pytest.mark.asyncio
 async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router):
     """Test 403 quota issues for vehicle state and fail if it happens too often."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
@@ -474,6 +606,51 @@ async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router
 
 
 @pytest.mark.asyncio
+async def test_incomplete_vehicle_details(caplog, bmw_fixture: respx.Router):
+    """Test incorrect responses for vehicle details."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    # get vehicles once
+    await account.get_vehicles()
+
+    # We need to remove the existing state route first and add it back later as otherwise our error call is never
+    # matched (respx matches by order of routes and we don't replace the existing one)
+    state_route = bmw_fixture.routes.pop("state")
+    # JSON, but error
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_I20}).respond(
+        500, json={"statusCode": 500, "message": "Something is broken."}
+    )
+    # No JSON
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state", headers={"bmw-vin": VIN_G26}).respond(
+        500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
+    )
+    bmw_fixture.routes.add(state_route, "state")
+
+    await account.get_vehicles()
+
+    log_error = [r for r in caplog.records if "Unable to get details" in r.message]
+    assert len(log_error) == 2
+
+
+@pytest.mark.asyncio
+async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
+    """Test raising an exception if no responses for vehicle details are received."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    await account.get_vehicles()
+
+    bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
+        return_value=httpx.Response(
+            500,
+            json={"statusCode": 500, "message": "Something is broken."},
+        )
+    )
+    with pytest.raises(MyBMWAPIError):
+        await account.get_vehicles()
+
+    log_error = [r for r in caplog.records if "Unable to get details" in r.message]
+    assert len(log_error) == get_fingerprint_state_count()
+
+
+@pytest.mark.asyncio
 async def test_client_async_only(bmw_fixture: respx.Router):
     """Test that the Authentication providers only work async."""
 
@@ -484,3 +661,31 @@ async def test_client_async_only(bmw_fixture: respx.Router):
     with httpx.Client(auth=MyBMWLoginRetry()) as client:
         with pytest.raises(RuntimeError):
             client.get("/eadrax-ucs/v1/presentation/oauth/config")
+
+
+@pytest.mark.asyncio
+async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router):
+    """Test cases if Pillow is unavailable (i.e. lib is not installed with extra [china])."""
+
+    monkeypatch.setattr("importlib.import_module", mock.Mock(side_effect=ImportError))
+
+    # Test china (needs to throw exception)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
+    with pytest.raises(
+        expected_exception=ImportError,
+        match=r"Missing dependencies for region 'china'. Please install using bimmerconnected\[china\].",
+    ):
+        await account.get_vehicles()
+    assert account is not None
+    assert len(account.vehicles) == 0
+
+    # But rest_of_world and north_america should work
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("rest_of_world"))
+    await account.get_vehicles()
+    assert account is not None
+    assert len(account.vehicles) > 0
+
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("north_america"))
+    await account.get_vehicles()
+    assert account is not None
+    assert len(account.vehicles) > 0

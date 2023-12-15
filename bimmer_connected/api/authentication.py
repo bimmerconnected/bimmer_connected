@@ -22,6 +22,7 @@ from bimmer_connected.api.utils import (
     get_capture_position,
     get_correlation_id,
     handle_httpstatuserror,
+    try_import_pillow_image,
 )
 from bimmer_connected.const import (
     AUTH_CHINA_CAPTCHA_CHECK_URL,
@@ -83,32 +84,40 @@ class MyBMWAuthentication(httpx.Auth):
 
         # Try getting a response
         response: httpx.Response = (yield request)
+
+        # return directly if first response was successful
+        if response.is_success:
+            return
+
         await response.aread()
 
-        # Handle "classic" 401 Unauthorized
+        # First check against 429 Too Many Requests and 403 Quota Exceeded
+        retry_count = 0
+        while (
+            response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower())
+        ) and retry_count < 3:
+            # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
+            wait_time = get_retry_wait_time(response)
+            _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
+            await asyncio.sleep(wait_time)
+            response = yield request
+            await response.aread()
+            retry_count += 1
+
+        # Handle 401 Unauthorized and try getting a new token
         if response.status_code == 401:
             async with self.login_lock:
                 _LOGGER.debug("Received unauthorized response, refreshing token.")
                 await self.login()
             request.headers["authorization"] = f"Bearer {self.access_token}"
             request.headers["bmw-session-id"] = self.session_id
-            yield request
-        # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 403 Forbidden)
-        elif response.status_code == 429 or (response.status_code == 403 and "quota" in response.text.lower()):
-            for _ in range(3):
-                if response.status_code == 429:
-                    await response.aread()
-                    wait_time = math.ceil(
-                        next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
-                    )
-                    _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
-                    await asyncio.sleep(wait_time)
-                    response = yield request
-            # Raise if still error after 3rd retry
-            try:
-                response.raise_for_status()
-            except httpx.HTTPStatusError as ex:
-                await handle_httpstatuserror(ex, log_handler=_LOGGER)
+            response = yield request
+
+        # Raise if request still was not successful
+        try:
+            response.raise_for_status()
+        except httpx.HTTPStatusError as ex:
+            await handle_httpstatuserror(ex, log_handler=_LOGGER)
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
@@ -267,6 +276,10 @@ class MyBMWAuthentication(httpx.Auth):
         async with MyBMWLoginClient(region=self.region) as client:
             _LOGGER.debug("Authenticating with MyBMW flow for China.")
 
+            # While PIL.Image is only needed in `get_capture_position`, we test it here to avoid
+            # unneeded requests to the server.
+            try_import_pillow_image()
+
             # Get current RSA public certificate & use it to encrypt password
             response = await client.get(
                 AUTH_CHINA_PUBLIC_KEY_URL,
@@ -394,9 +407,7 @@ class MyBMWLoginRetry(httpx.Auth):
         for _ in range(3):
             if response.status_code == 429:
                 await response.aread()
-                wait_time = math.ceil(
-                    next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]), 2) * 1.25
-                )
+                wait_time = get_retry_wait_time(response)
                 _LOGGER.debug("Sleeping %s seconds due to 429 Too Many Requests", wait_time)
                 await asyncio.sleep(wait_time)
                 response = yield request
@@ -407,3 +418,13 @@ class MyBMWLoginRetry(httpx.Auth):
                 response.raise_for_status()
             except httpx.HTTPStatusError as ex:
                 await handle_httpstatuserror(ex, log_handler=_LOGGER)
+
+
+def get_retry_wait_time(response: httpx.Response) -> int:
+    """Get the wait time for the next retry from the response and multiply by 2."""
+    try:
+        response_wait_time = next(iter([int(i) for i in response.json().get("message", "") if i.isdigit()]))
+    except Exception:
+        response_wait_time = 2
+    wait_time = math.ceil(response_wait_time * 2)
+    return wait_time

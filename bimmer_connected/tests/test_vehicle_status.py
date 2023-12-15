@@ -7,7 +7,7 @@ import respx
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.vehicle.climate import ClimateActivityState
+from bimmer_connected.vehicle.climate import Climate, ClimateActivityState
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
@@ -46,6 +46,40 @@ async def test_generic(caplog, bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
+async def test_generic_error_handling(caplog, bmw_fixture: respx.Router):
+    """Test error handling when vehicle is set up."""
+    account = await prepare_account_with_vehicles()
+
+    vehicle = account.get_vehicle(VIN_G26)
+    state_wo_front_left = vehicle.data["state"].copy()
+    state_wo_front_left["tireState"]["frontLeft"].pop("status", None)
+    vehicle.tires = None
+
+    assert vehicle.tires is None
+    vehicle.update_state(vehicle.data, state_wo_front_left)
+    assert (
+        any("tires" in r.message and "TypeError" in r.message and "'status'" in r.message for r in caplog.records)
+        is True
+    )
+    assert vehicle.tires is None
+
+    caplog.clear()
+
+    vehicle = account.get_vehicle(VIN_I20)
+    state_wo_climate_activity = vehicle.data["state"].copy()
+    state_wo_climate_activity["climateControlState"].pop("activity", None)
+    vehicle.climate = Climate(account_timezone=account.timezone)
+
+    assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
+    vehicle.update_state(vehicle.data, state_wo_climate_activity)
+    assert (
+        any("climate" in r.message and "KeyError" in r.message and "'activity'" in r.message for r in caplog.records)
+        is True
+    )
+    assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
+
+
+@pytest.mark.asyncio
 async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
@@ -71,7 +105,6 @@ async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_range_combustion(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    # Metric units
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20).fuel_and_battery
 
     assert (40, "L") == status.remaining_fuel
@@ -85,25 +118,10 @@ async def test_range_combustion(caplog, bmw_fixture: respx.Router):
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
-    # Imperial units
-    status = (await prepare_account_with_vehicles(metric=False)).get_vehicle(VIN_G20).fuel_and_battery
-
-    assert (40, "gal") == status.remaining_fuel
-    assert (629, "mi") == status.remaining_range_fuel
-    assert status.remaining_fuel_percent == 80
-
-    assert status.remaining_battery_percent is None
-    assert status.remaining_range_electric == (None, None)
-
-    assert (629, "mi") == status.remaining_range_total
-
-    assert len(get_deprecation_warning_count(caplog)) == 0
-
 
 @pytest.mark.asyncio
 async def test_range_phev(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    # Metric units
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).fuel_and_battery
 
     assert (40, "L") == status.remaining_fuel
@@ -119,27 +137,10 @@ async def test_range_phev(caplog, bmw_fixture: respx.Router):
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
-    # Imperial units
-    status = (await prepare_account_with_vehicles(metric=False)).get_vehicle(VIN_G01).fuel_and_battery
-
-    assert (40, "gal") == status.remaining_fuel
-    assert (436, "mi") == status.remaining_range_fuel
-    assert 80 == status.remaining_fuel_percent
-
-    assert 80 == status.remaining_battery_percent
-    assert (40, "mi") == status.remaining_range_electric
-
-    assert (476, "mi") == status.remaining_range_total
-
-    assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
-
-    assert len(get_deprecation_warning_count(caplog)) == 0
-
 
 @pytest.mark.asyncio
 async def test_range_rex(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    # Metric units
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I01_REX).fuel_and_battery
 
     assert (6, "L") == status.remaining_fuel
@@ -155,27 +156,10 @@ async def test_range_rex(caplog, bmw_fixture: respx.Router):
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
-    # Imperial units
-    status = (await prepare_account_with_vehicles(metric=False)).get_vehicle(VIN_I01_REX).fuel_and_battery
-
-    assert (6, "gal") == status.remaining_fuel
-    assert (105, "mi") == status.remaining_range_fuel
-    assert status.remaining_fuel_percent is None
-
-    assert 82 == status.remaining_battery_percent
-    assert (174, "mi") == status.remaining_range_electric
-
-    assert (279, "mi") == status.remaining_range_total
-
-    assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
-
-    assert len(get_deprecation_warning_count(caplog)) == 0
-
 
 @pytest.mark.asyncio
 async def test_range_electric(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    # Metric units
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I20).fuel_and_battery
 
     assert status.remaining_fuel == (None, None)
@@ -186,20 +170,6 @@ async def test_range_electric(caplog, bmw_fixture: respx.Router):
     assert (340, "km") == status.remaining_range_electric
 
     assert (340, "km") == status.remaining_range_total
-
-    assert len(get_deprecation_warning_count(caplog)) == 0
-
-    # Imperial units
-    status = (await prepare_account_with_vehicles(metric=False)).get_vehicle(VIN_I20).fuel_and_battery
-
-    assert status.remaining_fuel == (None, None)
-    assert status.remaining_range_fuel == (None, None)
-    assert status.remaining_fuel_percent is None
-
-    assert 70 == status.remaining_battery_percent
-    assert (340, "mi") == status.remaining_range_electric
-
-    assert (340, "mi") == status.remaining_range_total
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
