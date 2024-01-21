@@ -164,16 +164,17 @@ class MyBMWAuthentication(httpx.Auth):
             code_challenge = create_s256_code_challenge(code_verifier)
 
             state = generate_token(22)
+            nonce = generate_token(22)
 
             # Set up authenticate endpoint
             authenticate_url = oauth_settings["tokenEndpoint"].replace("/token", "/authenticate")
             oauth_base_values = {
                 "client_id": oauth_settings["clientId"],
                 "response_type": "code",
+                "scope": " ".join(oauth_settings["scopes"]),
                 "redirect_uri": oauth_settings["returnUrl"],
                 "state": state,
-                "nonce": "login_nonce",
-                "scope": " ".join(oauth_settings["scopes"]),
+                "nonce": nonce,
                 "code_challenge": code_challenge,
                 "code_challenge_method": "S256",
             }

@@ -351,11 +351,11 @@ class MyBMWVehicle:
 
         :returns bytes containing the image in PNG format.
         """
-        url = VEHICLE_IMAGE_URL.format(
-            vin=self.vin,
-            view=direction.value,
-        )
         # the accept field of the header needs to be updated as we want a png not the usual JSON
         async with MyBMWClient(self.account.config, brand=self.brand) as client:
-            response = await client.get(url, headers={"accept": "image/png"})
+            response = await client.get(
+                VEHICLE_IMAGE_URL,
+                params={"carView": direction.value, "toCrop": True},
+                headers={"bmw-vin": self.vin, "accept": "image/png"},
+            )
         return response.content

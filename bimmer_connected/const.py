@@ -37,17 +37,17 @@ OCP_APIM_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "3.9.0(27760)",
-    Regions.REST_OF_WORLD: "3.9.0(27760)",
-    Regions.CHINA: "3.6.1(23634)",
+    Regions.NORTH_AMERICA: "3.11.1(29513)",
+    Regions.REST_OF_WORLD: "3.11.1(29513)",
+    Regions.CHINA: "3.11.1(29513)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
 USER_AGENTS = {
-    Regions.NORTH_AMERICA: "Dart/2.19 (dart:io)",
-    Regions.REST_OF_WORLD: "Dart/2.19 (dart:io)",
-    Regions.CHINA: "Dart/2.18 (dart:io)",
+    Regions.NORTH_AMERICA: "Dart/3.0 (dart:io)",
+    Regions.REST_OF_WORLD: "Dart/3.0 (dart:io)",
+    Regions.CHINA: "Dart/3.0 (dart:io)",
 }
 X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
 
@@ -60,8 +60,9 @@ AUTH_CHINA_CAPTCHA_CHECK_URL = "/eadrax-coas/v1/cop/check-captcha"
 
 OAUTH_CONFIG_URL = "/eadrax-ucs/v1/presentation/oauth/config"
 
-VEHICLES_URL = "/eadrax-vcs/v4/vehicles"
-VEHICLE_STATE_URL = VEHICLES_URL + "/state"
+VEHICLES_URL = "/eadrax-vcs/v5/vehicle-list"
+VEHICLE_PROFILE_URL = "/eadrax-vcs/v5/vehicle-data/profile"
+VEHICLE_STATE_URL = "/eadrax-vcs/v4/vehicles/state"
 
 REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v3/presentation/remote-commands"
 REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + "/{vin}/{service_type}"
@@ -74,7 +75,7 @@ VEHICLE_CHARGING_SETTINGS_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-setti
 VEHICLE_CHARGING_PROFILE_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-profile"
 VEHICLE_CHARGING_START_STOP_URL = VEHICLE_CHARGING_BASE_URL + "/{service_type}"
 
-VEHICLE_IMAGE_URL = "/eadrax-ics/v3/presentation/vehicles/{vin}/images?carView={view}"
+VEHICLE_IMAGE_URL = "/eadrax-ics/v5/presentation/vehicles/images"
 VEHICLE_POI_URL = "/eadrax-dcs/v1/send-to-car/send-to-car"
 
 VEHICLE_CHARGING_STATISTICS_URL = "/eadrax-chs/v1/charging-statistics"

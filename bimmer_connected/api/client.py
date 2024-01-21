@@ -81,6 +81,7 @@ class MyBMWClient(httpx.AsyncClient):
         return {
             "accept": "application/json",
             "accept-language": "en",
+            "x-raw-locale": "en-US",
             "user-agent": get_user_agent(self.config.authentication.region),
             "x-user-agent": X_USER_AGENT.format(
                 brand=(brand or CarBrands.BMW).value,
@@ -88,6 +89,6 @@ class MyBMWClient(httpx.AsyncClient):
                 region=self.config.authentication.region.value,
             ),
             **get_correlation_id(),
-            "bmw-units-preferences": "d=KM;v=L",
+            "bmw-units-preferences": "d=KM;v=L;p=B;ec=KWH100KM;fc=L100KM;em=GKM;",
             "24-hour-format": "true",
         }

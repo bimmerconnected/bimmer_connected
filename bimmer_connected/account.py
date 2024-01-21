@@ -6,14 +6,14 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from typing import List, Optional
 
-import httpx
-
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import (
+    ATTR_ATTRIBUTES,
     ATTR_CAPABILITIES,
     VEHICLE_CHARGING_DETAILS_URL,
+    VEHICLE_PROFILE_URL,
     VEHICLE_STATE_URL,
     VEHICLES_URL,
     CarBrands,
@@ -76,18 +76,24 @@ class MyBMWAccount:
         fetched_at = datetime.datetime.now(datetime.timezone.utc)
 
         async with MyBMWClient(self.config) as client:
-            vehicles_responses: List[httpx.Response] = [
-                await client.get(
+            for brand in CarBrands:
+                request_headers = client.generate_default_header(brand)
+                vehicle_list_response = await client.post(
                     VEHICLES_URL,
-                    headers={
-                        **client.generate_default_header(brand),
-                    },
+                    headers=request_headers,
                 )
-                for brand in CarBrands
-            ]
 
-            for response in vehicles_responses:
-                for vehicle_base in response.json():
+                for vehicle in vehicle_list_response.json()["mappingInfos"]:
+                    vehicle_profile_response = await client.get(
+                        VEHICLE_PROFILE_URL, headers=dict(request_headers, **{"bmw-vin": vehicle["vin"]})
+                    )
+                    vehicle_profile = vehicle_profile_response.json()
+
+                    vehicle_base = dict(
+                        {ATTR_ATTRIBUTES: {k: v for k, v in vehicle_profile.items() if k != "vin"}},
+                        **{"vin": vehicle_profile["vin"]}
+                    )
+
                     self.add_vehicle(vehicle_base, None, None, fetched_at)
 
     async def get_vehicles(self, force_init: bool = False) -> None:
