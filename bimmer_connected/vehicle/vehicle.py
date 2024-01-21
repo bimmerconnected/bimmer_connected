@@ -138,7 +138,7 @@ class MyBMWVehicle:
 
     def update_state(
         self,
-        data: Union[dict, list[dict]],
+        data: Union[Dict, List[Dict]],
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Update the state of a vehicle."""
@@ -166,7 +166,7 @@ class MyBMWVehicle:
             except (KeyError, TypeError) as ex:
                 _LOGGER.warning("Unable to update %s - (%s) %s", vehicle_attribute, type(ex).__name__, ex)
 
-    def combine_data(self, data: Union[dict, list[dict]], fetched_at: Optional[datetime.datetime] = None) -> Dict:
+    def combine_data(self, data: Union[Dict, List[Dict]], fetched_at: Optional[datetime.datetime] = None) -> Dict:
         """Combine API responses and additional information to a single dictionary."""
         if isinstance(data, dict):
             data = [data]
