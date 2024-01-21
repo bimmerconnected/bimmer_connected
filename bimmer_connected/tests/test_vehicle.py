@@ -214,7 +214,7 @@ async def test_vehicle_image(caplog, bmw_fixture: respx.Router):
     bmw_fixture.get(
         path="/eadrax-ics/v5/presentation/vehicles/images",
         params={"carView": "FrontView"},
-        headers={"accept": "image/png", "bmw-vin": VIN_G01},
+        headers={"accept": "image/png", "bmw-app-vehicle-type": "connected", "bmw-vin": VIN_G01},
     ).respond(200, content="png_image")
     assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
 

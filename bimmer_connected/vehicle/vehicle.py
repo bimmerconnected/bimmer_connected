@@ -356,6 +356,6 @@ class MyBMWVehicle:
             response = await client.get(
                 VEHICLE_IMAGE_URL,
                 params={"carView": direction.value, "toCrop": True},
-                headers={"bmw-vin": self.vin, "accept": "image/png"},
+                headers={"accept": "image/png", "bmw-app-vehicle-type": "connected", "bmw-vin": self.vin},
             )
         return response.content
