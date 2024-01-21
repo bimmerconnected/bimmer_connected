@@ -141,10 +141,10 @@ class PointOfInterest:
     def __post_init__(self, lat, lon, street, postal_code, city, country):
         self.coordinates = GPSPosition(lat, lon)
 
-        self.locationAddress = PointOfInterestAddress(street, postal_code, city, country)
+        self.locationAddress = PointOfInterestAddress(str(street), str(postal_code), str(city), str(country))
 
         if not self.formattedAddress:
-            self.formattedAddress = ", ".join([i for i in [street, postal_code, city] if i]) or "Coordinates only"
+            self.formattedAddress = ", ".join([str(i) for i in [street, postal_code, city] if i]) or "Coordinates only"
 
 
 class ValueWithUnit(NamedTuple):
