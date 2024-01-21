@@ -1,7 +1,7 @@
 """Models state and remote services of one vehicle."""
 import datetime
 import logging
-from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type, Union
 
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.const import (
@@ -9,7 +9,9 @@ from bimmer_connected.const import (
     ATTR_CAPABILITIES,
     ATTR_CHARGING_SETTINGS,
     ATTR_STATE,
+    VEHICLE_CHARGING_DETAILS_URL,
     VEHICLE_IMAGE_URL,
+    VEHICLE_STATE_URL,
     CarBrands,
 )
 from bimmer_connected.models import StrEnum, ValueWithUnit
@@ -72,13 +74,11 @@ class MyBMWVehicle:
         self,
         account: "MyBMWAccount",
         vehicle_base: dict,
-        vehicle_state: Optional[dict] = None,
-        charging_settings: Optional[dict] = None,
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Initialize a MyBMWVehicle."""
         self.account = account
-        self.data = self.combine_data(account, vehicle_base, vehicle_state, charging_settings, fetched_at)
+        self.data = {}
         self.remote_services = RemoteServices(self)
         self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
         self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
@@ -90,17 +90,59 @@ class MyBMWVehicle:
         self.charging_profile: Optional[ChargingProfile] = None
         self.tires: Optional[Tires] = None
 
-        self.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
+        self.data = self.combine_data(vehicle_base, fetched_at=fetched_at)
+
+    async def get_vehicle_state(self) -> None:
+        """Retrieve vehicle data from BMW servers."""
+        _LOGGER.debug("Getting vehicle list")
+
+        fetched_at = datetime.datetime.now(datetime.timezone.utc)
+
+        async with MyBMWClient(self.account.config) as client:
+            # Get state details
+            state_response = await client.get(
+                VEHICLE_STATE_URL,
+                params={
+                    "apptimezone": self.account.utcdiff,
+                    "appDateTime": int(fetched_at.timestamp() * 1000),
+                },
+                headers={
+                    **client.generate_default_header(self.brand),
+                    "bmw-vin": self.vin,
+                },
+            )
+            vehicle_state: Dict = state_response.json()
+
+            # If vehicle has not been initialized with capabilities from state, do it once
+            if not self.data.get(ATTR_CAPABILITIES):
+                self.data = self.combine_data(vehicle_state, fetched_at=fetched_at)
+
+            # Get detailed charging settings if supported by vehicle
+            charging_settings = {ATTR_CHARGING_SETTINGS: None}
+            if self.is_charging_plan_supported or self.is_charging_settings_supported:
+                charging_settings_response = await client.get(
+                    VEHICLE_CHARGING_DETAILS_URL,
+                    params={
+                        "fields": "charging-profile",
+                        "has_charging_settings_capabilities": self.is_charging_settings_supported,
+                    },
+                    headers={
+                        **client.generate_default_header(self.brand),
+                        "bmw-current-date": fetched_at.isoformat(),
+                        "bmw-vin": self.vin,
+                    },
+                )
+                charging_settings = {ATTR_CHARGING_SETTINGS: charging_settings_response.json()}
+
+            self.update_state([vehicle_state, charging_settings], fetched_at)
 
     def update_state(
         self,
-        vehicle_base: dict,
-        vehicle_state: Optional[dict] = None,
-        charging_settings: Optional[dict] = None,
+        data: Union[dict, list[dict]],
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Update the state of a vehicle."""
-        vehicle_data = self.combine_data(self.account, vehicle_base, vehicle_state, charging_settings, fetched_at)
+        vehicle_data = self.combine_data(data, fetched_at)
         self.data = vehicle_data
 
         update_entities: List[Tuple[Type["VehicleDataBase"], str]] = [
@@ -124,21 +166,25 @@ class MyBMWVehicle:
             except (KeyError, TypeError) as ex:
                 _LOGGER.warning("Unable to update %s - (%s) %s", vehicle_attribute, type(ex).__name__, ex)
 
-    @staticmethod
-    def combine_data(
-        account: "MyBMWAccount",
-        vehicle_base: dict,
-        vehicle_state: Optional[dict],
-        charging_settings: Optional[dict],
-        fetched_at: Optional[datetime.datetime] = None,
-    ) -> Dict:
+    def combine_data(self, data: Union[dict, list[dict]], fetched_at: Optional[datetime.datetime] = None) -> Dict:
         """Combine API responses and additional information to a single dictionary."""
-        return {
-            **vehicle_base,
-            **(vehicle_state or {}),
-            ATTR_CHARGING_SETTINGS: charging_settings or {},
-            "fetched_at": fetched_at or datetime.datetime.now(datetime.timezone.utc),
+        if isinstance(data, dict):
+            data = [data]
+
+        vehicle_data = {
+            ATTR_ATTRIBUTES: {},
+            ATTR_CAPABILITIES: {},
+            ATTR_STATE: {},
+            ATTR_CHARGING_SETTINGS: {},
+            **self.data,
         }
+
+        for entry in data:
+            vehicle_data.update(entry)
+
+        vehicle_data["fetched_at"] = fetched_at or datetime.datetime.now(datetime.timezone.utc)
+
+        return vehicle_data
 
     # # # # # # # # # # # # # # #
     # Generic attributes
@@ -208,6 +254,11 @@ class MyBMWVehicle:
     def is_charging_plan_supported(self) -> bool:
         """Return True if charging profile is available and can be set via API."""
         return self.data[ATTR_CAPABILITIES].get("isChargingPlanSupported", False)
+
+    @property
+    def is_charging_settings_supported(self) -> bool:
+        """Return True if charging settings can be set via API."""
+        return self.data[ATTR_CAPABILITIES].get("isChargingSettingsEnabled", False)
 
     @property
     def is_vehicle_tracking_enabled(self) -> bool:
