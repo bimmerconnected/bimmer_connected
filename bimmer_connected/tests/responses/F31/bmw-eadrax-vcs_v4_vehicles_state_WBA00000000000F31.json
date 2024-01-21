@@ -1,13 +1,15 @@
 {
     "capabilities": {
         "a4aType": "USB_ONLY",
-        "checkSustainabilityDPP": false,
+        "alarmSystem": false,
         "climateFunction": "VENTILATION",
         "climateNow": true,
         "climateTimerTrigger": "START_TIMER",
         "digitalKey": {
             "bookedServicePackage": "NONE",
-            "state": "NOT_AVAILABLE"
+            "isDigitalKeyFirstSupported": false,
+            "state": "NOT_AVAILABLE",
+            "vehicleSoftwareUpgradeRequired": false
         },
         "horn": true,
         "isBmwChargingSupported": false,
@@ -27,9 +29,12 @@
         "isDataPrivacyEnabled": false,
         "isEasyChargeEnabled": false,
         "isEvGoChargingSupported": false,
+        "isLocationBasedChargingSettingsSupported": false,
         "isMiniChargingSupported": false,
         "isNonLscFeatureEnabled": true,
+        "isOptimizedChargingSupported": false,
         "isPersonalPictureUploadSupported": false,
+        "isPlugAndChargeSupported": false,
         "isRemoteEngineStartSupported": false,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
@@ -46,7 +51,7 @@
         "sendPoi": true,
         "specialThemeSupport": [],
         "unlock": true,
-        "vehicleFinder": true,
+        "vehicleFinder": false,
         "vehicleStateSource": "A4A"
     },
     "state": {
@@ -59,76 +64,44 @@
         "climateTimers": [
             {
                 "departureTime": {
-                    "hour": 6,
-                    "minute": 40
+                    "hour": 7,
+                    "minute": 0
                 },
-                "isWeeklyTimer": true,
-                "timerAction": "ACTIVATE",
-                "timerWeekDays": [
-                    "THURSDAY",
-                    "SUNDAY"
-                ]
+                "isWeeklyTimer": false,
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": []
             },
             {
                 "departureTime": {
-                    "hour": 12,
-                    "minute": 50
+                    "hour": 7,
+                    "minute": 0
                 },
-                "isWeeklyTimer": false,
-                "timerAction": "ACTIVATE",
+                "isWeeklyTimer": true,
+                "timerAction": "DEACTIVATE",
                 "timerWeekDays": [
                     "MONDAY"
                 ]
             },
             {
                 "departureTime": {
-                    "hour": 18,
-                    "minute": 59
+                    "hour": 7,
+                    "minute": 0
                 },
                 "isWeeklyTimer": true,
                 "timerAction": "DEACTIVATE",
                 "timerWeekDays": [
-                    "WEDNESDAY"
+                    "MONDAY"
                 ]
             }
         ],
-        "combustionFuelLevel": {
-            "remainingFuelLiters": 14
-        },
         "driverPreferences": {
             "lscPrivacyMode": "OFF"
         },
         "isLeftSteering": true,
         "isLscSupported": false,
-        "lastFetched": "2022-06-01T19:18:54.528Z",
-        "lastUpdatedAt": "2021-11-01T16:02:44Z",
-        "requiredServices": [
-            {
-                "dateTime": "2021-11-01T00:00:00.000Z",
-                "description": "Wechsel demnächst fällig. Bitte Termin mit Ihrem Servicepartner vereinbaren.",
-                "status": "PENDING",
-                "type": "BRAKE_FLUID"
-            },
-            {
-                "dateTime": "2022-07-01T00:00:00.000Z",
-                "description": "Nächster Service nach der angegebenen Fahrstrecke oder zum angegebenen Termin.",
-                "mileage": 9000,
-                "status": "OK",
-                "type": "OIL"
-            },
-            {
-                "dateTime": "2022-07-01T00:00:00.000Z",
-                "description": "Nächste Sichtprüfung nach der angegebenen Fahrstrecke oder zum angegebenen Termin.",
-                "mileage": 9000,
-                "status": "OK",
-                "type": "VEHICLE_CHECK"
-            },
-            {
-                "dateTime": "2023-02-01T00:00:00.000Z",
-                "description": "Nächste gesetzliche Fahrzeuguntersuchung zum angegebenen Termin.",
-                "status": "OK",
-                "type": "VEHICLE_TUV"
-            }
-        ]
+        "lastFetched": "2024-01-20T10:18:57.283Z",
+        "lastUpdatedAt": "0001-01-01T00:00:00Z",
+        "requiredServices": [],
+        "securityOverviewMode": null
     }
 }

@@ -61,12 +61,14 @@ class MyBMWMockRouter(respx.MockRouter):
     def __init__(
         self,
         vehicles_to_load: Optional[List[str]] = None,
+        profiles: Optional[Dict[str, Dict]] = None,
         states: Optional[Dict[str, Dict]] = None,
         charging_settings: Optional[Dict[str, Dict]] = None,
     ) -> None:
         """Initialize the MyBMWMockRouter with clean responses."""
         super().__init__(assert_all_called=False)
         self.vehicles_to_load = vehicles_to_load or []
+        self.profiles = deepcopy(profiles) if profiles else {}
         self.states = deepcopy(states) if states else {}
         self.charging_settings = deepcopy(charging_settings) if charging_settings else {}
 
@@ -110,7 +112,8 @@ class MyBMWMockRouter(respx.MockRouter):
     def add_vehicle_routes(self) -> None:
         """Add routes for vehicle requests."""
 
-        self.get("/eadrax-vcs/v4/vehicles").mock(side_effect=self.vehicles_sideeffect)
+        self.post("/eadrax-vcs/v5/vehicle-list").mock(side_effect=self.vehicles_sideeffect)
+        self.get("/eadrax-vcs/v5/vehicle-data/profile").mock(side_effect=self.vehicle_profile_sideeffect)
         self.get("/eadrax-vcs/v4/vehicles/state", name="state").mock(side_effect=self.vehicle_state_sideeffect)
         self.get("/eadrax-crccs/v2/vehicles").mock(side_effect=self.vehicle_charging_settings_sideeffect)
 
@@ -171,14 +174,26 @@ class MyBMWMockRouter(respx.MockRouter):
         # Test if given region is valid
         _ = Regions(x_user_agent[3])
 
-        fingerprints = ALL_VEHICLES.get(brand, [])
+        fingerprints = deepcopy(ALL_VEHICLES.get(brand, {"mappingInfos": []}))
         if self.vehicles_to_load:
-            fingerprints = [f for f in fingerprints if f["vin"] in self.vehicles_to_load]
+            fingerprints["mappingInfos"] = [
+                f for f in fingerprints["mappingInfos"] if f["vin"] in self.vehicles_to_load
+            ]
 
         # Ensure order
-        fingerprints = sorted(fingerprints, key=lambda v: v["vin"])
+        fingerprints["mappingInfos"] = sorted(fingerprints["mappingInfos"], key=lambda v: v["vin"])
 
         return httpx.Response(200, json=fingerprints)
+
+    def vehicle_profile_sideeffect(self, request: httpx.Request) -> httpx.Response:
+        """Return /vehicle-data/profile response based on vin."""
+        x_user_agent = request.headers.get("x-user-agent", "").split(";")
+        assert len(x_user_agent) == 4
+
+        try:
+            return httpx.Response(200, json=self.profiles[request.headers["bmw-vin"]])
+        except KeyError:
+            return httpx.Response(404)
 
     def vehicle_state_sideeffect(self, request: httpx.Request) -> httpx.Response:
         """Return /vehicles response based on x-user-agent."""
