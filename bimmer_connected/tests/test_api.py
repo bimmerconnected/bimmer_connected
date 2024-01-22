@@ -47,7 +47,7 @@ def test_anonymize_data():
         "licensePlate": "secret",
         "public": "public_data",
         "a_list": [
-            {"vin": "WBA000000SECRET01"},
+            {"vin": "4US000000SECRET01"},
             {
                 "lon": 666,
                 "public": "more_public_data",

@@ -23,7 +23,7 @@ from Crypto.Util.Padding import pad
 from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
-RE_VIN = re.compile(r"(?P<vin>WB[a-zA-Z0-9]{15})")
+RE_VIN = re.compile(r"(?P<vin>\b[(A-H|J-N|P|R-Z|0-9)]{17}\b)")
 ANONYMIZED_VINS: Dict[str, str] = {}
 
 
