@@ -24,8 +24,7 @@ from . import (
     TEST_USERNAME,
     VIN_G26,
     VIN_I20,
-    get_fingerprint_charging_settings_count,
-    get_fingerprint_state_count,
+    get_fingerprint_count,
     load_response,
 )
 from .conftest import prepare_account_with_vehicles
@@ -177,7 +176,7 @@ async def test_vehicles(bmw_fixture: respx.Router):
     await account.get_vehicles()
 
     assert account.config.authentication.access_token is not None
-    assert get_fingerprint_state_count() == len(account.vehicles)
+    assert get_fingerprint_count("profiles") == len(account.vehicles)
 
     vehicle = account.get_vehicle(VIN_G26)
     assert vehicle is not None
@@ -198,15 +197,15 @@ async def test_vehicle_init(bmw_fixture: respx.Router):
 
         # First call on init
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_state_count()
+        assert len(account.vehicles) == get_fingerprint_count("profiles")
 
         # No call to _init_vehicles()
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_state_count()
+        assert len(account.vehicles) == get_fingerprint_count("profiles")
 
         # Second, forced call _init_vehicles()
         await account.get_vehicles(force_init=True)
-        assert len(account.vehicles) == get_fingerprint_state_count()
+        assert len(account.vehicles) == get_fingerprint_count("profiles")
 
         assert mock_listener.call_count == 2
 
@@ -261,7 +260,12 @@ async def test_get_fingerprints(monkeypatch: pytest.MonkeyPatch, bmw_fixture: re
 
     # Prepare Number of good responses (vehicle profiles + vehicle states, charging settings per vehicle)
     # and 2x vehicle list
-    json_count = get_fingerprint_state_count() * 2 + get_fingerprint_charging_settings_count() + 2
+    json_count = (
+        get_fingerprint_count("vehicles")
+        + get_fingerprint_count("profiles")
+        + get_fingerprint_count("states")
+        + get_fingerprint_count("charging_settings")
+    )
 
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
@@ -565,7 +569,7 @@ async def test_401_after_429_ok(bmw_fixture: respx.Router):
     )
     with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
         await account.get_vehicles()
-    assert len(account.vehicles) == get_fingerprint_state_count()
+    assert len(account.vehicles) == get_fingerprint_count("profiles")
 
 
 @pytest.mark.asyncio
@@ -656,7 +660,7 @@ async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
         await account.get_vehicles()
 
     log_error = [r for r in caplog.records if "Unable to get details" in r.message]
-    assert len(log_error) == get_fingerprint_state_count()
+    assert len(log_error) == get_fingerprint_count("profiles")
 
 
 @pytest.mark.asyncio

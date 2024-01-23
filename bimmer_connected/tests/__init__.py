@@ -36,14 +36,18 @@ REMOTE_SERVICE_RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_servi
 REMOTE_SERVICE_RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
 
-def get_fingerprint_state_count() -> int:
-    """Return number of loaded vehicles."""
-    return len(ALL_STATES)
+def get_fingerprint_count(type: str) -> int:
+    """Return number of requests/fingerprints for a given type."""
 
-
-def get_fingerprint_charging_settings_count() -> int:
-    """Return number of loaded vehicles."""
-    return len(ALL_CHARGING_SETTINGS)
+    if type == "vehicles":
+        return len(CarBrands)
+    if type == "states":
+        return len(ALL_STATES)
+    if type == "profiles":
+        return len(ALL_PROFILES)
+    if type == "charging_settings":
+        return len(ALL_CHARGING_SETTINGS)
+    return 0
 
 
 def load_response(path: Union[Path, str]) -> Any:

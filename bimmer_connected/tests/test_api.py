@@ -17,9 +17,7 @@ from . import (
     TEST_REGION,
     TEST_USERNAME,
     VIN_G26,
-    get_fingerprint_charging_settings_count,
-    get_fingerprint_state_count,
-    # get_fingerprint_count,
+    get_fingerprint_count,
     load_response,
 )
 
@@ -85,22 +83,21 @@ async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router, bmw_log
     json_files = [f for f in files if f.suffix == ".json"]
     txt_files = [f for f in files if f.suffix == ".txt"]
 
-    assert len(json_files) == (get_fingerprint_state_count() * 2 + get_fingerprint_charging_settings_count() + 2 - 2)
-    assert len(txt_files) == 1
+    assert len(json_files) == (
+        get_fingerprint_count("vehicles")
+        + get_fingerprint_count("profiles")
+        + get_fingerprint_count("states")
+        - 1  # state with error 500
+        + get_fingerprint_count("charging_settings")
+        - 1  # not loaded due to state with error 500
+    )
+    assert len(txt_files) == 1  # state with error 500
 
 
 @pytest.mark.asyncio
 async def test_fingerprint_deque(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router):
     """Test storing fingerprints to file."""
-    # Increase length of response store for local testing
-
-    # temp_store = deque(maxlen=100)
-    # monkeypatch.setattr("bimmer_connected.api.client.RESPONSE_STORE", temp_store)
-    # monkeypatch.setattr("bimmer_connected.account.RESPONSE_STORE", temp_store)
-
-    # Prepare Number of good responses (vehicle states, charging settings per vehicle)
-    # # and 2x vehicle list
-    # json_count = get_fingerprint_state_count() + get_fingerprint_charging_settings_count() + 2
+    # Prepare Number of good responses
 
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
