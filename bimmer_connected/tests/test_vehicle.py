@@ -1,4 +1,5 @@
 """Tests for MyBMWVehicle."""
+
 import pytest
 import respx
 

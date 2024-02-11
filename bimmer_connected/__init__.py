@@ -8,7 +8,6 @@ Disclaimer:
 This library is not affiliated with or endorsed by BMW Group.
 """
 
-
 from importlib.metadata import version
 
 __version__ = version("bimmer_connected")

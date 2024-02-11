@@ -1,4 +1,5 @@
 """Tests for utils."""
+
 import datetime
 import json
 
@@ -31,6 +32,7 @@ async def test_drive_train(bmw_fixture: respx.Router):
         "has_combustion_drivetrain",
         "has_electric_drivetrain",
         "is_charging_plan_supported",
+        "is_charging_settings_supported",
         "is_lsc_enabled",
         "is_remote_charge_start_enabled",
         "is_remote_charge_stop_enabled",

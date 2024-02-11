@@ -1,4 +1,5 @@
 """Test for remote_services."""
+
 from unittest import mock
 from uuid import uuid4
 
@@ -247,7 +248,7 @@ async def test_vehicles_without_enabled_services(bmw_fixture: respx.Router):
     # Errors on combustion engines
     vehicle = account.get_vehicle(VIN_F31)
 
-    vehicle.update_state(vehicle.data, {"capabilities": {}})
+    vehicle.update_state({"capabilities": {}})
 
     for service in ALL_SERVICES.values():
         with pytest.raises(ValueError):
@@ -268,7 +269,7 @@ async def test_trigger_charge_start_stop_warnings(caplog, bmw_fixture: respx.Rou
         "chargingStatus": "INVALID",
         "isChargerConnected": False,
     }
-    vehicle.update_state(vehicle.data, {"state": {"electricChargingState": fixture_not_connected}})
+    vehicle.update_state({"state": {"electricChargingState": fixture_not_connected}})
 
     result = await vehicle.remote_services.trigger_charge_start()
     assert result.state == ExecutionState.IGNORED
@@ -285,7 +286,7 @@ async def test_trigger_charge_start_stop_warnings(caplog, bmw_fixture: respx.Rou
         "chargingStatus": "WAITING_FOR_CHARGING",
         "isChargerConnected": True,
     }
-    vehicle.update_state(vehicle.data, {"state": {"electricChargingState": fixture_connected_not_charging}})
+    vehicle.update_state({"state": {"electricChargingState": fixture_connected_not_charging}})
 
     result = await vehicle.remote_services.trigger_charge_stop()
     assert result.state == ExecutionState.IGNORED

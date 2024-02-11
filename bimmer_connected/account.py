@@ -11,10 +11,7 @@ from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClient
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import (
     ATTR_ATTRIBUTES,
-    ATTR_CAPABILITIES,
-    VEHICLE_CHARGING_DETAILS_URL,
     VEHICLE_PROFILE_URL,
-    VEHICLE_STATE_URL,
     VEHICLES_URL,
     CarBrands,
 )
@@ -94,77 +91,38 @@ class MyBMWAccount:
                         **{"vin": vehicle_profile["vin"]}
                     )
 
-                    self.add_vehicle(vehicle_base, None, None, fetched_at)
+                    await self.add_vehicle(vehicle_base, fetched_at)
 
     async def get_vehicles(self, force_init: bool = False) -> None:
         """Retrieve vehicle data from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
-        fetched_at = datetime.datetime.now(datetime.timezone.utc)
-
         if len(self.vehicles) == 0 or force_init:
             await self._init_vehicles()
 
-        async with MyBMWClient(self.config) as client:
-            error_count = 0
-            for vehicle in self.vehicles:
-                # Get the detailed vehicle state
-                try:
-                    state_response = await client.get(
-                        VEHICLE_STATE_URL,
-                        params={
-                            "apptimezone": self.utcdiff,
-                            "appDateTime": int(fetched_at.timestamp() * 1000),
-                        },
-                        headers={
-                            **client.generate_default_header(vehicle.brand),
-                            "bmw-vin": vehicle.vin,
-                        },
-                    )
-                    vehicle_state = state_response.json()
+        error_count = 0
+        for vehicle in self.vehicles:
+            # Get the detailed vehicle state
+            try:
+                await vehicle.get_vehicle_state()
+            except (MyBMWAPIError, json.JSONDecodeError) as ex:
+                # We don't want to fail completely if one vehicle fails, but we want to know about it
+                error_count += 1
 
-                    # Get detailed charging settings if supported by vehicle
-                    charging_settings = None
-                    if vehicle_state[ATTR_CAPABILITIES].get("isChargingPlanSupported", False) or vehicle_state[
-                        ATTR_CAPABILITIES
-                    ].get("isChargingSettingsEnabled", False):
-                        charging_settings_response = await client.get(
-                            VEHICLE_CHARGING_DETAILS_URL,
-                            params={
-                                "fields": "charging-profile",
-                                "has_charging_settings_capabilities": vehicle_state[ATTR_CAPABILITIES][
-                                    "isChargingSettingsEnabled"
-                                ],
-                            },
-                            headers={
-                                **client.generate_default_header(vehicle.brand),
-                                "bmw-current-date": fetched_at.isoformat(),
-                                "bmw-vin": vehicle.vin,
-                            },
-                        )
-                        charging_settings = charging_settings_response.json()
+                # If it's a MyBMWQuotaError or MyBMWAuthError, we want to raise it
+                if isinstance(ex, (MyBMWQuotaError, MyBMWAuthError)):
+                    raise ex
 
-                    self.add_vehicle(vehicle.data, vehicle_state, charging_settings, fetched_at)
-                except (MyBMWAPIError, json.JSONDecodeError) as ex:
-                    # We don't want to fail completely if one vehicle fails, but we want to know about it
-                    error_count += 1
+                # Always log the error
+                _LOGGER.error("Unable to get details for vehicle %s - (%s) %s", vehicle.vin, type(ex).__name__, ex)
 
-                    # If it's a MyBMWQuotaError or MyBMWAuthError, we want to raise it
-                    if isinstance(ex, (MyBMWQuotaError, MyBMWAuthError)):
-                        raise ex
+                # If all vehicles fail, we want to raise an exception
+                if error_count == len(self.vehicles):
+                    raise ex
 
-                    # Always log the error
-                    _LOGGER.error("Unable to get details for vehicle %s - (%s) %s", vehicle.vin, type(ex).__name__, ex)
-
-                    # If all vehicles fail, we want to raise an exception
-                    if error_count == len(self.vehicles):
-                        raise ex
-
-    def add_vehicle(
+    async def add_vehicle(
         self,
         vehicle_base: dict,
-        vehicle_state: Optional[dict],
-        charging_settings: Optional[dict],
         fetched_at: Optional[datetime.datetime] = None,
     ) -> None:
         """Add or update a vehicle from the API responses."""
@@ -173,9 +131,9 @@ class MyBMWAccount:
 
         # If vehicle already exists, just update it's state
         if existing_vehicle:
-            existing_vehicle.update_state(vehicle_base, vehicle_state, charging_settings, fetched_at)
+            await existing_vehicle.get_vehicle_state()
         else:
-            self.vehicles.append(MyBMWVehicle(self, vehicle_base, vehicle_state, charging_settings, fetched_at))
+            self.vehicles.append(MyBMWVehicle(self, vehicle_base, fetched_at))
 
     def get_vehicle(self, vin: str) -> Optional[MyBMWVehicle]:
         """Get vehicle with given VIN.
