@@ -1,4 +1,5 @@
 """Tests for utils."""
+
 import datetime
 import json
 

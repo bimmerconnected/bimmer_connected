@@ -1,4 +1,5 @@
 """URLs for different services and error code mapping."""
+
 from enum import Enum
 
 

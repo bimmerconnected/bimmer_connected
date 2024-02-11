@@ -1,6 +1,5 @@
 """General utils and base classes used in the library."""
 
-
 import datetime
 import inspect
 import json

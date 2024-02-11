@@ -1,4 +1,5 @@
 """Test for remote_services."""
+
 from unittest import mock
 from uuid import uuid4
 

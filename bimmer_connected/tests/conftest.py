@@ -1,4 +1,5 @@
 """Fixtures for BMW tests."""
+
 from collections import deque
 from typing import Deque, Generator, Optional
 

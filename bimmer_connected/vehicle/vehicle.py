@@ -1,4 +1,5 @@
 """Models state and remote services of one vehicle."""
+
 import datetime
 import logging
 from typing import TYPE_CHECKING, Dict, List, Optional, Tuple, Type, Union

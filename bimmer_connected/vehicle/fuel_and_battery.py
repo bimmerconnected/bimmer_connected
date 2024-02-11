@@ -1,6 +1,5 @@
 """Generals models used for bimmer_connected."""
 
-
 import datetime
 import logging
 from dataclasses import dataclass

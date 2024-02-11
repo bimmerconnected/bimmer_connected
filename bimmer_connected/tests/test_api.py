@@ -1,4 +1,5 @@
 """Tests for API that are not covered by other tests."""
+
 import json
 
 import httpx
