@@ -1,0 +1,36 @@
+{
+    "bodyType": "I20",
+    "brand": "BMW_I",
+    "color": 4285537312,
+    "countryOfOrigin": "DE",
+    "driveTrain": "ELECTRIC",
+    "driverGuideInfo": {
+        "androidAppScheme": "com.bmwgroup.driversguide.row",
+        "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
+        "iosAppScheme": "bmwdriversguide:///open",
+        "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
+    },
+    "headUnitRaw": "HU_MGU",
+    "headUnitType": "MGU",
+    "hmiVersion": "ID8",
+    "model": "iX xDrive50",
+    "softwareVersionCurrent": {
+        "iStep": 300,
+        "puStep": {
+            "month": 7,
+            "year": 21
+        },
+        "seriesCluster": "S21A"
+    },
+    "softwareVersionExFactory": {
+        "iStep": 300,
+        "puStep": {
+            "month": 7,
+            "year": 21
+        },
+        "seriesCluster": "S21A"
+    },
+    "telematicsUnit": "WAVE01",
+    "vin": "WBA00000000DEMO01",
+    "year": 2021
+}

@@ -81,11 +81,11 @@ async def test_generic_error_handling(caplog, bmw_fixture: respx.Router):
 
 @pytest.mark.asyncio
 async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router):
-    """Test if the parsing of mileage and range is working."""
+    """Test if the parsing of very old vehicles."""
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
     status = vehicle.fuel_and_battery
 
-    assert (14, "L") == status.remaining_fuel
+    assert status.remaining_fuel == (None, None)
     assert status.remaining_range_fuel == (None, None)
     assert status.remaining_fuel_percent is None
 
@@ -94,18 +94,14 @@ async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router):
 
     assert status.remaining_range_total == (None, None)
 
-    status_from_vehicle_data = FuelAndBattery.from_vehicle_data(vehicle.data)
-    status_from_vehicle_data.account_timezone = status.account_timezone
-    assert status_from_vehicle_data == status
-    assert FuelAndBattery.from_vehicle_data({}) is None
-
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
 @pytest.mark.asyncio
 async def test_range_combustion(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
-    status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20).fuel_and_battery
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20)
+    status = vehicle.fuel_and_battery
 
     assert (40, "L") == status.remaining_fuel
     assert (629, "km") == status.remaining_range_fuel
@@ -115,6 +111,11 @@ async def test_range_combustion(caplog, bmw_fixture: respx.Router):
     assert status.remaining_range_electric == (None, None)
 
     assert (629, "km") == status.remaining_range_total
+
+    status_from_vehicle_data = FuelAndBattery.from_vehicle_data(vehicle.data)
+    status_from_vehicle_data.account_timezone = status.account_timezone
+    assert status_from_vehicle_data == status
+    assert FuelAndBattery.from_vehicle_data({}) is None
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 

@@ -1,0 +1,13 @@
+{
+    "gcid": "ceb64158-d2ca-47e9-9ee6-cbffb881434e",
+    "mappingInfos": [
+        {
+            "isAssociated": false,
+            "isLmmEnabled": false,
+            "isPrimaryUser": true,
+            "mappingStatus": "CONFIRMED",
+            "vehicleMappingType": "CONNECTED",
+            "vin": "WBA00000000DEMO05"
+        }
+    ]
+}

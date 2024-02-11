@@ -1,0 +1,36 @@
+{
+	"bodyType": "I01",
+	"brand": "BMW_I",
+	"color": 4282858822,
+	"countryOfOrigin": "CZ",
+	"driveTrain": "ELECTRIC",
+	"driverGuideInfo": {
+		"androidAppScheme": "com.bmwgroup.driversguide.row",
+		"iosAppScheme": "bmwdriversguide:///open",
+		"androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
+		"iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
+	},
+	"headUnitRaw": "MGU_02_L",
+	"headUnitType": "ENTRY",
+	"hmiVersion": "ID4",
+	"model": "i3",
+	"softwareVersionCurrent": {
+		"puStep": {
+			"month": 3,
+			"year": 21
+		},
+		"iStep": 530,
+		"seriesCluster": "I001"
+	},
+	"softwareVersionExFactory": {
+		"puStep": {
+			"month": 7,
+			"year": 15
+		},
+		"iStep": 502,
+		"seriesCluster": "I001"
+	},
+	"telematicsUnit": "WAVE01",
+	"vin": "WBY000000NOREXI01",
+	"year": 2015
+}

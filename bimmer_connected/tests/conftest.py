@@ -11,6 +11,7 @@ from bimmer_connected.models import AnonymizedResponse
 
 from . import (
     ALL_CHARGING_SETTINGS,
+    ALL_PROFILES,
     ALL_STATES,
     TEST_PASSWORD,
     TEST_REGION,
@@ -25,6 +26,7 @@ def bmw_fixture(request: pytest.FixtureRequest) -> Generator[respx.MockRouter, N
     # Now we can start patching the API calls
     router = MyBMWMockRouter(
         vehicles_to_load=getattr(request, "param", []),
+        profiles=ALL_PROFILES,
         states=ALL_STATES,
         charging_settings=ALL_CHARGING_SETTINGS,
     )
