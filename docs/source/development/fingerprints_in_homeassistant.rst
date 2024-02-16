@@ -4,16 +4,13 @@ Sometimes it can be useful to load the **fingerprints** used for our **pytest su
 This enables debugging of the UI in Home Assistant which is not possible from pytest alone.
 
 .. warning::
-  If not already done, `set up the Home Assistant development environment <https://developers.home-assistant.io/docs/development_environment>`_.
+  This is for the `Home Assistant development environment <https://developers.home-assistant.io/docs/development_environment>`_ only! Do not do this on your live instance!
 
-Now start Home Assistant at least once and let all python packages install (``hass -c ./config``).
-If not already done, set up the **BMW Connected Drive Integration** in Home Assistant.
+Setup and start Home Assistant in the development environment at least once and let all python packages install (``hass -c ./config``).
+If not already done, set up the **BMW Connected Drive Integration**. You do not even have to log in with your own account. It is sufficient if the dependencies are installed (which is done when you see the login form).
 Shut down Homeassistant afterwards.
 
 Now, we have to "hack" our mocked backend calls into Home Assistant.
-
-.. note::
-  Doing so will remove your own account!
 
 Edit ``homeassistant/components/bmw_connected_drive/coordinator.py`` and locate the function ``_async_update_data``. We now have to replace ``await self.account.get_vehicles()``. The ``try .. except`` block should look like this:
 
@@ -27,5 +24,4 @@ Edit ``homeassistant/components/bmw_connected_drive/coordinator.py`` and locate 
           except:
   ...
 
-.. note::
-  As the first parameter, you can specify a list of VINs for debugging or leave it empty (``None`` or ``[]``) to load all vehicles of our test suite.
+As the first parameter, you can specify a list of VINs for debugging or leave it empty (``None`` or ``[]``) to load all vehicles of our test suite.
