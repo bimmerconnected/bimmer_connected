@@ -6,13 +6,15 @@ This enables debugging of the UI in Home Assistant which is not possible from py
 .. warning::
   This is for the `Home Assistant development environment <https://developers.home-assistant.io/docs/development_environment>`_ only! Do not do this on your live instance!
 
-Setup and start Home Assistant in the development environment at least once and let all python packages install (``hass -c ./config``).
-If not already done, set up the **BMW Connected Drive Integration**. You do not even have to log in with your own account. It is sufficient if the dependencies are installed (which is done when you see the login form).
-Shut down Homeassistant afterwards.
+Setup and start Home Assistant in the `development environment <https://developers.home-assistant.io/docs/development_environment>`_ at least once and let all python packages install (``hass -c ./config``).
+If not already done, set up the **BMW Connected Drive Integration**. You need to login a MyBMW account at least once. Shut down Homeassistant afterwards.
+
+.. note::
+  The MyBMW account does not need to contain vehicles, a demo account without attached vehicles is sufficient.
 
 Now, we have to "hack" our mocked backend calls into Home Assistant.
 
-Edit ``homeassistant/components/bmw_connected_drive/coordinator.py`` and locate the function ``_async_update_data``. We now have to replace ``await self.account.get_vehicles()``. The ``try .. except`` block should look like this:
+Edit ``homeassistant/components/bmw_connected_drive/coordinator.py`` and locate the function ``def _async_update_data()``. We now have to replace ``await self.account.get_vehicles()``. The ``try .. except`` block should look like this:
 
 .. code-block:: python
 
