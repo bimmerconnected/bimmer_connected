@@ -6,7 +6,7 @@ bimmer_connected
 .. image:: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml/badge.svg?branch=master
     :target: https://github.com/bimmerconnected/bimmer_connected/actions/workflows/test.yml?query=branch%3Amaster
 .. image:: https://readthedocs.org/projects/bimmer-connected/badge/?version=latest
-    :target: https://bimmer-connected.readthedocs.io/en/latest/?badge=latest
+    :target: https://bimmer-connected.readthedocs.io/en/stable/?badge=latest
 .. image:: https://codecov.io/gh/bimmerconnected/bimmer_connected/branch/master/graph/badge.svg?token=qNT50j82f6
     :target: https://codecov.io/gh/bimmerconnected/bimmer_connected
 .. image:: https://static.pepy.tech/badge/bimmer_connected/week
@@ -37,11 +37,11 @@ Usage
 While this library is mainly written to be included in `Home Assistant <https://www.home-assistant.io/integrations/bmw_connected_drive/>`_, it can be use on its own.
 
 After installation, execute :code:`bimmerconnected` from command line for usage instruction
-or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/latest/#cli>`_.
+or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/stable/#cli>`_.
 
 Please be aware that :code:`bimmer_connected` is an :code:`async` library when using it in Python code.
 The description of the :code:`modules` can be found in the `module documentation 
-<http://bimmer-connected.readthedocs.io/en/latest/#module>`_.
+<http://bimmer-connected.readthedocs.io/en/stable/#module>`_.
 
 Example in an :code:`asyncio` event loop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
