@@ -73,6 +73,7 @@ body:
       options:
         - label: I have 2 or more cars linked to the MyBMW account.
         - label: I have a Mini vehicle linked to my account.
+        - label: I have a Toyota Supra vehicle linked to my account.
   - type: textarea
     attributes:
       label: Output of bimmer_connected fingerprint
