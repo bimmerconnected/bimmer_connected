@@ -41,7 +41,7 @@ class VehicleViewDirection(StrEnum):
     This is used to get a rendered image of the vehicle.
     """
 
-    FRONTSIDE = "VehicleStatus"  # also available as AngleSideViewForty
+    FRONTSIDE = "AngleSideViewForty"
     FRONT = "FrontView"
     # REARSIDE = 'REARSIDE'
     # REAR = 'REAR'
