@@ -67,13 +67,11 @@ class FuelAndBattery(VehicleDataBase):
     charging_target: Optional[int] = None
     """State of charging target in percent."""
 
-    account_timezone: datetime.timezone = datetime.timezone.utc
-
     @property
     def charging_start_time(self) -> Optional[datetime.datetime]:
         """The planned time the vehicle will start charging."""
         if self.charging_start_time_no_tz:
-            return self.charging_start_time_no_tz.astimezone(self.account_timezone)
+            return self.charging_start_time_no_tz.astimezone(datetime.timezone.utc)
         return None
 
     @classmethod

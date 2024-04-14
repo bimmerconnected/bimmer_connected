@@ -68,7 +68,7 @@ async def test_generic_error_handling(caplog, bmw_fixture: respx.Router):
     vehicle = account.get_vehicle(VIN_I20)
     state_wo_climate_activity = vehicle.data["state"].copy()
     state_wo_climate_activity["climateControlState"].pop("activity", None)
-    vehicle.climate = Climate(account_timezone=account.timezone)
+    vehicle.climate = Climate()
 
     assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
     vehicle.update_state(vehicle.data, state_wo_climate_activity)
@@ -113,7 +113,6 @@ async def test_range_combustion(caplog, bmw_fixture: respx.Router):
     assert (629, "km") == status.remaining_range_total
 
     status_from_vehicle_data = FuelAndBattery.from_vehicle_data(vehicle.data)
-    status_from_vehicle_data.account_timezone = status.account_timezone
     assert status_from_vehicle_data == status
     assert FuelAndBattery.from_vehicle_data({}) is None
 
@@ -203,7 +202,7 @@ async def test_plugged_in_waiting_for_charge_window(caplog, bmw_fixture: respx.R
     assert vehicle.fuel_and_battery.charging_status == ChargingState.WAITING_FOR_CHARGING
     assert vehicle.fuel_and_battery.is_charger_connected is True
     assert vehicle.fuel_and_battery.charging_start_time.astimezone(UTC) == datetime.datetime(
-        2021, 11, 28, 18, 1, tzinfo=account.timezone
+        2021, 11, 28, 17, 1, tzinfo=UTC
     )
     assert vehicle.fuel_and_battery.charging_target == 100
 
@@ -493,7 +492,5 @@ async def test_climate(bmw_fixture: respx.Router):
     # Running climatization
     climate = account.get_vehicle(VIN_G26).climate
     assert climate.activity == ClimateActivityState.HEATING
-    assert climate.activity_end_time.astimezone(datetime.timezone.utc) == datetime.datetime(
-        2021, 11, 28, 21, 58, 49, tzinfo=UTC
-    )
+    assert climate.activity_end_time.astimezone(UTC) == datetime.datetime(2021, 11, 28, 21, 58, 49, tzinfo=UTC)
     assert climate.is_climate_on is True

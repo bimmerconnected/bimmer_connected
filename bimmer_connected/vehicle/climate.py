@@ -28,8 +28,6 @@ class Climate(VehicleDataBase):
     activity_end_time_no_tz: Optional[datetime.datetime] = None
     """Climatization end time w/o timezone."""
 
-    account_timezone: datetime.timezone = datetime.timezone.utc
-
     @property
     def is_climate_on(self) -> bool:
         """Return True if climatization is active."""
@@ -39,7 +37,7 @@ class Climate(VehicleDataBase):
     def activity_end_time(self) -> Optional[datetime.datetime]:
         """Climatization end time."""
         if self.activity_end_time_no_tz:
-            return self.activity_end_time_no_tz.astimezone(self.account_timezone)
+            return self.activity_end_time_no_tz.astimezone(datetime.timezone.utc)
         return None
 
     @classmethod

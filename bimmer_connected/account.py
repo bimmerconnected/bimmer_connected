@@ -164,16 +164,6 @@ class MyBMWAccount:
         return responses
 
     @property
-    def timezone(self):
-        """Returns the current tzinfo."""
-        return datetime.datetime.now().astimezone().tzinfo
-
-    @property
-    def utcdiff(self):
-        """Returns the difference to UTC in minutes."""
-        return round(self.timezone.utcoffset(datetime.datetime.now()).seconds / 60, 0)
-
-    @property
     def refresh_token(self) -> Optional[str]:
         """Returns the current refresh_token."""
         return self.config.authentication.refresh_token

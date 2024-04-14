@@ -25,6 +25,7 @@ select = [
     "W",  # pycodestyle
     "UP",  # pyupgrade
     "PGH004",  # Use specific rule codes when using noqa
+    "PL", #pylint
 ]
 
 ignore = [
@@ -44,6 +45,7 @@ exclude = [
 [tool.ruff.per-file-ignores]
 "docs/source/conf.py" = ["D100"]
 "bimmer_connected/api/authentication.py" = ["D102", "D107"]
+"bimmer_connected/tests/**.py" = ["PLR2004"]
 
 [tool.ruff.mccabe]
 max-complexity = 25
