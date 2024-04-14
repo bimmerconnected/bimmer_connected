@@ -169,7 +169,7 @@ class FuelAndBattery(VehicleDataBase):
             retval["charging_start_time"] = datetime.datetime.combine(
                 datetime.datetime.now(datetime.timezone.utc).date(),
                 datetime.time(int(charging_window["start"]["hour"]), int(charging_window["start"]["minute"])),
-                tzinfo=datetime.timezone.utc
+                tzinfo=datetime.timezone.utc,
             )
 
         return retval
