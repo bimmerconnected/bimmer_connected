@@ -55,8 +55,8 @@ class FuelAndBattery(VehicleDataBase):
     charging_status: Optional[ChargingState] = None
     """Charging state of the vehicle."""
 
-    charging_start_time_no_tz: Optional[datetime.datetime] = None
-    """The planned time the vehicle will start charging without time zone information."""
+    charging_start_time: Optional[datetime.datetime] = None
+    """The planned time the vehicle will start charging in UTC."""
 
     charging_end_time: Optional[datetime.datetime] = None
     """The estimated time the vehicle will have finished charging."""
@@ -66,13 +66,6 @@ class FuelAndBattery(VehicleDataBase):
 
     charging_target: Optional[int] = None
     """State of charging target in percent."""
-
-    @property
-    def charging_start_time(self) -> Optional[datetime.datetime]:
-        """The planned time the vehicle will start charging."""
-        if self.charging_start_time_no_tz:
-            return self.charging_start_time_no_tz.astimezone(datetime.timezone.utc)
-        return None
 
     @classmethod
     def from_vehicle_data(cls, vehicle_data: Dict):
@@ -173,9 +166,10 @@ class FuelAndBattery(VehicleDataBase):
             retval["charging_target"] = int(electric_data["chargingTarget"])
 
         if retval["charging_status"] == ChargingState.WAITING_FOR_CHARGING and isinstance(charging_window, Dict):
-            retval["charging_start_time_no_tz"] = datetime.datetime.combine(
-                datetime.datetime.now().date(),
+            retval["charging_start_time"] = datetime.datetime.combine(
+                datetime.datetime.now(datetime.timezone.utc).date(),
                 datetime.time(int(charging_window["start"]["hour"]), int(charging_window["start"]["minute"])),
+                tzinfo=datetime.timezone.utc
             )
 
         return retval
