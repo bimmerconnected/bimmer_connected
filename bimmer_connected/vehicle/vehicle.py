@@ -220,10 +220,10 @@ class MyBMWVehicle:
     def timestamp(self) -> Optional[datetime.datetime]:
         """Get the timestamp when the data was recorded."""
         timestamps = [
-            parse_datetime(str(ts))
+            ts
             for ts in [
-                self.data[ATTR_ATTRIBUTES].get("lastFetched"),
-                self.data[ATTR_STATE].get("lastFetched"),
+                parse_datetime(str(self.data[ATTR_ATTRIBUTES].get("lastFetched", ""))),
+                parse_datetime(str(self.data[ATTR_STATE].get("lastFetched", ""))),
             ]
             if ts
         ]
