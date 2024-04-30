@@ -81,13 +81,13 @@ class MyBMWVehicle:
         self.account = account
         self.data = {}
         self.remote_services = RemoteServices(self)
-        self.fuel_and_battery: FuelAndBattery = FuelAndBattery(account_timezone=account.timezone)
+        self.fuel_and_battery: FuelAndBattery = FuelAndBattery()
         self.vehicle_location: VehicleLocation = VehicleLocation(account_region=account.region)
         self.doors_and_windows: DoorsAndWindows = DoorsAndWindows()
         self.condition_based_services: ConditionBasedServiceReport = ConditionBasedServiceReport()
         self.headunit: Headunit = Headunit()
         self.check_control_messages: CheckControlMessageReport = CheckControlMessageReport()
-        self.climate: Climate = Climate(account_timezone=account.timezone)
+        self.climate: Climate = Climate()
         self.charging_profile: Optional[ChargingProfile] = None
         self.tires: Optional[Tires] = None
 
@@ -104,7 +104,7 @@ class MyBMWVehicle:
             state_response = await client.get(
                 VEHICLE_STATE_URL,
                 params={
-                    "apptimezone": self.account.utcdiff,
+                    "apptimezone": 0,
                     "appDateTime": int(fetched_at.timestamp() * 1000),
                 },
                 headers={

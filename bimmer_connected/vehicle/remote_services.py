@@ -151,8 +151,8 @@ class RemoteServices:
         :raises TimeoutError: if there is no final answer before _POLLING_TIMEOUT
         """
 
-        fail_after = datetime.datetime.now() + datetime.timedelta(seconds=_POLLING_TIMEOUT)
-        while datetime.datetime.now() < fail_after:
+        fail_after = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=_POLLING_TIMEOUT)
+        while datetime.datetime.now(datetime.timezone.utc) < fail_after:
             await asyncio.sleep(_POLLING_CYCLE)
             status = await self._get_remote_service_status(client, event_id)
             _LOGGER.debug("current state of '%s' is: %s", event_id, status.state.value)
