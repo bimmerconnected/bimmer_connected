@@ -222,8 +222,8 @@ class MyBMWVehicle:
         timestamps = [
             ts
             for ts in [
-                parse_datetime(str(self.data[ATTR_ATTRIBUTES].get("lastFetched"))),
-                parse_datetime(str(self.data[ATTR_STATE].get("lastFetched"))),
+                parse_datetime(str(self.data[ATTR_ATTRIBUTES].get("lastFetched", ""))),
+                parse_datetime(str(self.data[ATTR_STATE].get("lastFetched", ""))),
             ]
             if ts
         ]
