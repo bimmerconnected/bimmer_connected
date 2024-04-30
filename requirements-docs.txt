@@ -3,3 +3,4 @@ sphinx-autobuild
 sphinx_rtd_theme
 sphinx-argparse
 pbr
+six
