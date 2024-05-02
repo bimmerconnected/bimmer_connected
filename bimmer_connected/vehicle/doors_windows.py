@@ -76,28 +76,26 @@ class DoorsAndWindows(VehicleDataBase):
         retval: Dict[str, Any] = {}
 
         if ATTR_STATE in vehicle_data:
-            if "doorsState" in vehicle_data[ATTR_STATE]:
+            if doors_state := vehicle_data[ATTR_STATE].get("doorsState"):
                 retval["lids"] = [
                     Lid(k, v)
-                    for k, v in vehicle_data[ATTR_STATE]["doorsState"].items()
+                    for k, v in doors_state.items()
                     if k not in ["combinedState", "combinedSecurityState"] and v != LidState.INVALID
                 ]
-                retval["door_lock_state"] = LockState(
-                    vehicle_data[ATTR_STATE]["doorsState"].get("combinedSecurityState", "UNKNOWN")
-                )
+                retval["door_lock_state"] = LockState(doors_state.get("combinedSecurityState", "UNKNOWN"))
 
-            if "windowsState" in vehicle_data[ATTR_STATE]:
+            if windows_state := vehicle_data[ATTR_STATE].get("windowsState"):
                 retval["windows"] = [
                     Window(k, v)
-                    for k, v in vehicle_data[ATTR_STATE]["windowsState"].items()
+                    for k, v in windows_state.items()
                     if k not in ["combinedState"] and v != LidState.INVALID
                 ]
 
-            if "roofState" in vehicle_data[ATTR_STATE]:
+            if roof_state := vehicle_data[ATTR_STATE].get("roofState"):
                 retval["lids"].append(
                     Lid(
-                        to_camel_case(vehicle_data[ATTR_STATE]["roofState"]["roofStateType"]),
-                        vehicle_data[ATTR_STATE]["roofState"]["roofState"],
+                        to_camel_case(roof_state["roofStateType"]),
+                        roof_state["roofState"],
                     )
                 )
 

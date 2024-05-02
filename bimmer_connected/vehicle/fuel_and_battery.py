@@ -94,8 +94,7 @@ class FuelAndBattery(VehicleDataBase):
             retval.update(cls._parse_fuel_data(state.get("combustionFuelLevel", {})))
 
         if drivetrain in HV_BATTERY_DRIVE_TRAINS:
-            electric_data = state.get("electricChargingState", {})
-            if electric_data:
+            if electric_data := state.get("electricChargingState", {}):
                 retval.update(
                     cls._parse_electric_data(
                         electric_data,

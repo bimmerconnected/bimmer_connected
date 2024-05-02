@@ -60,8 +60,7 @@ class ConditionBasedServiceReport(VehicleDataBase):
         """Parse doors and windows."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_STATE in vehicle_data and "requiredServices" in vehicle_data[ATTR_STATE]:
-            messages = vehicle_data[ATTR_STATE]["requiredServices"]
+        if ATTR_STATE in vehicle_data and (messages := vehicle_data[ATTR_STATE].get("requiredServices")):
             retval["messages"] = [ConditionBasedService.from_api_entry(**m) for m in messages]
             retval["is_service_required"] = any((m.state != ConditionBasedServiceStatus.OK) for m in retval["messages"])
 
@@ -108,8 +107,7 @@ class CheckControlMessageReport(VehicleDataBase):
         """Parse doors and windows."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_STATE in vehicle_data and "checkControlMessages" in vehicle_data[ATTR_STATE]:
-            messages = vehicle_data[ATTR_STATE]["checkControlMessages"]
+        if ATTR_STATE in vehicle_data and (messages := vehicle_data[ATTR_STATE].get("checkControlMessages")):
             retval["messages"] = [CheckControlMessage.from_api_entry(**m) for m in messages if m["severity"] != "OK"]
             retval["has_check_control_messages"] = len([m for m in retval["messages"] if m.state != "LOW"]) > 0
 
@@ -134,13 +132,15 @@ class Headunit(VehicleDataBase):
         """Parse headunit hard/software."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_ATTRIBUTES in vehicle_data and "softwareVersionCurrent" in vehicle_data[ATTR_ATTRIBUTES]:
+        if ATTR_ATTRIBUTES in vehicle_data and (
+            software_version := vehicle_data[ATTR_ATTRIBUTES].get("softwareVersionCurrent")
+        ):
             retval["idrive_version"] = vehicle_data[ATTR_ATTRIBUTES]["hmiVersion"]
             retval["headunit_type"] = vehicle_data[ATTR_ATTRIBUTES]["headUnitType"]
 
-            istep = vehicle_data[ATTR_ATTRIBUTES]["softwareVersionCurrent"]["iStep"]
-            month = vehicle_data[ATTR_ATTRIBUTES]["softwareVersionCurrent"]["puStep"]["month"]
-            year = vehicle_data[ATTR_ATTRIBUTES]["softwareVersionCurrent"]["puStep"]["year"]
+            istep = software_version["iStep"]
+            month = software_version["puStep"]["month"]
+            year = software_version["puStep"]["year"]
             model_year = vehicle_data[ATTR_ATTRIBUTES]["year"]
 
             retval["software_version"] = f"{month:02d}/{str(model_year)[:2]}{year:02d}.{str(istep)[1:]}"

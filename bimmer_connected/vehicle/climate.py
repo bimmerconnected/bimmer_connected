@@ -38,18 +38,17 @@ class Climate(VehicleDataBase):
         """Parse tire status."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_STATE in vehicle_data:
-            if "climateControlState" in vehicle_data[ATTR_STATE]:
-                retval["activity"] = ClimateActivityState(vehicle_data[ATTR_STATE]["climateControlState"]["activity"])
-                retval["activity_end_time"] = (
-                    (
-                        datetime.datetime.now(datetime.timezone.utc)
-                        + datetime.timedelta(
-                            seconds=int(vehicle_data[ATTR_STATE]["climateControlState"]["remainingSeconds"])
-                        )
-                    )
-                    if "remainingSeconds" in vehicle_data[ATTR_STATE]["climateControlState"]
-                    else None
+        if ATTR_STATE in vehicle_data and (
+            climate_control_state := vehicle_data[ATTR_STATE].get("climateControlState")
+        ):
+            retval["activity"] = ClimateActivityState(climate_control_state["activity"])
+            retval["activity_end_time"] = (
+                (
+                    datetime.datetime.now(datetime.timezone.utc)
+                    + datetime.timedelta(seconds=int(climate_control_state["remainingSeconds"]))
                 )
+                if "remainingSeconds" in climate_control_state
+                else None
+            )
 
         return retval
