@@ -132,31 +132,24 @@ class ChargingProfile(VehicleDataBase):
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
         """Parse charging data."""
         retval: Dict[str, Any] = {}
-        try:
-            if ATTR_STATE in vehicle_data and (charging_profile := vehicle_data[ATTR_STATE].get("chargingProfile")):
-                retval["is_pre_entry_climatization_enabled"] = bool(charging_profile.get("climatisationOn", False))
-                retval["departure_times"] = [DepartureTimer(t) for t in charging_profile.get("departureTimes", [])]
-                retval["preferred_charging_window"] = ChargingWindow(
-                    charging_profile.get("reductionOfChargeCurrent", {})
-                )
-                retval["timer_type"] = TimerTypes(charging_profile.get("chargingControlType", "UNKNOWN"))
-                retval["charging_preferences"] = ChargingPreferences(
-                    charging_profile.get("chargingPreference", "UNKNOWN")
-                )
-                retval["charging_mode"] = ChargingMode(charging_profile.get("chargingMode", "UNKNOWN"))
-                if "acCurrentLimit" in charging_profile["chargingSettings"]:
-                    retval["ac_current_limit"] = charging_profile["chargingSettings"]["acCurrentLimit"]
+        if ATTR_STATE in vehicle_data and (charging_profile := vehicle_data[ATTR_STATE].get("chargingProfile")):
+            retval["is_pre_entry_climatization_enabled"] = bool(charging_profile.get("climatisationOn", False))
+            retval["departure_times"] = [DepartureTimer(t) for t in charging_profile.get("departureTimes", [])]
+            retval["preferred_charging_window"] = ChargingWindow(charging_profile.get("reductionOfChargeCurrent", {}))
+            retval["timer_type"] = TimerTypes(charging_profile.get("chargingControlType", "UNKNOWN"))
+            retval["charging_preferences"] = ChargingPreferences(charging_profile.get("chargingPreference", "UNKNOWN"))
+            retval["charging_mode"] = ChargingMode(charging_profile.get("chargingMode", "UNKNOWN"))
+            if "acCurrentLimit" in charging_profile["chargingSettings"]:
+                retval["ac_current_limit"] = charging_profile["chargingSettings"]["acCurrentLimit"]
 
-            if charging_settings := vehicle_data.get(ATTR_CHARGING_SETTINGS):
-                if "servicePack" in charging_settings:
-                    retval["charging_preferences_service_pack"] = charging_settings["servicePack"]
-                if (
-                    "chargingSettingsDetail" in charging_settings
-                    and "acLimit" in charging_settings["chargingSettingsDetail"]
-                ):
-                    retval["ac_available_limits"] = charging_settings["chargingSettingsDetail"]["acLimit"]["values"]
-        except Exception as ex:
-            print(ex)
+        if charging_settings := vehicle_data.get(ATTR_CHARGING_SETTINGS):
+            if "servicePack" in charging_settings:
+                retval["charging_preferences_service_pack"] = charging_settings["servicePack"]
+            if (
+                "chargingSettingsDetail" in charging_settings
+                and "acLimit" in charging_settings["chargingSettingsDetail"]
+            ):
+                retval["ac_available_limits"] = charging_settings["chargingSettingsDetail"]["acLimit"]["values"]
         return retval
 
     def format_for_remote_service(self) -> dict:
