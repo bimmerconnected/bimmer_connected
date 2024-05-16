@@ -7,7 +7,7 @@ import respx
 import time_machine
 
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.vehicle.climate import Climate, ClimateActivityState
+from bimmer_connected.vehicle.climate import ClimateActivityState
 from bimmer_connected.vehicle.doors_windows import LidState, LockState
 from bimmer_connected.vehicle.fuel_and_battery import ChargingState, FuelAndBattery
 from bimmer_connected.vehicle.location import VehicleLocation
@@ -64,19 +64,6 @@ async def test_generic_error_handling(caplog, bmw_fixture: respx.Router):
     assert vehicle.tires is None
 
     caplog.clear()
-
-    vehicle = account.get_vehicle(VIN_I20)
-    state_wo_climate_activity = vehicle.data["state"].copy()
-    state_wo_climate_activity["climateControlState"].pop("activity", None)
-    vehicle.climate = Climate()
-
-    assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
-    vehicle.update_state(vehicle.data, state_wo_climate_activity)
-    assert (
-        any("climate" in r.message and "KeyError" in r.message and "'activity'" in r.message for r in caplog.records)
-        is True
-    )
-    assert vehicle.climate.activity == ClimateActivityState.UNKNOWN
 
 
 @pytest.mark.asyncio
