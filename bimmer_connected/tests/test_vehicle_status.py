@@ -1,6 +1,8 @@
 """Test for VehicleState."""
 
 import datetime
+import os
+import time
 
 import pytest
 import respx
@@ -176,10 +178,15 @@ async def test_charging_end_time(caplog, bmw_fixture: respx.Router):
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
-@time_machine.travel("2021-11-28 19:28:59 +0200", tick=False)
+@time_machine.travel("2021-11-28 17:28:59 +0000", tick=False)
 @pytest.mark.asyncio
 async def test_plugged_in_waiting_for_charge_window(caplog, bmw_fixture: respx.Router):
     """I01_REX is plugged in but not charging, as its waiting for charging window."""
+
+    # Make sure that local timezone for test is UTC
+    os.environ["TZ"] = "Europe/Berlin"
+    time.tzset()
+
     account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_I01_REX)
 
