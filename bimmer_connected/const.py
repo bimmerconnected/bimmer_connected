@@ -39,17 +39,17 @@ OCP_APIM_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "3.11.1(29513)",
-    Regions.REST_OF_WORLD: "3.11.1(29513)",
-    Regions.CHINA: "3.11.1(29513)",
+    Regions.NORTH_AMERICA: "4.5.0(33525)",
+    Regions.REST_OF_WORLD: "4.5.0(33525)",
+    Regions.CHINA: "4.5.0(33525)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
 USER_AGENTS = {
-    Regions.NORTH_AMERICA: "Dart/3.0 (dart:io)",
-    Regions.REST_OF_WORLD: "Dart/3.0 (dart:io)",
-    Regions.CHINA: "Dart/3.0 (dart:io)",
+    Regions.NORTH_AMERICA: "Dart/3.2 (dart:io)",
+    Regions.REST_OF_WORLD: "Dart/3.2 (dart:io)",
+    Regions.CHINA: "Dart/3.2 (dart:io)",
 }
 X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
 
@@ -66,8 +66,8 @@ VEHICLES_URL = "/eadrax-vcs/v5/vehicle-list"
 VEHICLE_PROFILE_URL = "/eadrax-vcs/v5/vehicle-data/profile"
 VEHICLE_STATE_URL = "/eadrax-vcs/v4/vehicles/state"
 
+REMOTE_SERVICE_URL = "/eadrax-vrccs/v4/presentation/remote-commands/{service_type}"
 REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v3/presentation/remote-commands"
-REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + "/{vin}/{service_type}"
 REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_BASE_URL + "/eventStatus?eventId={event_id}"
 REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + "/eventPosition?eventId={event_id}"
 
