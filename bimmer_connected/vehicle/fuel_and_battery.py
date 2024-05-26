@@ -7,6 +7,7 @@ from typing import Any, Dict, Optional
 
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE
 from bimmer_connected.models import StrEnum, ValueWithUnit, VehicleDataBase
+from bimmer_connected.utils import get_next_occurrence
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 
 _LOGGER = logging.getLogger(__name__)
@@ -165,8 +166,8 @@ class FuelAndBattery(VehicleDataBase):
             retval["charging_target"] = int(electric_data["chargingTarget"])
 
         if retval["charging_status"] == ChargingState.WAITING_FOR_CHARGING and isinstance(charging_window, Dict):
-            retval["charging_start_time"] = datetime.datetime.combine(
-                datetime.datetime.now().date(),
+            retval["charging_start_time"] = get_next_occurrence(
+                datetime.datetime.now(),
                 datetime.time(int(charging_window["start"]["hour"]), int(charging_window["start"]["minute"])),
             )
 
