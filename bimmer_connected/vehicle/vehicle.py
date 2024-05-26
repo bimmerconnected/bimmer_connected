@@ -146,7 +146,7 @@ class MyBMWVehicle:
         vehicle_data = self.combine_data(data, fetched_at)
         self.data = vehicle_data
 
-        update_entities: List[Tuple[Type["VehicleDataBase"], str]] = [
+        update_entities: List[Tuple[Type[VehicleDataBase], str]] = [
             (FuelAndBattery, "fuel_and_battery"),
             (VehicleLocation, "vehicle_location"),
             (DoorsAndWindows, "doors_and_windows"),
@@ -162,7 +162,7 @@ class MyBMWVehicle:
                 if getattr(self, vehicle_attribute) is None:
                     setattr(self, vehicle_attribute, cls.from_vehicle_data(vehicle_data))
                 else:
-                    curr_attr: "VehicleDataBase" = getattr(self, vehicle_attribute)
+                    curr_attr: VehicleDataBase = getattr(self, vehicle_attribute)
                     curr_attr.update_from_vehicle_data(vehicle_data)
             except (KeyError, TypeError) as ex:
                 _LOGGER.warning("Unable to update %s - (%s) %s", vehicle_attribute, type(ex).__name__, ex)
