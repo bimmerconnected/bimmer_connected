@@ -44,7 +44,7 @@ class Climate(VehicleDataBase):
             retval["activity"] = ClimateActivityState(climate_control_state["activity"])
             retval["activity_end_time"] = (
                 (
-                    datetime.datetime.now(datetime.timezone.utc)
+                    vehicle_data["fetched_at"]
                     + datetime.timedelta(seconds=int(climate_control_state["remainingSeconds"]))
                 )
                 if "remainingSeconds" in climate_control_state
