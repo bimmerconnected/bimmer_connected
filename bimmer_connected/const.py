@@ -79,8 +79,8 @@ VEHICLE_CHARGING_START_STOP_URL = VEHICLE_CHARGING_BASE_URL + "/{service_type}"
 VEHICLE_IMAGE_URL = "/eadrax-ics/v5/presentation/vehicles/images"
 VEHICLE_POI_URL = "/eadrax-dcs/v1/send-to-car/send-to-car"
 
-VEHICLE_CHARGING_STATISTICS_URL = "/eadrax-chs/v1/charging-statistics"
-VEHICLE_CHARGING_SESSIONS_URL = "/eadrax-chs/v1/charging-sessions"
+VEHICLE_CHARGING_STATISTICS_URL = "/eadrax-chs/v2/charging-statistics"
+VEHICLE_CHARGING_SESSIONS_URL = "/eadrax-chs/v2/charging-sessions"
 
 SERVICE_CHARGING_STATISTICS_URL = "CHARGING_STATISTICS"
 SERVICE_CHARGING_SESSIONS_URL = "CHARGING_SESSIONS"
