@@ -1,12 +1,10 @@
 """General utils and base classes used in the library."""
 
-
 import datetime
 import inspect
 import json
 import logging
 import pathlib
-import time
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
@@ -38,18 +36,26 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ"]
     for date_format in date_formats:
         try:
-            # Parse datetimes using `time.strptime` to allow running in some embedded python interpreters.
-            # https://bugs.python.org/issue27400
-            time_struct = time.strptime(date_str, date_format)
-            parsed = datetime.datetime(*(time_struct[0:6]))
-            if time_struct.tm_gmtoff and time_struct.tm_gmtoff != 0:
-                parsed = parsed - datetime.timedelta(seconds=time_struct.tm_gmtoff)
-            parsed = parsed.replace(tzinfo=datetime.timezone.utc)
+            parsed = datetime.datetime.strptime(date_str, date_format)
+            parsed = parsed.replace(microsecond=0)
             return parsed
         except ValueError:
             pass
     _LOGGER.error("unable to parse '%s' using %s", date_str, date_formats)
     return None
+
+
+def get_next_occurrence(now: datetime.datetime, time: datetime.time) -> datetime.datetime:
+    """Get the next occurrence of a given time."""
+
+    # If current time is past the given time, add one day to the current date
+    if now.time() > time:
+        next_date = now.date() + datetime.timedelta(days=1)
+    # If current time is before the given time, use the current date
+    else:
+        next_date = now.date()
+    next_occurrence = datetime.datetime.combine(next_date, time)
+    return next_occurrence
 
 
 class MyBMWJSONEncoder(json.JSONEncoder):

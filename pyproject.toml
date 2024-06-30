@@ -16,6 +16,11 @@ enable_error_code = "ignore-without-code"
 target-version = "py38"
 line-length = 120
 
+exclude = [
+    "bimmer_connected/coord_convert.py",
+]
+
+[tool.ruff.lint]
 select = [
     "C",  # complexity
     "D",  # docstrings
@@ -37,13 +42,9 @@ ignore = [
     "D107", # Missing docstring in `__init__`
 ]
 
-exclude = [
-    "bimmer_connected/coord_convert.py",
-]
-
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "docs/source/conf.py" = ["D100"]
 "bimmer_connected/api/authentication.py" = ["D102", "D107"]
 
-[tool.ruff.mccabe]
+[tool.ruff.lint.mccabe]
 max-complexity = 25

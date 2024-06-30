@@ -13,7 +13,7 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.const import ATTR_CAPABILITIES
+from bimmer_connected.const import ATTR_CAPABILITIES, VEHICLES_URL
 from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
 from . import (
@@ -24,8 +24,7 @@ from . import (
     TEST_USERNAME,
     VIN_G26,
     VIN_I20,
-    get_fingerprint_charging_settings_count,
-    get_fingerprint_state_count,
+    get_fingerprint_count,
     load_response,
 )
 from .conftest import prepare_account_with_vehicles
@@ -177,7 +176,7 @@ async def test_vehicles(bmw_fixture: respx.Router):
     await account.get_vehicles()
 
     assert account.config.authentication.access_token is not None
-    assert get_fingerprint_state_count() == len(account.vehicles)
+    assert get_fingerprint_count("profiles") == len(account.vehicles)
 
     vehicle = account.get_vehicle(VIN_G26)
     assert vehicle is not None
@@ -198,15 +197,15 @@ async def test_vehicle_init(bmw_fixture: respx.Router):
 
         # First call on init
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_state_count()
+        assert len(account.vehicles) == get_fingerprint_count("profiles")
 
         # No call to _init_vehicles()
         await account.get_vehicles()
-        assert len(account.vehicles) == get_fingerprint_state_count()
+        assert len(account.vehicles) == get_fingerprint_count("profiles")
 
         # Second, forced call _init_vehicles()
         await account.get_vehicles(force_init=True)
-        assert len(account.vehicles) == get_fingerprint_state_count()
+        assert len(account.vehicles) == get_fingerprint_count("profiles")
 
         assert mock_listener.call_count == 2
 
@@ -259,9 +258,14 @@ async def test_vehicle_search_case(bmw_fixture: respx.Router):
 async def test_get_fingerprints(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router, bmw_log_all_responses):
     """Test getting fingerprints."""
 
-    # Prepare Number of good responses (vehicle states, charging settings per vehicle)
+    # Prepare Number of good responses (vehicle profiles + vehicle states, charging settings per vehicle)
     # and 2x vehicle list
-    json_count = get_fingerprint_state_count() + get_fingerprint_charging_settings_count() + 2
+    json_count = (
+        get_fingerprint_count("vehicles")
+        + get_fingerprint_count("profiles")
+        + get_fingerprint_count("states")
+        + get_fingerprint_count("charging_settings")
+    )
 
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
     await account.get_vehicles()
@@ -339,21 +343,27 @@ async def test_set_use_metric_units(caplog):
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
     assert len(caplog.records) == 0
     metric_client = MyBMWClient(account.config)
-    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
+    assert (
+        metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L;p=B;ec=KWH100KM;fc=L100KM;em=GKM;"
+    )
 
     # Set to true
     caplog.clear()
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=True)
     assert len(caplog.records) == 1
     metric_client = MyBMWClient(account.config)
-    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
+    assert (
+        metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L;p=B;ec=KWH100KM;fc=L100KM;em=GKM;"
+    )
 
     # Set to false
     caplog.clear()
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, use_metric_units=True)
     assert len(caplog.records) == 1
     metric_client = MyBMWClient(account.config)
-    assert metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L"
+    assert (
+        metric_client.generate_default_header()["bmw-units-preferences"] == "d=KM;v=L;p=B;ec=KWH100KM;fc=L100KM;em=GKM;"
+    )
 
 
 @pytest.mark.asyncio
@@ -434,11 +444,12 @@ async def test_429_retry_ok_vehicles(caplog, bmw_fixture: respx.Router):
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+    bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
-            *[httpx.Response(200, json=[])] * 2,
+            httpx.Response(200, json=load_response(RESPONSE_DIR / "bmw-eadrax-vcs_v5_vehicle-list.json")),
+            httpx.Response(200, json=load_response(RESPONSE_DIR / "mini-eadrax-vcs_v5_vehicle-list.json")),
         ]
     )
     caplog.set_level(logging.DEBUG)
@@ -461,7 +472,7 @@ async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(return_value=httpx.Response(429, json=json_429))
+    bmw_fixture.post(VEHICLES_URL).mock(return_value=httpx.Response(429, json=json_429))
     caplog.set_level(logging.DEBUG)
 
     with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
@@ -483,11 +494,12 @@ async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+    bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
-            *[httpx.Response(200, json=[])] * 2,
+            httpx.Response(200, json=load_response(RESPONSE_DIR / "bmw-eadrax-vcs_v5_vehicle-list.json")),
+            httpx.Response(200, json=load_response(RESPONSE_DIR / "mini-eadrax-vcs_v5_vehicle-list.json")),
         ]
     )
 
@@ -502,7 +514,7 @@ async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+    bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(401),
@@ -524,7 +536,7 @@ async def test_multiple_401(bmw_fixture: respx.Router):
     """Test the error handling, when multiple 401 are received in sequence."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+    bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
             httpx.Response(401),
             httpx.Response(401),
@@ -545,18 +557,19 @@ async def test_401_after_429_ok(bmw_fixture: respx.Router):
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
     # Recover after 3 429 and 1 401
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+    bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
             httpx.Response(401),
-            *[httpx.Response(200, json={})] * 100,  # Just simulate OK responses from now on
+            # Just simulate OK responses from now on
+            *[httpx.Response(200, json=load_response(RESPONSE_DIR / "bmw-eadrax-vcs_v5_vehicle-list.json"))] * 100,
         ]
     )
     with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
         await account.get_vehicles()
-    assert len(account.vehicles) == get_fingerprint_state_count()
+    assert len(account.vehicles) == get_fingerprint_count("profiles")
 
 
 @pytest.mark.asyncio
@@ -567,7 +580,7 @@ async def test_401_after_429_fail(bmw_fixture: respx.Router):
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
     # Fail after 3 429 and 1 401 with another 429
-    bmw_fixture.get("/eadrax-vcs/v4/vehicles").mock(
+    bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
@@ -647,7 +660,7 @@ async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
         await account.get_vehicles()
 
     log_error = [r for r in caplog.records if "Unable to get details" in r.message]
-    assert len(log_error) == get_fingerprint_state_count()
+    assert len(log_error) == get_fingerprint_count("profiles")
 
 
 @pytest.mark.asyncio

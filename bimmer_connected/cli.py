@@ -23,9 +23,8 @@ TEXT_VIN = "Vehicle Identification Number"
 
 def main_parser() -> argparse.ArgumentParser:
     """Create the ArgumentParser with all relevant subparsers."""
-    logging.basicConfig(level=logging.DEBUG)
-
     parser = argparse.ArgumentParser(description="A simple executable to use and test the library.")
+    parser.add_argument("--debug", help="Print debug logs.", action="store_true")
     subparsers = parser.add_subparsers(dest="cmd")
     subparsers.required = True
 
@@ -33,6 +32,8 @@ def main_parser() -> argparse.ArgumentParser:
     status_parser.add_argument(
         "-j", "--json", help="Output as JSON only. Removes all other output.", action="store_true"
     )
+    status_parser.add_argument("-v", "--vin", help="Output data for specified VIN only.", type=str, nargs="?")
+
     _add_default_arguments(status_parser)
     _add_position_arguments(status_parser)
 
@@ -136,11 +137,16 @@ async def get_status(args) -> None:
     await account.get_vehicles()
 
     if args.json:
-        print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder))
+        if args.vin:
+            print(json.dumps(account.get_vehicle(args.vin), cls=MyBMWJSONEncoder))
+        else:
+            print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder))
     else:
         print(f"Found {len(account.vehicles)} vehicles: {','.join([v.name for v in account.vehicles])}")
 
         for vehicle in account.vehicles:
+            if args.vin and vehicle.vin != args.vin:
+                continue
             print(f"VIN: {vehicle.vin}")
             print(f"Mileage: {vehicle.mileage.value} {vehicle.mileage.unit}")
             print("Vehicle data:")
@@ -326,6 +332,10 @@ def main():
     """Get arguments from parser and run function in event loop."""
     parser = main_parser()
     args = parser.parse_args()
+
+    if args.debug:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.getLogger("asyncio").setLevel(logging.WARNING)
 
     loop = asyncio.get_event_loop()
     loop.run_until_complete(args.func(args))

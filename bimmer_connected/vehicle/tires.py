@@ -48,11 +48,10 @@ class Tires(VehicleDataBase):
         """Parse tire status."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_STATE in vehicle_data:
-            if "tireState" in vehicle_data[ATTR_STATE]:
-                retval["front_left"] = TireState(**vehicle_data[ATTR_STATE]["tireState"]["frontLeft"])
-                retval["front_right"] = TireState(**vehicle_data[ATTR_STATE]["tireState"]["frontRight"])
-                retval["rear_left"] = TireState(**vehicle_data[ATTR_STATE]["tireState"]["rearLeft"])
-                retval["rear_right"] = TireState(**vehicle_data[ATTR_STATE]["tireState"]["rearRight"])
+        if ATTR_STATE in vehicle_data and (tire_state := vehicle_data[ATTR_STATE].get("tireState")):
+            retval["front_left"] = TireState(**tire_state["frontLeft"])
+            retval["front_right"] = TireState(**tire_state["frontRight"])
+            retval["rear_left"] = TireState(**tire_state["rearLeft"])
+            retval["rear_right"] = TireState(**tire_state["rearRight"])
 
         return retval

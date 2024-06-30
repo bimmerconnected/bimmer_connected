@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, Union
 
 from bimmer_connected.api.regions import Regions
 from bimmer_connected.const import CarBrands
@@ -23,7 +23,8 @@ VIN_I01_NOREX = "WBY000000NOREXI01"
 VIN_I01_REX = "WBY00000000REXI01"
 VIN_I20 = "WBA00000000DEMO01"
 
-ALL_VEHICLES: Dict[str, List[Dict]] = {brand.value: [] for brand in CarBrands}
+ALL_VEHICLES: Dict[str, Dict] = {brand.value: {} for brand in CarBrands}
+ALL_PROFILES: Dict[str, Dict] = {}
 ALL_STATES: Dict[str, Dict] = {}
 ALL_CHARGING_SETTINGS: Dict[str, Dict] = {}
 
@@ -35,14 +36,18 @@ REMOTE_SERVICE_RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_servi
 REMOTE_SERVICE_RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
 
-def get_fingerprint_state_count() -> int:
-    """Return number of loaded vehicles."""
-    return sum([len(vehicles) for vehicles in ALL_VEHICLES.values()])
+def get_fingerprint_count(type: str) -> int:
+    """Return number of requests/fingerprints for a given type."""
 
-
-def get_fingerprint_charging_settings_count() -> int:
-    """Return number of loaded vehicles."""
-    return len(ALL_CHARGING_SETTINGS)
+    if type == "vehicles":
+        return len(CarBrands)
+    if type == "states":
+        return len(ALL_STATES)
+    if type == "profiles":
+        return len(ALL_PROFILES)
+    if type == "charging_settings":
+        return len(ALL_CHARGING_SETTINGS)
+    return 0
 
 
 def load_response(path: Union[Path, str]) -> Any:
@@ -53,10 +58,17 @@ def load_response(path: Union[Path, str]) -> Any:
         return file.read().decode("UTF-8")
 
 
-for fingerprint in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles.json"):
+for fingerprint in RESPONSE_DIR.rglob("*-eadrax-vcs_v5_vehicle-list.json"):
     brand = fingerprint.stem.split("-")[0]
-    for vehicle in load_response(fingerprint):
-        ALL_VEHICLES[brand].append(vehicle)
+    response = load_response(fingerprint)
+
+    if ALL_VEHICLES[brand].get("mappingInfos"):
+        ALL_VEHICLES[brand]["mappingInfos"].extend(response["mappingInfos"])
+    else:
+        ALL_VEHICLES[brand] = response
+
+for profile in RESPONSE_DIR.rglob("*-eadrax-vcs_v5_vehicle-data_profile_*.json"):
+    ALL_PROFILES[profile.stem.split("_")[-1]] = load_response(profile)
 
 for state in RESPONSE_DIR.rglob("*-eadrax-vcs_v4_vehicles_state_*.json"):
     ALL_STATES[state.stem.split("_")[-1]] = load_response(state)

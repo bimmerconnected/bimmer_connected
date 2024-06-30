@@ -1,0 +1,36 @@
+{
+    "bodyType": "G20",
+    "brand": "BMW",
+    "color": 4280233344,
+    "countryOfOrigin": "PT",
+    "driveTrain": "COMBUSTION",
+    "driverGuideInfo": {
+        "androidAppScheme": "com.bmwgroup.driversguide.row",
+        "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row",
+        "iosAppScheme": "bmwdriversguide:///open",
+        "iosStoreUrl": "https://apps.apple.com/de/app/id714042749?mt=8"
+    },
+    "headUnitRaw": "HU_MGU",
+    "headUnitType": "MGU",
+    "hmiVersion": "ID7",
+    "model": "M340i xDrive",
+    "softwareVersionCurrent": {
+        "iStep": 470,
+        "puStep": {
+            "month": 7,
+            "year": 21
+        },
+        "seriesCluster": "S18A"
+    },
+    "softwareVersionExFactory": {
+        "iStep": 420,
+        "puStep": {
+            "month": 7,
+            "year": 20
+        },
+        "seriesCluster": "S18A"
+    },
+    "telematicsUnit": "ATM2",
+    "vin": "WBA00000000DEMO03",
+    "year": 2022
+}

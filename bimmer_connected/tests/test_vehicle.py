@@ -1,4 +1,5 @@
 """Tests for MyBMWVehicle."""
+
 import pytest
 import respx
 
@@ -131,7 +132,7 @@ async def test_get_is_tracking_enabled(caplog, bmw_fixture: respx.Router):
     vehicle = account.get_vehicle(VIN_I01_REX)
     assert vehicle.is_vehicle_tracking_enabled is False
 
-    vehicle = account.get_vehicle(VIN_F31)
+    vehicle = account.get_vehicle(VIN_G20)
     assert vehicle.is_vehicle_tracking_enabled is True
 
     assert len(get_deprecation_warning_count(caplog)) == 0
@@ -213,9 +214,9 @@ async def test_vehicle_image(caplog, bmw_fixture: respx.Router):
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01)
 
     bmw_fixture.get(
-        path__regex=r"(.*)/eadrax-ics/v3/presentation/vehicles/\w*/images",
+        path="/eadrax-ics/v5/presentation/vehicles/images",
         params={"carView": "FrontView"},
-        headers={"accept": "image/png"},
+        headers={"accept": "image/png", "bmw-app-vehicle-type": "connected", "bmw-vin": VIN_G01},
     ).respond(200, content="png_image")
     assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
 
@@ -226,8 +227,8 @@ async def test_vehicle_image(caplog, bmw_fixture: respx.Router):
 async def test_no_timestamp(bmw_fixture: respx.Router):
     """Test no timestamp available."""
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
-    vehicle.data[ATTR_STATE].pop("lastFetched")
-    vehicle.data[ATTR_ATTRIBUTES].pop("lastFetched")
+    vehicle.data[ATTR_STATE].pop("lastFetched", None)
+    vehicle.data[ATTR_ATTRIBUTES].pop("lastFetched", None)
 
     assert vehicle.timestamp is None
 

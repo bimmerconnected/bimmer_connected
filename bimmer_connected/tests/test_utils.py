@@ -1,4 +1,5 @@
 """Tests for utils."""
+
 import datetime
 import json
 
@@ -9,7 +10,6 @@ except ImportError:
 
 import pytest
 import respx
-import time_machine
 
 from bimmer_connected.api.utils import get_capture_position
 from bimmer_connected.models import ChargingSettings, ValueWithUnit
@@ -31,6 +31,7 @@ async def test_drive_train(bmw_fixture: respx.Router):
         "has_combustion_drivetrain",
         "has_electric_drivetrain",
         "is_charging_plan_supported",
+        "is_charging_settings_supported",
         "is_lsc_enabled",
         "is_remote_charge_start_enabled",
         "is_remote_charge_stop_enabled",
@@ -68,17 +69,6 @@ def test_parse_datetime(caplog):
     assert parse_datetime(unparseable_datetime) is None
     errors = [r for r in caplog.records if r.levelname == "ERROR" and unparseable_datetime in r.message]
     assert len(errors) == 1
-
-
-@time_machine.travel(
-    datetime.datetime(2011, 11, 28, tzinfo=zoneinfo.ZoneInfo("America/Los_Angeles")),
-    tick=False,
-)
-@pytest.mark.asyncio
-async def test_account_timezone(bmw_fixture: respx.Router):
-    """Test the timezone in MyBMWAccount."""
-    account = await prepare_account_with_vehicles()
-    assert account.utcdiff == 960
 
 
 def test_json_encoder():

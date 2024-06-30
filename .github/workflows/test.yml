@@ -54,7 +54,7 @@ jobs:
           pip install -r requirements.txt -r requirements-test.txt
       - name: Test with flake8
         run: |
-          ruff --config=pyproject.toml bimmer_connected
+          ruff check --config=pyproject.toml bimmer_connected
 
   black:
     runs-on: ubuntu-latest

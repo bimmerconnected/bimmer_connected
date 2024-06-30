@@ -1,4 +1,5 @@
 """Get the right url for the different countries."""
+
 from base64 import b64decode
 from typing import List
 

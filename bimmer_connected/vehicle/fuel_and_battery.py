@@ -1,6 +1,5 @@
 """Generals models used for bimmer_connected."""
 
-
 import datetime
 import logging
 from dataclasses import dataclass
@@ -8,6 +7,7 @@ from typing import Any, Dict, Optional
 
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE
 from bimmer_connected.models import StrEnum, ValueWithUnit, VehicleDataBase
+from bimmer_connected.utils import get_next_occurrence
 from bimmer_connected.vehicle.const import COMBUSTION_ENGINE_DRIVE_TRAINS, HV_BATTERY_DRIVE_TRAINS, DriveTrainType
 
 _LOGGER = logging.getLogger(__name__)
@@ -56,8 +56,8 @@ class FuelAndBattery(VehicleDataBase):
     charging_status: Optional[ChargingState] = None
     """Charging state of the vehicle."""
 
-    charging_start_time_no_tz: Optional[datetime.datetime] = None
-    """The planned time the vehicle will start charging without time zone information."""
+    charging_start_time: Optional[datetime.datetime] = None
+    """The planned time the vehicle will start charging in local time."""
 
     charging_end_time: Optional[datetime.datetime] = None
     """The estimated time the vehicle will have finished charging."""
@@ -67,15 +67,6 @@ class FuelAndBattery(VehicleDataBase):
 
     charging_target: Optional[int] = None
     """State of charging target in percent."""
-
-    account_timezone: datetime.timezone = datetime.timezone.utc
-
-    @property
-    def charging_start_time(self) -> Optional[datetime.datetime]:
-        """The planned time the vehicle will start charging."""
-        if self.charging_start_time_no_tz:
-            return self.charging_start_time_no_tz.astimezone(self.account_timezone)
-        return None
 
     @classmethod
     def from_vehicle_data(cls, vehicle_data: Dict):
@@ -104,8 +95,7 @@ class FuelAndBattery(VehicleDataBase):
             retval.update(cls._parse_fuel_data(state.get("combustionFuelLevel", {})))
 
         if drivetrain in HV_BATTERY_DRIVE_TRAINS:
-            electric_data = state.get("electricChargingState", {})
-            if electric_data:
+            if electric_data := state.get("electricChargingState", {}):
                 retval.update(
                     cls._parse_electric_data(
                         electric_data,
@@ -176,8 +166,8 @@ class FuelAndBattery(VehicleDataBase):
             retval["charging_target"] = int(electric_data["chargingTarget"])
 
         if retval["charging_status"] == ChargingState.WAITING_FOR_CHARGING and isinstance(charging_window, Dict):
-            retval["charging_start_time_no_tz"] = datetime.datetime.combine(
-                datetime.datetime.now().date(),
+            retval["charging_start_time"] = get_next_occurrence(
+                datetime.datetime.now(),
                 datetime.time(int(charging_window["start"]["hour"]), int(charging_window["start"]["minute"])),
             )
 

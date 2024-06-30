@@ -25,40 +25,30 @@ class Climate(VehicleDataBase):
     activity: ClimateActivityState = ClimateActivityState.UNKNOWN
     """Current climate activity state."""
 
-    activity_end_time_no_tz: Optional[datetime.datetime] = None
-    """Climatization end time w/o timezone."""
-
-    account_timezone: datetime.timezone = datetime.timezone.utc
+    activity_end_time: Optional[datetime.datetime] = None
+    """Climatization end time in UTC."""
 
     @property
     def is_climate_on(self) -> bool:
         """Return True if climatization is active."""
         return self.activity in [ClimateActivityState.COOLING, ClimateActivityState.HEATING]
 
-    @property
-    def activity_end_time(self) -> Optional[datetime.datetime]:
-        """Climatization end time."""
-        if self.activity_end_time_no_tz:
-            return self.activity_end_time_no_tz.astimezone(self.account_timezone)
-        return None
-
     @classmethod
     def _parse_vehicle_data(cls, vehicle_data: Dict) -> Dict:
         """Parse tire status."""
         retval: Dict[str, Any] = {}
 
-        if ATTR_STATE in vehicle_data:
-            if "climateControlState" in vehicle_data[ATTR_STATE]:
-                retval["activity"] = ClimateActivityState(vehicle_data[ATTR_STATE]["climateControlState"]["activity"])
-                retval["activity_end_time_no_tz"] = (
-                    (
-                        datetime.datetime.now()
-                        + datetime.timedelta(
-                            seconds=int(vehicle_data[ATTR_STATE]["climateControlState"]["remainingSeconds"])
-                        )
-                    )
-                    if "remainingSeconds" in vehicle_data[ATTR_STATE]["climateControlState"]
-                    else None
+        if ATTR_STATE in vehicle_data and (
+            climate_control_state := vehicle_data[ATTR_STATE].get("climateControlState")
+        ):
+            retval["activity"] = ClimateActivityState(climate_control_state["activity"])
+            retval["activity_end_time"] = (
+                (
+                    vehicle_data["fetched_at"]
+                    + datetime.timedelta(seconds=int(climate_control_state["remainingSeconds"]))
                 )
+                if "remainingSeconds" in climate_control_state
+                else None
+            )
 
         return retval
