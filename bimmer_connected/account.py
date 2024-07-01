@@ -86,7 +86,7 @@ class MyBMWAccount:
                     )
                     vehicle_profile = vehicle_profile_response.json()
 
-                    # Special handling for DRITTKUNDE (third party custome) aka Toyota Supra. 
+                    # Special handling for DRITTKUNDE (third party customer) aka Toyota Supra.
                     # Requires TOYOTA in request, but returns DRITTKUNDE in response.
                     if brand == CarBrands.TOYOTA:
                         vehicle_profile["brand"] = CarBrands.TOYOTA.value.upper()
