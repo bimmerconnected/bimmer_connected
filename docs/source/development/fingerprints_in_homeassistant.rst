@@ -20,8 +20,8 @@ Edit ``homeassistant/components/bmw_connected_drive/coordinator.py`` and locate 
 
   ...
           try:
-              from bimmer_connected.tests.conftest import MyBMWMockRouter, ALL_STATES, ALL_CHARGING_SETTINGS
-              with MyBMWMockRouter(["WBY00000000REXI01"], ALL_STATES, ALL_CHARGING_SETTINGS):
+              from bimmer_connected.tests.conftest import MyBMWMockRouter, ALL_STATES, ALL_CHARGING_SETTINGS, ALL_PROFILES
+              with MyBMWMockRouter(["WBA00000000DEMO02","WBA00000000DEMO03"], ALL_PROFILES, ALL_STATES, ALL_CHARGING_SETTINGS):
                   await self.account.get_vehicles()
           except:
   ...
