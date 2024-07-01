@@ -12,9 +12,6 @@ class CarBrands(str, Enum):
         for member in cls:
             if member.value == value.lower():
                 return member
-        # The API request needs to be "toyota" but the API response value is "drittkunde" ("third party vendor")
-        if value.lower() == "drittkunde":
-            return cls.TOYOTA
         raise ValueError(f"'{value}' is not a valid {cls.__name__}")
 
     BMW = "bmw"
