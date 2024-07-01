@@ -25,6 +25,15 @@ def main_parser() -> argparse.ArgumentParser:
     """Create the ArgumentParser with all relevant subparsers."""
     parser = argparse.ArgumentParser(description="A simple executable to use and test the library.")
     parser.add_argument("--debug", help="Print debug logs.", action="store_true")
+    parser.add_argument(
+        "--oauth-store",
+        help="Path to the OAuth2 storage file.",
+        nargs="?",
+        metavar="FILE",
+        type=Path,
+        default=Path.home() / ".bimmer_connected.json",
+    )
+
     subparsers = parser.add_subparsers(dest="cmd")
     subparsers.required = True
 
@@ -125,15 +134,12 @@ def main_parser() -> argparse.ArgumentParser:
     return parser
 
 
-async def get_status(args) -> None:
+async def get_status(account: MyBMWAccount, args) -> None:
     """Get the vehicle status."""
     if args.json:
         for handler in logging.root.handlers[:]:
             logging.root.removeHandler(handler)
 
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
-    if args.lat and args.lng:
-        account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
 
     if args.json:
@@ -162,47 +168,36 @@ def get_vehicle_or_return(account: MyBMWAccount, vin: str) -> MyBMWVehicle:
     return vehicle
 
 
-async def fingerprint(args) -> None:
+async def fingerprint(account: MyBMWAccount, args) -> None:
     """Save the vehicle fingerprint."""
     time_dir = Path.home() / "vehicle_fingerprint" / time.strftime("%Y-%m-%d_%H-%M-%S")
     time_dir.mkdir(parents=True)
 
-    account = MyBMWAccount(
-        args.username,
-        args.password,
-        get_region_from_name(args.region),
-        log_responses=True,
-    )
-    if args.lat and args.lng:
-        account.set_observer_position(args.lat, args.lng)
+    account.config.log_responses = True
     await account.get_vehicles()
 
     log_response_store_to_file(account.get_stored_responses(), time_dir)
     print(f"fingerprint of the vehicles written to {time_dir}")
 
 
-async def light_flash(args) -> None:
+async def light_flash(account: MyBMWAccount, args) -> None:
     """Trigger the vehicle to flash its lights."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_light_flash()
     print(status.state)
 
 
-async def horn(args) -> None:
+async def horn(account: MyBMWAccount, args) -> None:
     """Trigger the vehicle to horn."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_horn()
     print(status.state)
 
 
-async def vehicle_finder(args) -> None:
+async def vehicle_finder(account: MyBMWAccount, args) -> None:
     """Trigger the vehicle finder to locate it."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
-    account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_vehicle_finder()
@@ -210,11 +205,10 @@ async def vehicle_finder(args) -> None:
     print({"gps_position": vehicle.vehicle_location.location, "heading": vehicle.vehicle_location.heading})
 
 
-async def chargingsettings(args) -> None:
+async def chargingsettings(account: MyBMWAccount, args) -> None:
     """Trigger a change to charging settings."""
     if not args.target_soc and not args.ac_limit:
         raise ValueError("At least one of 'charging-target' and 'ac-limit' has to be provided.")
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_charging_settings_update(
@@ -223,11 +217,10 @@ async def chargingsettings(args) -> None:
     print(status.state)
 
 
-async def chargingprofile(args) -> None:
+async def chargingprofile(account: MyBMWAccount, args) -> None:
     """Trigger a change to charging profile."""
     if not args.charging_mode and not args.precondition_climate:
         raise ValueError("At least one of 'charging-mode' and 'precondition-climate' has to be provided.")
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_charging_profile_update(
@@ -236,18 +229,16 @@ async def chargingprofile(args) -> None:
     print(status.state)
 
 
-async def charge(args) -> None:
+async def charge(account: MyBMWAccount, args) -> None:
     """Trigger a vehicle to start or stop charging."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await getattr(vehicle.remote_services, f"trigger_charge_{args.action.lower()}")()
     print(status.state)
 
 
-async def image(args) -> None:
+async def image(account: MyBMWAccount, args) -> None:
     """Download a rendered image of the vehicle."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -261,9 +252,8 @@ async def image(args) -> None:
         print(f"vehicle image saved to {filename}")
 
 
-async def send_poi(args) -> None:
+async def send_poi(account: MyBMWAccount, args) -> None:
     """Send Point Of Interest to car."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -279,9 +269,8 @@ async def send_poi(args) -> None:
     await vehicle.remote_services.trigger_send_poi(poi_data)
 
 
-async def send_poi_from_address(args) -> None:
+async def send_poi_from_address(account: MyBMWAccount, args) -> None:
     """Create Point of Interest from OSM Nominatim and send to car."""
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
 
@@ -337,12 +326,36 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger("asyncio").setLevel(logging.WARNING)
 
+    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    if args.lat and args.lng:
+        account.set_observer_position(args.lat, args.lng)
+
+    if not args.oauth_store.is_file():
+        args.oauth_store = args.oauth_store / ".bimmer_connected.json"
+
+    if args.oauth_store.exists():
+        try:
+            account.set_refresh_token(**json.load(args.oauth_store.open()))
+        except json.JSONDecodeError:
+            pass
+
     loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(args.func(args))
+        loop.run_until_complete(args.func(account, args))
     except Exception as ex:  # pylint: disable=broad-except
         sys.stderr.write(f"{type(ex).__name__}: {ex}\n")
         sys.exit(1)
+
+    args.oauth_store.parent.mkdir(parents=True, exist_ok=True)
+    args.oauth_store.write_text(
+        json.dumps(
+            {
+                "refresh_token": account.config.authentication.refresh_token,
+                "gcid": account.config.authentication.gcid,
+                "access_token": account.config.authentication.access_token,
+            }
+        ),
+    )
 
 
 if __name__ == "__main__":

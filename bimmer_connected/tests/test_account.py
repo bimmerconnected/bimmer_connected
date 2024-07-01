@@ -373,11 +373,11 @@ async def test_refresh_token_getset(bmw_fixture: respx.Router):
     assert account.refresh_token is None
     await account.get_vehicles()
     assert account.refresh_token == "another_token_string"
-    assert account.gcid is None
+    assert account.gcid == "DUMMY"
 
     account.set_refresh_token("new_refresh_token")
     assert account.refresh_token == "new_refresh_token"
-    assert account.gcid is None
+    assert account.gcid == "DUMMY"
 
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("china"))
     account.set_refresh_token("new_refresh_token", "dummy_gcid")
