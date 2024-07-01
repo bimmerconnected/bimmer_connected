@@ -1,0 +1,36 @@
+{
+    "bodyType": "J29",
+    "brand": "DRITTKUNDE",
+    "color": 4281545523,
+    "countryOfOrigin": "US",
+    "driveTrain": "COMBUSTION",
+    "driverGuideInfo": {
+        "androidAppScheme": "com.bmwgroup.driversguide.usa",
+        "androidStoreUrl": "https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.usa",
+        "iosAppScheme": "bmwdriversguide:///open",
+        "iosStoreUrl": "https://apps.apple.com/us/app/id714042570?mt=8"
+    },
+    "headUnitRaw": "NBTEVO",
+    "headUnitType": "NBT_EVO",
+    "hmiVersion": "ID5",
+    "model": "SPX 40i",
+    "softwareVersionCurrent": {
+        "iStep": 555,
+        "puStep": {
+            "month": 7,
+            "year": 19
+        },
+        "seriesCluster": "S18T"
+    },
+    "softwareVersionExFactory": {
+        "iStep": 560,
+        "puStep": {
+            "month": 3,
+            "year": 19
+        },
+        "seriesCluster": "S18T"
+    },
+    "telematicsUnit": "ATM1",
+    "vin": "WZ100000000000J29",
+    "year": 2019
+}

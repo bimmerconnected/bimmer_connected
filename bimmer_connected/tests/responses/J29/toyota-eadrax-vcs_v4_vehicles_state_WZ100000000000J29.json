@@ -1,0 +1,104 @@
+{
+    "capabilities": {
+        "a4aType": "BLUETOOTH",
+        "climateFunction": "VENTILATION",
+        "climateNow": true,
+        "climateTimerTrigger": "DEPARTURE_TIMER",
+        "digitalKey": {
+            "bookedServicePackage": "NONE",
+            "isDigitalKeyFirstSupported": false,
+            "state": "NOT_AVAILABLE",
+            "vehicleSoftwareUpgradeRequired": false
+        },
+        "horn": true,
+        "isBmwChargingSupported": false,
+        "isCarSharingSupported": false,
+        "isChargeNowForBusinessSupported": false,
+        "isChargingHistorySupported": false,
+        "isChargingHospitalityEnabled": false,
+        "isChargingLoudnessEnabled": false,
+        "isChargingPlanSupported": false,
+        "isChargingPowerLimitEnabled": false,
+        "isChargingSettingsEnabled": false,
+        "isChargingTargetSocEnabled": false,
+        "isClimateTimerSupported": true,
+        "isClimateTimerWeeklyActive": true,
+        "isCustomerEsimSupported": false,
+        "isDCSContractManagementSupported": false,
+        "isDataPrivacyEnabled": false,
+        "isEasyChargeEnabled": false,
+        "isEvGoChargingSupported": false,
+        "isMiniChargingSupported": false,
+        "isNonLscFeatureEnabled": false,
+        "isOptimizedChargingSupported": false,
+        "isPersonalPictureUploadSupported": false,
+        "isPlugAndChargeSupported": false,
+        "isRemoteEngineStartSupported": false,
+        "isRemoteHistoryDeletionSupported": false,
+        "isRemoteHistorySupported": true,
+        "isRemoteParkingSupported": false,
+        "isRemoteServicesActivationRequired": false,
+        "isRemoteServicesBookingRequired": false,
+        "isScanAndChargeSupported": false,
+        "isSustainabilityAccumulatedViewEnabled": false,
+        "isSustainabilitySupported": false,
+        "isWifiHotspotServiceSupported": false,
+        "lights": true,
+        "lock": true,
+        "remoteChargingCommands": {},
+        "sendPoi": true,
+        "specialThemeSupport": [],
+        "unlock": true,
+        "vehicleFinder": true,
+        "vehicleStateSource": "NOT_SUPPORTED"
+    },
+    "state": {
+        "checkControlMessages": [
+            {
+                "severity": "LOW",
+                "type": "ENGINE_OIL"
+            }
+        ],
+        "climateTimers": [
+            {
+                "departureTime": {
+                    "hour": 7,
+                    "minute": 0
+                },
+                "isWeeklyTimer": false,
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": []
+            },
+            {
+                "departureTime": {
+                    "hour": 7,
+                    "minute": 0
+                },
+                "isWeeklyTimer": true,
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": [
+                    "MONDAY"
+                ]
+            },
+            {
+                "departureTime": {
+                    "hour": 7,
+                    "minute": 0
+                },
+                "isWeeklyTimer": true,
+                "timerAction": "DEACTIVATE",
+                "timerWeekDays": [
+                    "MONDAY"
+                ]
+            }
+        ],
+        "driverPreferences": {
+            "lscPrivacyMode": "OFF"
+        },
+        "isLeftSteering": true,
+        "isLscSupported": false,
+        "lastFetched": "2023-09-14T03:27:47.176Z",
+        "lastUpdatedAt": "0001-01-01T00:00:00Z",
+        "requiredServices": []
+    }
+}

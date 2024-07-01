@@ -16,6 +16,7 @@ class CarBrands(str, Enum):
 
     BMW = "bmw"
     MINI = "mini"
+    TOYOTA = "toyota"
 
 
 class Regions(str, Enum):
