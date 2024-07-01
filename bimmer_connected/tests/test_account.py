@@ -13,7 +13,7 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.const import ATTR_CAPABILITIES, VEHICLES_URL
+from bimmer_connected.const import ATTR_CAPABILITIES, VEHICLES_URL, CarBrands
 from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
 
 from . import (
@@ -448,8 +448,10 @@ async def test_429_retry_ok_vehicles(caplog, bmw_fixture: respx.Router):
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
-            httpx.Response(200, json=load_response(RESPONSE_DIR / "bmw-eadrax-vcs_v5_vehicle-list.json")),
-            httpx.Response(200, json=load_response(RESPONSE_DIR / "mini-eadrax-vcs_v5_vehicle-list.json")),
+            *[
+                httpx.Response(200, json=load_response(RESPONSE_DIR / f"{brand.value}-eadrax-vcs_v5_vehicle-list.json"))
+                for brand in CarBrands
+            ],
         ]
     )
     caplog.set_level(logging.DEBUG)
@@ -498,8 +500,10 @@ async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
-            httpx.Response(200, json=load_response(RESPONSE_DIR / "bmw-eadrax-vcs_v5_vehicle-list.json")),
-            httpx.Response(200, json=load_response(RESPONSE_DIR / "mini-eadrax-vcs_v5_vehicle-list.json")),
+            *[
+                httpx.Response(200, json=load_response(RESPONSE_DIR / f"{brand.value}-eadrax-vcs_v5_vehicle-list.json"))
+                for brand in CarBrands
+            ],
         ]
     )
 

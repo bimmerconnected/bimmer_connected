@@ -18,6 +18,7 @@ from . import (
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
+    VIN_J29,
     get_deprecation_warning_count,
 )
 from .conftest import prepare_account_with_vehicles
@@ -94,6 +95,7 @@ async def test_drive_train_attributes(caplog, bmw_fixture: respx.Router):
         VIN_I01_NOREX: (False, True),
         VIN_I01_REX: (True, True),
         VIN_I20: (False, True),
+        VIN_J29: (True, False),
     }
 
     for vehicle in account.vehicles:
@@ -117,7 +119,6 @@ async def test_parsing_of_lsc_type(caplog, bmw_fixture: respx.Router):
 def test_car_brand(caplog, bmw_fixture: respx.Router):
     """Test CarBrand enum."""
     assert CarBrands("BMW") == CarBrands("bmw")
-    assert CarBrands("DRITTKUNDE") == CarBrands("toyota")
 
     with pytest.raises(ValueError):
         CarBrands("Audi")
