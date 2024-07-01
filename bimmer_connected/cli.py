@@ -138,7 +138,7 @@ async def get_status(args) -> None:
 
     if args.json:
         if args.vin:
-            print(json.dumps(account.get_vehicle(args.vin), cls=MyBMWJSONEncoder))
+            print(json.dumps(get_vehicle_or_return(account, args.vin), cls=MyBMWJSONEncoder))
         else:
             print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder))
     else:
@@ -338,7 +338,11 @@ def main():
         logging.getLogger("asyncio").setLevel(logging.WARNING)
 
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(args.func(args))
+    try:
+        loop.run_until_complete(args.func(args))
+    except Exception as ex:  # pylint: disable=broad-except
+        sys.stderr.write(f"{type(ex).__name__}: {ex}\n")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
