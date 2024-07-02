@@ -330,9 +330,6 @@ def main():
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
 
-    if args.oauth_store.is_dir():
-        args.oauth_store = args.oauth_store / ".bimmer_connected.json"
-
     if args.oauth_store.exists():
         try:
             account.set_refresh_token(**json.load(args.oauth_store.open()))

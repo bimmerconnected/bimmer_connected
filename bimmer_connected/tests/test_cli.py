@@ -193,7 +193,6 @@ def test_oauth_load_credentials(cli_home_dir: Path):
     ("given", "expected"),
     [
         (".bimmer_connected.json", ".bimmer_connected.json"),
-        ("some-dir", "some-dir/.bimmer_connected.json"),
         ("other-dir/myfile.json", "other-dir/myfile.json"),
     ],
 )
