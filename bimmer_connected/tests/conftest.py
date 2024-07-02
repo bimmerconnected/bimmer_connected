@@ -44,6 +44,15 @@ def bmw_log_all_responses(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr("bimmer_connected.account.RESPONSE_STORE", temp_store)
 
 
+@pytest.fixture
+def cli_home_dir(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.MonkeyPatch):
+    """Create a temporary home directory for the CLI tests."""
+    tmp_path = tmp_path_factory.mktemp("cli-home-")
+    monkeypatch.setattr("pathlib.Path.home", lambda: tmp_path)
+
+    return tmp_path
+
+
 async def prepare_account_with_vehicles(region: Optional[Regions] = None):
     """Initialize account and get vehicles."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)

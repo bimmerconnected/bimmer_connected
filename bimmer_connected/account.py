@@ -88,7 +88,7 @@ class MyBMWAccount:
 
                     vehicle_base = dict(
                         {ATTR_ATTRIBUTES: {k: v for k, v in vehicle_profile.items() if k != "vin"}},
-                        **{"vin": vehicle_profile["vin"]}
+                        **{"vin": vehicle_profile["vin"]},
                     )
 
                     await self.add_vehicle(vehicle_base, fetched_at)
@@ -151,10 +151,15 @@ class MyBMWAccount:
         """Set the position of the observer for all vehicles."""
         self.config.observer_position = GPSPosition(latitude=latitude, longitude=longitude)
 
-    def set_refresh_token(self, refresh_token: str, gcid: Optional[str] = None) -> None:
-        """Overwrite the current value of the MyBMW refresh token and GCID (if available)."""
+    def set_refresh_token(
+        self, refresh_token: str, gcid: Optional[str] = None, access_token: Optional[str] = None
+    ) -> None:
+        """Overwrite the current value of the MyBMW tokens and GCID (if available)."""
         self.config.authentication.refresh_token = refresh_token
-        self.config.authentication.gcid = gcid
+        if gcid:
+            self.config.authentication.gcid = gcid
+        if access_token:
+            self.config.authentication.access_token = access_token
 
     @staticmethod
     def get_stored_responses() -> List[AnonymizedResponse]:
