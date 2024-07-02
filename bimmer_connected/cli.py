@@ -330,7 +330,7 @@ def main():
     if args.lat and args.lng:
         account.set_observer_position(args.lat, args.lng)
 
-    if not args.oauth_store.is_file():
+    if args.oauth_store.is_dir():
         args.oauth_store = args.oauth_store / ".bimmer_connected.json"
 
     if args.oauth_store.exists():
