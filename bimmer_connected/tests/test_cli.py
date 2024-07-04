@@ -1,5 +1,4 @@
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
@@ -190,51 +189,45 @@ def test_oauth_load_credentials(cli_home_dir: Path):
 @pytest.mark.usefixtures("bmw_fixture")
 @pytest.mark.usefixtures("cli_home_dir")
 @pytest.mark.parametrize(
-    ("given", "expected"),
+    ("filepath"),
     [
-        (".bimmer_connected.json", ".bimmer_connected.json"),
-        ("other-dir/myfile.json", "other-dir/myfile.json"),
+        (".bimmer_connected.json"),
+        ("other-dir/myfile.json"),
     ],
 )
-def test_oauth_store_credentials_path(cli_home_dir: Path, tmp_path_factory: pytest.TempPathFactory, given, expected):
+def test_oauth_store_credentials_path(cli_home_dir: Path, tmp_path_factory: pytest.TempPathFactory, filepath: str):
     """Test storing the oauth credentials to another file."""
 
     new_folder = tmp_path_factory.mktemp("specific-path-")
 
     assert (cli_home_dir / ".bimmer_connected.json").exists() is False
-    assert (new_folder / expected).exists() is False
+    assert (new_folder / filepath).exists() is False
 
     sys.argv = [
         "bimmerconnected",
         "--oauth-store",
-        str((new_folder / given).absolute()),
+        str((new_folder / filepath).absolute()),
         "status",
         *ARGS_USER_PW_REGION,
     ]
     bimmer_connected.cli.main()
 
     assert (cli_home_dir / ".bimmer_connected.json").exists() is False
-    assert (new_folder / expected).exists() is True
+    assert (new_folder / filepath).exists() is True
 
-    oauth_storage = json.loads((new_folder / expected).read_text())
+    oauth_storage = json.loads((new_folder / filepath).read_text())
 
     assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid"}
 
 
 @pytest.mark.usefixtures("bmw_fixture")
 @pytest.mark.usefixtures("cli_home_dir")
-def test_oauth_store_credentials_dev_null(cli_home_dir: Path):
+def test_oauth_store_credentials_disabled(cli_home_dir: Path):
     """Test NOT storing the oauth credentials."""
 
     assert (cli_home_dir / ".bimmer_connected.json").exists() is False
 
-    sys.argv = [
-        "bimmerconnected",
-        "--oauth-store",
-        str(Path(os.devnull)),
-        "status",
-        *ARGS_USER_PW_REGION,
-    ]
+    sys.argv = ["bimmerconnected", "--disable-oauth-store", "status", *ARGS_USER_PW_REGION]
     bimmer_connected.cli.main()
 
     assert (cli_home_dir / ".bimmer_connected.json").exists() is False

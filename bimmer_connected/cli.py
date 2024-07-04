@@ -33,6 +33,7 @@ def main_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path.home() / ".bimmer_connected.json",
     )
+    parser.add_argument("--disable-oauth-store", help="Disable storing the OAuth2 tokens.", action="store_true")
 
     subparsers = parser.add_subparsers(dest="cmd")
     subparsers.required = True
@@ -342,6 +343,9 @@ def main():
     except Exception as ex:  # pylint: disable=broad-except
         sys.stderr.write(f"{type(ex).__name__}: {ex}\n")
         sys.exit(1)
+
+    if args.disable_oauth_store:
+        return
 
     args.oauth_store.parent.mkdir(parents=True, exist_ok=True)
     args.oauth_store.write_text(
