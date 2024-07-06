@@ -25,6 +25,7 @@ from . import (
     VIN_I01_NOREX,
     VIN_I01_REX,
     VIN_I20,
+    VIN_J29,
     get_deprecation_warning_count,
 )
 from .conftest import prepare_account_with_vehicles
@@ -69,9 +70,16 @@ async def test_generic_error_handling(caplog, bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router):
+@pytest.mark.parametrize(
+    ("vin"),
+    [
+        (VIN_F31),
+        (VIN_J29),
+    ],
+)
+async def test_range_combustion_no_info(caplog, bmw_fixture: respx.Router, vin: str):
     """Test if the parsing of very old vehicles."""
-    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_F31)
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(vin)
     status = vehicle.fuel_and_battery
 
     assert status.remaining_fuel == (None, None)

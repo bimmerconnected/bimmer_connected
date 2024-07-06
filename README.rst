@@ -14,19 +14,19 @@ bimmer_connected
 .. image:: https://static.pepy.tech/badge/bimmer_connected/month
     :target: https://pepy.tech/project/bimmer-connected/month
 .. image:: https://static.pepy.tech/badge/bimmer_connected
-    :target: https://pepy.tech/project/bimmer-connected    
-    
+    :target: https://pepy.tech/project/bimmer-connected
 
-This is a simple library to query and control the status of your BMW or Mini vehicle from
+
+This is a simple library to query and control the status of your BMW, Mini, or Toyota Supra vehicle from
 the MyBMW portal.
 
 
 Installation
 ============
-:code:`bimmer_connected` is tested against **Python 3.8 or above**. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_ 
-using :code:`pip3 install --upgrade bimmer_connected`. 
+:code:`bimmer_connected` is tested against **Python 3.8 or above**. Just install the latest release from `PyPI <https://pypi.org/project/bimmer-connected/>`_
+using :code:`pip3 install --upgrade bimmer_connected`.
 
-Alternatively, clone the project and execute :code:`pip install -e .` to install the current 
+Alternatively, clone the project and execute :code:`pip install -e .` to install the current
 :code:`master` branch.
 
 .. note::
@@ -40,7 +40,7 @@ After installation, execute :code:`bimmerconnected` from command line for usage 
 or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/stable/#cli>`_.
 
 Please be aware that :code:`bimmer_connected` is an :code:`async` library when using it in Python code.
-The description of the :code:`modules` can be found in the `module documentation 
+The description of the :code:`modules` can be found in the `module documentation
 <http://bimmer-connected.readthedocs.io/en/stable/#module>`_.
 
 Example in an :code:`asyncio` event loop
@@ -56,13 +56,13 @@ Example in an :code:`asyncio` event loop
         await account.get_vehicles()
         vehicle = account.get_vehicle(VIN)
         print(vehicle.brand, vehicle.name, vehicle.vin)
-        
+
         result = await vehicle.remote_services.trigger_remote_light_flash()
         print(result.state)
 
     asyncio.run(main())
 
-    
+
 Example in non-async code
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -77,25 +77,25 @@ Example in non-async code
     asyncio.run(account.get_vehicles())
     vehicle = account.get_vehicle(VIN)
     print(vehicle.brand, vehicle.name, vehicle.vin)
-        
+
     result = asyncio.run(vehicle.remote_services.trigger_remote_light_flash())
     print(result.state)
 
 
 Compatibility
 =============
-This works with BMW (and Mini) vehicles with a MyBMW account.
+This works with BMW/Mini/Toyota Supra vehicles with a MyBMW account.
 So far it is tested on vehicles with a 'MGU', 'NBTEvo', 'EntryEvo', 'NBT', or 'EntryNav'
-navigation system. If you have any trouble with other navigation systems, please create 
+navigation system. If you have any trouble with other navigation systems, please create
 an issue with your server responses (see next section).
 
-To use this library, your BMW (or Mini) must have the remote services enabled for your vehicle. 
-You might need to book this in the MyBMW/Mini Connected portal and this might cost 
-some money. In addition to that you need to enable the Remote Services in your infotainment 
+To use this library, your BMW/Mini/Toyota Supra must have the remote services enabled for your vehicle.
+You might need to book this in the MyBMW/Mini Connected/Supra Connect portal and this might cost
+some money. In addition to that you need to enable the Remote Services in your infotainment
 system in the vehicle.
 
 Different models of vehicles and infotainment systems result in different types of attributes
-provided by the server. So the experience with the library will certainly vary across the different 
+provided by the server. So the experience with the library will certainly vary across the different
 vehicle models.
 
 Data Contributions
@@ -116,7 +116,7 @@ If you want to contribute your data, perform the following steps:
     bimmerconnected fingerprint <username> <password> <region>
 
 This will create a set of log files in the "vehicle_fingerprint" folder.
-Before sending the data to anyone please **check for any personal data** such as **dealer name** or **country**. 
+Before sending the data to anyone please **check for any personal data** such as **dealer name** or **country**.
 
 The following attributes are by default replaced with anonymized values:
 
@@ -129,9 +129,9 @@ Create a new
 `fingerprint data contribution <https://github.com/bimmerconnected/bimmer_connected/discussions/new?category_id=32000818>`_
 and add the files as attachment to the discussion.
 
-Please add your model and year to the title of the issue, to make it easier to organize. 
-If you know the "chassis code" of your car, you can include that too. (For example, 
-googling "2017 BMW X5" will show a Wikipedia article entitled "BMW X5 (F15)". F15 is 
+Please add your model and year to the title of the issue, to make it easier to organize.
+If you know the "chassis code" of your car, you can include that too. (For example,
+googling "2017 BMW X5" will show a Wikipedia article entitled "BMW X5 (F15)". F15 is
 therefore the chassis code of the car.)
 
 
@@ -142,7 +142,7 @@ let us know in advance.
 
 Code Contributions
 ==================
-Contributions are welcome! Please make sure that your code passes the checks in :code:`.github/workflows/test.yml`. 
+Contributions are welcome! Please make sure that your code passes the checks in :code:`.github/workflows/test.yml`.
 We currently test against :code:`flake8`, :code:`pylint` and our own :code:`pytest` suite.
 And please add tests where it makes sense. The more the better.
 
