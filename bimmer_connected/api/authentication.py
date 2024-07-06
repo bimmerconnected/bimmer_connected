@@ -137,11 +137,11 @@ class MyBMWAuthentication(httpx.Auth):
             if not token_data:
                 token_data = await self._login_china()
             token_data["expires_at"] = token_data["expires_at"] - EXPIRES_AT_OFFSET
-            self.gcid = token_data["gcid"]
 
         self.access_token = token_data["access_token"]
         self.expires_at = token_data["expires_at"]
         self.refresh_token = token_data["refresh_token"]
+        self.gcid = token_data["gcid"]
 
     async def _login_row_na(self):
         """Login to Rest of World and North America."""
@@ -227,6 +227,7 @@ class MyBMWAuthentication(httpx.Auth):
             "access_token": response_json["access_token"],
             "expires_at": expires_at,
             "refresh_token": response_json["refresh_token"],
+            "gcid": response_json["gcid"],
         }
 
     async def _refresh_token_row_na(self):
@@ -271,6 +272,7 @@ class MyBMWAuthentication(httpx.Auth):
             "access_token": response_json["access_token"],
             "expires_at": expires_at,
             "refresh_token": response_json["refresh_token"],
+            "gcid": response_json["gcid"],
         }
 
     async def _login_china(self):
