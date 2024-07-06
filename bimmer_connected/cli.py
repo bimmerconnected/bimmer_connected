@@ -23,11 +23,11 @@ TEXT_VIN = "Vehicle Identification Number"
 
 def main_parser() -> argparse.ArgumentParser:
     """Create the ArgumentParser with all relevant subparsers."""
-    parser = argparse.ArgumentParser(description="A simple executable to use and test the library.")
+    parser = argparse.ArgumentParser(description="Connect to MyBMW/MINI API and interact with your vehicle.")
     parser.add_argument("--debug", help="Print debug logs.", action="store_true")
     parser.add_argument(
         "--oauth-store",
-        help="Path to the OAuth2 storage file.",
+        help="Path to the OAuth2 storage file. Defaults to $HOME/.bimmer_connected.json.",
         nargs="?",
         metavar="FILE",
         type=Path,

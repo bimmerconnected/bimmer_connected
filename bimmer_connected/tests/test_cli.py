@@ -11,7 +11,7 @@ import bimmer_connected.cli
 from . import get_fingerprint_count
 
 ARGS_USER_PW_REGION = ["myuser", "mypassword", "rest_of_world"]
-FIXTURE_CLI_HELP = "A simple executable to use and test the library."
+FIXTURE_CLI_HELP = "Connect to MyBMW/MINI API and interact with your vehicle."
 
 
 def test_run_entrypoint():
