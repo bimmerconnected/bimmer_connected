@@ -257,7 +257,7 @@ def test_login_refresh_token(cli_home_dir: Path, bmw_fixture: respx.Router):
     bmw_fixture.post("/eadrax-vcs/v5/vehicle-list", name="vehicles").mock(
         side_effect=[
             httpx.Response(401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")),
-            *[vehicle_routes.side_effect for _ in range(1000)],
+            *[vehicle_routes.side_effect for _ in range(1000)],  # type: ignore[list-item]
         ]
     )
 
