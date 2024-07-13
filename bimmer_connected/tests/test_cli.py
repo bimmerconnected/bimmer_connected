@@ -9,6 +9,7 @@ import pytest
 import respx
 
 import bimmer_connected.cli
+from bimmer_connected import __version__ as VERSION
 
 from . import RESPONSE_DIR, get_fingerprint_count, load_response
 
@@ -21,6 +22,7 @@ def test_run_entrypoint():
     result = subprocess.run(["bimmerconnected", "--help"], capture_output=True, text=True)
 
     assert FIXTURE_CLI_HELP in result.stdout
+    assert VERSION in result.stdout
     assert result.returncode == 0
 
 
@@ -29,6 +31,7 @@ def test_run_module():
     result = subprocess.run(["python", "-m", "bimmer_connected.cli", "--help"], capture_output=True, text=True)
 
     assert FIXTURE_CLI_HELP in result.stdout
+    assert VERSION in result.stdout
     assert result.returncode == 0
 
 
@@ -184,9 +187,10 @@ def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
 
     assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid"}
 
-    assert oauth_storage["refresh_token"] != demo_oauth_data["refresh_token"]
-    assert oauth_storage["access_token"] != demo_oauth_data["access_token"]
-    assert oauth_storage["gcid"] != demo_oauth_data["gcid"]
+    # no change as the old tokens are still valid
+    assert oauth_storage["refresh_token"] == demo_oauth_data["refresh_token"]
+    assert oauth_storage["access_token"] == demo_oauth_data["access_token"]
+    assert oauth_storage["gcid"] == demo_oauth_data["gcid"]
 
 
 @pytest.mark.usefixtures("bmw_fixture")
