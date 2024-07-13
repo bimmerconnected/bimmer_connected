@@ -87,8 +87,10 @@ class MyBMWMockRouter(respx.MockRouter):
         self.get("/eadrax-ucs/v1/presentation/oauth/config").respond(
             200, json=load_response(RESPONSE_DIR / "auth" / "oauth_config.json")
         )
-        self.post("/gcdm/oauth/authenticate").mock(side_effect=self.authenticate_sideeffect)
-        self.post("/gcdm/oauth/token").respond(200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json"))
+        self.post("/gcdm/oauth/authenticate", name="authenticate").mock(side_effect=self.authenticate_sideeffect)
+        self.post("/gcdm/oauth/token", name="token").respond(
+            200, json=load_response(RESPONSE_DIR / "auth" / "auth_token.json")
+        )
 
         # Login to china
         self.get("/eadrax-coas/v1/cop/publickey").respond(
@@ -112,7 +114,7 @@ class MyBMWMockRouter(respx.MockRouter):
     def add_vehicle_routes(self) -> None:
         """Add routes for vehicle requests."""
 
-        self.post("/eadrax-vcs/v5/vehicle-list").mock(side_effect=self.vehicles_sideeffect)
+        self.post("/eadrax-vcs/v5/vehicle-list", name="vehicles").mock(side_effect=self.vehicles_sideeffect)
         self.get("/eadrax-vcs/v5/vehicle-data/profile").mock(side_effect=self.vehicle_profile_sideeffect)
         self.get("/eadrax-vcs/v4/vehicles/state", name="state").mock(side_effect=self.vehicle_state_sideeffect)
         self.get("/eadrax-crccs/v2/vehicles").mock(side_effect=self.vehicle_charging_settings_sideeffect)

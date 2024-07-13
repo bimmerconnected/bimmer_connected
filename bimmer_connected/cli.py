@@ -11,6 +11,7 @@ from pathlib import Path
 
 import httpx
 
+from bimmer_connected import __version__ as VERSION
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
@@ -23,7 +24,10 @@ TEXT_VIN = "Vehicle Identification Number"
 
 def main_parser() -> argparse.ArgumentParser:
     """Create the ArgumentParser with all relevant subparsers."""
-    parser = argparse.ArgumentParser(description="Connect to MyBMW/MINI API and interact with your vehicle.")
+    parser = argparse.ArgumentParser(
+        description=(f"Connect to MyBMW/MINI API and interact with your vehicle.\n\nVersion: {VERSION}"),
+        formatter_class=argparse.RawTextHelpFormatter,
+    )
     parser.add_argument("--debug", help="Print debug logs.", action="store_true")
     parser.add_argument(
         "--oauth-store",
@@ -333,7 +337,7 @@ def main():
 
     if args.oauth_store.exists():
         try:
-            account.set_refresh_token(**json.load(args.oauth_store.open()))
+            account.set_refresh_token(**json.loads(args.oauth_store.read_text()))
         except json.JSONDecodeError:
             pass
 
