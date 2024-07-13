@@ -333,7 +333,7 @@ def main():
 
     if args.oauth_store.exists():
         try:
-            account.set_refresh_token(**json.load(args.oauth_store.open()))
+            account.set_refresh_token(**json.loads(args.oauth_store.read_text()))
         except json.JSONDecodeError:
             pass
 
