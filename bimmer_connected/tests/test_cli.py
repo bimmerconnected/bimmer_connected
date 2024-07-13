@@ -1,5 +1,4 @@
 import json
-import logging
 import subprocess
 import sys
 from pathlib import Path
@@ -244,7 +243,6 @@ def test_oauth_store_credentials_disabled(cli_home_dir: Path):
 def test_login_refresh_token(cli_home_dir: Path, bmw_fixture: respx.Router):
     """Test logging in with refresh token."""
 
-    # caplog.set_level(logging.DEBUG)
     # set up stored tokens
     demo_oauth_data = {
         "access_token": "outdated_access_token",
@@ -274,12 +272,9 @@ def test_login_refresh_token(cli_home_dir: Path, bmw_fixture: respx.Router):
 
 
 @pytest.mark.usefixtures("cli_home_dir")
-def test_login_invalid_refresh_token(
-    cli_home_dir: Path, bmw_fixture: respx.Router, caplog: pytest.CaptureFixture, capsys
-):
+def test_login_invalid_refresh_token(cli_home_dir: Path, bmw_fixture: respx.Router):
     """Test logging in with an invalid refresh token."""
 
-    caplog.set_level(logging.DEBUG)
     # set up stored tokens
     demo_oauth_data = {
         "refresh_token": "invalid_refresh_token",
@@ -289,7 +284,6 @@ def test_login_invalid_refresh_token(
     (cli_home_dir / ".bimmer_connected.json").write_text(json.dumps(demo_oauth_data))
     assert (cli_home_dir / ".bimmer_connected.json").exists() is True
 
-    # token_route = bmw_fixture.pop("token")
     bmw_fixture.post("/gcdm/oauth/token", name="token").mock(
         side_effect=[
             httpx.Response(401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")),
