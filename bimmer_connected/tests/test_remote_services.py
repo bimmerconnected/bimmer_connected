@@ -207,7 +207,7 @@ async def test_set_charging_settings(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_set_charging_profile(bmw_fixture: respx.Router):
+async def test_set_charging_profile(bmw_fixture: respx.Router, monkeypatch: pytest.MonkeyPatch):
     """Test setting the charging profile on a car."""
 
     account = await prepare_account_with_vehicles()
@@ -237,6 +237,11 @@ async def test_set_charging_profile(bmw_fixture: respx.Router):
     # change back only climatization
     await vehicle.remote_services.trigger_charging_profile_update(precondition_climate=True)
     assert vehicle.charging_profile.is_pre_entry_climatization_enabled is True
+
+    # test with an unknown charging mode
+    monkeypatch.setattr(vehicle.charging_profile, "charging_mode", ChargingMode.UNKNOWN)
+    await vehicle.remote_services.trigger_charging_profile_update(charging_mode=ChargingMode.IMMEDIATE_CHARGING)
+    assert vehicle.charging_profile.charging_mode == ChargingMode.IMMEDIATE_CHARGING
 
 
 @pytest.mark.asyncio
