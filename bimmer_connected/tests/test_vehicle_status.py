@@ -42,8 +42,8 @@ async def test_generic(caplog, bmw_fixture: respx.Router):
     expected = datetime.datetime(year=2023, month=1, day=4, hour=14, minute=57, second=6, tzinfo=UTC)
     assert expected == status.timestamp
 
-    assert 1121 == status.mileage[0]
-    assert "km" == status.mileage[1]
+    assert status.mileage[0] == 1121
+    assert status.mileage[1] == "km"
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -100,14 +100,14 @@ async def test_range_combustion(caplog, bmw_fixture: respx.Router):
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20)
     status = vehicle.fuel_and_battery
 
-    assert (40, "L") == status.remaining_fuel
-    assert (629, "km") == status.remaining_range_fuel
+    assert status.remaining_fuel == (40, "L")
+    assert status.remaining_range_fuel == (629, "km")
     assert status.remaining_fuel_percent == 80
 
     assert status.remaining_battery_percent is None
     assert status.remaining_range_electric == (None, None)
 
-    assert (629, "km") == status.remaining_range_total
+    assert status.remaining_range_total == (629, "km")
 
     status_from_vehicle_data = FuelAndBattery.from_vehicle_data(vehicle.data)
     assert status_from_vehicle_data == status
@@ -121,14 +121,14 @@ async def test_range_phev(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).fuel_and_battery
 
-    assert (40, "L") == status.remaining_fuel
-    assert (436, "km") == status.remaining_range_fuel
-    assert 80 == status.remaining_fuel_percent
+    assert status.remaining_fuel == (40, "L")
+    assert status.remaining_range_fuel == (436, "km")
+    assert status.remaining_fuel_percent == 80
 
-    assert 80 == status.remaining_battery_percent
-    assert (40, "km") == status.remaining_range_electric
+    assert status.remaining_battery_percent == 80
+    assert status.remaining_range_electric == (40, "km")
 
-    assert (476, "km") == status.remaining_range_total
+    assert status.remaining_range_total == (476, "km")
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
@@ -140,14 +140,14 @@ async def test_range_rex(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of mileage and range is working."""
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I01_REX).fuel_and_battery
 
-    assert (6, "L") == status.remaining_fuel
-    assert (105, "km") == status.remaining_range_fuel
+    assert status.remaining_fuel == (6, "L")
+    assert status.remaining_range_fuel == (105, "km")
     assert status.remaining_fuel_percent is None
 
-    assert 82 == status.remaining_battery_percent
-    assert (174, "km") == status.remaining_range_electric
+    assert status.remaining_battery_percent == 82
+    assert status.remaining_range_electric == (174, "km")
 
-    assert (279, "km") == status.remaining_range_total
+    assert status.remaining_range_total == (279, "km")
 
     assert status.remaining_range_fuel[0] + status.remaining_range_electric[0] == status.remaining_range_total[0]
 
@@ -163,10 +163,10 @@ async def test_range_electric(caplog, bmw_fixture: respx.Router):
     assert status.remaining_range_fuel == (None, None)
     assert status.remaining_fuel_percent is None
 
-    assert 70 == status.remaining_battery_percent
-    assert (340, "km") == status.remaining_range_electric
+    assert status.remaining_battery_percent == 70
+    assert status.remaining_range_electric == (340, "km")
 
-    assert (340, "km") == status.remaining_range_total
+    assert status.remaining_range_total == (340, "km")
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -213,21 +213,21 @@ async def test_condition_based_services(caplog, bmw_fixture: respx.Router):
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26)
 
     cbs = vehicle.condition_based_services.messages
-    assert 5 == len(cbs)
-    assert ConditionBasedServiceStatus.OK == cbs[0].state
+    assert len(cbs) == 5
+    assert cbs[0].state == ConditionBasedServiceStatus.OK
     expected_cbs0 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs0 == cbs[0].due_date
-    assert (50000, "km") == cbs[0].due_distance
+    assert cbs[0].due_distance == (50000, "km")
 
-    assert ConditionBasedServiceStatus.OK == cbs[1].state
+    assert cbs[1].state == ConditionBasedServiceStatus.OK
     expected_cbs1 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs1 == cbs[1].due_date
-    assert (50000, "km") == cbs[1].due_distance
+    assert cbs[1].due_distance == (50000, "km")
 
-    assert ConditionBasedServiceStatus.OK == cbs[2].state
+    assert cbs[2].state == ConditionBasedServiceStatus.OK
     expected_cbs2 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs2 == cbs[2].due_date
-    assert (50000, "km") == cbs[2].due_distance
+    assert cbs[2].due_distance == (50000, "km")
 
     assert vehicle.condition_based_services.is_service_required is False
 
@@ -239,8 +239,8 @@ async def test_position_generic(caplog, bmw_fixture: respx.Router):
     """Test generic attributes."""
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26)
 
-    assert (48.177334, 11.556274) == status.vehicle_location.location
-    assert 180 == status.vehicle_location.heading
+    assert status.vehicle_location.location == (48.177334, 11.556274)
+    assert status.vehicle_location.heading == 180
 
     assert VehicleLocation.from_vehicle_data(status.data).location == status.vehicle_location.location
 
@@ -293,10 +293,10 @@ async def test_parse_gcj02_position(caplog, bmw_fixture: respx.Router):
     # Update twice to test against slowly crawling position due to GCJ02 to WGS84 conversion
     vehicle.update_state(dict(vehicle.data, **vehicle_test_data))
 
-    assert (39.8337, 116.22617) == (
+    assert (
         round(vehicle.vehicle_location.location[0], 5),
         round(vehicle.vehicle_location.location[1], 5),
-    )
+    ) == (39.8337, 116.22617)
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -313,16 +313,16 @@ async def test_lids(caplog, bmw_fixture: respx.Router):
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26).doors_and_windows
 
     for lid in status.lids:
-        assert LidState.CLOSED == lid.state
+        assert lid.state == LidState.CLOSED
     assert status.all_lids_closed is True
-    assert 6 == len(list(status.lids))
+    assert len(list(status.lids)) == 6
 
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I01_REX).doors_and_windows
 
     for lid in status.lids:
-        assert LidState.CLOSED == lid.state
+        assert lid.state == LidState.CLOSED
     assert status.all_lids_closed is True
-    assert 7 == len(list(status.lids))
+    assert len(list(status.lids)) == 7
 
     assert status.lids[-1].name == "sunRoof"
 
@@ -335,10 +335,10 @@ async def test_windows_g01(caplog, bmw_fixture: respx.Router):
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).doors_and_windows
 
     for window in status.windows:
-        assert LidState.CLOSED == window.state
+        assert window.state == LidState.CLOSED
 
-    assert 5 == len(list(status.windows))
-    assert 0 == len(list(status.open_windows))
+    assert len(list(status.windows)) == 5
+    assert len(list(status.open_windows)) == 0
     assert status.all_windows_closed is True
 
     assert len(get_deprecation_warning_count(caplog)) == 0
@@ -349,11 +349,11 @@ async def test_door_locks(caplog, bmw_fixture: respx.Router):
     """Test the door locks."""
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01).doors_and_windows
 
-    assert LockState.LOCKED == status.door_lock_state
+    assert status.door_lock_state == LockState.LOCKED
 
     status = (await prepare_account_with_vehicles()).get_vehicle(VIN_I01_REX).doors_and_windows
 
-    assert LockState.UNLOCKED == status.door_lock_state
+    assert status.door_lock_state == LockState.UNLOCKED
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -369,20 +369,20 @@ async def test_check_control_messages(caplog, bmw_fixture: respx.Router):
     assert vehicle.check_control_messages.has_check_control_messages is True
 
     ccms = vehicle.check_control_messages.messages
-    assert 2 == len(ccms)
+    assert len(ccms) == 2
 
-    assert CheckControlStatus.MEDIUM == ccms[1].state
-    assert "ENGINE_OIL" == ccms[1].description_short
+    assert ccms[1].state == CheckControlStatus.MEDIUM
+    assert ccms[1].description_short == "ENGINE_OIL"
     assert None is ccms[1].description_long
 
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20)
     assert vehicle.check_control_messages.has_check_control_messages is False
 
     ccms = vehicle.check_control_messages.messages
-    assert 2 == len(ccms)
+    assert len(ccms) == 2
 
-    assert CheckControlStatus.LOW == ccms[1].state
-    assert "ENGINE_OIL" == ccms[1].description_short
+    assert ccms[1].state == CheckControlStatus.LOW
+    assert ccms[1].description_short == "ENGINE_OIL"
     assert None is ccms[1].description_long
 
     assert len(get_deprecation_warning_count(caplog)) == 0

@@ -23,7 +23,7 @@ from .conftest import prepare_account_with_vehicles
 async def test_drive_train(bmw_fixture: respx.Router):
     """Tests available attribute."""
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26)
-    assert [
+    assert get_class_property_names(vehicle) == [
         "available_attributes",
         "brand",
         "drive_train",
@@ -51,7 +51,7 @@ async def test_drive_train(bmw_fixture: respx.Router):
         "name",
         "timestamp",
         "vin",
-    ] == get_class_property_names(vehicle)
+    ]
 
 
 def test_parse_datetime(caplog):
@@ -89,10 +89,10 @@ def test_json_encoder():
         cls=MyBMWJSONEncoder,
     )
 
-    assert (
+    assert encoded == (
         '{"datetime": "2022-06-02T22:19:34.123456", "date": "2022-06-02", "value": [17, "mi"],'
         ' "list": [{"value_int": 1, "value_str": "string"}, "America/Los_Angeles"]}'
-    ) == encoded
+    )
 
 
 def test_charging_settings():

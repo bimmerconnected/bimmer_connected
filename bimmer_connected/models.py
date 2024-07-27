@@ -23,7 +23,7 @@ class StrEnum(str, Enum):
                 return member
         if has_unknown:
             _LOGGER.warning("'%s' is not a valid '%s'", value, cls.__name__)
-            return getattr(cls, "UNKNOWN")
+            return cls.UNKNOWN
         raise ValueError(f"'{value}' is not a valid {cls.__name__}")
 
 

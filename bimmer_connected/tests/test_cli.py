@@ -1,3 +1,4 @@
+import contextlib
 import json
 import subprocess
 import sys
@@ -48,10 +49,8 @@ def test_status_json_filtered(capsys: pytest.CaptureFixture, vin, expected_count
     """Test the status command JSON output filtered by VIN."""
 
     sys.argv = ["bimmerconnected", "status", "-j", "-v", vin, *ARGS_USER_PW_REGION]
-    try:
+    with contextlib.suppress(SystemExit):
         bimmer_connected.cli.main()
-    except SystemExit:
-        pass
     result = capsys.readouterr()
 
     if expected_count == 1:
@@ -90,10 +89,8 @@ def test_status_filtered(capsys: pytest.CaptureFixture, vin, expected_count):
     """Test the status command text output filtered by VIN."""
 
     sys.argv = ["bimmerconnected", "status", "-v", vin, *ARGS_USER_PW_REGION]
-    try:
+    with contextlib.suppress(SystemExit):
         bimmer_connected.cli.main()
-    except SystemExit:
-        pass
     result = capsys.readouterr()
 
     assert f"Found {get_fingerprint_count('states')} vehicles" in result.out

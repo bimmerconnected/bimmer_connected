@@ -3,6 +3,7 @@
 
 import argparse
 import asyncio
+import contextlib
 import json
 import logging
 import sys
@@ -250,10 +251,8 @@ async def image(account: MyBMWAccount, args) -> None:
     for viewdirection in VehicleViewDirection:
         if viewdirection == VehicleViewDirection.UNKNOWN:
             continue
-        filename = str(viewdirection.name).lower() + ".png"
-        with open(filename, "wb") as output_file:
-            image_data = await vehicle.get_vehicle_image(viewdirection)
-            output_file.write(image_data)
+        filename = (Path.cwd() / str(viewdirection.name).lower()).with_suffix(".png")
+        await asyncio.to_thread(filename.write_bytes, await vehicle.get_vehicle_image(viewdirection))
         print(f"vehicle image saved to {filename}")
 
 
@@ -336,10 +335,8 @@ def main():
         account.set_observer_position(args.lat, args.lng)
 
     if args.oauth_store.exists():
-        try:
+        with contextlib.suppress(json.JSONDecodeError):
             account.set_refresh_token(**json.loads(args.oauth_store.read_text()))
-        except json.JSONDecodeError:
-            pass
 
     loop = asyncio.get_event_loop()
     try:

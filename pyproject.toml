@@ -22,14 +22,19 @@ exclude = [
 
 [tool.ruff.lint]
 select = [
+    "ASYNC",  # flake8-async
+    "B",  # flake8-bugbear
     "C",  # complexity
     "D",  # docstrings
     "E",  # pycodestyle
     "F",  # pyflakes/autoflake
+    "FLY", # flynt
+    "FURB", # refurb
     "I",  # isort
-    "W",  # pycodestyle
-    "UP",  # pyupgrade
     "PGH004",  # Use specific rule codes when using noqa
+    "SIM",  # flake8-simplicity
+    "UP",  # pyupgrade
+    "W",  # pycodestyle
 ]
 
 ignore = [
