@@ -117,7 +117,7 @@ class PointOfInterest:
 
     lat: InitVar[float]
     lon: InitVar[float]
-    name: InitVar[str] = DEFAULT_POI_NAME
+    name: InitVar[Optional[str]] = DEFAULT_POI_NAME
     street: InitVar[str] = None
     postal_code: InitVar[str] = None
     city: InitVar[str] = None
@@ -130,7 +130,7 @@ class PointOfInterest:
     entrances: Optional[List] = field(init=False)
     placeType: Optional[str] = "ADDRESS"
     category: Dict[str, Optional[str]] = field(init=False)
-    title: str = "Sent with ♥ by bimmer_connected"
+    title: Optional[str] = DEFAULT_POI_NAME
 
     # The following attributes are not by us but available in the API
     provider: Optional[str] = None
