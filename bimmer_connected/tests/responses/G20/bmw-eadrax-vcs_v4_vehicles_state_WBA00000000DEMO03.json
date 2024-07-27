@@ -1,16 +1,20 @@
 {
     "capabilities": {
         "a4aType": "NOT_SUPPORTED",
-        "checkSustainabilityDPP": false,
+        "alarmSystem": false,
         "climateFunction": "VENTILATION",
         "climateNow": true,
         "climateTimerTrigger": "DEPARTURE_TIMER",
         "digitalKey": {
             "bookedServicePackage": "SMACC_1_5",
+            "isDigitalKeyFirstSupported": false,
             "readerGraphics": "readerGraphics",
-            "state": "ACTIVATED"
+            "state": "ACTIVATED",
+            "vehicleSoftwareUpgradeRequired": false
         },
         "horn": true,
+        "inCarCamera": false,
+        "inCarCameraDwa": false,
         "isBmwChargingSupported": false,
         "isCarSharingSupported": false,
         "isChargeNowForBusinessSupported": false,
@@ -28,29 +32,71 @@
         "isDataPrivacyEnabled": false,
         "isEasyChargeEnabled": false,
         "isEvGoChargingSupported": false,
+        "isLocationBasedChargingSettingsSupported": false,
         "isMiniChargingSupported": false,
         "isNonLscFeatureEnabled": false,
         "isPersonalPictureUploadSupported": false,
-        "isRemoteEngineStartSupported": false,
+        "isPlugAndChargeSupported": false,
+        "isRemoteEngineStartEnabled": false,
+        "isRemoteEngineStartSupported": true,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
+        "isRemoteParkingEes25Active": false,
         "isRemoteParkingSupported": false,
         "isRemoteServicesActivationRequired": false,
         "isRemoteServicesBookingRequired": false,
         "isScanAndChargeSupported": false,
         "isSustainabilityAccumulatedViewEnabled": false,
         "isSustainabilitySupported": false,
-        "isWifiHotspotServiceSupported": true,
+        "isThirdPartyAppStoreSupported": false,
+        "isWifiHotspotServiceSupported": false,
         "lastStateCallState": "ACTIVATED",
         "lights": true,
+        "locationBasedCommerceFeatures": {
+            "fueling": false,
+            "parking": false,
+            "reservations": false
+        },
         "lock": true,
         "remote360": true,
         "remoteChargingCommands": {},
+        "remoteServices": {
+            "doorLock": {
+                "id": "doorLock",
+                "state": "ACTIVATED"
+            },
+            "doorUnlock": {
+                "id": "doorUnlock",
+                "state": "ACTIVATED"
+            },
+            "hornBlow": {
+                "id": "hornBlow",
+                "state": "ACTIVATED"
+            },
+            "inCarCamera": {
+                "id": "inCarCamera"
+            },
+            "inCarCameraDwa": {
+                "id": "inCarCameraDwa"
+            },
+            "lightFlash": {
+                "id": "lightFlash",
+                "state": "ACTIVATED"
+            },
+            "remote360": {
+                "id": "remote360",
+                "state": "ACTIVATED"
+            },
+            "surroundViewRecorder": {
+                "id": "surroundViewRecorder"
+            }
+        },
         "remoteSoftwareUpgrade": true,
         "sendPoi": true,
         "specialThemeSupport": [],
-        "speechThirdPartyAlexa": false,
+        "speechThirdPartyAlexa": true,
         "speechThirdPartyAlexaSDK": false,
+        "surroundViewRecorder": false,
         "unlock": true,
         "vehicleFinder": true,
         "vehicleStateSource": "LAST_STATE_CALL"
@@ -180,6 +226,7 @@
                 "type": "TIRE_WEAR_FRONT"
             }
         ],
+        "securityOverviewMode": null,
         "tireState": {
             "frontLeft": {
                 "details": {
@@ -264,6 +311,18 @@
                     "pressureStatus": 0,
                     "wearStatus": 0
                 }
+            }
+        },
+        "vehicleSoftwareVersion": {
+            "iStep": {
+                "iStep": 0,
+                "month": 0,
+                "seriesCluster": "",
+                "year": 0
+            },
+            "puStep": {
+                "month": 0,
+                "year": 0
             }
         },
         "windowsState": {

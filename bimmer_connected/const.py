@@ -39,19 +39,19 @@ OCP_APIM_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "3.11.1(29513)",
-    Regions.REST_OF_WORLD: "3.11.1(29513)",
-    Regions.CHINA: "3.11.1(29513)",
+    Regions.NORTH_AMERICA: "4.7.2(35379)",
+    Regions.REST_OF_WORLD: "4.7.2(35379)",
+    Regions.CHINA: "4.7.2(35379)",
 }
 
 HTTPX_TIMEOUT = 30.0
 
 USER_AGENTS = {
-    Regions.NORTH_AMERICA: "Dart/3.0 (dart:io)",
-    Regions.REST_OF_WORLD: "Dart/3.0 (dart:io)",
-    Regions.CHINA: "Dart/3.0 (dart:io)",
+    Regions.NORTH_AMERICA: "Dart/3.3 (dart:io)",
+    Regions.REST_OF_WORLD: "Dart/3.3 (dart:io)",
+    Regions.CHINA: "Dart/3.3 (dart:io)",
 }
-X_USER_AGENT = "android(TQ2A.230405.003.B2);{brand};{app_version};{region}"
+X_USER_AGENT = "android(AP2A.240605.024);{brand};{app_version};{region}"
 
 
 AUTH_CHINA_PUBLIC_KEY_URL = "/eadrax-coas/v1/cop/publickey"
@@ -66,10 +66,11 @@ VEHICLES_URL = "/eadrax-vcs/v5/vehicle-list"
 VEHICLE_PROFILE_URL = "/eadrax-vcs/v5/vehicle-data/profile"
 VEHICLE_STATE_URL = "/eadrax-vcs/v4/vehicles/state"
 
-REMOTE_SERVICE_BASE_URL = "/eadrax-vrccs/v3/presentation/remote-commands"
-REMOTE_SERVICE_URL = REMOTE_SERVICE_BASE_URL + "/{vin}/{service_type}"
-REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_BASE_URL + "/eventStatus?eventId={event_id}"
-REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_BASE_URL + "/eventPosition?eventId={event_id}"
+REMOTE_SERVICE_V3_BASE_URL = "/eadrax-vrccs/v3/presentation/remote-commands"
+REMOTE_SERVICE_V4_BASE_URL = "/eadrax-vrccs/v4/presentation/remote-commands"
+REMOTE_SERVICE_URL = REMOTE_SERVICE_V4_BASE_URL + "/{service_type}"
+REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_V3_BASE_URL + "/eventStatus?eventId={event_id}"
+REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_V4_BASE_URL + "/eventPosition?eventId={event_id}"
 
 VEHICLE_CHARGING_DETAILS_URL = "/eadrax-crccs/v2/vehicles"
 VEHICLE_CHARGING_BASE_URL = "/eadrax-crccs/v1/vehicles/{vin}"
@@ -78,7 +79,7 @@ VEHICLE_CHARGING_PROFILE_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-profil
 VEHICLE_CHARGING_START_STOP_URL = VEHICLE_CHARGING_BASE_URL + "/{service_type}"
 
 VEHICLE_IMAGE_URL = "/eadrax-ics/v5/presentation/vehicles/images"
-VEHICLE_POI_URL = "/eadrax-dcs/v1/send-to-car/send-to-car"
+VEHICLE_POI_URL = "/eadrax-dcs/v2/user/{gcid}/send-to-car"
 
 VEHICLE_CHARGING_STATISTICS_URL = "/eadrax-chs/v2/charging-statistics"
 VEHICLE_CHARGING_SESSIONS_URL = "/eadrax-chs/v2/charging-sessions"

@@ -12,6 +12,7 @@
             "vehicleSoftwareUpgradeRequired": false
         },
         "horn": true,
+        "isBatteryPreconditioningSupported": false,
         "isBmwChargingSupported": false,
         "isCarSharingSupported": false,
         "isChargeNowForBusinessSupported": false,
@@ -38,16 +39,57 @@
         "isRemoteEngineStartSupported": false,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
+        "isRemoteParkingEes25Active": false,
         "isRemoteParkingSupported": false,
         "isRemoteServicesActivationRequired": false,
         "isRemoteServicesBookingRequired": false,
         "isScanAndChargeSupported": false,
         "isSustainabilityAccumulatedViewEnabled": false,
         "isSustainabilitySupported": false,
+        "isThirdPartyAppStoreSupported": false,
         "isWifiHotspotServiceSupported": false,
         "lights": true,
+        "locationBasedCommerceFeatures": {
+            "fueling": false,
+            "parking": false,
+            "reservations": false
+        },
         "lock": true,
         "remoteChargingCommands": {},
+        "remoteServices": {
+            "doorLock": {
+                "id": "doorLock",
+                "state": "ACTIVATED"
+            },
+            "doorUnlock": {
+                "id": "doorUnlock",
+                "state": "ACTIVATED"
+            },
+            "hornBlow": {
+                "id": "hornBlow",
+                "state": "ACTIVATED"
+            },
+            "inCarCamera": {
+                "id": "inCarCamera",
+                "state": "NOT_AVAILABLE"
+            },
+            "inCarCameraDwa": {
+                "id": "inCarCameraDwa",
+                "state": "NOT_AVAILABLE"
+            },
+            "lightFlash": {
+                "id": "lightFlash",
+                "state": "ACTIVATED"
+            },
+            "remote360": {
+                "id": "remote360",
+                "state": "NOT_AVAILABLE"
+            },
+            "surroundViewRecorder": {
+                "id": "surroundViewRecorder",
+                "state": "NOT_AVAILABLE"
+            }
+        },
         "sendPoi": true,
         "specialThemeSupport": [],
         "unlock": true,
@@ -102,6 +144,18 @@
         "lastFetched": "2024-01-20T10:18:57.283Z",
         "lastUpdatedAt": "0001-01-01T00:00:00Z",
         "requiredServices": [],
-        "securityOverviewMode": null
+        "securityOverviewMode": null,
+        "vehicleSoftwareVersion": {
+            "iStep": {
+                "iStep": 502,
+                "month": 11,
+                "seriesCluster": "F020",
+                "year": 13
+            },
+            "puStep": {
+                "month": 11,
+                "year": 13
+            }
+        }
     }
 }

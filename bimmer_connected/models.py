@@ -96,6 +96,7 @@ class PointOfInterestAddress:
     postalCode: Optional[str] = None
     city: Optional[str] = None
     country: Optional[str] = None
+    formatted: Optional[str] = None
 
     # The following attributes are not by us but available in the API
     banchi: Optional[str] = None
@@ -107,6 +108,7 @@ class PointOfInterestAddress:
     region: Optional[str] = None
     regionCode: Optional[str] = None
     settlement: Optional[str] = None
+    subblock: Optional[str] = None
 
 
 @dataclass
@@ -115,33 +117,38 @@ class PointOfInterest:
 
     lat: InitVar[float]
     lon: InitVar[float]
-    name: Optional[str] = DEFAULT_POI_NAME
+    name: InitVar[str] = DEFAULT_POI_NAME
     street: InitVar[str] = None
     postal_code: InitVar[str] = None
     city: InitVar[str] = None
     country: InitVar[str] = None
 
-    coordinates: GPSPosition = field(init=False)
-    locationAddress: Optional[PointOfInterestAddress] = field(init=False)
+    position: Dict[str, float] = field(init=False)
+    address: Optional[PointOfInterestAddress] = field(init=False)
     # The following attributes are not by us but required in the API
     formattedAddress: Optional[str] = None
-    entryPoints: List = field(init=False, default_factory=list)
+    entrances: Optional[List] = field(init=False)
+    placeType: Optional[str] = "ADDRESS"
+    category: Dict[str, Optional[str]] = field(init=False)
+    title: str = "Sent with ♥ by bimmer_connected"
 
     # The following attributes are not by us but available in the API
-    address: Optional[str] = None
-    baseCategoryId: Optional[str] = None
-    phoneNumber: Optional[str] = None
     provider: Optional[str] = None
     providerId: Optional[str] = None
     providerPoiId: str = ""
     sourceType: Optional[str] = None
-    type: Optional[str] = None
     vehicleCategoryId: Optional[str] = None
 
-    def __post_init__(self, lat, lon, street, postal_code, city, country):
-        self.coordinates = GPSPosition(lat, lon)
+    def __post_init__(self, lat, lon, name, street, postal_code, city, country):
+        position = GPSPosition(lat, lon)
+        self.position = {
+            "lat": position.latitude,
+            "lon": position.longitude,
+        }
 
-        self.locationAddress = PointOfInterestAddress(str(street), str(postal_code), str(city), str(country))
+        self.address = PointOfInterestAddress(str(street), str(postal_code), str(city), str(country))
+        self.category = {"losCategory": "Address", "mguVehicleCategoryId": None, "name": "Address"}
+        self.title = name
 
         if not self.formattedAddress:
             self.formattedAddress = ", ".join([str(i) for i in [street, postal_code, city] if i]) or "Coordinates only"
