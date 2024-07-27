@@ -123,13 +123,13 @@ class PointOfInterest:
     city: InitVar[str] = None
     country: InitVar[str] = None
 
-    position: dict[str, float] = field(init=False)
+    position: Dict[str, float] = field(init=False)
     address: Optional[PointOfInterestAddress] = field(init=False)
     # The following attributes are not by us but required in the API
     formattedAddress: Optional[str] = None
-    entrances: list | None = field(init=False)
+    entrances: Optional[List] = field(init=False)
     placeType: Optional[str] = "ADDRESS"
-    category: dict[str, str | None] = field(init=False)
+    category: Dict[str, Optional[str]] = field(init=False)
     title: str = "Sent with ♥ by bimmer_connected"
 
     # The following attributes are not by us but available in the API
