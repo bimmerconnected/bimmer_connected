@@ -33,7 +33,7 @@ TIME_FORMAT = "%Y-%m-%dT%H:%M:%S.%f"
 _LOGGER = logging.getLogger(__name__)
 
 #: time in seconds between polling updates on the status of a remote service
-_POLLING_CYCLE = 3
+_POLLING_CYCLE = 3.5
 
 #: maximum number of seconds to wait for the server to return a positive answer
 _POLLING_TIMEOUT = 240
@@ -110,15 +110,20 @@ class RemoteServices:
 
         # Check if service requires a specific url and add all required parameters
         url = SERVICE_URLS.get(service_id, REMOTE_SERVICE_URL)
-        url = url.format(vin=self._vehicle.vin, service_type=service_id.value)
+
+        remote_service_headers = {"content-type": "application/json"}
+        if "{vin}" not in url:
+            remote_service_headers["bmw-vin"] = self._vehicle.vin
+
+        url = url.format(vin=self._vehicle.vin, service_type=service_id.value, gcid=self._account.gcid)
 
         # Trigger service and get event id
         async with MyBMWClient(self._account.config, brand=self._vehicle.brand) as client:
             response = await client.post(
                 url,
-                headers={"content-type": "application/json"} if data else None,
+                headers=remote_service_headers,
                 params=params,
-                content=json.dumps(data, cls=MyBMWJSONEncoder) if data else None,
+                content=json.dumps(data or {}, cls=MyBMWJSONEncoder),
             )
             event_id = response.json().get("eventId") if response.content else None
 
@@ -299,8 +304,10 @@ class RemoteServices:
         return await self.trigger_remote_service(
             Services.SEND_POI,
             data={
-                "location": poi,
-                "vin": self._vehicle.vin,
+                "places": [poi],
+                "vehicleInformation": {
+                    "vin": self._vehicle.vin,
+                },
             },
         )
 

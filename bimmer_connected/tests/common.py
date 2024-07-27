@@ -122,7 +122,7 @@ class MyBMWMockRouter(respx.MockRouter):
     def add_remote_service_routes(self) -> None:
         """Add routes for remote services."""
 
-        self.post(path__regex=r"/eadrax-vrccs/v3/presentation/remote-commands/(?P<vin>.+)/(?P<service>.+)$").mock(
+        self.post(path__regex=r"/eadrax-vrccs/v4/presentation/remote-commands/(?!event.*)(?P<service>.+)$").mock(
             side_effect=self.service_trigger_sideeffect
         )
         self.post(path__regex=r"/eadrax-crccs/v1/vehicles/(?P<vin>.+)/(?P<service>(start|stop)-charging)$").mock(
@@ -138,8 +138,8 @@ class MyBMWMockRouter(respx.MockRouter):
             side_effect=self.service_status_sideeffect
         )
 
-        self.post("/eadrax-dcs/v1/send-to-car/send-to-car").mock(side_effect=self.poi_sideeffect)
-        self.post("/eadrax-vrccs/v3/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
+        self.post(path__regex=r"/eadrax-dcs/v2/user/(?P<gcid>.+)/send-to-car$").mock(side_effect=self.poi_sideeffect)
+        self.post("/eadrax-vrccs/v4/presentation/remote-commands/eventPosition", params={"eventId": mock.ANY}).respond(
             200,
             json=load_response(REMOTE_SERVICE_RESPONSE_EVENTPOSITION),
         )
@@ -224,9 +224,11 @@ class MyBMWMockRouter(respx.MockRouter):
     # # # # # # # # # # # # # # # # # # # # # # # #
 
     def service_trigger_sideeffect(
-        self, request: httpx.Request, vin: str, service: Optional[str] = None
+        self, request: httpx.Request, vin: Optional[str] = None, service: Optional[str] = None
     ) -> httpx.Response:
         """Return specific eventId for each remote function."""
+
+        vin = vin or request.headers["bmw-vin"]
 
         if service in ["door-lock", "door-unlock"]:
             new_state = "LOCKED" if service == "door-lock" else "UNLOCKED"
@@ -316,15 +318,18 @@ class MyBMWMockRouter(respx.MockRouter):
         return httpx.Response(200, json=load_response(response_data))
 
     @staticmethod
-    def poi_sideeffect(request: httpx.Request) -> httpx.Response:
+    def poi_sideeffect(request: httpx.Request, gcid: str) -> httpx.Response:
         """Check if payload is a valid POI."""
+
+        assert gcid == "DUMMY"
+
         data = json.loads(request.content)
         tests = all(
             [
-                len(data["vin"]) == 17,
-                isinstance(data["location"]["coordinates"]["latitude"], float),
-                isinstance(data["location"]["coordinates"]["longitude"], float),
-                len(data["location"]["name"]) > 0,
+                len(data["vehicleInformation"]["vin"]) == 17,
+                isinstance(data["places"][0]["position"]["lat"], float),
+                isinstance(data["places"][0]["position"]["lon"], float),
+                len(data["places"][0]["title"]) > 0,
             ]
         )
         if not tests:

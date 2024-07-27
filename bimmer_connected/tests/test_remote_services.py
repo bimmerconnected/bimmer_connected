@@ -384,31 +384,30 @@ async def test_poi(bmw_fixture: respx.Router):
 def test_poi_parsing():
     """Test correct parsing of PointOfInterest."""
 
-    poi_data = PointOfInterest(**POI_DATA)
-
     # Check parsing of attributes required by API
-    assert poi_data.coordinates.latitude == POI_DATA["lat"]
-    assert poi_data.coordinates.longitude == POI_DATA["lon"]
-    assert poi_data.name == POI_DATA["name"]
+    poi_data = PointOfInterest(**POI_DATA)
+    assert poi_data.position["lat"] == POI_DATA["lat"]
+    assert poi_data.position["lon"] == POI_DATA["lon"]
+    assert poi_data.title == POI_DATA["name"]
     assert poi_data.formattedAddress == f"{POI_DATA['street']}, {POI_DATA['postal_code']}, {POI_DATA['city']}"
 
     # Check the default attributes
     poi_data = PointOfInterest(lat=POI_DATA["lat"], lon=POI_DATA["lon"])
-    assert poi_data.coordinates.latitude == POI_DATA["lat"]
-    assert poi_data.coordinates.longitude == POI_DATA["lon"]
-    assert poi_data.name == "Sent with ♥ by bimmer_connected"
+    assert poi_data.position["lat"] == POI_DATA["lat"]
+    assert poi_data.position["lon"] == POI_DATA["lon"]
+    assert poi_data.title == "Sent with ♥ by bimmer_connected"
     assert poi_data.formattedAddress == "Coordinates only"
 
     # Check the default attributes with formatted address
     poi_data = PointOfInterest(lat=POI_DATA["lat"], lon=POI_DATA["lon"], formattedAddress="Somewhere over rainbow")
-    assert poi_data.coordinates.latitude == POI_DATA["lat"]
-    assert poi_data.coordinates.longitude == POI_DATA["lon"]
-    assert poi_data.name == "Sent with ♥ by bimmer_connected"
+    assert poi_data.position["lat"] == POI_DATA["lat"]
+    assert poi_data.position["lon"] == POI_DATA["lon"]
+    assert poi_data.title == "Sent with ♥ by bimmer_connected"
     assert poi_data.formattedAddress == "Somewhere over rainbow"
 
     # Check parsing with numeric postal code
     poi_data = PointOfInterest(lat=POI_DATA["lat"], lon=POI_DATA["lon"], postal_code=1234)
-    assert poi_data.coordinates.latitude == POI_DATA["lat"]
-    assert poi_data.coordinates.longitude == POI_DATA["lon"]
-    assert poi_data.name == "Sent with ♥ by bimmer_connected"
-    assert poi_data.locationAddress.postalCode == "1234"
+    assert poi_data.position["lat"] == POI_DATA["lat"]
+    assert poi_data.position["lon"] == POI_DATA["lon"]
+    assert poi_data.title == "Sent with ♥ by bimmer_connected"
+    assert poi_data.address.postalCode == "1234"

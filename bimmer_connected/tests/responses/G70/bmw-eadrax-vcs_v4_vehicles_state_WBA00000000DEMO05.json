@@ -1,16 +1,19 @@
 {
     "capabilities": {
         "a4aType": "BLUETOOTH",
-        "checkSustainabilityDPP": false,
+        "alarmSystem": true,
         "climateFunction": "AIR_CONDITIONING",
         "climateNow": true,
         "digitalKey": {
             "bookedServicePackage": "SMACC_2_UWB",
+            "isDigitalKeyFirstSupported": false,
             "readerGraphics": "readerGraphics",
-            "state": "ACTIVATED"
+            "state": "ACTIVATED",
+            "vehicleSoftwareUpgradeRequired": true
         },
         "horn": true,
         "inCarCamera": true,
+        "inCarCameraDwa": true,
         "isBmwChargingSupported": true,
         "isCarSharingSupported": false,
         "isChargeNowForBusinessSupported": true,
@@ -21,35 +24,80 @@
         "isChargingPowerLimitEnabled": true,
         "isChargingSettingsEnabled": true,
         "isChargingTargetSocEnabled": true,
+        "isClimateTimerSupported": false,
         "isClimateTimerWeeklyActive": false,
         "isCustomerEsimSupported": true,
         "isDCSContractManagementSupported": true,
         "isDataPrivacyEnabled": false,
         "isEasyChargeEnabled": true,
         "isEvGoChargingSupported": false,
+        "isLocationBasedChargingSettingsSupported": true,
         "isMiniChargingSupported": false,
         "isNonLscFeatureEnabled": false,
         "isPersonalPictureUploadSupported": false,
-        "isRemoteEngineStartSupported": false,
+        "isPlugAndChargeSupported": false,
+        "isRemoteEngineStartEnabled": false,
+        "isRemoteEngineStartSupported": true,
         "isRemoteHistoryDeletionSupported": false,
         "isRemoteHistorySupported": true,
+        "isRemoteParkingEes25Active": false,
         "isRemoteParkingSupported": false,
         "isRemoteServicesActivationRequired": false,
         "isRemoteServicesBookingRequired": false,
         "isScanAndChargeSupported": true,
         "isSustainabilityAccumulatedViewEnabled": false,
         "isSustainabilitySupported": false,
+        "isThirdPartyAppStoreSupported": false,
         "isWifiHotspotServiceSupported": false,
         "lastStateCallState": "ACTIVATED",
         "lights": true,
+        "locationBasedCommerceFeatures": {
+            "fueling": false,
+            "parking": false,
+            "reservations": false
+        },
         "lock": true,
         "remote360": true,
         "remoteChargingCommands": {},
+        "remoteServices": {
+            "doorLock": {
+                "id": "doorLock",
+                "state": "ACTIVATED"
+            },
+            "doorUnlock": {
+                "id": "doorUnlock",
+                "state": "ACTIVATED"
+            },
+            "hornBlow": {
+                "id": "hornBlow",
+                "state": "ACTIVATED"
+            },
+            "inCarCamera": {
+                "id": "inCarCamera",
+                "state": "ACTIVATED"
+            },
+            "inCarCameraDwa": {
+                "id": "inCarCameraDwa",
+                "state": "ACTIVATED"
+            },
+            "lightFlash": {
+                "id": "lightFlash",
+                "state": "ACTIVATED"
+            },
+            "remote360": {
+                "id": "remote360",
+                "state": "ACTIVATED"
+            },
+            "surroundViewRecorder": {
+                "id": "surroundViewRecorder",
+                "state": "ACTIVATED"
+            }
+        },
         "remoteSoftwareUpgrade": true,
         "sendPoi": true,
         "specialThemeSupport": [],
         "speechThirdPartyAlexa": false,
-        "speechThirdPartyAlexaSDK": false,
+        "speechThirdPartyAlexaSDK": true,
         "surroundViewRecorder": true,
         "unlock": true,
         "vehicleFinder": true,
@@ -219,6 +267,7 @@
             "roofState": "CLOSED",
             "roofStateType": "SUN_ROOF"
         },
+        "securityOverviewMode": "ARMED",
         "tireState": {
             "frontLeft": {
                 "details": {
@@ -307,6 +356,18 @@
                     "targetPressure": 269,
                     "wearStatus": 0
                 }
+            }
+        },
+        "vehicleSoftwareVersion": {
+            "iStep": {
+                "iStep": 0,
+                "month": 0,
+                "seriesCluster": "",
+                "year": 0
+            },
+            "puStep": {
+                "month": 0,
+                "year": 0
             }
         },
         "windowsState": {
