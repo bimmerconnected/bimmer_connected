@@ -41,13 +41,13 @@ remote_services._POLLING_CYCLE = 0
 def test_states():
     """Test parsing the different response types."""
     rss = RemoteServiceStatus(load_response(REMOTE_SERVICE_RESPONSE_PENDING))
-    assert ExecutionState.PENDING == rss.state
+    assert rss.state == ExecutionState.PENDING
 
     rss = RemoteServiceStatus(load_response(REMOTE_SERVICE_RESPONSE_DELIVERED))
-    assert ExecutionState.DELIVERED == rss.state
+    assert rss.state == ExecutionState.DELIVERED
 
     rss = RemoteServiceStatus(load_response(REMOTE_SERVICE_RESPONSE_EXECUTED))
-    assert ExecutionState.EXECUTED == rss.state
+    assert rss.state == ExecutionState.EXECUTED
 
 
 ALL_SERVICES = {
@@ -82,7 +82,7 @@ async def test_trigger_remote_services(bmw_fixture: respx.Router):
             response = await getattr(vehicle.remote_services, service["call"])(  # type: ignore[call-overload]
                 *service.get("args", []), **service.get("kwargs", {})
             )
-            assert ExecutionState.EXECUTED == response.state
+            assert response.state == ExecutionState.EXECUTED
 
             if service["refresh"]:
                 mock_listener.assert_called_once_with()
@@ -309,18 +309,18 @@ async def test_get_remote_position(bmw_fixture: respx.Router):
     location = vehicle.vehicle_location
 
     # Check original position
-    assert (48.177334, 11.556274) == location.location
-    assert 180 == location.heading
+    assert location.location == (48.177334, 11.556274)
+    assert location.heading == 180
 
     # Check updated position
     await vehicle.remote_services.trigger_remote_vehicle_finder()
-    assert (123.456, 34.5678) == location.location
-    assert 121 == location.heading
+    assert location.location == (123.456, 34.5678)
+    assert location.heading == 121
 
     # Position should still be from vehicle finder after status update
     await account.get_vehicles()
-    assert (123.456, 34.5678) == location.location
-    assert 121 == location.heading
+    assert location.location == (123.456, 34.5678)
+    assert location.heading == 121
 
 
 @pytest.mark.asyncio
@@ -364,8 +364,8 @@ async def test_get_remote_position_too_old(bmw_fixture: respx.Router):
 
     await vehicle.remote_services.trigger_remote_vehicle_finder()
 
-    assert (48.177334, 11.556274) == location.location
-    assert 180 == location.heading
+    assert location.location == (48.177334, 11.556274)
+    assert location.heading == 180
 
 
 @pytest.mark.asyncio

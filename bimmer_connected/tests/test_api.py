@@ -25,7 +25,7 @@ from . import (
 
 def test_valid_regions():
     """Test valid regions."""
-    assert ["north_america", "china", "rest_of_world"] == valid_regions()
+    assert valid_regions() == ["north_america", "china", "rest_of_world"]
 
 
 def test_unknown_region():

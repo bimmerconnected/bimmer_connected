@@ -46,19 +46,19 @@ async def test_drive_train(caplog, bmw_fixture: respx.Router):
     """Tests around drive_train attribute."""
     account = await prepare_account_with_vehicles()
     vehicle = account.get_vehicle(VIN_F31)
-    assert DriveTrainType.COMBUSTION == vehicle.drive_train
+    assert vehicle.drive_train == DriveTrainType.COMBUSTION
 
     vehicle = account.get_vehicle(VIN_G01)
-    assert DriveTrainType.PLUGIN_HYBRID == vehicle.drive_train
+    assert vehicle.drive_train == DriveTrainType.PLUGIN_HYBRID
 
     vehicle = account.get_vehicle(VIN_G26)
-    assert DriveTrainType.ELECTRIC == vehicle.drive_train
+    assert vehicle.drive_train == DriveTrainType.ELECTRIC
 
     vehicle = account.get_vehicle(VIN_I01_NOREX)
-    assert DriveTrainType.ELECTRIC == vehicle.drive_train
+    assert vehicle.drive_train == DriveTrainType.ELECTRIC
 
     vehicle = account.get_vehicle(VIN_I01_REX)
-    assert DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER == vehicle.drive_train
+    assert vehicle.drive_train == DriveTrainType.ELECTRIC_WITH_RANGE_EXTENDER
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -145,10 +145,10 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
     account = await prepare_account_with_vehicles()
 
     vehicle = account.get_vehicle(VIN_F31)
-    assert ["gps_position", "vin"] == vehicle.available_attributes
+    assert vehicle.available_attributes == ["gps_position", "vin"]
 
     vehicle = account.get_vehicle(VIN_G01)
-    assert [
+    assert vehicle.available_attributes == [
         "gps_position",
         "vin",
         "remaining_range_total",
@@ -176,10 +176,10 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
         "timestamp",
         "lids",
         "windows",
-    ] == vehicle.available_attributes
+    ]
 
     vehicle = account.get_vehicle(VIN_G26)
-    assert [
+    assert vehicle.available_attributes == [
         "gps_position",
         "vin",
         "remaining_range_total",
@@ -204,7 +204,7 @@ async def test_available_attributes(caplog, bmw_fixture: respx.Router):
         "timestamp",
         "lids",
         "windows",
-    ] == vehicle.available_attributes
+    ]
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 
@@ -219,7 +219,7 @@ async def test_vehicle_image(caplog, bmw_fixture: respx.Router):
         params={"carView": "FrontView"},
         headers={"accept": "image/png", "bmw-app-vehicle-type": "connected", "bmw-vin": VIN_G01},
     ).respond(200, content="png_image")
-    assert b"png_image" == await vehicle.get_vehicle_image(VehicleViewDirection.FRONT)
+    assert await vehicle.get_vehicle_image(VehicleViewDirection.FRONT) == b"png_image"
 
     assert len(get_deprecation_warning_count(caplog)) == 0
 

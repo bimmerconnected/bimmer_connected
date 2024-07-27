@@ -49,11 +49,8 @@ def get_next_occurrence(now: datetime.datetime, time: datetime.time) -> datetime
     """Get the next occurrence of a given time."""
 
     # If current time is past the given time, add one day to the current date
-    if now.time() > time:
-        next_date = now.date() + datetime.timedelta(days=1)
-    # If current time is before the given time, use the current date
-    else:
-        next_date = now.date()
+    # Otherwise use the current date
+    next_date = now.date() + datetime.timedelta(days=1) if now.time() > time else now.date()
     next_occurrence = datetime.datetime.combine(next_date, time)
     return next_occurrence
 

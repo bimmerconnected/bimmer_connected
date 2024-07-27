@@ -94,15 +94,14 @@ class FuelAndBattery(VehicleDataBase):
         if drivetrain in COMBUSTION_ENGINE_DRIVE_TRAINS:
             retval.update(cls._parse_fuel_data(state.get("combustionFuelLevel", {})))
 
-        if drivetrain in HV_BATTERY_DRIVE_TRAINS:
-            if electric_data := state.get("electricChargingState", {}):
-                retval.update(
-                    cls._parse_electric_data(
-                        electric_data,
-                        vehicle_data["fetched_at"],
-                        state.get("chargingProfile", {}).get("reductionOfChargeCurrent"),
-                    ),
-                )
+        if drivetrain in HV_BATTERY_DRIVE_TRAINS and (electric_data := state.get("electricChargingState", {})):
+            retval.update(
+                cls._parse_electric_data(
+                    electric_data,
+                    vehicle_data["fetched_at"],
+                    state.get("chargingProfile", {}).get("reductionOfChargeCurrent"),
+                ),
+            )
 
         if drivetrain in set(COMBUSTION_ENGINE_DRIVE_TRAINS).intersection(HV_BATTERY_DRIVE_TRAINS):
             # for hybrid vehicles the remaining_range_fuel returned by the API seems to be the total remaining range

@@ -180,7 +180,7 @@ async def test_vehicles(bmw_fixture: respx.Router):
 
     vehicle = account.get_vehicle(VIN_G26)
     assert vehicle is not None
-    assert VIN_G26 == vehicle.vin
+    assert vehicle.vin == VIN_G26
 
     assert account.get_vehicle("invalid_vin") is None
 
@@ -425,9 +425,8 @@ async def test_429_retry_raise_login(caplog, bmw_fixture: respx.Router):
     bmw_fixture.get("/eadrax-ucs/v1/presentation/oauth/config").mock(return_value=httpx.Response(429, json=json_429))
     caplog.set_level(logging.DEBUG)
 
-    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-        with pytest.raises(MyBMWAPIError):
-            await account.get_vehicles()
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWAPIError):
+        await account.get_vehicles()
 
     log_429 = [
         r
@@ -477,9 +476,8 @@ async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
     bmw_fixture.post(VEHICLES_URL).mock(return_value=httpx.Response(429, json=json_429))
     caplog.set_level(logging.DEBUG)
 
-    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-        with pytest.raises(MyBMWQuotaError):
-            await account.get_vehicles()
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWQuotaError):
+        await account.get_vehicles()
 
     log_429 = [
         r
@@ -530,9 +528,8 @@ async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
         ]
     )
 
-    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-        with pytest.raises(MyBMWQuotaError):
-            await account.get_vehicles()
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWQuotaError):
+        await account.get_vehicles()
 
 
 @pytest.mark.asyncio
@@ -547,9 +544,8 @@ async def test_multiple_401(bmw_fixture: respx.Router):
         ]
     )
 
-    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-        with pytest.raises(MyBMWAuthError):
-            await account.get_vehicles()
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWAuthError):
+        await account.get_vehicles()
 
 
 @pytest.mark.asyncio
@@ -594,9 +590,8 @@ async def test_401_after_429_fail(bmw_fixture: respx.Router):
         ]
     )
 
-    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-        with pytest.raises(MyBMWQuotaError):
-            await account.get_vehicles()
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWQuotaError):
+        await account.get_vehicles()
 
 
 @pytest.mark.asyncio
@@ -614,9 +609,8 @@ async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router
     )
     caplog.set_level(logging.DEBUG)
 
-    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
-        with pytest.raises(MyBMWQuotaError):
-            await account.get_vehicles()
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWQuotaError):
+        await account.get_vehicles()
 
     log_quota = [r for r in caplog.records if "quota" in r.message]
     assert len(log_quota) == 1
@@ -671,13 +665,13 @@ async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
 async def test_client_async_only(bmw_fixture: respx.Router):
     """Test that the Authentication providers only work async."""
 
-    with httpx.Client(auth=MyBMWAuthentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)) as client:
-        with pytest.raises(RuntimeError):
-            client.get("/eadrax-ucs/v1/presentation/oauth/config")
+    with httpx.Client(auth=MyBMWAuthentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)) as client, pytest.raises(
+        RuntimeError
+    ):
+        client.get("/eadrax-ucs/v1/presentation/oauth/config")
 
-    with httpx.Client(auth=MyBMWLoginRetry()) as client:
-        with pytest.raises(RuntimeError):
-            client.get("/eadrax-ucs/v1/presentation/oauth/config")
+    with httpx.Client(auth=MyBMWLoginRetry()) as client, pytest.raises(RuntimeError):
+        client.get("/eadrax-ucs/v1/presentation/oauth/config")
 
 
 @pytest.mark.asyncio
