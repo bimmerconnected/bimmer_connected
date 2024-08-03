@@ -2,7 +2,7 @@
     "positionData": {
         "status": "OK",
         "position": {
-            "latitude": 123.456,
+            "latitude": 12.345,
             "longitude": 34.5678,
             "formattedAddress": "some_formatted_address",
             "heading": 121
