@@ -313,8 +313,9 @@ class RemoteServices:
 
     async def trigger_remote_vehicle_finder(self) -> RemoteServiceStatus:
         """Trigger the vehicle finder."""
-        if not self._vehicle.is_vehicle_tracking_enabled:
-            raise ValueError(f"Vehicle does not support remote service '{Services.VEHICLE_FINDER.value}'.")
+        # Even if the API reports this as False, calling the service still works
+        # if not self._vehicle.is_vehicle_tracking_enabled:
+        #     raise ValueError(f"Vehicle does not support remote service '{Services.VEHICLE_FINDER.value}'.")
 
         status = await self.trigger_remote_service(Services.VEHICLE_FINDER)
         result = await self._get_event_position(status.event_id)
