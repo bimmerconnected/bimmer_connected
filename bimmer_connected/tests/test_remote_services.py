@@ -256,10 +256,16 @@ async def test_vehicles_without_enabled_services(bmw_fixture: respx.Router):
     vehicle.update_state({"capabilities": {}})
 
     for service in ALL_SERVICES.values():
-        with pytest.raises(ValueError):
+        # Vehicle finder always works, even if API capabilities say different
+        if service["call"] == "trigger_remote_vehicle_finder":
             await getattr(vehicle.remote_services, service["call"])(  # type: ignore[call-overload]
                 *service.get("args", []), **service.get("kwargs", {})
             )
+        else:
+            with pytest.raises(ValueError):
+                await getattr(vehicle.remote_services, service["call"])(  # type: ignore[call-overload]
+                    *service.get("args", []), **service.get("kwargs", {})
+                )
 
 
 @pytest.mark.asyncio
