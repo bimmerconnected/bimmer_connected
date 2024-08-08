@@ -284,6 +284,18 @@ def test_gpsposition():
     assert pos != "(1, 2)"
     assert pos[0] == 1
 
+    with pytest.raises(TypeError, match="Either none or all arguments must be 'None'."):
+        GPSPosition(1, None)
+
+    with pytest.raises(TypeError, match="'longitude' not of type"):
+        GPSPosition(0, "49.7")
+
+    with pytest.raises(ValueError, match="'latitude' must be between -90 and 90"):
+        GPSPosition(91, 0)
+
+    with pytest.raises(ValueError, match="'longitude' must be between -180 and 180"):
+        GPSPosition(90, 181)
+
 
 @pytest.mark.asyncio
 async def test_headunit_data(caplog, bmw_fixture: respx.Router):

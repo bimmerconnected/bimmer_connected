@@ -71,6 +71,10 @@ class GPSPosition:
             value = getattr(self, field_name)
             if value is not None and not isinstance(value, (float, int)):
                 raise TypeError(f"'{field_name}' not of type '{Optional[Union[float, int]]}'")
+            if field_name == "latitude" and not (-90 <= value <= 90):
+                raise ValueError(f"'latitude' must be between -90 and 90, but got '{value}'")
+            elif field_name == "longitude" and not (-180 <= value <= 180):
+                raise ValueError(f"'longitude' must be between -180 and 180, but got '{value}'")
 
     def __iter__(self):
         yield from self.__dict__.values()

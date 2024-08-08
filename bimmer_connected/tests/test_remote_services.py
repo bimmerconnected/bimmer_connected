@@ -320,12 +320,12 @@ async def test_get_remote_position(bmw_fixture: respx.Router):
 
     # Check updated position
     await vehicle.remote_services.trigger_remote_vehicle_finder()
-    assert location.location == (123.456, 34.5678)
+    assert location.location == (12.345, 34.5678)
     assert location.heading == 121
 
     # Position should still be from vehicle finder after status update
     await account.get_vehicles()
-    assert location.location == (123.456, 34.5678)
+    assert location.location == (12.345, 34.5678)
     assert location.heading == 121
 
 
