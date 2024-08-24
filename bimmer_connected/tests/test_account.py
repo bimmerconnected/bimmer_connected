@@ -448,8 +448,8 @@ async def test_429_retry_ok_authenticate(caplog, bmw_fixture: respx.Router):
         side_effect=[
             httpx.Response(429, json=json_429),
             httpx.Response(429, json=json_429),
-            MyBMWMockRouter.authenticate_sideeffect,
-            MyBMWMockRouter.authenticate_sideeffect,
+            MyBMWMockRouter.authenticate_sideeffect,  # type: ignore[list-item]
+            MyBMWMockRouter.authenticate_sideeffect,  # type: ignore[list-item]
         ]
     )
     caplog.set_level(logging.DEBUG)
