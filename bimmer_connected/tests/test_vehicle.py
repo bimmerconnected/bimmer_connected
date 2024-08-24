@@ -284,7 +284,13 @@ def test_gpsposition():
     assert pos != "(1, 2)"
     assert pos[0] == 1
 
-    with pytest.raises(TypeError, match="Either none or all arguments must be 'None'."):
+    with pytest.raises(TypeError, match="GPSPosition requires either none or both arguments set"):
+        GPSPosition(1, None)
+
+    with pytest.raises(TypeError, match="GPSPosition requires either none or both arguments set"):
+        GPSPosition(None, 2)
+
+    with pytest.raises(TypeError, match="GPSPosition requires either none or both arguments set"):
         GPSPosition(1, None)
 
     with pytest.raises(TypeError, match="'longitude' not of type"):
@@ -295,6 +301,22 @@ def test_gpsposition():
 
     with pytest.raises(ValueError, match="'longitude' must be between -180 and 180"):
         GPSPosition(90, 181)
+
+
+@pytest.mark.asyncio
+@pytest.mark.usefixtures("bmw_fixture")
+async def test_gpsposition_from_account():
+    """Tests around GPSPosition if set via account. Superset of test_gpsposition."""
+    account = await prepare_account_with_vehicles()
+
+    with pytest.raises(ValueError, match="requires both 'latitude' and 'longitude' set"):
+        account.set_observer_position(1, None)
+
+    with pytest.raises(ValueError, match="requires both 'latitude' and 'longitude' set"):
+        account.set_observer_position(None, None)
+
+    account.set_observer_position(1, 2)
+    assert account.config.observer_position == GPSPosition(1.0, 2.0)
 
 
 @pytest.mark.asyncio

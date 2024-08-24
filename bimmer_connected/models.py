@@ -64,17 +64,27 @@ class GPSPosition:
     longitude: Optional[float]
 
     def __post_init__(self):
-        if len([v for v in self.__dict__.values() if v is None]) not in [0, len(self.__dataclass_fields__)]:
-            raise TypeError("Either none or all arguments must be 'None'.")
+        non_null_values = [k for k, v in self.__dict__.items() if v is None]
+        if len(non_null_values) not in [0, len(self.__dataclass_fields__)]:
+            raise TypeError(f"{type(self).__name__} requires either none or both arguments set")
 
         for field_name in self.__dataclass_fields__:
             value = getattr(self, field_name)
             if value is not None and not isinstance(value, (float, int)):
-                raise TypeError(f"'{field_name}' not of type '{Optional[Union[float, int]]}'")
+                raise TypeError(f"{type(self).__name__} '{field_name}' not of type '{Optional[Union[float, int]]}'")
             if field_name == "latitude" and not (-90 <= value <= 90):
-                raise ValueError(f"'latitude' must be between -90 and 90, but got '{value}'")
+                raise ValueError(f"{type(self).__name__}  'latitude' must be between -90 and 90, but got '{value}'")
             elif field_name == "longitude" and not (-180 <= value <= 180):
-                raise ValueError(f"'longitude' must be between -180 and 180, but got '{value}'")
+                raise ValueError(f"{type(self).__name__} 'longitude' must be between -180 and 180, but got '{value}'")
+            # Force conversion to float
+            setattr(self, field_name, float(value))
+
+    @classmethod
+    def init_nonempty(cls, latitude: Optional[float], longitude: Optional[float]):
+        """Initialize GPSPosition but do not allow empty latitude/longitude."""
+        if latitude is None or longitude is None:
+            raise ValueError(f"{cls.__name__} requires both 'latitude' and 'longitude' set")
+        return cls(latitude, longitude)
 
     def __iter__(self):
         yield from self.__dict__.values()

@@ -154,7 +154,7 @@ class MyBMWAccount:
 
     def set_observer_position(self, latitude: float, longitude: float) -> None:
         """Set the position of the observer for all vehicles."""
-        self.config.observer_position = GPSPosition(latitude=latitude, longitude=longitude)
+        self.config.observer_position = GPSPosition.init_nonempty(latitude=latitude, longitude=longitude)
 
     def set_refresh_token(
         self, refresh_token: str, gcid: Optional[str] = None, access_token: Optional[str] = None
