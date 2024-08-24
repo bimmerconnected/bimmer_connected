@@ -117,7 +117,7 @@ class MyBMWAuthentication(httpx.Auth):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as ex:
-            await handle_httpstatuserror(ex, module="AUTH", log_handler=_LOGGER)
+            await handle_httpstatuserror(ex, module="API", log_handler=_LOGGER)
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
