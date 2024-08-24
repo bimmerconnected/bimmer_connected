@@ -117,7 +117,7 @@ class MyBMWAuthentication(httpx.Auth):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as ex:
-            await handle_httpstatuserror(ex, log_handler=_LOGGER)
+            await handle_httpstatuserror(ex, module="API", log_handler=_LOGGER)
 
     async def login(self) -> None:
         """Get a valid OAuth token."""
@@ -390,7 +390,7 @@ class MyBMWLoginClient(httpx.AsyncClient):
                 try:
                     response.raise_for_status()
                 except httpx.HTTPStatusError as ex:
-                    await handle_httpstatuserror(ex, log_handler=_LOGGER)
+                    await handle_httpstatuserror(ex, module="AUTH", log_handler=_LOGGER)
 
         kwargs["event_hooks"]["response"].append(raise_for_status_event_handler)
 
@@ -420,7 +420,7 @@ class MyBMWLoginRetry(httpx.Auth):
             try:
                 response.raise_for_status()
             except httpx.HTTPStatusError as ex:
-                await handle_httpstatuserror(ex, log_handler=_LOGGER)
+                await handle_httpstatuserror(ex, module="AUTH", log_handler=_LOGGER)
 
 
 def get_retry_wait_time(response: httpx.Response) -> int:
