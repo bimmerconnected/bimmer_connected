@@ -13,6 +13,7 @@ class ClimateActivityState(StrEnum):
 
     COOLING = "COOLING"
     HEATING = "HEATING"
+    VENTILATION = "VENTILATION"
     INACTIVE = "INACTIVE"
     STANDBY = "STANDBY"
     UNKNOWN = "UNKNOWN"
