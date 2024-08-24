@@ -65,11 +65,12 @@ async def handle_httpstatuserror(
     _ex_to_raise = MyBMWAPIError
 
     # HTTP status code is 401 or 403, raise MyBMWAuthError instead
-    if ex.response.status_code in [401, 403]:
+    # Always raise MyBMWAuthError as final when logging in (e.g. HTTP 429 should still be AuthError)
+    if ex.response.status_code in [401, 403] or module == "AUTH":
         _ex_to_raise = MyBMWAuthError
 
     # Quota errors can either be 429 Too Many Requests or 403 Quota Exceeded (instead of 401 Forbidden)
-    if ex.response.status_code == 429 or (ex.response.status_code == 403 and "quota" in ex.response.text.lower()):
+    elif ex.response.status_code == 429 or (ex.response.status_code == 403 and "quota" in ex.response.text.lower()):
         _ex_to_raise = MyBMWQuotaError
 
     try:

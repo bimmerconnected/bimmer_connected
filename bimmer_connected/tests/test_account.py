@@ -27,6 +27,7 @@ from . import (
     get_fingerprint_count,
     load_response,
 )
+from .common import MyBMWMockRouter
 from .conftest import prepare_account_with_vehicles
 
 
@@ -389,7 +390,7 @@ async def test_refresh_token_getset(bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_429_retry_ok_login(caplog, bmw_fixture: respx.Router):
+async def test_429_retry_ok_oauth_config(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
@@ -416,7 +417,7 @@ async def test_429_retry_ok_login(caplog, bmw_fixture: respx.Router):
 
 
 @pytest.mark.asyncio
-async def test_429_retry_raise_login(caplog, bmw_fixture: respx.Router):
+async def test_429_retry_raise_oauth_config(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
 
@@ -426,6 +427,55 @@ async def test_429_retry_raise_login(caplog, bmw_fixture: respx.Router):
     caplog.set_level(logging.DEBUG)
 
     with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWAPIError):
+        await account.get_vehicles()
+
+    log_429 = [
+        r
+        for r in caplog.records
+        if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+    ]
+    assert len(log_429) == 3
+
+
+@pytest.mark.asyncio
+async def test_429_retry_ok_authenticate(caplog, bmw_fixture: respx.Router):
+    """Test the login flow using refresh_token."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.post("/gcdm/oauth/authenticate").mock(
+        side_effect=[
+            httpx.Response(429, json=json_429),
+            httpx.Response(429, json=json_429),
+            MyBMWMockRouter.authenticate_sideeffect,
+            MyBMWMockRouter.authenticate_sideeffect,
+        ]
+    )
+    caplog.set_level(logging.DEBUG)
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock):
+        await account.get_vehicles()
+
+    log_429 = [
+        r
+        for r in caplog.records
+        if r.module == "authentication" and "seconds due to 429 Too Many Requests" in r.message
+    ]
+    assert len(log_429) == 2
+
+
+@pytest.mark.asyncio
+async def test_429_retry_raise_authenticate(caplog, bmw_fixture: respx.Router):
+    """Test the login flow using refresh_token."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+
+    json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
+
+    bmw_fixture.post("/gcdm/oauth/authenticate").mock(return_value=httpx.Response(429, json=json_429))
+    caplog.set_level(logging.DEBUG)
+
+    with mock.patch("asyncio.sleep", new_callable=mock.AsyncMock), pytest.raises(MyBMWAuthError):
         await account.get_vehicles()
 
     log_429 = [
