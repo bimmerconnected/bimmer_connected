@@ -304,22 +304,6 @@ def test_gpsposition():
 
 
 @pytest.mark.asyncio
-@pytest.mark.usefixtures("bmw_fixture")
-async def test_gpsposition_from_account():
-    """Tests around GPSPosition if set via account. Superset of test_gpsposition."""
-    account = await prepare_account_with_vehicles()
-
-    with pytest.raises(ValueError, match="requires both 'latitude' and 'longitude' set"):
-        account.set_observer_position(1, None)
-
-    with pytest.raises(ValueError, match="requires both 'latitude' and 'longitude' set"):
-        account.set_observer_position(None, None)
-
-    account.set_observer_position(1, 2)
-    assert account.config.observer_position == GPSPosition(1.0, 2.0)
-
-
-@pytest.mark.asyncio
 async def test_headunit_data(caplog, bmw_fixture: respx.Router):
     """Test if the parsing of headunit is working."""
 

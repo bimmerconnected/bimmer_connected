@@ -326,14 +326,14 @@ async def test_set_observer_invalid_values(bmw_fixture: respx.Router):
     """Test set_observer_position with invalid arguments."""
     account = await prepare_account_with_vehicles()
 
-    with pytest.raises(TypeError):
-        account.set_observer_position(None, 2.0)
+    with pytest.raises(ValueError, match="requires both 'latitude' and 'longitude' set"):
+        account.set_observer_position(1, None)
 
-    with pytest.raises(TypeError):
-        account.set_observer_position(1.0, None)
+    with pytest.raises(ValueError, match="requires both 'latitude' and 'longitude' set"):
+        account.set_observer_position(None, None)
 
-    with pytest.raises(TypeError):
-        account.set_observer_position(1.0, "16.0")
+    account.set_observer_position(1, 2)
+    assert account.config.observer_position == GPSPosition(1.0, 2.0)
 
 
 @pytest.mark.asyncio
