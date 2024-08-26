@@ -284,7 +284,13 @@ def test_gpsposition():
     assert pos != "(1, 2)"
     assert pos[0] == 1
 
-    with pytest.raises(TypeError, match="Either none or all arguments must be 'None'."):
+    with pytest.raises(TypeError, match="GPSPosition requires either none or both arguments set"):
+        GPSPosition(1, None)
+
+    with pytest.raises(TypeError, match="GPSPosition requires either none or both arguments set"):
+        GPSPosition(None, 2)
+
+    with pytest.raises(TypeError, match="GPSPosition requires either none or both arguments set"):
         GPSPosition(1, None)
 
     with pytest.raises(TypeError, match="'longitude' not of type"):

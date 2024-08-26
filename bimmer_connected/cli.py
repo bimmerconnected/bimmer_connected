@@ -204,6 +204,7 @@ async def horn(account: MyBMWAccount, args) -> None:
 
 async def vehicle_finder(account: MyBMWAccount, args) -> None:
     """Trigger the vehicle finder to locate it."""
+    account.set_observer_position(args.lat, args.lng)
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_vehicle_finder()
@@ -331,8 +332,6 @@ def main():
         logging.getLogger("asyncio").setLevel(logging.WARNING)
 
     account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
-    if args.lat and args.lng:
-        account.set_observer_position(args.lat, args.lng)
 
     if args.oauth_store.exists():
         with contextlib.suppress(json.JSONDecodeError):
