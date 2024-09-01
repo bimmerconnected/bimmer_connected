@@ -25,6 +25,7 @@ class MyBMWClientConfiguration:
     authentication: MyBMWAuthentication
     log_responses: Optional[bool] = False
     observer_position: Optional[GPSPosition] = None
+    verify: httpx._types.VerifyTypes = True
 
     def set_log_responses(self, log_responses: bool) -> None:
         """Set if responses are logged and clear response store."""
@@ -44,6 +45,10 @@ class MyBMWClient(httpx.AsyncClient):
 
         # Increase timeout
         kwargs["timeout"] = httpx.Timeout(HTTPX_TIMEOUT)
+
+        # Use external SSL context stored in MyBMWClientConfiguration. Required in Home Assistant due to event loop
+        # blocking when httpx loads SSL certificates from disk. If not given, uses httpx defaults.
+        kwargs["verify"] = self.config.verify
 
         # Set default values
         kwargs["base_url"] = kwargs.get("base_url") or get_server_url(config.authentication.region)

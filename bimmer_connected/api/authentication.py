@@ -53,6 +53,7 @@ class MyBMWAuthentication(httpx.Auth):
         expires_at: Optional[datetime.datetime] = None,
         refresh_token: Optional[str] = None,
         gcid: Optional[str] = None,
+        verify: httpx._types.VerifyTypes = True,
     ):
         self.username: str = username
         self.password: str = password
@@ -63,6 +64,9 @@ class MyBMWAuthentication(httpx.Auth):
         self.session_id: str = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
         self.gcid: Optional[str] = gcid
+        # Use external SSL context. Required in Home Assistant due to event loop blocking when httpx loads
+        # SSL certificates from disk. If not given, uses httpx defaults.
+        self.verify: Optional[httpx._types.VerifyTypes] = verify
 
     @property
     def login_lock(self) -> asyncio.Lock:
@@ -145,7 +149,7 @@ class MyBMWAuthentication(httpx.Auth):
 
     async def _login_row_na(self):
         """Login to Rest of World and North America."""
-        async with MyBMWLoginClient(region=self.region) as client:
+        async with MyBMWLoginClient(region=self.region, verify=self.verify) as client:
             _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
 
             # Get OAuth2 settings from BMW API
@@ -233,7 +237,7 @@ class MyBMWAuthentication(httpx.Auth):
     async def _refresh_token_row_na(self):
         """Login to Rest of World and North America using existing refresh_token."""
         try:
-            async with MyBMWLoginClient(region=self.region) as client:
+            async with MyBMWLoginClient(region=self.region, verify=self.verify) as client:
                 _LOGGER.debug("Authenticating with refresh token for North America & Rest of World.")
 
                 # Get OAuth2 settings from BMW API
@@ -276,7 +280,7 @@ class MyBMWAuthentication(httpx.Auth):
         }
 
     async def _login_china(self):
-        async with MyBMWLoginClient(region=self.region) as client:
+        async with MyBMWLoginClient(region=self.region, verify=self.verify) as client:
             _LOGGER.debug("Authenticating with MyBMW flow for China.")
 
             # While PIL.Image is only needed in `get_capture_position`, we test it here to avoid
@@ -329,7 +333,7 @@ class MyBMWAuthentication(httpx.Auth):
 
     async def _refresh_token_china(self):
         try:
-            async with MyBMWLoginClient(region=self.region) as client:
+            async with MyBMWLoginClient(region=self.region, verify=self.verify) as client:
                 _LOGGER.debug("Authenticating with refresh token for China.")
 
                 current_utc_time = datetime.datetime.now(tz=datetime.timezone.utc)

@@ -6,6 +6,8 @@ import logging
 from dataclasses import InitVar, dataclass, field
 from typing import List, Optional
 
+import httpx
+
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClientConfiguration
 from bimmer_connected.api.regions import Regions
@@ -45,12 +47,15 @@ class MyBMWAccount:
     observer_position: InitVar[GPSPosition] = None
     """Optional. Required for getting a position on older cars."""
 
+    verify: InitVar[httpx._types.VerifyTypes] = True
+    """Optional. Specify SSL context (required for Home Assistant)."""
+
     use_metric_units: InitVar[Optional[bool]] = None
     """Deprecated. All returned values are metric units (km, l)."""
 
     vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
-    def __post_init__(self, password, log_responses, observer_position, use_metric_units):
+    def __post_init__(self, password, log_responses, observer_position, verify, use_metric_units):
         """Initialize the account."""
 
         if use_metric_units is not None:
@@ -61,9 +66,10 @@ class MyBMWAccount:
 
         if self.config is None:
             self.config = MyBMWClientConfiguration(
-                MyBMWAuthentication(self.username, password, self.region),
+                MyBMWAuthentication(self.username, password, self.region, verify=verify),
                 log_responses=log_responses,
                 observer_position=observer_position,
+                verify=verify,
             )
 
     async def _init_vehicles(self) -> None:
