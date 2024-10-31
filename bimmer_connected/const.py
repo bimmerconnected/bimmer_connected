@@ -39,9 +39,9 @@ OCP_APIM_KEYS = {
 }
 
 APP_VERSIONS = {
-    Regions.NORTH_AMERICA: "4.7.2(35379)",
-    Regions.REST_OF_WORLD: "4.7.2(35379)",
-    Regions.CHINA: "4.7.2(35379)",
+    Regions.NORTH_AMERICA: "4.9.2(36892)",
+    Regions.REST_OF_WORLD: "4.9.2(36892)",
+    Regions.CHINA: "4.9.2(36892)",
 }
 
 HTTPX_TIMEOUT = 30.0

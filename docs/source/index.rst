@@ -12,6 +12,7 @@
    :maxdepth: 2
    :glob:
 
+   captcha
    development/*
 
 
