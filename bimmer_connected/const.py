@@ -38,6 +38,11 @@ OCP_APIM_KEYS = {
     Regions.REST_OF_WORLD: "NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh",
 }
 
+HCAPTCHA_SITE_KEYS = {
+    Regions.NORTH_AMERICA: "dc24de9a-9844-438b-b542-60067ff4dbe9",
+    "_": "10000000-ffff-ffff-ffff-000000000001",
+}
+
 APP_VERSIONS = {
     Regions.NORTH_AMERICA: "4.9.2(36892)",
     Regions.REST_OF_WORLD: "4.9.2(36892)",
