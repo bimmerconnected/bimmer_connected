@@ -201,6 +201,10 @@ class MyBMWAuthError(MyBMWAPIError):
     """Auth-related error from BMW API (HTTP status codes 401 and 403)."""
 
 
+class MyBMWCaptchaMissingError(MyBMWAPIError):
+    """Indicate missing captcha for login."""
+
+
 class MyBMWQuotaError(MyBMWAPIError):
     """Quota exceeded on BMW API."""
 

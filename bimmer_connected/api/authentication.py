@@ -34,7 +34,7 @@ from bimmer_connected.const import (
     OAUTH_CONFIG_URL,
     X_USER_AGENT,
 )
-from bimmer_connected.models import MyBMWAPIError
+from bimmer_connected.models import MyBMWAPIError, MyBMWCaptchaMissingError
 
 EXPIRES_AT_OFFSET = datetime.timedelta(seconds=HTTPX_TIMEOUT * 2)
 
@@ -188,7 +188,7 @@ class MyBMWAuthentication(httpx.Auth):
             authenticate_headers = {}
             if self.region == Regions.NORTH_AMERICA:
                 if not self.hcaptcha_token:
-                    raise MyBMWAPIError("Missing hCaptcha token for North America login")
+                    raise MyBMWCaptchaMissingError("Missing hCaptcha token for North America login")
                 authenticate_headers = {
                     "hcaptchatoken": self.hcaptcha_token,
                 }

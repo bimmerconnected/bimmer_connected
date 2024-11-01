@@ -14,7 +14,13 @@ from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginR
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
 from bimmer_connected.const import ATTR_CAPABILITIES, VEHICLES_URL, CarBrands, Regions
-from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
+from bimmer_connected.models import (
+    GPSPosition,
+    MyBMWAPIError,
+    MyBMWAuthError,
+    MyBMWCaptchaMissingError,
+    MyBMWQuotaError,
+)
 
 from . import (
     RESPONSE_DIR,
@@ -50,7 +56,7 @@ async def test_login_na(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_login_na_without_hcaptcha(bmw_fixture: respx.Router):
     """Test the login flow."""
-    with pytest.raises(MyBMWAPIError):
+    with pytest.raises(MyBMWCaptchaMissingError):
         account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA)
         await account.get_vehicles()
 
