@@ -40,7 +40,7 @@ def main_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument("--disable-oauth-store", help="Disable storing the OAuth2 tokens.", action="store_true")
 
-    subparsers = parser.add_subparsers(dest="cmd")
+    subparsers = parser.add_subparsers(dest="cmd", description="Command", required=True)
     subparsers.required = True
 
     status_parser = subparsers.add_parser("status", description="Get the current status of the vehicle.")
@@ -311,6 +311,7 @@ def _add_default_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("username", help="Connected Drive username")
     parser.add_argument("password", help="Connected Drive password")
     parser.add_argument("region", choices=valid_regions(), help="Region of the Connected Drive account")
+    parser.add_argument("--captcha-token", type=str, nargs="?", help="Captcha token required for North America.")
 
 
 def _add_position_arguments(parser: argparse.ArgumentParser):
@@ -331,7 +332,9 @@ def main():
         logging.basicConfig(level=logging.DEBUG)
         logging.getLogger("asyncio").setLevel(logging.WARNING)
 
-    account = MyBMWAccount(args.username, args.password, get_region_from_name(args.region))
+    account = MyBMWAccount(
+        args.username, args.password, get_region_from_name(args.region), hcaptcha_token=args.captcha_token
+    )
 
     if args.oauth_store.exists():
         with contextlib.suppress(json.JSONDecodeError):

@@ -64,7 +64,7 @@ def test_status_json_filtered(capsys: pytest.CaptureFixture, vin, expected_count
 @pytest.mark.usefixtures("bmw_fixture")
 @pytest.mark.usefixtures("cli_home_dir")
 def test_status_json_unfiltered(capsys: pytest.CaptureFixture):
-    """Test the status command JSON output filtered by VIN."""
+    """Test the status command JSON output without filtering by VIN."""
 
     sys.argv = ["bimmerconnected", "status", "-j", *ARGS_USER_PW_REGION]
     bimmer_connected.cli.main()
@@ -296,3 +296,31 @@ def test_login_invalid_refresh_token(cli_home_dir: Path, bmw_fixture: respx.Rout
     assert bmw_fixture.routes["vehicles"].calls[0].request.headers["authorization"] == "Bearer some_token_string"
 
     assert (cli_home_dir / ".bimmer_connected.json").exists() is True
+
+
+@pytest.mark.usefixtures("bmw_fixture")
+@pytest.mark.usefixtures("cli_home_dir")
+def test_captcha_set(capsys: pytest.CaptureFixture):
+    """Test login for North America if captcha is given."""
+
+    ARGS_USER_PW_REGION = ["myuser", "mypassword", "north_america"]
+    sys.argv = ["bimmerconnected", "status", "-j", "--captcha-token", "SOME_CAPTCHA_TOKEN", *ARGS_USER_PW_REGION]
+    bimmer_connected.cli.main()
+    result = capsys.readouterr()
+
+    result_json = json.loads(result.out)
+    assert isinstance(result_json, list)
+    assert len(result_json) == get_fingerprint_count("states")
+
+
+@pytest.mark.usefixtures("bmw_fixture")
+@pytest.mark.usefixtures("cli_home_dir")
+def test_captcha_unavailable(capsys: pytest.CaptureFixture):
+    """Test login for North America failing if no captcha token was given."""
+
+    ARGS_USER_PW_REGION = ["myuser", "mypassword", "north_america"]
+    sys.argv = ["bimmerconnected", "status", "-j", *ARGS_USER_PW_REGION]
+    with contextlib.suppress(SystemExit):
+        bimmer_connected.cli.main()
+    result = capsys.readouterr()
+    assert result.err.strip() == "MyBMWCaptchaMissingError: Missing hCaptcha token for North America login"
