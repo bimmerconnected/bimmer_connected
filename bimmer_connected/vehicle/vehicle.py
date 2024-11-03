@@ -43,12 +43,16 @@ class VehicleViewDirection(StrEnum):
 
     FRONTSIDE = "VehicleStatus"
     FRONT = "FrontView"
-    # REARSIDE = 'REARSIDE'
-    # REAR = 'REAR'
     SIDE = "SideViewLeft"
-    # DASHBOARD = 'DASHBOARD'
-    # DRIVERDOOR = 'DRIVERDOOR'
-    # REARBIRDSEYE = 'REARBIRDSEYE'
+    DASHBOARD = "Dashboard"
+    DRIVERDOOR = "Driverdoor"
+    ANGLE_SIDE_VIEW_FORTY = "AngleSideViewForty"
+    ANGLE_SIDE_VIEW_SIXTY = "AngleSideViewSixty"
+    FRONT_LEFT = "FrontLeft"
+    FRONT_RIGHT = "FrontRight"
+    REAR_LEFT = "RearLeft"
+    REAR_RIGHT = "RearRight"
+    REAR_VIEW = "RearView"
     UNKNOWN = "UNKNOWN"
 
 
