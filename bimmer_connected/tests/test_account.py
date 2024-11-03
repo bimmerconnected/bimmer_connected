@@ -13,8 +13,14 @@ from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
 from bimmer_connected.api.client import MyBMWClient
 from bimmer_connected.api.regions import get_region_from_name
-from bimmer_connected.const import ATTR_CAPABILITIES, VEHICLES_URL, CarBrands
-from bimmer_connected.models import GPSPosition, MyBMWAPIError, MyBMWAuthError, MyBMWQuotaError
+from bimmer_connected.const import ATTR_CAPABILITIES, VEHICLES_URL, CarBrands, Regions
+from bimmer_connected.models import (
+    GPSPosition,
+    MyBMWAPIError,
+    MyBMWAuthError,
+    MyBMWCaptchaMissingError,
+    MyBMWQuotaError,
+)
 
 from . import (
     RESPONSE_DIR,
@@ -32,11 +38,27 @@ from .conftest import prepare_account_with_vehicles
 
 
 @pytest.mark.asyncio
-async def test_login_row_na(bmw_fixture: respx.Router):
+async def test_login_row(bmw_fixture: respx.Router):
     """Test the login flow."""
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
     await account.get_vehicles()
     assert account is not None
+
+
+@pytest.mark.asyncio
+async def test_login_na(bmw_fixture: respx.Router):
+    """Test the login flow for North America."""
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA, hcaptcha_token="SOME_TOKEN")
+    await account.get_vehicles()
+    assert account is not None
+
+
+@pytest.mark.asyncio
+async def test_login_na_without_hcaptcha(bmw_fixture: respx.Router):
+    """Test the login flow."""
+    with pytest.raises(MyBMWCaptchaMissingError):
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA)
+        await account.get_vehicles()
 
 
 @pytest.mark.asyncio
@@ -742,11 +764,6 @@ async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: 
 
     # But rest_of_world and north_america should work
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("rest_of_world"))
-    await account.get_vehicles()
-    assert account is not None
-    assert len(account.vehicles) > 0
-
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("north_america"))
     await account.get_vehicles()
     assert account is not None
     assert len(account.vehicles) > 0

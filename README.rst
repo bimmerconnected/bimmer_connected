@@ -43,6 +43,9 @@ Please be aware that :code:`bimmer_connected` is an :code:`async` library when u
 The description of the :code:`modules` can be found in the `module documentation
 <http://bimmer-connected.readthedocs.io/en/stable/#module>`_.
 
+.. note::
+    Login to **north american** accounts requires a captcha to be solved. See `Captcha (North America) <http://bimmer-connected.readthedocs.io/en/stable/captcha.html>`_ for more information.
+
 Example in an :code:`asyncio` event loop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 ::

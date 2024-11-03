@@ -34,7 +34,7 @@ from bimmer_connected.const import (
     OAUTH_CONFIG_URL,
     X_USER_AGENT,
 )
-from bimmer_connected.models import MyBMWAPIError
+from bimmer_connected.models import MyBMWAPIError, MyBMWCaptchaMissingError
 
 EXPIRES_AT_OFFSET = datetime.timedelta(seconds=HTTPX_TIMEOUT * 2)
 
@@ -53,6 +53,7 @@ class MyBMWAuthentication(httpx.Auth):
         expires_at: Optional[datetime.datetime] = None,
         refresh_token: Optional[str] = None,
         gcid: Optional[str] = None,
+        hcaptcha_token: Optional[str] = None,
         verify: httpx._types.VerifyTypes = True,
     ):
         self.username: str = username
@@ -64,6 +65,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.session_id: str = str(uuid4())
         self._lock: Optional[asyncio.Lock] = None
         self.gcid: Optional[str] = gcid
+        self.hcaptcha_token: Optional[str] = hcaptcha_token
         # Use external SSL context. Required in Home Assistant due to event loop blocking when httpx loads
         # SSL certificates from disk. If not given, uses httpx defaults.
         self.verify: Optional[httpx._types.VerifyTypes] = verify
@@ -183,19 +185,31 @@ class MyBMWAuthentication(httpx.Auth):
                 "code_challenge_method": "S256",
             }
 
+            authenticate_headers = {}
+            if self.region == Regions.NORTH_AMERICA:
+                if not self.hcaptcha_token:
+                    raise MyBMWCaptchaMissingError("Missing hCaptcha token for North America login")
+                authenticate_headers = {
+                    "hcaptchatoken": self.hcaptcha_token,
+                }
             # Call authenticate endpoint first time (with user/pw) and get authentication
-            response = await client.post(
-                authenticate_url,
-                data=dict(
-                    oauth_base_values,
-                    **{
-                        "grant_type": "authorization_code",
-                        "username": self.username,
-                        "password": self.password,
-                    },
-                ),
-            )
-            authorization = httpx.URL(response.json()["redirect_to"]).params["authorization"]
+            try:
+                response = await client.post(
+                    authenticate_url,
+                    headers=authenticate_headers,
+                    data=dict(
+                        oauth_base_values,
+                        **{
+                            "grant_type": "authorization_code",
+                            "username": self.username,
+                            "password": self.password,
+                        },
+                    ),
+                )
+                authorization = httpx.URL(response.json()["redirect_to"]).params["authorization"]
+            finally:
+                # Always reset hCaptcha token after first login attempt
+                self.hcaptcha_token = None
 
             # With authorization, call authenticate endpoint second time to get code
             response = await client.post(

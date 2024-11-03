@@ -53,9 +53,12 @@ class MyBMWAccount:
     use_metric_units: InitVar[Optional[bool]] = None
     """Deprecated. All returned values are metric units (km, l)."""
 
+    hcaptcha_token: InitVar[Optional[str]] = None
+    """Optional. Required for North America region."""
+
     vehicles: List[MyBMWVehicle] = field(default_factory=list, init=False)
 
-    def __post_init__(self, password, log_responses, observer_position, verify, use_metric_units):
+    def __post_init__(self, password, log_responses, observer_position, verify, use_metric_units, hcaptcha_token):
         """Initialize the account."""
 
         if use_metric_units is not None:
@@ -66,7 +69,7 @@ class MyBMWAccount:
 
         if self.config is None:
             self.config = MyBMWClientConfiguration(
-                MyBMWAuthentication(self.username, password, self.region, verify=verify),
+                MyBMWAuthentication(self.username, password, self.region, verify=verify, hcaptcha_token=hcaptcha_token),
                 log_responses=log_responses,
                 observer_position=observer_position,
                 verify=verify,
