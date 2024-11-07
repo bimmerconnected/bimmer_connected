@@ -13,5 +13,8 @@ When using the CLI, pass the token via the :code:`--hcaptcha-token` argument (se
    Only the first login requires a captcha to be solved. Follow-up logins using refresh token do not require a captcha.
    This requires the tokens to be stored in a file (default behavior when using the CLI) or in the python object itself.
 
+.. warning::
+   The captcha token is only valid for a short time and can only be used once.
+
 .. raw:: html
    :file: _static/captcha_north_america.html
