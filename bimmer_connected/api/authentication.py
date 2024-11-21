@@ -154,6 +154,11 @@ class MyBMWAuthentication(httpx.Auth):
         async with MyBMWLoginClient(region=self.region, verify=self.verify) as client:
             _LOGGER.debug("Authenticating with MyBMW flow for North America & Rest of World.")
 
+            if not self.hcaptcha_token:
+                raise MyBMWCaptchaMissingError(
+                    "Missing hCaptcha token for login. See https://bimmer-connected.readthedocs.io/en/stable/captcha.html"
+                )
+
             # Get OAuth2 settings from BMW API
             r_oauth_settings = await client.get(
                 OAUTH_CONFIG_URL,
@@ -185,13 +190,9 @@ class MyBMWAuthentication(httpx.Auth):
                 "code_challenge_method": "S256",
             }
 
-            authenticate_headers = {}
-            if self.region == Regions.NORTH_AMERICA:
-                if not self.hcaptcha_token:
-                    raise MyBMWCaptchaMissingError("Missing hCaptcha token for North America login")
-                authenticate_headers = {
-                    "hcaptchatoken": self.hcaptcha_token,
-                }
+            authenticate_headers = {
+                "hcaptchatoken": self.hcaptcha_token,
+            }
             # Call authenticate endpoint first time (with user/pw) and get authentication
             try:
                 response = await client.post(
