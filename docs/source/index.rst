@@ -7,12 +7,21 @@
 
 
 .. toctree::
+   :caption: Captcha
+   :name: captcha
+   :maxdepth: 2
+   :glob:
+
+   captcha
+   captcha/*
+
+
+.. toctree::
    :caption: Development
    :name: development
    :maxdepth: 2
    :glob:
 
-   captcha
    development/*
 
 

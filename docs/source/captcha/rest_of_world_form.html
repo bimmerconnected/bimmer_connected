@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form with hCaptcha</title>
+</head>
+<body>
+    <p></p>
+    <div id="captchaResponse">
+        <p id="redirectInfo" style="display: none;"></p>
+        <div style="text-align: center;">
+            <form id="captcha_form" action="#" method="post">
+                <!-- hCaptcha widget -->
+                <div class="h-captcha" data-sitekey="7244955f-8f30-4445-adff-4fefe059f815"></div><br>
+                <button type="submit" class="btn">Submit</button>
+            </form>
+            <!-- hCaptcha script -->
+            <script src="https://hcaptcha.com/1/api.js" async defer></script>
+        </div>
+    </div>
+    <p></p>
+    <script>
+        const currentUrl = new URL(window.location.href);
+        var redirectUri = currentUrl.searchParams.get('redirect_uri');
+
+        if (redirectUri) {
+            // replace the form action with the redirect_uri
+            document.getElementById('captcha_form').action = redirectUri;
+
+            // add text to the page to inform the user of the redirect
+            var redirectUrl = new URL(redirectUri);
+            var redirectUrlString = redirectUrl.protocol + '//' + redirectUrl.host;
+            const redirectInfo = document.getElementById('redirectInfo');
+            redirectInfo.innerHTML = 'You will be redirected back to <b>' + redirectUrlString + '</b> after submitting the form.';
+            redirectInfo.style.display = 'block';
+        }
+        else {
+            // Prevent the form submission if no redirect_uri is provided
+            // and add a custom event handler to display the token on the page
+            
+            document.getElementById('captcha_form').addEventListener('submit', function(event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                const hCaptchaResponse = document.querySelector('[name="h-captcha-response"]').value;
+                const responseElement = document.getElementById('captchaResponse');
+                
+                if (hCaptchaResponse) {
+                    // Replace form and display the response
+                    const highlightDiv = document.createElement('div');
+                    highlightDiv.className = 'highlight';
+                    responseElement.innerHTML = '';
+                    responseElement.appendChild(highlightDiv);
+
+                    const hcaptchaPre = document.createElement('pre');
+                    hcaptchaPre.style.wordBreak = 'break-all';
+                    hcaptchaPre.style.whiteSpace = 'pre-wrap';
+                    hcaptchaPre.textContent = hCaptchaResponse;
+                    highlightDiv.appendChild(hcaptchaPre);
+
+                    // Add a button to copy the data to clipboard
+                    const copyButtonDiv = document.createElement('div');
+                    copyButtonDiv.style.textAlign = 'center';
+                    responseElement.appendChild(copyButtonDiv);
+
+                    const copyButton = document.createElement('button');
+                    copyButton.textContent = 'Copy to Clipboard';
+                    copyButton.className = 'btn btn-neutral btn-small';
+                    copyButtonDiv.appendChild(copyButton);
+
+                    // Add event listener to button for copying the data to clipboard
+                    copyButton.addEventListener('click', function() {
+                        const tempInput = document.createElement('textarea');
+                        tempInput.value = hCaptchaResponse;
+                        document.body.appendChild(tempInput);
+                        tempInput.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(tempInput);
+                        alert('Copied.');
+                    });
+                } else {
+                    responseElement.innerHTML = 'No hCaptcha response received.';
+                }
+            });
+        }
+    </script>
+</body>
+</html>
