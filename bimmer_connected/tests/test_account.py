@@ -24,6 +24,7 @@ from bimmer_connected.models import (
 
 from . import (
     RESPONSE_DIR,
+    TEST_CAPTCHA,
     TEST_PASSWORD,
     TEST_REGION,
     TEST_REGION_STRING,
@@ -40,7 +41,9 @@ from .conftest import prepare_account_with_vehicles
 @pytest.mark.asyncio
 async def test_login_row(bmw_fixture: respx.Router):
     """Test the login flow."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+    account = MyBMWAccount(
+        TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING), hcaptcha_token=TEST_CAPTCHA
+    )
     await account.get_vehicles()
     assert account is not None
 
@@ -48,7 +51,7 @@ async def test_login_row(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_login_na(bmw_fixture: respx.Router):
     """Test the login flow for North America."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA, hcaptcha_token="SOME_TOKEN")
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, Regions.NORTH_AMERICA, hcaptcha_token=TEST_CAPTCHA)
     await account.get_vehicles()
     assert account is not None
 
@@ -65,7 +68,9 @@ async def test_login_na_without_hcaptcha(bmw_fixture: respx.Router):
 async def test_login_refresh_token_row_na_expired(bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
     with mock.patch("bimmer_connected.api.authentication.EXPIRES_AT_OFFSET", datetime.timedelta(seconds=30000)):
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+        account = MyBMWAccount(
+            TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING), hcaptcha_token=TEST_CAPTCHA
+        )
         await account.get_vehicles()
 
         with mock.patch(
@@ -84,7 +89,9 @@ async def test_login_refresh_token_row_na_expired(bmw_fixture: respx.Router):
 async def test_login_refresh_token_row_na_401(bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
 
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+    account = MyBMWAccount(
+        TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING), hcaptcha_token=TEST_CAPTCHA
+    )
     await account.get_vehicles()
 
     with mock.patch(
@@ -111,7 +118,9 @@ async def test_login_refresh_token_row_na_invalid(caplog, bmw_fixture: respx.Rou
         ]
     )
 
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING))
+    account = MyBMWAccount(
+        TEST_USERNAME, TEST_PASSWORD, get_region_from_name(TEST_REGION_STRING), hcaptcha_token=TEST_CAPTCHA
+    )
     account.set_refresh_token("INVALID")
 
     caplog.set_level(logging.DEBUG)
@@ -211,7 +220,7 @@ async def test_vehicles(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_vehicle_init(bmw_fixture: respx.Router):
     """Test vehicle initialization."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     with mock.patch(
         "bimmer_connected.account.MyBMWAccount._init_vehicles",
         wraps=account._init_vehicles,
@@ -240,7 +249,7 @@ async def test_invalid_password(bmw_fixture: respx.Router):
         401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")
     )
     with pytest.raises(MyBMWAuthError):
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
         await account.get_vehicles()
 
 
@@ -262,7 +271,7 @@ async def test_server_error(bmw_fixture: respx.Router):
         500, text=load_response(RESPONSE_DIR / "auth" / "auth_error_internal_error.txt")
     )
     with pytest.raises(MyBMWAPIError):
-        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+        account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
         await account.get_vehicles()
 
 
@@ -290,7 +299,7 @@ async def test_get_fingerprints(monkeypatch: pytest.MonkeyPatch, bmw_fixture: re
         + get_fingerprint_count("charging_settings")
     )
 
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA, log_responses=True)
     await account.get_vehicles()
 
     # This should have been successful
@@ -310,7 +319,7 @@ async def test_get_fingerprints(monkeypatch: pytest.MonkeyPatch, bmw_fixture: re
     )
     bmw_fixture.routes.add(state_route, "state")
 
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA, log_responses=True)
     await account.get_vehicles()
 
     filenames = [Path(f.filename) for f in account.get_stored_responses()]
@@ -363,7 +372,7 @@ async def test_set_use_metric_units(caplog):
     """Test (deprecated) use_metrics_units flag."""
 
     # Default
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     assert len(caplog.records) == 0
     metric_client = MyBMWClient(account.config)
     assert (
@@ -392,7 +401,7 @@ async def test_set_use_metric_units(caplog):
 @pytest.mark.asyncio
 async def test_refresh_token_getset(bmw_fixture: respx.Router):
     """Test getting/setting the refresh_token and gcid."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     assert account.refresh_token is None
     await account.get_vehicles()
     assert account.refresh_token == "another_token_string"
@@ -414,7 +423,7 @@ async def test_refresh_token_getset(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_ok_oauth_config(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -441,7 +450,7 @@ async def test_429_retry_ok_oauth_config(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_raise_oauth_config(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -462,7 +471,7 @@ async def test_429_retry_raise_oauth_config(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_ok_authenticate(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -490,7 +499,7 @@ async def test_429_retry_ok_authenticate(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_raise_authenticate(caplog, bmw_fixture: respx.Router):
     """Test the login flow using refresh_token."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -511,7 +520,7 @@ async def test_429_retry_raise_authenticate(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_ok_vehicles(caplog, bmw_fixture: respx.Router):
     """Test waiting on 429 for vehicles."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -541,7 +550,7 @@ async def test_429_retry_ok_vehicles(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
     """Test waiting on 429 for vehicles and fail if it happens too often."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -562,7 +571,7 @@ async def test_429_retry_raise_vehicles(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
     """Test the login flow but experiencing a 429 first."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -584,7 +593,7 @@ async def test_429_retry_with_login_ok_vehicles(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
     """Test the error handling, experiencing a 429, 401 and another two 429."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -607,7 +616,7 @@ async def test_429_retry_with_login_raise_vehicles(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_multiple_401(bmw_fixture: respx.Router):
     """Test the error handling, when multiple 401 are received in sequence."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     bmw_fixture.post(VEHICLES_URL).mock(
         side_effect=[
@@ -623,7 +632,7 @@ async def test_multiple_401(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_401_after_429_ok(bmw_fixture: respx.Router):
     """Test the error handling, when a 401 is received after exactly 3 429."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     await account.get_vehicles()
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
@@ -647,7 +656,7 @@ async def test_401_after_429_ok(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_401_after_429_fail(bmw_fixture: respx.Router):
     """Test the error handling, when a 401 is received after exactly 3 429."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
 
     json_429 = {"statusCode": 429, "message": "Rate limit is exceeded. Try again in 2 seconds."}
 
@@ -669,7 +678,7 @@ async def test_401_after_429_fail(bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router):
     """Test 403 quota issues for vehicle state and fail if it happens too often."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     # get vehicles once
     await account.get_vehicles()
 
@@ -691,7 +700,7 @@ async def test_403_quota_exceeded_vehicles_usa(caplog, bmw_fixture: respx.Router
 @pytest.mark.asyncio
 async def test_incomplete_vehicle_details(caplog, bmw_fixture: respx.Router):
     """Test incorrect responses for vehicle details."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     # get vehicles once
     await account.get_vehicles()
 
@@ -717,7 +726,7 @@ async def test_incomplete_vehicle_details(caplog, bmw_fixture: respx.Router):
 @pytest.mark.asyncio
 async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
     """Test raising an exception if no responses for vehicle details are received."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     await account.get_vehicles()
 
     bmw_fixture.get("/eadrax-vcs/v4/vehicles/state").mock(
@@ -737,9 +746,9 @@ async def test_no_vehicle_details(caplog, bmw_fixture: respx.Router):
 async def test_client_async_only(bmw_fixture: respx.Router):
     """Test that the Authentication providers only work async."""
 
-    with httpx.Client(auth=MyBMWAuthentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION)) as client, pytest.raises(
-        RuntimeError
-    ):
+    with httpx.Client(
+        auth=MyBMWAuthentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
+    ) as client, pytest.raises(RuntimeError):
         client.get("/eadrax-ucs/v1/presentation/oauth/config")
 
     with httpx.Client(auth=MyBMWLoginRetry()) as client, pytest.raises(RuntimeError):
@@ -763,7 +772,9 @@ async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: 
     assert len(account.vehicles) == 0
 
     # But rest_of_world and north_america should work
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, get_region_from_name("rest_of_world"))
+    account = MyBMWAccount(
+        TEST_USERNAME, TEST_PASSWORD, get_region_from_name("rest_of_world"), hcaptcha_token=TEST_CAPTCHA
+    )
     await account.get_vehicles()
     assert account is not None
     assert len(account.vehicles) > 0

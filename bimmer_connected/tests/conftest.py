@@ -14,6 +14,7 @@ from . import (
     ALL_CHARGING_SETTINGS,
     ALL_PROFILES,
     ALL_STATES,
+    TEST_CAPTCHA,
     TEST_PASSWORD,
     TEST_REGION,
     TEST_USERNAME,
@@ -55,6 +56,6 @@ def cli_home_dir(tmp_path_factory: pytest.TempPathFactory, monkeypatch: pytest.M
 
 async def prepare_account_with_vehicles(region: Optional[Regions] = None):
     """Initialize account and get vehicles."""
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, region or TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     await account.get_vehicles()
     return account
