@@ -311,7 +311,9 @@ def _add_default_arguments(parser: argparse.ArgumentParser):
     parser.add_argument("username", help="Connected Drive username")
     parser.add_argument("password", help="Connected Drive password")
     parser.add_argument("region", choices=valid_regions(), help="Region of the Connected Drive account")
-    parser.add_argument("--captcha-token", type=str, nargs="?", help="Captcha token required for North America.")
+    parser.add_argument(
+        "--captcha-token", type=str, nargs="?", help="Captcha token required for North America and Rest of World."
+    )
 
 
 def _add_position_arguments(parser: argparse.ArgumentParser):

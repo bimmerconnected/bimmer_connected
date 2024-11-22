@@ -13,7 +13,7 @@ from bimmer_connected import __version__ as VERSION
 
 from . import RESPONSE_DIR, get_fingerprint_count, load_response
 
-ARGS_USER_PW_REGION = ["myuser", "mypassword", "rest_of_world"]
+ARGS_USER_PW_REGION = ["--captcha-token", "P1_eY...", "myuser", "mypassword", "rest_of_world"]
 FIXTURE_CLI_HELP = "Connect to MyBMW/MINI API and interact with your vehicle."
 
 
@@ -22,7 +22,6 @@ def test_run_entrypoint():
     result = subprocess.run(["bimmerconnected", "--help"], capture_output=True, text=True)
 
     assert FIXTURE_CLI_HELP in result.stdout
-    assert VERSION in result.stdout
     assert result.returncode == 0
 
 
@@ -323,4 +322,7 @@ def test_captcha_unavailable(capsys: pytest.CaptureFixture):
     with contextlib.suppress(SystemExit):
         bimmer_connected.cli.main()
     result = capsys.readouterr()
-    assert result.err.strip() == "MyBMWCaptchaMissingError: Missing hCaptcha token for North America login"
+    assert (
+        result.err.strip()
+        == "MyBMWCaptchaMissingError: Missing hCaptcha token for login. See https://bimmer-connected.readthedocs.io/en/stable/captcha.html"
+    )

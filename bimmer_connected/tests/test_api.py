@@ -14,6 +14,7 @@ from bimmer_connected.utils import log_response_store_to_file
 
 from . import (
     RESPONSE_DIR,
+    TEST_CAPTCHA,
     TEST_PASSWORD,
     TEST_REGION,
     TEST_USERNAME,
@@ -75,7 +76,7 @@ async def test_storing_fingerprints(tmp_path, bmw_fixture: respx.Router, bmw_log
     )
     bmw_fixture.routes.add(state_route, "state")
 
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA, log_responses=True)
     await account.get_vehicles()
 
     log_response_store_to_file(account.get_stored_responses(), tmp_path)
@@ -100,7 +101,7 @@ async def test_fingerprint_deque(monkeypatch: pytest.MonkeyPatch, bmw_fixture: r
     """Test storing fingerprints to file."""
     # Prepare Number of good responses
 
-    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, log_responses=True)
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA, log_responses=True)
     await account.get_vehicles()
     await account.get_vehicles()
 
