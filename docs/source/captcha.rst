@@ -27,7 +27,7 @@ When using the Python API, pass the token via the :code:`hcaptcha_token` argumen
 
 Using the CLI
 -------------
-When using the CLI, pass the token via the :code:`--hcaptcha-token` argument (see `CLI documentation <cli.html#named-arguments>`_).
+When using the CLI, pass the token via the :code:`--captcha-token` argument (see `CLI documentation <cli.html#named-arguments>`_).
 
 .. warning::
 
