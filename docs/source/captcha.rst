@@ -11,8 +11,33 @@ Depending on your region, you will need to solve a different captcha. Please sel
 - `North America <captcha/north_america.html>`_
 - `Rest of World <captcha/rest_of_world.html>`_
 
-.. note::
+.. warning::
    The captcha token is only valid for a short time and can only be used once.
+
+
+Using Home Assistant
+--------------------
+
+When using the Home Assistant integration, simply paste the token into the config flow when configuring the account.
+
+Using the CLI
+-------------
+
+When using the CLI, pass the token via the :code:`--captcha-token` argument (see `CLI documentation <cli.html#named-arguments>`_).
+
+::
+
+  bimmerconnected status --captcha-token CAPTCHA_TOKEN USERNAME PASSWORD REGION
+
+After a successful login, the :code:`--captcha-token` parameter can be omitted (until a captcha is required again, indicated by a :code:`invalid login` error).
+
+::
+
+  bimmerconnected status USERNAME PASSWORD REGION
+
+.. note::
+
+   Please make sure to use the :code:`--oauth-store` (used by default) to avoid having to solve the captcha again.
 
 Using the Python API
 ---------------------
@@ -33,21 +58,3 @@ For storing the data across restarts, an example implementation can be found in
 
 If you are running this script inside another system (e.g. demoticz), you can also store and read the information using their native tools 
 - it does not have to be a JSON file, as long as the data is stored and read correctly.
-
-Using the CLI
--------------
-When using the CLI, pass the token via the :code:`--captcha-token` argument (see `CLI documentation <cli.html#named-arguments>`_).
-
-::
-
-  bimmerconnected status --captcha-token CAPTCHA_TOKEN USERNAME PASSWORD REGION
-
-After a successful login, the :code:`--captcha-token` parameter can be omitted (until a captcha is required again, indicated by a :code:`invalid login` error).
-
-::
-
-  bimmerconnected status USERNAME PASSWORD REGION
-
-.. warning::
-
-   Please make sure to use the :code:`--oauth-store` (used by default) to avoid having to solve the captcha again.

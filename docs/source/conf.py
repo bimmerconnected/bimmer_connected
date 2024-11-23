@@ -1,3 +1,5 @@
+import datetime
+
 # Configuration file for the Sphinx documentation builder.
 #
 # This file does only contain a selection of the most common options. For a
@@ -17,8 +19,8 @@
 # -- Project information -----------------------------------------------------
 
 project = 'bimmer_connected'
-copyright = '2018-2020, m1n3rva, gerard33'
-author = 'rikroe'
+copyright = f'2018-{datetime.datetime.now().year}, m1n3rva, gerard33, rikroe'
+author = 'm1n3rva, gerard33, rikroe'
 
 # The short X.Y version
 # version = const.__version__
