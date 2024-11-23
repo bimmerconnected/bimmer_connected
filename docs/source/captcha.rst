@@ -27,9 +27,12 @@ When using the Python API, pass the token via the :code:`hcaptcha_token` argumen
 
    Ensure to keep the current :code:`MyBMWAccount` instance in memory to avoid having to solve the captcha again.
 
-   For storing the data across restarts, an example implementation can be found in
-   `bimmerconnected.main() <https://github.com/bimmerconnected/bimmer_connected/blob/40ba148579da6b45268ea8ed9eb252cbafbe9042/bimmer_connected/cli.py#L328>`_
-   (with :code:`args.oauth_store` being a :code:`pathlib.Path()` object).
+For storing the data across restarts, an example implementation can be found in
+`bimmerconnected.main() <https://github.com/bimmerconnected/bimmer_connected/blob/40ba148579da6b45268ea8ed9eb252cbafbe9042/bimmer_connected/cli.py#L328>`_
+(with :code:`args.oauth_store` being a :code:`pathlib.Path()` object).
+
+If you are running this script inside another system (e.g. demoticz), you can also store and read the information using their native tools 
+- it does not have to be a JSON file, as long as the data is stored and read correctly.
 
 Using the CLI
 -------------
