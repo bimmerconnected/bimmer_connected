@@ -39,12 +39,13 @@ While this library is mainly written to be included in `Home Assistant <https://
 After installation, execute :code:`bimmerconnected` from command line for usage instruction
 or see the full `CLI documentation <http://bimmer-connected.readthedocs.io/en/stable/#cli>`_.
 
+.. warning::
+
+   Login to **north american** and **rest of world** accounts requires a captcha to be solved. See `Using Captchas <http://bimmer-connected.readthedocs.io/en/stable/captcha.html>`_ for more information.
+
 Please be aware that :code:`bimmer_connected` is an :code:`async` library when using it in Python code.
 The description of the :code:`modules` can be found in the `module documentation
 <http://bimmer-connected.readthedocs.io/en/stable/#module>`_.
-
-.. note::
-    Login to **north american** accounts requires a captcha to be solved. See `Captcha (North America) <http://bimmer-connected.readthedocs.io/en/stable/captcha.html>`_ for more information.
 
 Example in an :code:`asyncio` event loop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -55,7 +56,8 @@ Example in an :code:`asyncio` event loop
     from bimmer_connected.api.regions import Regions
 
     async def main():
-        account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+        # hcaptcha_token is only required for the first login, see the captcha documentation
+        account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD, hcaptcha_token="P1_eY...")
         await account.get_vehicles()
         vehicle = account.get_vehicle(VIN)
         print(vehicle.brand, vehicle.name, vehicle.vin)
@@ -75,8 +77,8 @@ Example in non-async code
     from bimmer_connected.account import MyBMWAccount
     from bimmer_connected.api.regions import Regions
 
-
-    account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD)
+    # hcaptcha_token is only required for the first login, see the captcha documentation
+    account = MyBMWAccount(USERNAME, PASSWORD, Regions.REST_OF_WORLD, hcaptcha_token="P1_eY...")
     asyncio.run(account.get_vehicles())
     vehicle = account.get_vehicle(VIN)
     print(vehicle.brand, vehicle.name, vehicle.vin)
