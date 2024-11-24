@@ -347,28 +347,35 @@ async def test_get_remote_position_fail_without_observer(caplog, bmw_fixture: re
 
 
 @pytest.mark.asyncio
-async def test_fail_with_timeout(bmw_fixture: respx.Router):
+async def test_fail_with_timeout(monkeypatch: pytest.MonkeyPatch, bmw_fixture: respx.Router):
     """Test failing after timeout was reached."""
-    remote_services._POLLING_CYCLE = 1
-    remote_services._POLLING_TIMEOUT = 2
 
-    account = await prepare_account_with_vehicles()
-    vehicle = account.get_vehicle(VIN_G26)
+    with monkeypatch.context() as m:
+        m.setattr(remote_services, "_POLLING_CYCLE", 1)
+        m.setattr(remote_services, "_POLLING_TIMEOUT", 1)
 
-    with pytest.raises(MyBMWRemoteServiceError):
-        await vehicle.remote_services.trigger_remote_light_flash()
+        account = await prepare_account_with_vehicles()
+        vehicle = account.get_vehicle(VIN_G26)
+
+        with pytest.raises(MyBMWRemoteServiceError):
+            await vehicle.remote_services.trigger_remote_light_flash()
 
 
-@time_machine.travel("2020-01-01", tick=False)
+# @time_machine.travel("2020-01-01")
 @pytest.mark.asyncio
 async def test_get_remote_position_too_old(bmw_fixture: respx.Router):
     """Test remote service position being ignored as vehicle status is newer."""
 
     account = await prepare_account_with_vehicles()
+    account.set_observer_position(1.0, 0.0)
     vehicle = account.get_vehicle(VIN_G26)
     location = vehicle.vehicle_location
 
-    await vehicle.remote_services.trigger_remote_vehicle_finder()
+    assert location.location == (48.177334, 11.556274)
+    assert location.heading == 180
+
+    with time_machine.travel("2020-01-02"):
+        await vehicle.remote_services.trigger_remote_vehicle_finder()
 
     assert location.location == (48.177334, 11.556274)
     assert location.heading == 180

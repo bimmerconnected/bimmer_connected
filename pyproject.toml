@@ -53,3 +53,11 @@ ignore = [
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
+
+[tool.codespell]
+skip = "*.csv,*.json"
+quiet-level = 2
+ignore-words-list = [
+    "hass",
+    "socio-economic"
+]

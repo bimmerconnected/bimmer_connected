@@ -171,7 +171,7 @@ async def test_range_electric(caplog, bmw_fixture: respx.Router):
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
-@time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
+@time_machine.travel("2021-11-28 21:28:59 +0000")
 @pytest.mark.asyncio
 async def test_charging_end_time(caplog, bmw_fixture: respx.Router):
     """Test charging end time."""
@@ -186,7 +186,7 @@ async def test_charging_end_time(caplog, bmw_fixture: respx.Router):
     assert len(get_deprecation_warning_count(caplog)) == 0
 
 
-@time_machine.travel("2021-11-28 17:28:59 +0000", tick=False)
+@time_machine.travel("2021-11-28 17:28:59 +0000")
 @pytest.mark.asyncio
 async def test_plugged_in_waiting_for_charge_window(caplog, bmw_fixture: respx.Router):
     """I01_REX is plugged in but not charging, as its waiting for charging window."""
@@ -469,7 +469,7 @@ async def test_tires(bmw_fixture: respx.Router):
     assert tires.rear_left.season == 2
 
 
-@time_machine.travel("2021-11-28 21:28:59 +0000", tick=False)
+@time_machine.travel("2021-11-28 21:28:59 +0000")
 @pytest.mark.asyncio
 async def test_climate(bmw_fixture: respx.Router):
     """Test climate status."""
