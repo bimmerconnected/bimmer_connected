@@ -101,7 +101,7 @@ class MyBMWVehicle:
         """Retrieve vehicle data from BMW servers."""
         _LOGGER.debug("Getting vehicle list")
 
-        fetched_at = datetime.datetime.now(datetime.timezone.utc)
+        fetched_at = datetime.datetime.now(datetime.timezone.utc).replace(microsecond=0)
 
         async with MyBMWClient(self.account.config) as client:
             # Get state details
