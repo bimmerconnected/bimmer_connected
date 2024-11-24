@@ -1,12 +1,12 @@
 repos:
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.6.2
+    rev: v0.8.0
     hooks:
       - id: ruff
         args:
           - --fix
   - repo: https://github.com/psf/black
-    rev: 24.8.0
+    rev: 24.10.0
     hooks:
       - id: black
         args:
@@ -17,14 +17,10 @@ repos:
     rev: v2.3.0
     hooks:
       - id: codespell
-        args:
-          # - --ignore-words-list=hass,alot,datas,dof,dur,ether,farenheit,hist,iff,iif,ines,ist,lightsensor,mut,nd,pres,referer,rime,ser,serie,te,technik,ue,uint,visability,wan,wanna,withing,iam,incomfort,ba,haa
-          - --skip="./.*,*.csv,*.json"
-          - --quiet-level=2
-        exclude_types: [csv, json]
-        exclude: ^test/responses/
+        additional_dependencies:
+          - tomli
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.13.0
     hooks: 
       - id: mypy
         name: mypy
