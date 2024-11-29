@@ -5,7 +5,7 @@ import json
 import logging
 import ssl
 from dataclasses import InitVar, dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.client import RESPONSE_STORE, MyBMWClient, MyBMWClientConfiguration
@@ -46,7 +46,7 @@ class MyBMWAccount:
     observer_position: InitVar[GPSPosition] = None
     """Optional. Required for getting a position on older cars."""
 
-    verify: InitVar[ssl.SSLContext | str | bool] = True
+    verify: InitVar[Union[ssl.SSLContext, str, bool]] = True
     """Optional. Specify SSL context (required for Home Assistant)."""
 
     use_metric_units: InitVar[Optional[bool]] = None
