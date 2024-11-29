@@ -1,9 +1,10 @@
 """Generic API management."""
 
 import logging
+import ssl
 from collections import defaultdict, deque
 from dataclasses import dataclass
-from typing import Deque, Dict, Optional
+from typing import Deque, Dict, Optional, Union
 
 import httpx
 
@@ -25,7 +26,7 @@ class MyBMWClientConfiguration:
     authentication: MyBMWAuthentication
     log_responses: Optional[bool] = False
     observer_position: Optional[GPSPosition] = None
-    verify: httpx._types.VerifyTypes = True
+    verify: Union[ssl.SSLContext, str, bool] = True
 
     def set_log_responses(self, log_responses: bool) -> None:
         """Set if responses are logged and clear response store."""

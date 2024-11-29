@@ -5,8 +5,9 @@ import base64
 import datetime
 import logging
 import math
+import ssl
 from collections import defaultdict
-from typing import AsyncGenerator, Generator, Optional
+from typing import AsyncGenerator, Generator, Optional, Union
 from uuid import uuid4
 
 import httpx
@@ -54,7 +55,7 @@ class MyBMWAuthentication(httpx.Auth):
         refresh_token: Optional[str] = None,
         gcid: Optional[str] = None,
         hcaptcha_token: Optional[str] = None,
-        verify: httpx._types.VerifyTypes = True,
+        verify: Union[ssl.SSLContext, str, bool] = True,
     ):
         self.username: str = username
         self.password: str = password
@@ -68,7 +69,7 @@ class MyBMWAuthentication(httpx.Auth):
         self.hcaptcha_token: Optional[str] = hcaptcha_token
         # Use external SSL context. Required in Home Assistant due to event loop blocking when httpx loads
         # SSL certificates from disk. If not given, uses httpx defaults.
-        self.verify: Optional[httpx._types.VerifyTypes] = verify
+        self.verify: Union[ssl.SSLContext, str, bool] = verify
 
     @property
     def login_lock(self) -> asyncio.Lock:
