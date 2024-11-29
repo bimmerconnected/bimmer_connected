@@ -157,11 +157,12 @@ class PointOfInterest:
         position = GPSPosition(lat, lon)
         self.position = {
             "lat": position.latitude,
-            "lon": position.longitude,
+            "lng": position.longitude,
         }
 
         self.address = PointOfInterestAddress(str(street), str(postal_code), str(city), str(country))
         self.category = {"losCategory": "Address", "mguVehicleCategoryId": None, "name": "Address"}
+        self.entrances = [{"name": None, "position": self.position}]
         self.title = name
 
         if not self.formattedAddress:

@@ -331,7 +331,7 @@ class MyBMWMockRouter(respx.MockRouter):
             [
                 len(data["vehicleInformation"]["vin"]) == 17,
                 isinstance(data["places"][0]["position"]["lat"], float),
-                isinstance(data["places"][0]["position"]["lon"], float),
+                isinstance(data["places"][0]["position"]["lng"], float),
                 len(data["places"][0]["title"]) > 0,
             ]
         )
