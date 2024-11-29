@@ -153,7 +153,7 @@ def test_oauth_store_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     assert (cli_home_dir / ".bimmer_connected.json").exists() is True
     oauth_storage = json.loads((cli_home_dir / ".bimmer_connected.json").read_text())
 
-    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid"}
+    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id"}
 
 
 # @pytest.mark.usefixtures("bmw_fixture")
@@ -165,6 +165,7 @@ def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
         "access_token": "demo_access_token",
         "refresh_token": "demo_refresh_token",
         "gcid": "demo_gcid",
+        "session_id": "demo_session_id",
     }
 
     (cli_home_dir / ".bimmer_connected.json").write_text(json.dumps(demo_oauth_data))
@@ -176,16 +177,18 @@ def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
 
     assert bmw_fixture.routes["token"].call_count == 0
     assert bmw_fixture.routes["vehicles"].calls[0].request.headers["authorization"] == "Bearer demo_access_token"
+    assert bmw_fixture.routes["vehicles"].calls[0].request.headers["bmw-session-id"] == "demo_session_id"
 
     assert (cli_home_dir / ".bimmer_connected.json").exists() is True
     oauth_storage = json.loads((cli_home_dir / ".bimmer_connected.json").read_text())
 
-    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid"}
+    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id"}
 
     # no change as the old tokens are still valid
     assert oauth_storage["refresh_token"] == demo_oauth_data["refresh_token"]
     assert oauth_storage["access_token"] == demo_oauth_data["access_token"]
     assert oauth_storage["gcid"] == demo_oauth_data["gcid"]
+    assert oauth_storage["session_id"] == demo_oauth_data["session_id"]
 
 
 @pytest.mark.usefixtures("bmw_fixture")
@@ -219,7 +222,7 @@ def test_oauth_store_credentials_path(cli_home_dir: Path, tmp_path_factory: pyte
 
     oauth_storage = json.loads((new_folder / filepath).read_text())
 
-    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid"}
+    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id"}
 
 
 @pytest.mark.usefixtures("bmw_fixture")
