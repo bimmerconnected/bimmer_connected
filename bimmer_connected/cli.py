@@ -359,6 +359,7 @@ def main():
                 "refresh_token": account.config.authentication.refresh_token,
                 "gcid": account.config.authentication.gcid,
                 "access_token": account.config.authentication.access_token,
+                "session_id": account.config.authentication.session_id,
             }
         ),
     )

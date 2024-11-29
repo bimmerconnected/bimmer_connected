@@ -166,7 +166,11 @@ class MyBMWAccount:
         self.config.observer_position = GPSPosition.init_nonempty(latitude=latitude, longitude=longitude)
 
     def set_refresh_token(
-        self, refresh_token: str, gcid: Optional[str] = None, access_token: Optional[str] = None
+        self,
+        refresh_token: str,
+        gcid: Optional[str] = None,
+        access_token: Optional[str] = None,
+        session_id: Optional[str] = None,
     ) -> None:
         """Overwrite the current value of the MyBMW tokens and GCID (if available)."""
         self.config.authentication.refresh_token = refresh_token
@@ -174,6 +178,8 @@ class MyBMWAccount:
             self.config.authentication.gcid = gcid
         if access_token:
             self.config.authentication.access_token = access_token
+        if session_id:
+            self.config.authentication.session_id = session_id
 
     @staticmethod
     def get_stored_responses() -> List[AnonymizedResponse]:
