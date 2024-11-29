@@ -3,7 +3,6 @@ Using Captchas
 
 The **first** login requires a captcha to be solved. Follow-up logins using refresh token do not require a captcha (if login data is persisted).
 
-
 Getting a captcha token
 ------------------------
 
@@ -24,14 +23,11 @@ When using the Home Assistant integration, simply paste the token into the confi
 Using the CLI
 -------------
 
-When using the CLI, first generate the token for your region (see `Getting a captcha token <#getting-a-captcha-token>`_).
-You can generate the token on any device and copy it over.
-
-Pass the token via the :code:`--captcha-token` argument (see `CLI documentation <cli.html#named-arguments>`_) when **logging in the first time**.
+When using the CLI, pass the token via the :code:`--captcha-token` argument (see `CLI documentation <cli.html#named-arguments>`_).
 
 ::
 
-  bimmerconnected status USERNAME PASSWORD REGION --captcha-token CAPTCHA_TOKEN
+  bimmerconnected status --captcha-token CAPTCHA_TOKEN USERNAME PASSWORD REGION
 
 After a successful login, the :code:`--captcha-token` parameter can be omitted (until a captcha is required again, indicated by a :code:`invalid login` error).
 
@@ -42,7 +38,6 @@ After a successful login, the :code:`--captcha-token` parameter can be omitted (
 .. note::
 
    Please make sure to use the :code:`--oauth-store` (used by default) to avoid having to solve the captcha again.
-   The user running your automations needs to access this file every time a CLI command is run.
 
 Using the Python API
 ---------------------
