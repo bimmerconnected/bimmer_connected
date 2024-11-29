@@ -348,21 +348,20 @@ def main():
     except Exception as ex:  # pylint: disable=broad-except
         sys.stderr.write(f"{type(ex).__name__}: {ex}\n")
         sys.exit(1)
-
-    if args.disable_oauth_store:
-        return
-
-    args.oauth_store.parent.mkdir(parents=True, exist_ok=True)
-    args.oauth_store.write_text(
-        json.dumps(
-            {
-                "refresh_token": account.config.authentication.refresh_token,
-                "gcid": account.config.authentication.gcid,
-                "access_token": account.config.authentication.access_token,
-                "session_id": account.config.authentication.session_id,
-            }
-        ),
-    )
+    finally:
+        # Ensure that the OAuth2 tokens are stored even if an exception occurred
+        if not args.disable_oauth_store:
+            args.oauth_store.parent.mkdir(parents=True, exist_ok=True)
+            args.oauth_store.write_text(
+                json.dumps(
+                    {
+                        "refresh_token": account.config.authentication.refresh_token,
+                        "gcid": account.config.authentication.gcid,
+                        "access_token": account.config.authentication.access_token,
+                        "session_id": account.config.authentication.session_id,
+                    }
+                ),
+            )
 
 
 if __name__ == "__main__":
