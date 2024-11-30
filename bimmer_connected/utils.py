@@ -5,6 +5,7 @@ import inspect
 import json
 import logging
 import pathlib
+import time
 from enum import Enum
 from typing import TYPE_CHECKING, Dict, List, Optional, Union
 
@@ -36,8 +37,13 @@ def parse_datetime(date_str: str) -> Optional[datetime.datetime]:
     date_formats = ["%Y-%m-%dT%H:%M:%S.%f%z", "%Y-%m-%dT%H:%M:%S%z", "%Y-%m-%dT%H:%M:%S.%fZ", "%Y-%m-%dT%H:%M:%SZ"]
     for date_format in date_formats:
         try:
-            parsed = datetime.datetime.strptime(date_str, date_format)
-            parsed = parsed.replace(microsecond=0)
+            # Parse datetimes using `time.strptime` to allow running in some embedded python interpreters.
+            # Only fixed in >=3.12: https://github.com/python/cpython/issues/71587
+            time_struct = time.strptime(date_str, date_format)
+            parsed = datetime.datetime(*(time_struct[0:6]))
+            if time_struct.tm_gmtoff and time_struct.tm_gmtoff != 0:
+                parsed = parsed - datetime.timedelta(seconds=time_struct.tm_gmtoff)
+            parsed = parsed.replace(tzinfo=datetime.timezone.utc)
             return parsed
         except ValueError:
             pass
