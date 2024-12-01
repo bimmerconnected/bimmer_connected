@@ -3,12 +3,12 @@
 
 import argparse
 import asyncio
-import contextlib
 import json
 import logging
 import sys
 import time
 from pathlib import Path
+from typing import Dict, Optional
 
 import httpx
 
@@ -325,6 +325,44 @@ def _add_position_arguments(parser: argparse.ArgumentParser):
     parser.set_defaults(func=get_status)
 
 
+def load_oauth_store_from_file(oauth_store: Path, account: MyBMWAccount) -> Dict:
+    """Load the OAuth details from a file if it exists."""
+    if not oauth_store.exists():
+        return {}
+    try:
+        oauth_data = json.loads(oauth_store.read_text())
+    except json.JSONDecodeError:
+        return {}
+
+    session_id_timestamp = oauth_data.pop("session_id_timestamp", None)
+    # Pop session_id every 14 days to it gets recreated
+    if (time.time() - (session_id_timestamp or 0)) > 14 * 24 * 60 * 60:
+        oauth_data.pop("session_id", None)
+        session_id_timestamp = None
+
+    account.set_refresh_token(**oauth_data)
+
+    return {**oauth_data, "session_id_timestamp": session_id_timestamp}
+
+
+def store_oauth_store_to_file(
+    oauth_store: Path, account: MyBMWAccount, session_id_timestamp: Optional[float] = None
+) -> None:
+    """Store the OAuth details to a file."""
+    oauth_store.parent.mkdir(parents=True, exist_ok=True)
+    oauth_store.write_text(
+        json.dumps(
+            {
+                "refresh_token": account.config.authentication.refresh_token,
+                "gcid": account.config.authentication.gcid,
+                "access_token": account.config.authentication.access_token,
+                "session_id": account.config.authentication.session_id,
+                "session_id_timestamp": session_id_timestamp or time.time(),
+            }
+        ),
+    )
+
+
 def main():
     """Get arguments from parser and run function in event loop."""
     parser = main_parser()
@@ -338,9 +376,7 @@ def main():
         args.username, args.password, get_region_from_name(args.region), hcaptcha_token=args.captcha_token
     )
 
-    if args.oauth_store.exists():
-        with contextlib.suppress(json.JSONDecodeError):
-            account.set_refresh_token(**json.loads(args.oauth_store.read_text()))
+    oauth_store_data = load_oauth_store_from_file(args.oauth_store, account)
 
     loop = asyncio.get_event_loop()
     try:
@@ -351,17 +387,7 @@ def main():
     finally:
         # Ensure that the OAuth2 tokens are stored even if an exception occurred
         if not args.disable_oauth_store:
-            args.oauth_store.parent.mkdir(parents=True, exist_ok=True)
-            args.oauth_store.write_text(
-                json.dumps(
-                    {
-                        "refresh_token": account.config.authentication.refresh_token,
-                        "gcid": account.config.authentication.gcid,
-                        "access_token": account.config.authentication.access_token,
-                        "session_id": account.config.authentication.session_id,
-                    }
-                ),
-            )
+            store_oauth_store_to_file(args.oauth_store, account, oauth_store_data.get("session_id_timestamp"))
 
 
 if __name__ == "__main__":

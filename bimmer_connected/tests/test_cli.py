@@ -2,11 +2,13 @@ import contextlib
 import json
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 import httpx
 import pytest
 import respx
+import time_machine
 
 import bimmer_connected.cli
 from bimmer_connected import __version__ as VERSION
@@ -153,10 +155,10 @@ def test_oauth_store_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     assert (cli_home_dir / ".bimmer_connected.json").exists() is True
     oauth_storage = json.loads((cli_home_dir / ".bimmer_connected.json").read_text())
 
-    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id"}
+    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id", "session_id_timestamp"}
 
 
-# @pytest.mark.usefixtures("bmw_fixture")
+@time_machine.travel("2021-11-28 21:28:59 +0000")
 @pytest.mark.usefixtures("cli_home_dir")
 def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     """Test loading and storing the oauth credentials."""
@@ -166,6 +168,7 @@ def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
         "refresh_token": "demo_refresh_token",
         "gcid": "demo_gcid",
         "session_id": "demo_session_id",
+        "session_id_timestamp": 1638134000,
     }
 
     (cli_home_dir / ".bimmer_connected.json").write_text(json.dumps(demo_oauth_data))
@@ -182,11 +185,83 @@ def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     assert (cli_home_dir / ".bimmer_connected.json").exists() is True
     oauth_storage = json.loads((cli_home_dir / ".bimmer_connected.json").read_text())
 
-    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id"}
+    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id", "session_id_timestamp"}
 
     # no change as the old tokens are still valid
     assert oauth_storage["refresh_token"] == demo_oauth_data["refresh_token"]
     assert oauth_storage["access_token"] == demo_oauth_data["access_token"]
+    assert oauth_storage["gcid"] == demo_oauth_data["gcid"]
+    assert oauth_storage["session_id"] == demo_oauth_data["session_id"]
+
+
+@time_machine.travel("2021-11-28 21:28:59 +0000")
+@pytest.mark.usefixtures("cli_home_dir")
+def test_oauth_load_credentials_old_session_id(cli_home_dir: Path, bmw_fixture: respx.Router):
+    """Test loading and storing the oauth credentials and getting a new session_id."""
+
+    demo_oauth_data = {
+        "access_token": "demo_access_token",
+        "refresh_token": "demo_refresh_token",
+        "gcid": "demo_gcid",
+        "session_id": "demo_session_id",
+        "session_id_timestamp": 1636838939,  # 2021-11-13 21:28:59 +0000
+    }
+
+    (cli_home_dir / ".bimmer_connected.json").write_text(json.dumps(demo_oauth_data))
+    assert (cli_home_dir / ".bimmer_connected.json").exists() is True
+
+    sys.argv = ["bimmerconnected", "status", *ARGS_USER_PW_REGION]
+
+    bimmer_connected.cli.main()
+
+    assert (cli_home_dir / ".bimmer_connected.json").exists() is True
+    oauth_storage = json.loads((cli_home_dir / ".bimmer_connected.json").read_text())
+
+    # no change as the old tokens are still valid
+    assert oauth_storage["refresh_token"] == demo_oauth_data["refresh_token"]
+    assert oauth_storage["access_token"] == demo_oauth_data["access_token"]
+    assert oauth_storage["gcid"] == demo_oauth_data["gcid"]
+    # but we have a new session_id and session_id_timestamp
+    assert oauth_storage["session_id"] != demo_oauth_data["session_id"]
+    assert oauth_storage["session_id_timestamp"] == pytest.approx(time.time(), abs=5)
+
+
+@time_machine.travel("2021-11-28 21:28:59 +0000")
+@pytest.mark.usefixtures("cli_home_dir")
+def test_oauth_store_credentials_on_error(cli_home_dir: Path, bmw_fixture: respx.Router):
+    """Test loading and storing the oauth credentials, even if a call errors out."""
+
+    demo_oauth_data = {
+        "access_token": "demo_access_token",
+        "refresh_token": "demo_refresh_token",
+        "gcid": "DUMMY",
+        "session_id": "demo_session_id",
+        "session_id_timestamp": 1638134000,
+    }
+
+    (cli_home_dir / ".bimmer_connected.json").write_text(json.dumps(demo_oauth_data))
+    assert (cli_home_dir / ".bimmer_connected.json").exists() is True
+
+    vehicle_routes = bmw_fixture.pop("vehicles")
+    bmw_fixture.post("/eadrax-vcs/v5/vehicle-list", name="vehicles").mock(
+        side_effect=[
+            httpx.Response(401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")),
+            vehicle_routes.side_effect,  # type: ignore[list-item]
+            httpx.Response(500),
+        ]
+    )
+
+    sys.argv = ["bimmerconnected", "--debug", "status", *ARGS_USER_PW_REGION]
+    with pytest.raises(SystemExit):
+        bimmer_connected.cli.main()
+
+    assert bmw_fixture.routes["token"].call_count == 1
+
+    # Check that tokens are stored and a new refresh_token is saved
+    assert (cli_home_dir / ".bimmer_connected.json").exists() is True
+    oauth_storage = json.loads((cli_home_dir / ".bimmer_connected.json").read_text())
+    assert oauth_storage["refresh_token"] == "another_token_string"
+    assert oauth_storage["access_token"] == "some_token_string"
     assert oauth_storage["gcid"] == demo_oauth_data["gcid"]
     assert oauth_storage["session_id"] == demo_oauth_data["session_id"]
 
@@ -222,7 +297,7 @@ def test_oauth_store_credentials_path(cli_home_dir: Path, tmp_path_factory: pyte
 
     oauth_storage = json.loads((new_folder / filepath).read_text())
 
-    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id"}
+    assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id", "session_id_timestamp"}
 
 
 @pytest.mark.usefixtures("bmw_fixture")
