@@ -246,7 +246,7 @@ def test_oauth_store_credentials_on_error(cli_home_dir: Path, bmw_fixture: respx
     bmw_fixture.post("/eadrax-vcs/v5/vehicle-list", name="vehicles").mock(
         side_effect=[
             httpx.Response(401, json=load_response(RESPONSE_DIR / "auth" / "auth_error_wrong_password.json")),
-            vehicle_routes.side_effect,
+            vehicle_routes.side_effect,  # type: ignore[list-item]
             httpx.Response(500),
         ]
     )
