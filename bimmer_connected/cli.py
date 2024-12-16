@@ -136,6 +136,18 @@ def main_parser() -> argparse.ArgumentParser:
         "-a", "--address", nargs="+", help="Address (e.g. 'Street 17, city, zip, country')"
     )
     sendpoi_from_address_parser.set_defaults(func=send_poi_from_address)
+    
+    climate_start_parser = subparsers.add_parser("climate_start", description="Climate Control Start")
+    _add_default_arguments(climate_start_parser)
+    climate_start_parser.add_argument("vin", help=TEXT_VIN)
+    climate_start_parser.set_defaults(func=climate_start)
+
+    climate_stop_parser = subparsers.add_parser("climate_stop", description="Climate Control Stop")
+    _add_default_arguments(climate_stop_parser)
+    climate_stop_parser.add_argument("vin", help=TEXT_VIN)
+    climate_stop_parser.set_defaults(func=climate_stop)
+
+
 
     return parser
 
@@ -304,6 +316,22 @@ async def send_poi_from_address(account: MyBMWAccount, args) -> None:
         "country": address.get("country"),
     }
     await vehicle.remote_services.trigger_send_poi(poi_data)
+
+
+async def climate_start(account: MyBMWAccount, args) -> None:
+    """Turn On Climate Control."""
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_remote_air_conditioning()
+    print(status.state)
+
+async def climate_stop(account: MyBMWAccount, args) -> None:
+    """Turn Off Climate Control."""
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_remote_air_conditioning_stop()
+    print(status.state)
+
 
 
 def _add_default_arguments(parser: argparse.ArgumentParser):
