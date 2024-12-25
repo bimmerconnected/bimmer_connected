@@ -22,16 +22,21 @@ exclude = [
 
 [tool.ruff.lint]
 select = [
+    "A",  # flake8-builtins
     "ASYNC",  # flake8-async
     "B",  # flake8-bugbear
-    "C",  # complexity
+    "C4",  # flake8-comprehensions
+    "C90",  # complexity
     "D",  # docstrings
     "E",  # pycodestyle
     "F",  # pyflakes/autoflake
     "FLY", # flynt
     "FURB", # refurb
     "I",  # isort
+    "N",  # pep8-naming
     "PGH004",  # Use specific rule codes when using noqa
+    "PL",  # pylint
+    "RUF",  # ruff
     "SIM",  # flake8-simplicity
     "UP",  # pyupgrade
     "W",  # pycodestyle
@@ -45,11 +50,15 @@ ignore = [
     "D100", # Missing docstring in public module
     "D105", # Missing docstring in magic method
     "D107", # Missing docstring in `__init__`
+    "PLR0913",  # Too many arguments in function definition
+    "PLR2004",  # Magic value used in comparison
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"docs/source/conf.py" = ["D100"]
+"docs/source/conf.py" = ["A001", "D100"]
 "bimmer_connected/api/authentication.py" = ["D102", "D107"]
+"bimmer_connected/cli.py" = ["PLR0915"]
+"bimmer_connected/models.py" = ["N815"]
 
 [tool.ruff.lint.mccabe]
 max-complexity = 25
