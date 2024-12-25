@@ -84,7 +84,7 @@ class ConditionBasedServiceReport(VehicleDataBase):
                 iter(
                     sorted(
                         [m for m in retval["messages"] if m.due_date is not None],
-                        key=lambda x: f"{str(x.due_date)}-{x.service_type}",
+                        key=lambda x: f"{x.due_date!s}-{x.service_type}",
                     )
                 ),
                 None,
