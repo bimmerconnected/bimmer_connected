@@ -61,7 +61,7 @@ jobs:
           ruff check --config=pyproject.toml .
       - name: Test formatting
         run: |
-          ruff format --config=pyproject.toml .
+          ruff format --check --config=pyproject.toml .
 
   mypy:
     runs-on: ubuntu-latest
