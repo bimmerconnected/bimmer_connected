@@ -210,10 +210,16 @@ async def test_plugged_in_waiting_for_charge_window(caplog, bmw_fixture: respx.R
 @pytest.mark.asyncio
 async def test_condition_based_services(caplog, bmw_fixture: respx.Router):
     """Test condition based service messages."""
-    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G26)
+    vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01)
+
+    assert vehicle.condition_based_services.next_service_by_distance.due_distance == (50000, "km")
+    assert vehicle.condition_based_services.next_service_by_distance.service_type == "BRAKE_FLUID"
+
+    assert vehicle.condition_based_services.next_service_by_time.due_date == datetime.datetime(2024, 11, 1, tzinfo=UTC)
+    assert vehicle.condition_based_services.next_service_by_time.service_type == "VEHICLE_CHECK"
 
     cbs = vehicle.condition_based_services.messages
-    assert len(cbs) == 5
+    assert len(cbs) == 4
     assert cbs[0].state == ConditionBasedServiceStatus.OK
     expected_cbs0 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
     assert expected_cbs0 == cbs[0].due_date
@@ -225,7 +231,7 @@ async def test_condition_based_services(caplog, bmw_fixture: respx.Router):
     assert cbs[1].due_distance == (50000, "km")
 
     assert cbs[2].state == ConditionBasedServiceStatus.OK
-    expected_cbs2 = datetime.datetime(year=2024, month=12, day=1, tzinfo=UTC)
+    expected_cbs2 = datetime.datetime(year=2024, month=11, day=1, tzinfo=UTC)
     assert expected_cbs2 == cbs[2].due_date
     assert cbs[2].due_distance == (50000, "km")
 
@@ -367,6 +373,7 @@ async def test_check_control_messages(caplog, bmw_fixture: respx.Router):
     """
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G01)
     assert vehicle.check_control_messages.has_check_control_messages is True
+    assert vehicle.check_control_messages.urgent_check_control_messages == "ENGINE_OIL"
 
     ccms = vehicle.check_control_messages.messages
     assert len(ccms) == 2
@@ -377,6 +384,7 @@ async def test_check_control_messages(caplog, bmw_fixture: respx.Router):
 
     vehicle = (await prepare_account_with_vehicles()).get_vehicle(VIN_G20)
     assert vehicle.check_control_messages.has_check_control_messages is False
+    assert vehicle.check_control_messages.urgent_check_control_messages is None
 
     ccms = vehicle.check_control_messages.messages
     assert len(ccms) == 2
