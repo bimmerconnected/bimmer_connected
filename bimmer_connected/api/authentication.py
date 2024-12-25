@@ -90,7 +90,7 @@ class MyBMWAuthentication(httpx.Auth):
         request.headers["bmw-session-id"] = self.session_id
 
         # Try getting a response
-        response: httpx.Response = (yield request)
+        response: httpx.Response = yield request
 
         # return directly if first response was successful
         if response.is_success:
@@ -425,7 +425,7 @@ class MyBMWLoginRetry(httpx.Auth):
 
     async def async_auth_flow(self, request: httpx.Request) -> AsyncGenerator[httpx.Request, httpx.Response]:
         # Try getting a response
-        response: httpx.Response = (yield request)
+        response: httpx.Response = yield request
 
         for _ in range(3):
             if response.status_code == 429:
