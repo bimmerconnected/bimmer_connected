@@ -19,7 +19,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-          cache: pip-test
+          cache: pip
           cache-dependency-path: |
             requirements.txt
             requirements-test.txt
@@ -48,7 +48,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-          cache: pip-test
+          cache: pip
           cache-dependency-path: |
             requirements.txt
             requirements-test.txt
@@ -71,7 +71,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-          cache: pip-test
+          cache: pip
           cache-dependency-path: |
             requirements.txt
             requirements-test.txt
@@ -91,7 +91,7 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.x'
-          cache: pip-docs
+          cache: pip
           cache-dependency-path: |
             requirements.txt
             requirements-docs.txt
