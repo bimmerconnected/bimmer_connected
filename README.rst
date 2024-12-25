@@ -148,7 +148,7 @@ let us know in advance.
 Code Contributions
 ==================
 Contributions are welcome! Please make sure that your code passes the checks in :code:`.github/workflows/test.yml`.
-We currently test against :code:`flake8`, :code:`pylint` and our own :code:`pytest` suite.
+We currently test with :code:`ruff`, :code:`mypy` (for both see, :code:`pyproject.toml`) and our own :code:`pytest` suite.
 And please add tests where it makes sense. The more the better.
 
 See the `contributing guidelines <https://github.com/bimmerconnected/bimmer_connected/blob/master/CONTRIBUTING.md>`_ for more details.

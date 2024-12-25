@@ -58,9 +58,6 @@ LOCAL_CHARGING_SETTINGS: Dict[str, Dict] = {}
 class MyBMWMockRouter(respx.MockRouter):
     """Stateful MockRouter for MyBMW APIs."""
 
-    # See https://github.com/lundberg/respx/issues/277#issuecomment-2507693706
-    using = "httpx"
-
     def __init__(
         self,
         vehicles_to_load: Optional[List[str]] = None,
