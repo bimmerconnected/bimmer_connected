@@ -12,7 +12,7 @@ from typing import Dict, Optional
 
 import httpx
 
-from bimmer_connected import __version__ as VERSION
+from bimmer_connected import __version__
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.regions import get_region_from_name, valid_regions
 from bimmer_connected.const import DEFAULT_POI_NAME
@@ -26,7 +26,7 @@ TEXT_VIN = "Vehicle Identification Number"
 def main_parser() -> argparse.ArgumentParser:
     """Create the ArgumentParser with all relevant subparsers."""
     parser = argparse.ArgumentParser(
-        description=(f"Connect to MyBMW/MINI API and interact with your vehicle.\n\nVersion: {VERSION}"),
+        description=(f"Connect to MyBMW/MINI API and interact with your vehicle.\n\nVersion: {__version__}"),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("--debug", help="Print debug logs.", action="store_true")

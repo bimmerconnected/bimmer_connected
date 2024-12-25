@@ -175,6 +175,11 @@ class ValueWithUnit(NamedTuple):
     value: Optional[Union[int, float]]
     unit: Optional[str]
 
+    @classmethod
+    def empty(cls):
+        """Return an empty/default ValueWithUnit."""
+        return cls(None, None)
+
 
 @dataclass
 class AnonymizedResponse:

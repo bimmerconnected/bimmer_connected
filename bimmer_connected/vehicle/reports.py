@@ -33,9 +33,9 @@ class ConditionBasedService:
     @classmethod
     def from_api_entry(
         cls,
-        type: str,
+        type: str,  # noqa: A002, pylint: disable=redefined-builtin
         status: str,
-        dateTime: Optional[str] = None,
+        dateTime: Optional[str] = None,  # noqa: N803
         mileage: Optional[int] = None,
         **kwargs,
     ):
@@ -87,7 +87,13 @@ class CheckControlMessage:
     state: CheckControlStatus
 
     @classmethod
-    def from_api_entry(cls, type: str, severity: str, longDescription: Optional[str] = None, **kwargs):
+    def from_api_entry(
+        cls,
+        type: str,  # noqa: A002, pylint: disable=redefined-builtin
+        severity: str,
+        longDescription: Optional[str] = None,  # noqa: N803
+        **kwargs,
+    ):
         """Parse a check control entry from the API format to `CheckControlMessage`."""
         return cls(type, longDescription, CheckControlStatus(severity))
 

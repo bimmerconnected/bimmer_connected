@@ -2,7 +2,7 @@
 
 import datetime
 import logging
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Dict, Optional
 
 from bimmer_connected.const import ATTR_ATTRIBUTES, ATTR_STATE
@@ -35,16 +35,16 @@ class ChargingState(StrEnum):
 class FuelAndBattery(VehicleDataBase):
     """Provides an accessible version of `status.FuelAndBattery`."""
 
-    remaining_range_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
+    remaining_range_fuel: Optional[ValueWithUnit] = field(default_factory=ValueWithUnit.empty)
     """Get the remaining range of the vehicle on fuel."""
 
-    remaining_range_electric: Optional[ValueWithUnit] = ValueWithUnit(None, None)
+    remaining_range_electric: Optional[ValueWithUnit] = field(default_factory=ValueWithUnit.empty)
     """Get the remaining range of the vehicle on electricity."""
 
-    remaining_range_total: Optional[ValueWithUnit] = ValueWithUnit(None, None)
+    remaining_range_total: Optional[ValueWithUnit] = field(default_factory=ValueWithUnit.empty)
     """Get the total remaining range of the vehicle (fuel + electricity, if available)."""
 
-    remaining_fuel: Optional[ValueWithUnit] = ValueWithUnit(None, None)
+    remaining_fuel: Optional[ValueWithUnit] = field(default_factory=ValueWithUnit.empty)
     """Get the remaining fuel of the vehicle."""
 
     remaining_fuel_percent: Optional[int] = None

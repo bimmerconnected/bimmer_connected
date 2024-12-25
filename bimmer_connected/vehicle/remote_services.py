@@ -141,7 +141,7 @@ class RemoteServices:
 
         return status
 
-    async def _get_remote_service_status(self, client: MyBMWClient, event_id: str) -> RemoteServiceStatus:
+    async def _get_remote_service_status(self, event_id: str) -> RemoteServiceStatus:
         """Return execution status of the last remote service that was triggered."""
 
         _LOGGER.debug("getting remote service status for '%s'", event_id)
@@ -159,7 +159,7 @@ class RemoteServices:
         fail_after = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(seconds=_POLLING_TIMEOUT)
         while datetime.datetime.now(datetime.timezone.utc) < fail_after:
             await asyncio.sleep(_POLLING_CYCLE)
-            status = await self._get_remote_service_status(client, event_id)
+            status = await self._get_remote_service_status(event_id)
             _LOGGER.debug("current state of '%s' is: %s", event_id, status.state.value)
             if status.state == ExecutionState.ERROR:
                 raise MyBMWRemoteServiceError(

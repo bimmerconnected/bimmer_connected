@@ -11,7 +11,7 @@ import respx
 import time_machine
 
 import bimmer_connected.cli
-from bimmer_connected import __version__ as VERSION
+from bimmer_connected import __version__
 
 from . import RESPONSE_DIR, get_fingerprint_count, load_response
 
@@ -21,7 +21,7 @@ FIXTURE_CLI_HELP = "Connect to MyBMW/MINI API and interact with your vehicle."
 
 def test_run_entrypoint():
     """Test if the entrypoint is installed correctly."""
-    result = subprocess.run(["bimmerconnected", "--help"], capture_output=True, text=True)
+    result = subprocess.run(["bimmerconnected", "--help"], capture_output=True, text=True, check=False)
 
     assert FIXTURE_CLI_HELP in result.stdout
     assert result.returncode == 0
@@ -29,10 +29,12 @@ def test_run_entrypoint():
 
 def test_run_module():
     """Test if the module can be run as a python module."""
-    result = subprocess.run(["python", "-m", "bimmer_connected.cli", "--help"], capture_output=True, text=True)
+    result = subprocess.run(
+        ["python", "-m", "bimmer_connected.cli", "--help"], capture_output=True, text=True, check=False
+    )
 
     assert FIXTURE_CLI_HELP in result.stdout
-    assert VERSION in result.stdout
+    assert __version__ in result.stdout
     assert result.returncode == 0
 
 
@@ -382,7 +384,6 @@ def test_login_invalid_refresh_token(cli_home_dir: Path, bmw_fixture: respx.Rout
 def test_captcha_set(capsys: pytest.CaptureFixture):
     """Test login for North America if captcha is given."""
 
-    ARGS_USER_PW_REGION = ["myuser", "mypassword", "north_america"]
     sys.argv = ["bimmerconnected", "status", "-j", "--captcha-token", "SOME_CAPTCHA_TOKEN", *ARGS_USER_PW_REGION]
     bimmer_connected.cli.main()
     result = capsys.readouterr()
@@ -397,8 +398,7 @@ def test_captcha_set(capsys: pytest.CaptureFixture):
 def test_captcha_unavailable(capsys: pytest.CaptureFixture):
     """Test login for North America failing if no captcha token was given."""
 
-    ARGS_USER_PW_REGION = ["myuser", "mypassword", "north_america"]
-    sys.argv = ["bimmerconnected", "status", "-j", *ARGS_USER_PW_REGION]
+    sys.argv = ["bimmerconnected", "status", "-j", "myuser", "mypassword", "rest_of_world"]
     with contextlib.suppress(SystemExit):
         bimmer_connected.cli.main()
     result = capsys.readouterr()

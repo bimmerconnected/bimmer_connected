@@ -38,16 +38,16 @@ REMOTE_SERVICE_RESPONSE_ERROR = RESPONSE_DIR / "remote_services" / "eadrax_servi
 REMOTE_SERVICE_RESPONSE_EVENTPOSITION = RESPONSE_DIR / "remote_services" / "eadrax_service_eventposition.json"
 
 
-def get_fingerprint_count(type: str) -> int:
+def get_fingerprint_count(call_type: str) -> int:
     """Return number of requests/fingerprints for a given type."""
 
-    if type == "vehicles":
+    if call_type == "vehicles":
         return len(CarBrands)
-    if type == "states":
+    if call_type == "states":
         return len(ALL_STATES)
-    if type == "profiles":
+    if call_type == "profiles":
         return len(ALL_PROFILES)
-    if type == "charging_settings":
+    if call_type == "charging_settings":
         return len(ALL_CHARGING_SETTINGS)
     return 0
 
