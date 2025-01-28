@@ -26,7 +26,9 @@ TEXT_VIN = "Vehicle Identification Number"
 def main_parser() -> argparse.ArgumentParser:
     """Create the ArgumentParser with all relevant subparsers."""
     parser = argparse.ArgumentParser(
-        description=(f"Connect to MyBMW/MINI API and interact with your vehicle.\n\nVersion: {VERSION}"),
+        description=(
+            f"Connect to MyBMW/MINI API and interact with your vehicle.\n\nVersion: {VERSION}"
+        ),
         formatter_class=argparse.RawTextHelpFormatter,
     )
     parser.add_argument("--debug", help="Print debug logs.", action="store_true")
@@ -38,26 +40,41 @@ def main_parser() -> argparse.ArgumentParser:
         type=Path,
         default=Path.home() / ".bimmer_connected.json",
     )
-    parser.add_argument("--disable-oauth-store", help="Disable storing the OAuth2 tokens.", action="store_true")
+    parser.add_argument(
+        "--disable-oauth-store",
+        help="Disable storing the OAuth2 tokens.",
+        action="store_true",
+    )
 
     subparsers = parser.add_subparsers(dest="cmd", description="Command", required=True)
     subparsers.required = True
 
-    status_parser = subparsers.add_parser("status", description="Get the current status of the vehicle.")
-    status_parser.add_argument(
-        "-j", "--json", help="Output as JSON only. Removes all other output.", action="store_true"
+    status_parser = subparsers.add_parser(
+        "status", description="Get the current status of the vehicle."
     )
-    status_parser.add_argument("-v", "--vin", help="Output data for specified VIN only.", type=str, nargs="?")
+    status_parser.add_argument(
+        "-j",
+        "--json",
+        help="Output as JSON only. Removes all other output.",
+        action="store_true",
+    )
+    status_parser.add_argument(
+        "-v", "--vin", help="Output data for specified VIN only.", type=str, nargs="?"
+    )
 
     _add_default_arguments(status_parser)
     _add_position_arguments(status_parser)
 
-    fingerprint_parser = subparsers.add_parser("fingerprint", description="Save a vehicle fingerprint.")
+    fingerprint_parser = subparsers.add_parser(
+        "fingerprint", description="Save a vehicle fingerprint."
+    )
     _add_default_arguments(fingerprint_parser)
     _add_position_arguments(fingerprint_parser)
     fingerprint_parser.set_defaults(func=fingerprint)
 
-    flash_parser = subparsers.add_parser("lightflash", description="Flash the vehicle lights.")
+    flash_parser = subparsers.add_parser(
+        "lightflash", description="Flash the vehicle lights."
+    )
     _add_default_arguments(flash_parser)
     flash_parser.add_argument("vin", help=TEXT_VIN)
     flash_parser.set_defaults(func=light_flash)
@@ -67,20 +84,30 @@ def main_parser() -> argparse.ArgumentParser:
     horn_parser.add_argument("vin", help=TEXT_VIN)
     horn_parser.set_defaults(func=horn)
 
-    finder_parser = subparsers.add_parser("vehiclefinder", description="Update the vehicle GPS location.")
+    finder_parser = subparsers.add_parser(
+        "vehiclefinder", description="Update the vehicle GPS location."
+    )
     _add_default_arguments(finder_parser)
     finder_parser.add_argument("vin", help=TEXT_VIN)
     _add_position_arguments(finder_parser)
     finder_parser.set_defaults(func=vehicle_finder)
 
-    chargingsettings_parser = subparsers.add_parser("chargingsettings", description="Set vehicle charging settings.")
+    chargingsettings_parser = subparsers.add_parser(
+        "chargingsettings", description="Set vehicle charging settings."
+    )
     _add_default_arguments(chargingsettings_parser)
     chargingsettings_parser.add_argument("vin", help=TEXT_VIN)
-    chargingsettings_parser.add_argument("--target-soc", help="Desired charging target SoC", nargs="?", type=int)
-    chargingsettings_parser.add_argument("--ac-limit", help="Maximum AC limit", nargs="?", type=int)
+    chargingsettings_parser.add_argument(
+        "--target-soc", help="Desired charging target SoC", nargs="?", type=int
+    )
+    chargingsettings_parser.add_argument(
+        "--ac-limit", help="Maximum AC limit", nargs="?", type=int
+    )
     chargingsettings_parser.set_defaults(func=chargingsettings)
 
-    chargingprofile_parser = subparsers.add_parser("chargingprofile", description="Set vehicle charging profile.")
+    chargingprofile_parser = subparsers.add_parser(
+        "chargingprofile", description="Set vehicle charging profile."
+    )
     _add_default_arguments(chargingprofile_parser)
     chargingprofile_parser.add_argument("vin", help=TEXT_VIN)
     chargingprofile_parser.add_argument(
@@ -91,63 +118,100 @@ def main_parser() -> argparse.ArgumentParser:
         choices=[cm.value for cm in ChargingMode if cm != ChargingMode.UNKNOWN],
     )
     chargingprofile_parser.add_argument(
-        "--precondition-climate", help="Precondition climate on charging windows", nargs="?", type=bool
+        "--precondition-climate",
+        help="Precondition climate on charging windows",
+        nargs="?",
+        type=bool,
     )
     chargingprofile_parser.set_defaults(func=chargingprofile)
 
-    charge_parser = subparsers.add_parser("charge", description="Start/stop charging on enabled vehicles.")
+    charge_parser = subparsers.add_parser(
+        "charge", description="Start/stop charging on enabled vehicles."
+    )
     _add_default_arguments(charge_parser)
     charge_parser.add_argument("vin", help=TEXT_VIN)
     charge_parser.add_argument("action", type=str, choices=["start", "stop"])
     charge_parser.set_defaults(func=charge)
 
-    image_parser = subparsers.add_parser("image", description="Download a vehicle image.")
+    image_parser = subparsers.add_parser(
+        "image", description="Download a vehicle image."
+    )
     _add_default_arguments(image_parser)
     image_parser.add_argument("vin", help=TEXT_VIN)
     image_parser.set_defaults(func=image)
 
-    sendpoi_parser = subparsers.add_parser("sendpoi", description="Send a point of interest to the vehicle.")
+    sendpoi_parser = subparsers.add_parser(
+        "sendpoi", description="Send a point of interest to the vehicle."
+    )
     _add_default_arguments(sendpoi_parser)
     sendpoi_parser.add_argument("vin", help=TEXT_VIN)
     sendpoi_parser.add_argument("latitude", help="Latitude of the POI", type=float)
     sendpoi_parser.add_argument("longitude", help="Longitude of the POI", type=float)
-    sendpoi_parser.add_argument("--name", help="Name of the POI", nargs="?", default=DEFAULT_POI_NAME)
     sendpoi_parser.add_argument(
-        "--street", help="(optional, display only) Street & House No. of the POI", nargs="?", default=None
-    )
-    sendpoi_parser.add_argument("--city", help="(optional, display only) City of the POI", nargs="?", default=None)
-    sendpoi_parser.add_argument(
-        "--postalcode", help="(optional, display only) Postal code of the POI", nargs="?", default=None
+        "--name", help="Name of the POI", nargs="?", default=DEFAULT_POI_NAME
     )
     sendpoi_parser.add_argument(
-        "--country", help="(optional, display only) Country of the POI", nargs="?", default=None
+        "--street",
+        help="(optional, display only) Street & House No. of the POI",
+        nargs="?",
+        default=None,
+    )
+    sendpoi_parser.add_argument(
+        "--city",
+        help="(optional, display only) City of the POI",
+        nargs="?",
+        default=None,
+    )
+    sendpoi_parser.add_argument(
+        "--postalcode",
+        help="(optional, display only) Postal code of the POI",
+        nargs="?",
+        default=None,
+    )
+    sendpoi_parser.add_argument(
+        "--country",
+        help="(optional, display only) Country of the POI",
+        nargs="?",
+        default=None,
     )
     sendpoi_parser.set_defaults(func=send_poi)
 
     sendpoi_from_address_parser = subparsers.add_parser(
-        "sendpoi_from_address", description=("Send a point of interest parsed from a street address to the vehicle.")
+        "sendpoi_from_address",
+        description=(
+            "Send a point of interest parsed from a street address to the vehicle."
+        ),
     )
     _add_default_arguments(sendpoi_from_address_parser)
     sendpoi_from_address_parser.add_argument("vin", help=TEXT_VIN)
     sendpoi_from_address_parser.add_argument(
-        "-n", "--name", help="(optional, display only) Name of the POI", nargs="?", default=None
+        "-n",
+        "--name",
+        help="(optional, display only) Name of the POI",
+        nargs="?",
+        default=None,
     )
     sendpoi_from_address_parser.add_argument(
-        "-a", "--address", nargs="+", help="Address (e.g. 'Street 17, city, zip, country')"
+        "-a",
+        "--address",
+        nargs="+",
+        help="Address (e.g. 'Street 17, city, zip, country')",
     )
     sendpoi_from_address_parser.set_defaults(func=send_poi_from_address)
-    
-    climate_start_parser = subparsers.add_parser("climate_start", description="Climate Control Start")
+
+    climate_start_parser = subparsers.add_parser(
+        "climate_start", description="Climate Control Start"
+    )
     _add_default_arguments(climate_start_parser)
     climate_start_parser.add_argument("vin", help=TEXT_VIN)
     climate_start_parser.set_defaults(func=climate_start)
 
-    climate_stop_parser = subparsers.add_parser("climate_stop", description="Climate Control Stop")
+    climate_stop_parser = subparsers.add_parser(
+        "climate_stop", description="Climate Control Stop"
+    )
     _add_default_arguments(climate_stop_parser)
     climate_stop_parser.add_argument("vin", help=TEXT_VIN)
     climate_stop_parser.set_defaults(func=climate_stop)
-
-
 
     return parser
 
@@ -162,11 +226,17 @@ async def get_status(account: MyBMWAccount, args) -> None:
 
     if args.json:
         if args.vin:
-            print(json.dumps(get_vehicle_or_return(account, args.vin), cls=MyBMWJSONEncoder))
+            print(
+                json.dumps(
+                    get_vehicle_or_return(account, args.vin), cls=MyBMWJSONEncoder
+                )
+            )
         else:
             print(json.dumps(account.vehicles, cls=MyBMWJSONEncoder))
     else:
-        print(f"Found {len(account.vehicles)} vehicles: {','.join([v.name for v in account.vehicles])}")
+        print(
+            f"Found {len(account.vehicles)} vehicles: {','.join([v.name for v in account.vehicles])}"
+        )
 
         for vehicle in account.vehicles:
             if args.vin and vehicle.vin != args.vin:
@@ -182,7 +252,9 @@ def get_vehicle_or_return(account: MyBMWAccount, vin: str) -> MyBMWVehicle:
     vehicle = account.get_vehicle(vin)
     if not vehicle:
         valid_vins = ", ".join(v.vin for v in account.vehicles)
-        raise KeyError(f"Error: Could not find vehicle for VIN {vin}. Valid VINs are: {valid_vins}")
+        raise KeyError(
+            f"Error: Could not find vehicle for VIN {vin}. Valid VINs are: {valid_vins}"
+        )
     return vehicle
 
 
@@ -221,13 +293,20 @@ async def vehicle_finder(account: MyBMWAccount, args) -> None:
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_remote_vehicle_finder()
     print(status.state)
-    print({"gps_position": vehicle.vehicle_location.location, "heading": vehicle.vehicle_location.heading})
+    print(
+        {
+            "gps_position": vehicle.vehicle_location.location,
+            "heading": vehicle.vehicle_location.heading,
+        }
+    )
 
 
 async def chargingsettings(account: MyBMWAccount, args) -> None:
     """Trigger a change to charging settings."""
     if not args.target_soc and not args.ac_limit:
-        raise ValueError("At least one of 'charging-target' and 'ac-limit' has to be provided.")
+        raise ValueError(
+            "At least one of 'charging-target' and 'ac-limit' has to be provided."
+        )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_charging_settings_update(
@@ -239,7 +318,9 @@ async def chargingsettings(account: MyBMWAccount, args) -> None:
 async def chargingprofile(account: MyBMWAccount, args) -> None:
     """Trigger a change to charging profile."""
     if not args.charging_mode and not args.precondition_climate:
-        raise ValueError("At least one of 'charging-mode' and 'precondition-climate' has to be provided.")
+        raise ValueError(
+            "At least one of 'charging-mode' and 'precondition-climate' has to be provided."
+        )
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
     status = await vehicle.remote_services.trigger_charging_profile_update(
@@ -252,7 +333,9 @@ async def charge(account: MyBMWAccount, args) -> None:
     """Trigger a vehicle to start or stop charging."""
     await account.get_vehicles()
     vehicle = get_vehicle_or_return(account, args.vin)
-    status = await getattr(vehicle.remote_services, f"trigger_charge_{args.action.lower()}")()
+    status = await getattr(
+        vehicle.remote_services, f"trigger_charge_{args.action.lower()}"
+    )()
     print(status.state)
 
 
@@ -265,7 +348,9 @@ async def image(account: MyBMWAccount, args) -> None:
         if viewdirection == VehicleViewDirection.UNKNOWN:
             continue
         filename = (Path.cwd() / str(viewdirection.name).lower()).with_suffix(".png")
-        await asyncio.to_thread(filename.write_bytes, await vehicle.get_vehicle_image(viewdirection))
+        await asyncio.to_thread(
+            filename.write_bytes, await vehicle.get_vehicle_image(viewdirection)
+        )
         print(f"vehicle image saved to {filename}")
 
 
@@ -325,6 +410,7 @@ async def climate_start(account: MyBMWAccount, args) -> None:
     status = await vehicle.remote_services.trigger_remote_air_conditioning()
     print(status.state)
 
+
 async def climate_stop(account: MyBMWAccount, args) -> None:
     """Turn Off Climate Control."""
     await account.get_vehicles()
@@ -333,22 +419,36 @@ async def climate_stop(account: MyBMWAccount, args) -> None:
     print(status.state)
 
 
-
 def _add_default_arguments(parser: argparse.ArgumentParser):
     """Add the default arguments username, password, region to the parser."""
     parser.add_argument("username", help="Connected Drive username")
     parser.add_argument("password", help="Connected Drive password")
-    parser.add_argument("region", choices=valid_regions(), help="Region of the Connected Drive account")
     parser.add_argument(
-        "--captcha-token", type=str, nargs="?", help="Captcha token required for North America and Rest of World."
+        "region", choices=valid_regions(), help="Region of the Connected Drive account"
+    )
+    parser.add_argument(
+        "--captcha-token",
+        type=str,
+        nargs="?",
+        help="Captcha token required for North America and Rest of World.",
     )
 
 
 def _add_position_arguments(parser: argparse.ArgumentParser):
     """Add the lat and lng attributes to the parser."""
-    parser.add_argument("lat", type=float, nargs="?", const=0.0, help="(optional) Your current GPS latitude (as float)")
     parser.add_argument(
-        "lng", type=float, nargs="?", const=0.0, help="(optional) Your current GPS longitude (as float)"
+        "lat",
+        type=float,
+        nargs="?",
+        const=0.0,
+        help="(optional) Your current GPS latitude (as float)",
+    )
+    parser.add_argument(
+        "lng",
+        type=float,
+        nargs="?",
+        const=0.0,
+        help="(optional) Your current GPS longitude (as float)",
     )
     parser.set_defaults(func=get_status)
 
@@ -374,7 +474,9 @@ def load_oauth_store_from_file(oauth_store: Path, account: MyBMWAccount) -> Dict
 
 
 def store_oauth_store_to_file(
-    oauth_store: Path, account: MyBMWAccount, session_id_timestamp: Optional[float] = None
+    oauth_store: Path,
+    account: MyBMWAccount,
+    session_id_timestamp: Optional[float] = None,
 ) -> None:
     """Store the OAuth details to a file."""
     oauth_store.parent.mkdir(parents=True, exist_ok=True)
@@ -401,7 +503,10 @@ def main():
         logging.getLogger("asyncio").setLevel(logging.WARNING)
 
     account = MyBMWAccount(
-        args.username, args.password, get_region_from_name(args.region), hcaptcha_token=args.captcha_token
+        args.username,
+        args.password,
+        get_region_from_name(args.region),
+        hcaptcha_token=args.captcha_token,
     )
 
     oauth_store_data = load_oauth_store_from_file(args.oauth_store, account)
@@ -415,7 +520,9 @@ def main():
     finally:
         # Ensure that the OAuth2 tokens are stored even if an exception occurred
         if not args.disable_oauth_store:
-            store_oauth_store_to_file(args.oauth_store, account, oauth_store_data.get("session_id_timestamp"))
+            store_oauth_store_to_file(
+                args.oauth_store, account, oauth_store_data.get("session_id_timestamp")
+            )
 
 
 if __name__ == "__main__":
