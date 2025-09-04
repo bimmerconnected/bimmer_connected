@@ -11,6 +11,9 @@ import mimetypes
 import random
 import re
 import string
+import sys
+import uuid
+import subprocess
 from typing import Dict, List, Optional, Union
 from uuid import uuid4
 
@@ -25,7 +28,6 @@ from bimmer_connected.models import AnonymizedResponse, MyBMWAPIError, MyBMWAuth
 UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
 RE_VIN = re.compile(r"(?P<vin>[(A-H|J-N|P|R-Z|0-9)]{3}[A-Z0-9]{14})")
 ANONYMIZED_VINS: Dict[str, str] = {}
-
 
 def generate_token(length: int = 30, chars: str = UNICODE_CHARACTER_SET) -> str:
     """Generate a random token with given length and characters."""
@@ -244,3 +246,68 @@ def try_import_pillow_image():
             "Missing dependencies for region 'china'. Please install using bimmerconnected[china]."
         ) from ex
     return image
+
+
+def _get_system_uuid():
+    if sys.platform.startswith("linux"):
+        try:
+            with open("/etc/machine-id", "r") as f:
+                return f.read().strip()
+        except FileNotFoundError:
+            pass
+
+    if sys.platform == "darwin":  # macOS
+        try:
+            output = subprocess.check_output(
+                ["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"],
+                text=True
+            )
+            for line in output.splitlines():
+                if "IOPlatformUUID" in line:
+                    return line.split('"')[-2]
+        except Exception:
+            pass
+
+    if sys.platform == "win32":  # Windows
+        try:
+            import winreg
+            key = winreg.OpenKey(
+                winreg.HKEY_LOCAL_MACHINE,
+                r"SOFTWARE\Microsoft\Cryptography"
+            )
+            value, _ = winreg.QueryValueEx(key, "MachineGuid")
+            return value
+        except Exception:
+            pass
+
+    # Fallback → MAC address
+    return hex(uuid.getnode())
+
+
+def get_x_user_agent_buildstring():
+    system_uuid = _get_system_uuid()
+
+    # Stable hash (always the same on the same system)
+    digest = hashlib.sha1(system_uuid.encode()).hexdigest().upper()
+
+    # 6-digit numeric component from hash → iterate all digits
+    digits = "".join(ch for ch in digest if ch.isdigit())
+
+    numeric = digits[:6]  # take maximum 6 digits
+    numeric = numeric.ljust(6, "0")  # if less than 6, pad with zeros to the right
+
+    # last 3 digits build number from hash
+    build_num = digits[-3:]
+    build_num = build_num.rjust(3, "0")
+
+    # Prefix depending on OS
+    if sys.platform.startswith("linux"):
+        prefix = "LP1A"
+    elif sys.platform == "darwin":
+        prefix = "DP1A"
+    elif sys.platform == "win32":
+        prefix = "WP1A"
+    else:
+        prefix = "XP1A"
+
+    return f"{prefix}.{numeric}.{build_num}"

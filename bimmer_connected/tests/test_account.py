@@ -8,6 +8,7 @@ from unittest import mock
 import httpx
 import pytest
 import respx
+import re
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
@@ -778,3 +779,23 @@ async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: 
     await account.get_vehicles()
     assert account is not None
     assert len(account.vehicles) > 0
+
+
+def test_x_user_agent():
+    """
+    Test that the X-User-Agent header contains 'android' and
+    a correctly formatted buildstring (PREFIX.NUMERIC.BUILD.PATCH).
+    """
+
+    # Default
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
+    metric_client = MyBMWClient(account.config)
+    header_value = metric_client.generate_default_header()["x-user-agent"]
+
+    print (header_value)
+
+    assert "android" in header_value, f"'android' not found in X-User-Agent: {header_value}"
+
+    pattern = r"\([A-Z0-9]{4}\.[0-9]{6}\.[A-F0-9]{3}\)"
+    match = re.search(pattern, header_value)
+    assert match, f"Buildstring format incorrect in X-User-Agent: {header_value}"

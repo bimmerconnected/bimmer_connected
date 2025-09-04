@@ -10,7 +10,7 @@ import httpx
 
 from bimmer_connected.api.authentication import MyBMWAuthentication
 from bimmer_connected.api.regions import get_app_version, get_server_url, get_user_agent
-from bimmer_connected.api.utils import anonymize_response, get_correlation_id, handle_httpstatuserror
+from bimmer_connected.api.utils import anonymize_response, get_correlation_id, handle_httpstatuserror, get_x_user_agent_buildstring
 from bimmer_connected.const import HTTPX_TIMEOUT, X_USER_AGENT, CarBrands
 from bimmer_connected.models import AnonymizedResponse, GPSPosition
 
@@ -90,6 +90,7 @@ class MyBMWClient(httpx.AsyncClient):
             "x-raw-locale": "en-US",
             "user-agent": get_user_agent(self.config.authentication.region),
             "x-user-agent": X_USER_AGENT.format(
+                build_string=get_x_user_agent_buildstring(),
                 brand=(brand or CarBrands.BMW).value,
                 app_version=get_app_version(self.config.authentication.region),
                 region=self.config.authentication.region.value,
