@@ -22,9 +22,9 @@ from bimmer_connected.api.utils import (
     generate_token,
     get_capture_position,
     get_correlation_id,
+    get_x_user_agent_buildstring,
     handle_httpstatuserror,
     try_import_pillow_image,
-    get_x_user_agent_buildstring,
 )
 from bimmer_connected.const import (
     AUTH_CHINA_CAPTCHA_CHECK_URL,

@@ -10,11 +10,11 @@ import logging
 import mimetypes
 import random
 import re
+import socket
 import string
 import uuid
 from typing import Dict, List, Optional, Union
 from uuid import uuid4
-import socket
 
 import httpx
 from Crypto.Cipher import AES
@@ -249,12 +249,15 @@ def try_import_pillow_image():
 
 def get_x_user_agent_buildstring():
     """
+    Usage uuid.getnode().
+
     On some systems (e.g., in containers, VMs, or when no network card is visible), uuid.getnode()
     cannot determine the true MAC.
 
     In this case, Python generates a random 48-bit number with the "multicast bit" set. Thus, not
     stable across reboots! But perfectly sufficient for our purposes.
     """
+
     system_uuid = f"{socket.gethostname()}-{uuid.getnode()}"
 
     # Stable hash

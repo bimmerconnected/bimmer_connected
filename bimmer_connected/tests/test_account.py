@@ -2,13 +2,13 @@
 
 import datetime
 import logging
+import re
 from pathlib import Path
 from unittest import mock
 
 import httpx
 import pytest
 import respx
-import re
 
 from bimmer_connected.account import MyBMWAccount
 from bimmer_connected.api.authentication import MyBMWAuthentication, MyBMWLoginRetry
@@ -782,10 +782,7 @@ async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: 
 
 
 def test_x_user_agent():
-    """
-    Test that the X-User-Agent header contains 'android' and
-    a correctly formatted buildstring (PREFIX.NUMERIC.BUILD.PATCH).
-    """
+    """Test that X-User-Agent contains 'android' and correctly formatted build-string (PREFIX.NUMERIC.BUILD.PATCH)."""
 
     # Default
     account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
