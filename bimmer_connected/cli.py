@@ -57,6 +57,16 @@ def main_parser() -> argparse.ArgumentParser:
     _add_position_arguments(fingerprint_parser)
     fingerprint_parser.set_defaults(func=fingerprint)
 
+    lock_parser = subparsers.add_parser("lock", description="Lock the doors of the vehicle")
+    _add_default_arguments(lock_parser)
+    lock_parser.add_argument("vin", help=TEXT_VIN)
+    lock_parser.set_defaults(func=door_lock)
+
+    unlock_parser = subparsers.add_parser("unlock", description="Unlock the doors of the vehicle")
+    _add_default_arguments(unlock_parser)
+    unlock_parser.add_argument("vin", help=TEXT_VIN)
+    unlock_parser.set_defaults(func=door_unlock)
+
     flash_parser = subparsers.add_parser("lightflash", description="Flash the vehicle lights.")
     _add_default_arguments(flash_parser)
     flash_parser.add_argument("vin", help=TEXT_VIN)
@@ -184,6 +194,22 @@ async def fingerprint(account: MyBMWAccount, args) -> None:
 
     log_response_store_to_file(account.get_stored_responses(), time_dir)
     print(f"fingerprint of the vehicles written to {time_dir}")
+
+
+async def door_lock(account: MyBMWAccount, args) -> None:
+    """Trigger the vehicle to lock its doors."""
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_remote_door_lock()
+    print(status.state)
+
+
+async def door_unlock(account: MyBMWAccount, args) -> None:
+    """Trigger the vehicle to unlock its doors."""
+    await account.get_vehicles()
+    vehicle = get_vehicle_or_return(account, args.vin)
+    status = await vehicle.remote_services.trigger_remote_door_unlock()
+    print(status.state)
 
 
 async def light_flash(account: MyBMWAccount, args) -> None:
