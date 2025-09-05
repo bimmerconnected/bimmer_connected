@@ -11,11 +11,10 @@ import mimetypes
 import random
 import re
 import string
-import sys
 import uuid
-import subprocess
 from typing import Dict, List, Optional, Union
 from uuid import uuid4
+import socket
 
 import httpx
 from Crypto.Cipher import AES
@@ -248,50 +247,21 @@ def try_import_pillow_image():
     return image
 
 
-def _get_system_uuid():
-    if sys.platform.startswith("linux"):
-        try:
-            with open("/etc/machine-id", "r") as f:
-                return f.read().strip()
-        except FileNotFoundError:
-            pass
-
-    if sys.platform == "darwin":  # macOS
-        try:
-            output = subprocess.check_output(
-                ["ioreg", "-rd1", "-c", "IOPlatformExpertDevice"],
-                text=True
-            )
-            for line in output.splitlines():
-                if "IOPlatformUUID" in line:
-                    return line.split('"')[-2]
-        except Exception:
-            pass
-
-    if sys.platform == "win32":  # Windows
-        try:
-            import winreg
-            key = winreg.OpenKey(
-                winreg.HKEY_LOCAL_MACHINE,
-                r"SOFTWARE\Microsoft\Cryptography"
-            )
-            value, _ = winreg.QueryValueEx(key, "MachineGuid")
-            return value
-        except Exception:
-            pass
-
-    # Fallback → MAC address
-    return hex(uuid.getnode())
-
-
 def get_x_user_agent_buildstring():
-    system_uuid = _get_system_uuid()
+    """
+    On some systems (e.g., in containers, VMs, or when no network card is visible), uuid.getnode()
+    cannot determine the true MAC.
 
-    # Stable hash (always the same on the same system)
-    digest = hashlib.sha1(system_uuid.encode()).hexdigest().upper()
+    In this case, Python generates a random 48-bit number with the "multicast bit" set. Thus, not
+    stable across reboots! But perfectly sufficient for our purposes.
+    """
+    system_uuid = f"{socket.gethostname()}-{uuid.getnode()}"
+
+    # Stable hash
+    uid = uuid.uuid5(uuid.NAMESPACE_DNS, system_uuid).hex.upper()
 
     # 6-digit numeric component from hash → iterate all digits
-    digits = "".join(ch for ch in digest if ch.isdigit())
+    digits = "".join(ch for ch in uid if ch.isdigit())
 
     numeric = digits[:6]  # take maximum 6 digits
     numeric = numeric.ljust(6, "0")  # if less than 6, pad with zeros to the right
@@ -300,14 +270,4 @@ def get_x_user_agent_buildstring():
     build_num = digits[-3:]
     build_num = build_num.rjust(3, "0")
 
-    # Prefix depending on OS
-    if sys.platform.startswith("linux"):
-        prefix = "LP1A"
-    elif sys.platform == "darwin":
-        prefix = "DP1A"
-    elif sys.platform == "win32":
-        prefix = "WP1A"
-    else:
-        prefix = "XP1A"
-
-    return f"{prefix}.{numeric}.{build_num}"
+    return f"AP2A.{numeric}.{build_num}"
