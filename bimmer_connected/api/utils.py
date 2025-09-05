@@ -10,7 +10,9 @@ import logging
 import mimetypes
 import random
 import re
+import socket
 import string
+import uuid
 from typing import Dict, List, Optional, Union
 from uuid import uuid4
 
@@ -78,7 +80,7 @@ async def handle_httpstatuserror(
     try:
         # Try parsing the known BMW API error JSON
         _err = ex.response.json()
-        _err_message = f'{type(ex).__name__}: {_err["error"]} - {_err.get("error_description", "")}'
+        _err_message = f"{type(ex).__name__}: {_err['error']} - {_err.get('error_description', '')}"
     except (json.JSONDecodeError, KeyError):
         # If format has changed or is not JSON
         _err_message = f"{type(ex).__name__}: {ex.response.text or str(ex)}"
@@ -244,3 +246,32 @@ def try_import_pillow_image():
             "Missing dependencies for region 'china'. Please install using bimmerconnected[china]."
         ) from ex
     return image
+
+
+def get_x_user_agent_buildstring():
+    """
+    Usage uuid.getnode().
+
+    On some systems (e.g., in containers, VMs, or when no network card is visible), uuid.getnode()
+    cannot determine the true MAC.
+
+    In this case, Python generates a random 48-bit number with the "multicast bit" set. Thus, not
+    stable across reboots! But perfectly sufficient for our purposes.
+    """
+
+    system_uuid = f"{socket.gethostname()}-{uuid.getnode()}"
+
+    # Stable hash
+    uid = uuid.uuid5(uuid.NAMESPACE_DNS, system_uuid).hex.upper()
+
+    # 6-digit numeric component from hash → iterate all digits
+    digits = "".join(ch for ch in uid if ch.isdigit())
+
+    numeric = digits[:6]  # take maximum 6 digits
+    numeric = numeric.ljust(6, "0")  # if less than 6, pad with zeros to the right
+
+    # last 3 digits build number from hash
+    build_num = digits[-3:]
+    build_num = build_num.rjust(3, "0")
+
+    return f"AP2A.{numeric}.{build_num}"

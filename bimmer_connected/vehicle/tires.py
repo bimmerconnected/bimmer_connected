@@ -20,7 +20,7 @@ class TireState:
         if details:
             self.season = details.get("season")
             if details.get("manufacturingWeek"):
-                iso_string = f"20{details['manufacturingWeek'] % 100}." f"{int(details['manufacturingWeek'] / 100)}.1"
+                iso_string = f"20{details['manufacturingWeek'] % 100}.{int(details['manufacturingWeek'] / 100)}.1"
                 self.manufacturing_week = datetime.strptime(
                     iso_string,
                     "%G.%V.%u",

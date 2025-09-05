@@ -2,6 +2,7 @@
 
 import datetime
 import logging
+import re
 from pathlib import Path
 from unittest import mock
 
@@ -778,3 +779,18 @@ async def test_pillow_unavailable(monkeypatch: pytest.MonkeyPatch, bmw_fixture: 
     await account.get_vehicles()
     assert account is not None
     assert len(account.vehicles) > 0
+
+
+def test_x_user_agent():
+    """Test that X-User-Agent contains 'android' and correctly formatted build-string (PREFIX.NUMERIC.BUILD.PATCH)."""
+
+    # Default
+    account = MyBMWAccount(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
+    metric_client = MyBMWClient(account.config)
+    header_value = metric_client.generate_default_header()["x-user-agent"]
+
+    assert "android" in header_value, f"'android' not found in X-User-Agent: {header_value}"
+
+    pattern = r"\([A-Z0-9]{4}\.[0-9]{6}\.[A-F0-9]{3}\)"
+    match = re.search(pattern, header_value)
+    assert match, f"Buildstring format incorrect in X-User-Agent: {header_value}"

@@ -22,6 +22,7 @@ from bimmer_connected.api.utils import (
     generate_token,
     get_capture_position,
     get_correlation_id,
+    get_x_user_agent_buildstring,
     handle_httpstatuserror,
     try_import_pillow_image,
 )
@@ -219,7 +220,10 @@ class MyBMWAuthentication(httpx.Auth):
                 params={
                     "interaction-id": uuid4(),
                     "client-version": X_USER_AGENT.format(
-                        brand="bmw", app_version=get_app_version(self.region), region=self.region.value
+                        build_string=get_x_user_agent_buildstring(),
+                        brand="bmw",
+                        app_version=get_app_version(self.region),
+                        region=self.region.value,
                     ),
                 },
                 data=dict(oauth_base_values, **{"authorization": authorization}),
@@ -394,7 +398,12 @@ class MyBMWLoginClient(httpx.AsyncClient):
         kwargs["base_url"] = get_server_url(region)
         kwargs["headers"] = {
             "user-agent": get_user_agent(region),
-            "x-user-agent": X_USER_AGENT.format(brand="bmw", app_version=get_app_version(region), region=region.value),
+            "x-user-agent": X_USER_AGENT.format(
+                build_string=get_x_user_agent_buildstring(),
+                brand="bmw",
+                app_version=get_app_version(region),
+                region=region.value,
+            ),
         }
 
         # Register event hooks
