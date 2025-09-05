@@ -789,8 +789,6 @@ def test_x_user_agent():
     metric_client = MyBMWClient(account.config)
     header_value = metric_client.generate_default_header()["x-user-agent"]
 
-    print (header_value)
-
     assert "android" in header_value, f"'android' not found in X-User-Agent: {header_value}"
 
     pattern = r"\([A-Z0-9]{4}\.[0-9]{6}\.[A-F0-9]{3}\)"

@@ -221,7 +221,9 @@ class MyBMWAuthentication(httpx.Auth):
                     "interaction-id": uuid4(),
                     "client-version": X_USER_AGENT.format(
                         build_string=get_x_user_agent_buildstring(),
-                        brand="bmw", app_version=get_app_version(self.region), region=self.region.value
+                        brand="bmw",
+                        app_version=get_app_version(self.region),
+                        region=self.region.value,
                     ),
                 },
                 data=dict(oauth_base_values, **{"authorization": authorization}),
@@ -400,7 +402,7 @@ class MyBMWLoginClient(httpx.AsyncClient):
                 build_string=get_x_user_agent_buildstring(),
                 brand="bmw",
                 app_version=get_app_version(region),
-                region=region.value
+                region=region.value,
             ),
         }
 

@@ -28,6 +28,7 @@ UNICODE_CHARACTER_SET = string.ascii_letters + string.digits + "-._~"
 RE_VIN = re.compile(r"(?P<vin>[(A-H|J-N|P|R-Z|0-9)]{3}[A-Z0-9]{14})")
 ANONYMIZED_VINS: Dict[str, str] = {}
 
+
 def generate_token(length: int = 30, chars: str = UNICODE_CHARACTER_SET) -> str:
     """Generate a random token with given length and characters."""
     rand = random.SystemRandom()
@@ -79,7 +80,7 @@ async def handle_httpstatuserror(
     try:
         # Try parsing the known BMW API error JSON
         _err = ex.response.json()
-        _err_message = f'{type(ex).__name__}: {_err["error"]} - {_err.get("error_description", "")}'
+        _err_message = f"{type(ex).__name__}: {_err['error']} - {_err.get('error_description', '')}"
     except (json.JSONDecodeError, KeyError):
         # If format has changed or is not JSON
         _err_message = f"{type(ex).__name__}: {ex.response.text or str(ex)}"
