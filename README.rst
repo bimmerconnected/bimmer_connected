@@ -18,12 +18,14 @@ bimmer_connected
 
 Library not working anymore due to changes at BMW side
 ======================================================
-On September 29, 2025, BMW has blocked third parties (i.e. the BMW Connected Drive integration) from executing requests against BMW servers. BMW enforced additional security checks within the MyBMW app to block third parties (not only Home Assistant, but also other companies such as energy providers).
+On September 29, 2025, BMW has blocked third parties (i.e. this library used for the Home Assistant BMW Connected Drive integration) from executing requests against BMW servers. BMW enforced additional security checks within the MyBMW app to block third parties (not only this library, but also other companies such as energy providers).
 
 BMW has released BMW Cardata for EU users, see these custom integrations which can be used with Home Assistant or via MQTT with other domotica systems.
 
 * https://github.com/kvanbiesen/bmw-cardata-ha
 * https://github.com/dj0abr/bmw-mqtt-bridge
+* https://github.com/sincze/bmw-cardata-ha-mqtt
+* https://github.com/JoaoPedroBelo/bmw-wallbox-ha
 
 
 Library
