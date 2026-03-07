@@ -160,7 +160,7 @@ def test_oauth_store_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     assert set(oauth_storage.keys()) == {"access_token", "refresh_token", "gcid", "session_id", "session_id_timestamp"}
 
 
-@time_machine.travel("2021-11-28 21:28:59 +0000")
+@time_machine.travel("2021-11-28 21:28:59+00:00")
 @pytest.mark.usefixtures("cli_home_dir")
 def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     """Test loading and storing the oauth credentials."""
@@ -196,7 +196,7 @@ def test_oauth_load_credentials(cli_home_dir: Path, bmw_fixture: respx.Router):
     assert oauth_storage["session_id"] == demo_oauth_data["session_id"]
 
 
-@time_machine.travel("2021-11-28 21:28:59 +0000")
+@time_machine.travel("2021-11-28 21:28:59+00:00")
 @pytest.mark.usefixtures("cli_home_dir")
 def test_oauth_load_credentials_old_session_id(cli_home_dir: Path, bmw_fixture: respx.Router):
     """Test loading and storing the oauth credentials and getting a new session_id."""
@@ -206,7 +206,7 @@ def test_oauth_load_credentials_old_session_id(cli_home_dir: Path, bmw_fixture: 
         "refresh_token": "demo_refresh_token",
         "gcid": "demo_gcid",
         "session_id": "demo_session_id",
-        "session_id_timestamp": 1636838939,  # 2021-11-13 21:28:59 +0000
+        "session_id_timestamp": 1636838939,  # 2021-11-13 21:28:59+00:00
     }
 
     (cli_home_dir / ".bimmer_connected.json").write_text(json.dumps(demo_oauth_data))
@@ -228,7 +228,7 @@ def test_oauth_load_credentials_old_session_id(cli_home_dir: Path, bmw_fixture: 
     assert oauth_storage["session_id_timestamp"] == pytest.approx(time.time(), abs=5)
 
 
-@time_machine.travel("2021-11-28 21:28:59 +0000")
+@time_machine.travel("2021-11-28 21:28:59+00:00")
 @pytest.mark.usefixtures("cli_home_dir")
 def test_oauth_store_credentials_on_error(cli_home_dir: Path, bmw_fixture: respx.Router):
     """Test loading and storing the oauth credentials, even if a call errors out."""

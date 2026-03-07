@@ -51,6 +51,7 @@ ignore = [
     "D100", # Missing docstring in public module
     "D105", # Missing docstring in magic method
     "D107", # Missing docstring in `__init__`
+    "FURB171",  # Membership test against single-item container
     "PLR0913",  # Too many arguments in function definition
     "PLR2004",  # Magic value used in comparison
     "PLW1641",  # Object does not implement `__hash__` method

@@ -23,6 +23,8 @@ VALID_UNTIL_OFFSET = datetime.timedelta(seconds=10)
 
 _LOGGER = logging.getLogger(__name__)
 
+_LOGGER.error("'bimmer_connected' is non-functional due to changes in the MyBMW API.")
+
 
 @dataclass
 class MyBMWAccount:

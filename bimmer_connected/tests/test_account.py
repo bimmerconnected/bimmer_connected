@@ -750,7 +750,7 @@ async def test_client_async_only(bmw_fixture: respx.Router):
     with httpx.Client(
         auth=MyBMWAuthentication(TEST_USERNAME, TEST_PASSWORD, TEST_REGION, hcaptcha_token=TEST_CAPTCHA)
     ) as client, pytest.raises(RuntimeError):
-        client.get("/eadrax-ucs/v1/presentation/oauth/config")
+        client.get("/eadrax-ucs/v1/presentation/oauth/config")  # noqa: ASYNC212
 
     with httpx.Client(auth=MyBMWLoginRetry()) as client, pytest.raises(RuntimeError):
         client.get("/eadrax-ucs/v1/presentation/oauth/config")
